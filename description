@@ -1,0 +1,8 @@
+Plugin de FacturaScripts para manejo de Distribución de productos/articulos.
+<ul>
+<li>Agrupación de facturas en un transporte</li>
+<li>Creación de unidades de transporte</li>
+<li>Recepción de devoluciones de distribución</li>
+<li>Liquidación de transportes con generación de notas de credito</li>
+<li>Generación de Pagos de Facturas al liquidar un transporte</li>
+</ul>
