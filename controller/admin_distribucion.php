@@ -17,6 +17,10 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
+require_model('almacen.php');
+require_model('pais.php');
+require_model('agencia_transporte.php');
+require_model('distribucion_tipounidad.php');
 
 /**
  * Description of admin_distribucion
@@ -24,13 +28,19 @@
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class admin_distribucion extends fs_controller {
-
+    public $distribucion_tipounidad;
+    
     public function __construct() {
         parent::__construct(__CLASS__, '1 - Configuración', 'distribucion');
     }
     
     public function private_core(){
+        $this->distribucion_tipounidad = new distribucion_tipounidad();
         
+        if($_GET['delete']){
+            $this->delete_tipounidad($_GET['delete']);
+        }
+
     }
 
 }

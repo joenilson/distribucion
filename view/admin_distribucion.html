@@ -1,3 +1,104 @@
 {include="header"}
-Página en desarrollo...
+<script type="text/javascript">
+   function delete_tipounidad(cod)
+   {
+      if( confirm("¿Realmente desea eliminar la unidad "+cod+"?") )
+         window.location.href = '{$fsc->url()}&delete='+cod;
+   }
+</script>
+
+<div class="container">
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="page-header">
+            <h1>
+               <span class="glyphicon glyphicon-transfer"></span>
+               Tipo de Unidades de transporte
+               <a class="btn btn-xs btn-default" href="{$fsc->url()}" title="Recargar la página">
+                  <span class="glyphicon glyphicon-refresh"></span>
+               </a>
+               <span class="btn-group">
+                  {loop="$fsc->extensions"}
+                     {if="$value->type=='button'"}
+                     <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
+                     {/if}
+                  {/loop}
+               </span>
+            </h1>
+         </div>
+          <p align="justify">
+            Este plugin te permite agregar unidades de transporte, para lo que debes ingresar el tipo de unidad de transporte que vas a utilizar,
+             esto debido a que puedes tener unidades de transporte liviano (autos, camionetas), intermedio (camiones, buses medianos) y pesado
+             (Camiones de transporte pesado), o puede ser por via de transporte, Terreste, Aereo o Maritimo.
+         </p>
+      </div>
+   </div>
+   <div class="row">
+      <div class="col-sm-8">
+         <div class="table-responsive">
+            <table class="table table-hover">
+               <thead>
+                  <tr>
+                     <th class="text-left">Tipo de Unidad</th>
+                     <th class="text-center">Activo</th>
+                     <th width="120"></th>
+                  </tr>
+               </thead>
+               {loop="$fsc->listado"}
+               <form action="{$fsc->url()}" method="post" class="form">
+                  <tr{if="!$value->activo"} class="danger"{/if}>
+                     <td>
+                        <input type="text" name="id" value="{$value->id}" class="form-control" readonly=""/>
+                        <input type="text" name="descripcion" value="{$value->descripcion}" class="form-control" readonly=""/>
+                     </td>
+                     <td class="text-center">
+                        <div class="checkbox">
+                           <label>
+                              {if="$value->estado"}
+                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                              {else}
+                              <input type="checkbox" name="estado" value="TRUE"/>
+                              {/if}
+                           </label>
+                        </div>
+                     </td>
+                     <td class="text-right">
+                        <div class="btn-group">
+                           {if="$fsc->allow_delete"}
+                           <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_tipounidad({$value->id})">
+                              <span class="glyphicon glyphicon-trash"></span>
+                           </button>
+                           {/if}
+                           <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar">
+                              <span class="glyphicon glyphicon-floppy-disk"></span>
+                           </button>
+                        </div>
+                     </td>
+                  </tr>
+               </form>
+               {/loop}
+               <form action="{$fsc->url()}" method="post" class="form">
+                  <tr class="info">
+                     <td>
+                        <input type="text" name="descripcion" class="form-control" maxlength="20" autocomplete="off" placeholder="Descripcion"/>
+                     </td>
+                     <td class="text-center">
+                        <div class="checkbox">
+                           <label>
+                              <input type="checkbox" name="activo" value="TRUE" checked=""/>
+                           </label>
+                        </div>
+                     </td>
+                     <td class="text-right">
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar">
+                           <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                     </td>
+                  </tr>
+               </form>
+            </table>
+         </div>
+      </div>
+   </div>
+</div>
 {include="footer"}

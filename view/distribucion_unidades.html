@@ -36,11 +36,10 @@
                <thead>
                   <tr>
                      <th class="text-left"><a href="{$fsc->almacen->url()}">Almacén</a></th>
-                     <th class="text-left">Código</th>
                      <th class="text-left"><a href="{$fsc->agencia_transporte->url()}">Propietario</a></th>
                      <th class="text-left">Placa</th>
                      <th class="text-left">Capacidad Max.</th>
-                     <th class="text-left">Tipo de Unidad</th>
+                     <th class="text-left"><a href="{$fsc->agencia_transporte->url()}">Tipo de Unidad</a></th>
                      <th class="text-center">Activo</th>
                      <th width="120"></th>
                   </tr>
@@ -110,9 +109,6 @@
                         </select>
                      </td>
                      <td>
-                        <input type="text" name="codunidad" class="form-control" maxlength="8" autocomplete="off" placeholder="Nuevo"/>
-                     </td>
-                     <td>
                         <select name="codtrans" class="form-control">
                             {loop="$fsc->agencia_transporte->all()"}
                             <option value="{$value2->codtrans}">{$value->nombre}</option>
@@ -126,7 +122,7 @@
                         <input type="number" name="max_capacidad" class="form-control" min="1" max="99999" autocomplete="off" placeholder="Toneladas Max"/>
                      </td>
                      <td>
-                        <input type="text" name="tipo_unidad" class="form-control" maxlength="100" autocomplete="off" placeholder="Web"/>
+                        <input type="text" name="tipo_unidad" class="form-control" maxlength="100" autocomplete="off" placeholder="Tipo de Unidad"/>
                      </td>
                      <td class="text-center">
                         <div class="checkbox">
