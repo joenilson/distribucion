@@ -19,14 +19,16 @@
  */
 
 /**
- * Description of distribucion_tipounidad
+ * Description of distribucion_unidades
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
-class distribucion_tipounidad extends fs_model {
-    public $id;
+class distribucion_unidades extends fs_model {
     public $idempresa;
-    public $descripcion;
+    public $codalmacen;
+    public $codtrans;
+    public $placa;
+    public $capacidad;
     public $estado;
     public $usuario_creacion;
     public $fecha_creacion;
@@ -34,12 +36,15 @@ class distribucion_tipounidad extends fs_model {
     public $fecha_modificacion;
     
     public function __construct($t = false) {
-        parent::__construct('distribucion_tipounidad','plugins/distribucion/');
+        parent::__construct('distribucion_unidades','plugins/distribucion/');
         if($t)
         {
-            $this->id = $t['id'];
             $this->idempresa = $t['idempresa'];
-            $this->descripcion = $t['descripcion'];
+            $this->codalmacen = $t['codalmacen'];
+            $this->codtrans = $t['codtrans'];
+            $this->placa = $t['placa'];
+            $this->tipounidad = $t['tipounidad'];
+            $this->capacidad = $t['capacidad'];
             $this->estado = $this->str2bool($t['estado']);
             $this->usuario_creacion = $t['usuario_creacion'];
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
@@ -48,9 +53,12 @@ class distribucion_tipounidad extends fs_model {
         }
         else
         {
-            $this->id = null;
             $this->idempresa = null;
-            $this->descripcion = null;
+            $this->codalmacen = null;
+            $this->codtrans = null;
+            $this->placa = null;
+            $this->tipounidad = null;
+            $this->capacidad = null;
             $this->estado = false;
             $this->usuario_creacion = null;
             $this->fecha_creacion = Date('d-m-Y H:i');
@@ -60,7 +68,7 @@ class distribucion_tipounidad extends fs_model {
     }
     
     public function url(){
-        return "index.php?page=admin_distribucion";
+        return "index.php?page=distrib_unidades";
     }
     
     protected function install() {
@@ -68,45 +76,49 @@ class distribucion_tipounidad extends fs_model {
     }
     
     public function exists() {
-        if(is_null($this->id))
+        if(is_null($this->placa))
         {
             return false;
         }
         else
         {
-            return $this->db->select("SELECT * FROM distribucion_tipounidad WHERE ".
+            return $this->db->select("SELECT * FROM distribucion_unidades WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "id = ".$this->intval($this->id).";");
+                    "placa = ".$this->var2str($this->placa).";");
         }
     }
     
     public function save() {
         if ($this->exists())
         {
-            $sql = "UPDATE distribucion_tipounidad SET ".
-                    "descripcion = ".$this->var2str($this->descripcion).", ".
+            $sql = "UPDATE distribucion_unidades SET ".
+                    "codalmacen = ".$this->var2str($this->codalmacen).", ".
+                    "codtrans = ".$this->var2str($this->codtrans).", ".
+                    "capacidad = ".$this->intval($this->capacidad).", ".
+                    "tipounidad = ".$this->intval($this->tipounidad).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
                     "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).", ".
                     "estado = ".$this->var2str($this->estado).
                     " WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "id = ".$this->intval($this->id).";";
+                    "placa = ".$this->var2str($this->placa).";";
             
             return $this->db->exec($sql);
         }
         else
         {
-            $this->id = $this->generate_id();
-            $sql = "INSERT INTO distribucion_tipounidad (id, idempresa, descripcion, estado, usuario_creacion, fecha_creacion ) VALUES (".
-                    $this->intval($this->id).", ".
+            $sql = "INSERT INTO distribucion_unidades ( idempresa, codalmacen, codtrans, placa, capacidad, tipounidad, estado, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
-                    $this->var2str($this->descripcion).", ".
+                    $this->var2str($this->codalmacen).", ".
+                    $this->var2str($this->codtrans).", ".
+                    $this->var2str($this->placa).", ".
+                    $this->intval($this->capacidad).", ".
+                    $this->intval($this->tipounidad).", ".
                     $this->var2str($this->estado).", ".
                     $this->var2str($this->usuario_creacion).", ".
                     $this->var2str($this->fecha_creacion).");";
             if($this->db->exec($sql))
             {
-                $this->id = $this->id;
                 return true;
             }
             else
@@ -117,29 +129,22 @@ class distribucion_tipounidad extends fs_model {
     }
     
     public function delete() {
-        $sql = "DELETE FROM distribucion_tipounidad WHERE ".
+        $sql = "DELETE FROM distribucion_unidades WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
-                "id = ".$this->intval($this->id).";";
+                "placa = ".$this->var2str($this->placa).";";
         return $this->db->exec($sql);
-    }
-    
-    public function generate_id(){
-        $dataId = $this->db->select("SELECT max(id) AS id FROM distribucion_tipounidad WHERE idempresa = ".$this->intval($this->idempresa).";");
-        $newId = $dataId[0]['id'];
-        $newId++;
-        return $newId;
     }
     
     public function all($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_tipounidad WHERE idempresa = ".$this->intval($idempresa)." ORDER BY id;");
+        $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, codtrans, placa;");
         
         if($data)
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_tipounidad($d);
+                $lista[] = new distribucion_unidades($d);
             }
         }
         return $lista;
@@ -148,28 +153,28 @@ class distribucion_tipounidad extends fs_model {
     public function activos($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_tipounidad WHERE idempresa = ".$this->intval($idempresa)." and estado = true ORDER BY id;");
+        $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, codtrans, placa;");
         
         if($data)
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_tipounidad($d);
+                $lista[] = new distribucion_unidades($d);
             }
         }
         return $lista;
     }
     
-    public function get($idempresa,$id)
+    public function get($idempresa,$placa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_tipounidad WHERE idempresa = ".$this->intval($idempresa)." AND id = ".$this->intval($id)." ORDER BY id;");
+        $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND placa = ".$this->var2str($placa).";");
         
         if($data)
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_tipounidad($d);
+                $lista[] = new distribucion_unidades($d);
             }
         }
         return $lista;

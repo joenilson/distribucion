@@ -1,10 +1,10 @@
 {include="header"}
 
 <script type="text/javascript">
-   function delete_unidad(cod)
+   function delete_unidad(codigo, nombre)
    {
-      if( confirm("¿Realmente desea eliminar la unidad "+cod+"?") )
-         window.location.href = '{$fsc->url()}&delete='+cod;
+      if( confirm("¿Realmente desea eliminar al conductor "+nombre+"?") )
+         window.location.href = '{$fsc->url()}&delete='+codigo;
    }
 </script>
 
@@ -13,8 +13,8 @@
       <div class="col-sm-12">
          <div class="page-header">
             <h1>
-               <span class="glyphicon glyphicon-road"></span>
-               Unidades de transporte
+               <span class="glyphicon glyphicon-user"></span>
+               Conductores
                <a class="btn btn-xs btn-default" href="{$fsc->url()}" title="Recargar la página">
                   <span class="glyphicon glyphicon-refresh"></span>
                </a>
@@ -36,17 +36,17 @@
                <thead>
                   <tr>
                      <th class="text-left"><a href="{$fsc->almacen->url()}">Almacén</a></th>
-                     <th class="text-left"><a href="{$fsc->agencia_transporte->url()}">Propietario</a></th>
-                     <th class="text-left">Placa</th>
-                     <th class="text-left">Capacidad Max.</th>
-                     <th class="text-left"><a href="{$fsc->agencia_transporte->url()}">Tipo de Unidad</a></th>
+                     <th class="text-left"><a href="{$fsc->agencia_transporte->url()}">Agencia</a></th>
+                     <th class="text-left">Nombre</th>
+                     <th class="text-left">Nro Licencia</th>
+                     <th class="text-left">Tipo Licencia</th>
                      <th class="text-center">Activo</th>
                      <th width="120"></th>
                   </tr>
                </thead>
                {loop="$fsc->listado"}
                <form action="{$fsc->url()}" method="post" class="form">
-                  <tr{if="!$value->activo"} class="danger"{/if}>
+                  <tr{if="!$value1->estado"} class="danger"{/if}>
                       <td>
                         <select name="codalmacen" class="form-control">
                             {loop="$fsc->almacen->all()"}
@@ -59,27 +59,32 @@
                         </select>
                       </td>
                      <td>
-                        <input type="text" name="codtrans" value="{$value->codtrans}" class="form-control" readonly=""/>
+                        <select name="codtrans" class="form-control" >
+                            {loop="$fsc->agencia_transporte->all()"}
+                            {if="$value1->codtrans==$value2->codtrans"}
+                            <option value="{$value2->codtrans}" selected="">{$value2->nombre}</option>
+                            {else}
+                            <option value="{$value2->codtrans}">{$value2->nombre}</option>
+                            {/if}
+                            {/loop}
+                        </select>
                      </td>
                      <td>
-                        <input type="text" name="nombre" value="{$value->nombre}" class="form-control" maxlength="100" autocomplete="off"/>
+                        <input type="text" name="nombre" value="{$value1->nombre}" class="form-control" maxlength="80" autocomplete="off" {if="!$fsc->allow_delete"}readonly{/if}/>
                      </td>
                      <td>
-                        <input type="text" name="telefono" value="{$value->telefono}" class="form-control" maxlength="20" autocomplete="off"/>
+                        <input type="text" name="licencia" value="{$value1->licencia}" class="form-control" maxlength="32" autocomplete="off" readonly/>
                      </td>
                      <td>
-                        <input type="text" name="telefono" value="{$value->telefono}" class="form-control" maxlength="20" autocomplete="off"/>
-                     </td>
-                     <td>
-                        <input type="text" name="web" value="{$value->web}" class="form-control" maxlength="100" autocomplete="off"/>
+                        <input type="text" name="tipolicencia" value="{$value1->tipolicencia}" maxlength="32" class="form-control" autocomplete="off" {if="!$fsc->allow_delete"}readonly{/if}/>
                      </td>
                      <td class="text-center">
                         <div class="checkbox">
                            <label>
-                              {if="$value->activo"}
-                              <input type="checkbox" name="activo" value="TRUE" checked=""/>
+                              {if="$value->estado"}
+                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
                               {else}
-                              <input type="checkbox" name="activo" value="TRUE"/>
+                              <input type="checkbox" name="estado" value="TRUE"/>
                               {/if}
                            </label>
                         </div>
@@ -87,7 +92,7 @@
                      <td class="text-right">
                         <div class="btn-group">
                            {if="$fsc->allow_delete"}
-                           <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_unidad('{$value->codtrans}')">
+                           <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_unidad('{$value1->licencia}','{$value1->nombre}')">
                               <span class="glyphicon glyphicon-trash"></span>
                            </button>
                            {/if}
@@ -104,30 +109,30 @@
                      <td>
                        <select name="codalmacen" class="form-control">
                             {loop="$fsc->almacen->all()"}
-                            <option value="{$value2->codalmacen}">{$value->nombre}</option>
+                            <option value="{$value->codalmacen}">{$value->nombre}</option>
                             {/loop}
                         </select>
                      </td>
                      <td>
                         <select name="codtrans" class="form-control">
                             {loop="$fsc->agencia_transporte->all()"}
-                            <option value="{$value2->codtrans}">{$value->nombre}</option>
+                            <option value="{$value->codtrans}">{$value->nombre}</option>
                             {/loop}
                         </select>
                      </td>
                      <td>
-                        <input type="text" name="telefono" class="form-control" maxlength="20" autocomplete="off" placeholder="Placa"/>
+                        <input type="text" name="nombre" class="form-control" maxlength="80" autocomplete="off" placeholder="Placa"/>
                      </td>
                      <td>
-                        <input type="number" name="max_capacidad" class="form-control" min="1" max="99999" autocomplete="off" placeholder="Toneladas Max"/>
+                        <input type="text" name="licencia" class="form-control" maxlength="32" autocomplete="off" placeholder="Licencia"/>
                      </td>
                      <td>
-                        <input type="text" name="tipo_unidad" class="form-control" maxlength="100" autocomplete="off" placeholder="Tipo de Unidad"/>
+                        <input type="text" name="tipolicencia" class="form-control" maxlength="32" placeholder="Tipo licencia"/>
                      </td>
                      <td class="text-center">
                         <div class="checkbox">
                            <label>
-                              <input type="checkbox" name="activo" value="TRUE" checked=""/>
+                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
                            </label>
                         </div>
                      </td>

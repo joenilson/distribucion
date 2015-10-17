@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Document   : distribucion_tipounidad.xml
+    Document   : distribucion_unidades.xml
     Description:
-        Estructura de la tabla distribucion_tipounidad.
+        Estructura de la tabla distribucion_unidades.
 -->
 <tabla>
     <columna>
-        <nombre>descripcion</nombre>
-        <tipo>character varying(40)</tipo>
+        <nombre>capacidad</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>codalmacen</nombre>
+        <tipo>character varying(4)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>codtrans</nombre>
+        <tipo>character varying(5)</tipo>
         <nulo>NO</nulo>
     </columna>
     <columna>
@@ -26,12 +36,17 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
-        <nombre>id</nombre>
+        <nombre>idempresa</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>
     </columna>
     <columna>
-        <nombre>idempresa</nombre>
+        <nombre>placa</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>tipounidad</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>
     </columna>
@@ -46,7 +61,7 @@
         <nulo>YES</nulo>
     </columna>
     <restriccion>
-        <nombre>distribucion_tipounidad_pkey</nombre>
-        <consulta>PRIMARY KEY (idempresa, id)</consulta>
+        <nombre>distribucion_unidades_pkey</nombre>
+        <consulta>PRIMARY KEY (idempresa, placa)</consulta>
     </restriccion>
 </tabla>

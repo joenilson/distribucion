@@ -1,0 +1,164 @@
+{include="header"}
+
+<script type="text/javascript">
+   function delete_unidad(cod)
+   {
+      if( confirm("¿Realmente desea eliminar la unidad "+cod+"?") )
+         window.location.href = '{$fsc->url()}&delete='+cod;
+   }
+</script>
+
+<div class="container">
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="page-header">
+            <h1>
+               <span class="glyphicon glyphicon-road"></span>
+               Unidades de transporte
+               <a class="btn btn-xs btn-default" href="{$fsc->url()}" title="Recargar la página">
+                  <span class="glyphicon glyphicon-refresh"></span>
+               </a>
+               <span class="btn-group">
+                  {loop="$fsc->extensions"}
+                     {if="$value->type=='button'"}
+                     <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
+                     {/if}
+                  {/loop}
+               </span>
+            </h1>
+         </div>
+      </div>
+   </div>
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="table-responsive">
+            <table class="table table-hover">
+               <thead>
+                  <tr>
+                     <th class="text-left"><a href="{$fsc->almacen->url()}">Almacén</a></th>
+                     <th class="text-left"><a href="{$fsc->agencia_transporte->url()}">Propietario</a></th>
+                     <th class="text-left">Placa</th>
+                     <th class="text-left">Capacidad Max.</th>
+                     <th class="text-left"><a href="{$fsc->distribucion_tipounidad->url()}">Tipo de Unidad</a></th>
+                     <th class="text-center">Activo</th>
+                     <th width="120"></th>
+                  </tr>
+               </thead>
+               {loop="$fsc->listado"}
+               <form action="{$fsc->url()}" method="post" class="form">
+                  <tr{if="!$value1->estado"} class="danger"{/if}>
+                      <td>
+                        <select name="codalmacen" class="form-control">
+                            {loop="$fsc->almacen->all()"}
+                            {if="$value1->codalmacen==$value2->codalmacen"}
+                            <option value="{$value2->codalmacen}" selected="">{$value2->nombre}</option>
+                            {else}
+                            <option value="{$value2->codalmacen}">{$value2->nombre}</option>
+                            {/if}
+                            {/loop}
+                        </select>
+                      </td>
+                     <td>
+                        <select name="codtrans" class="form-control" >
+                            {loop="$fsc->agencia_transporte->all()"}
+                            {if="$value1->codtrans==$value2->codtrans"}
+                            <option value="{$value2->codtrans}" selected="">{$value2->nombre}</option>
+                            {else}
+                            <option value="{$value2->codtrans}">{$value2->nombre}</option>
+                            {/if}
+                            {/loop}
+                        </select>
+                     </td>
+                     <td>
+                        <input type="text" name="placa" value="{$value1->placa}" class="form-control" maxlength="32" autocomplete="off" {if="!$fsc->allow_delete"}readonly{/if}/>
+                     </td>
+                     <td>
+                        <input type="number" name="capacidad" value="{$value1->capacidad}" min="1" max="99999" class="form-control" maxlength="20" autocomplete="off" {if="!$fsc->allow_delete"}readonly{/if}/>
+                     </td>
+                     <td>
+                        <select name="tipounidad" class="form-control">
+                            {loop="$fsc->distribucion_tipounidad->all($fsc->empresa->id)"}
+                            {if="$value1->tipounidad==$value2->id"}
+                            <option value="{$value2->id}" selected="">{$value2->descripcion}</option>
+                            {else}
+                            <option value="{$value2->id}">{$value2->descripcion}</option>
+                            {/if}
+                            {/loop}
+                        </select>
+                     </td>
+                     <td class="text-center">
+                        <div class="checkbox">
+                           <label>
+                              {if="$value->estado"}
+                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                              {else}
+                              <input type="checkbox" name="estado" value="TRUE"/>
+                              {/if}
+                           </label>
+                        </div>
+                     </td>
+                     <td class="text-right">
+                        <div class="btn-group">
+                           {if="$fsc->allow_delete"}
+                           <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_unidad('{$value->placa}')">
+                              <span class="glyphicon glyphicon-trash"></span>
+                           </button>
+                           {/if}
+                           <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar">
+                              <span class="glyphicon glyphicon-floppy-disk"></span>
+                           </button>
+                        </div>
+                     </td>
+                  </tr>
+               </form>
+               {/loop}
+               <form action="{$fsc->url()}" method="post" class="form">
+                  <tr class="info">
+                     <td>
+                       <select name="codalmacen" class="form-control">
+                            {loop="$fsc->almacen->all()"}
+                            <option value="{$value->codalmacen}">{$value->nombre}</option>
+                            {/loop}
+                        </select>
+                     </td>
+                     <td>
+                        <select name="codtrans" class="form-control">
+                            {loop="$fsc->agencia_transporte->all()"}
+                            <option value="{$value->codtrans}">{$value->nombre}</option>
+                            {/loop}
+                        </select>
+                     </td>
+                     <td>
+                        <input type="text" name="placa" class="form-control" maxlength="20" autocomplete="off" placeholder="Placa"/>
+                     </td>
+                     <td>
+                        <input type="number" name="capacidad" class="form-control" min="1" max="99999" autocomplete="off" placeholder="Toneladas Max"/>
+                     </td>
+                     <td>
+                        <select name="tipounidad" class="form-control">
+                            {loop="$fsc->distribucion_tipounidad->all($fsc->empresa->id)"}
+                            <option value="{$value->id}">{$value->descripcion}</option>
+                            {/loop}
+                        </select>
+                     </td>
+                     <td class="text-center">
+                        <div class="checkbox">
+                           <label>
+                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                           </label>
+                        </div>
+                     </td>
+                     <td class="text-right">
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar">
+                           <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                     </td>
+                  </tr>
+               </form>
+            </table>
+         </div>
+      </div>
+   </div>
+</div>
+
+{include="footer"}

@@ -46,10 +46,10 @@
                </thead>
                {loop="$fsc->listado"}
                <form action="{$fsc->url()}" method="post" class="form">
-                  <tr{if="!$value->activo"} class="danger"{/if}>
+                  <tr{if="!$value->estado"} class="danger"{/if}>
                      <td>
-                        <input type="text" name="id" value="{$value->id}" class="form-control" readonly=""/>
-                        <input type="text" name="descripcion" value="{$value->descripcion}" class="form-control" readonly=""/>
+                        <input type="hidden" name="id" value="{$value->id}" class="form-control" {if="!$fsc->allow_delete"}readonly=""{/if}/>
+                        <input type="text" name="descripcion" value="{$value->descripcion}" class="form-control" {if="!$fsc->allow_delete"}readonly=""{/if}/>
                      </td>
                      <td class="text-center">
                         <div class="checkbox">
@@ -85,7 +85,7 @@
                      <td class="text-center">
                         <div class="checkbox">
                            <label>
-                              <input type="checkbox" name="activo" value="TRUE" checked=""/>
+                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
                            </label>
                         </div>
                      </td>

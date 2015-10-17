@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Document   : distribucion_tipounidad.xml
+    Document   : distribucion_conductores.xml
     Description:
-        Estructura de la tabla distribucion_tipounidad.
+        Estructura de la tabla distribucion_conductores.
 -->
 <tabla>
     <columna>
-        <nombre>descripcion</nombre>
-        <tipo>character varying(40)</tipo>
+        <nombre>codalmacen</nombre>
+        <tipo>character varying(4)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>codtrans</nombre>
+        <tipo>character varying(5)</tipo>
         <nulo>NO</nulo>
     </columna>
     <columna>
@@ -26,13 +31,23 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
-        <nombre>id</nombre>
+        <nombre>idempresa</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>
     </columna>
     <columna>
-        <nombre>idempresa</nombre>
-        <tipo>integer</tipo>
+        <nombre>licencia</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>nombre</nombre>
+        <tipo>character varying(80)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>tipolicencia</nombre>
+        <tipo>character varying(32)</tipo>
         <nulo>NO</nulo>
     </columna>
     <columna>
@@ -46,7 +61,7 @@
         <nulo>YES</nulo>
     </columna>
     <restriccion>
-        <nombre>distribucion_tipounidad_pkey</nombre>
-        <consulta>PRIMARY KEY (idempresa, id)</consulta>
+        <nombre>distribucion_conductores_pkey</nombre>
+        <consulta>PRIMARY KEY (idempresa, licencia)</consulta>
     </restriccion>
 </tabla>
