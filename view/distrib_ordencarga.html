@@ -13,15 +13,11 @@
          <div class="page-header">
             <h1>
                <span class="glyphicon glyphicon-list"></span>
-               Creación de Transporte
+               Creación de Orden de Carga
                <a class="btn btn-xs btn-default" href="{$fsc->url()}" title="Recargar la página">
                   <span class="glyphicon glyphicon-refresh"></span>
                </a>
                <span class="btn-group">
-                  <a id="b_nueva_ordencarga" class="btn btn-xs btn-success" href="#">
-                    <span class="glyphicon glyphicon-plus"></span>
-                    <span class="hidden-sm">&nbsp; Nueva Orden de Carga</span>
-                  </a>
                   {loop="$fsc->extensions"}
                      {if="$value->type=='button'"}
                      <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>

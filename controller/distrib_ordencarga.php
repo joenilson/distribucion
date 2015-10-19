@@ -23,9 +23,9 @@
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
-class distrib_creacion extends fs_controller {
+class distrib_ordencarga extends fs_controller {
     public function __construct() {
-        parent::__construct(__CLASS__, '5 - Crear Transporte', 'distribucion');
+        parent::__construct(__CLASS__, '4 - Crear Orden de Carga', 'distribucion');
     }
     
     public function private_core(){
