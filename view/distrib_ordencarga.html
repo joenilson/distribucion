@@ -46,11 +46,6 @@
        $('#modal_nueva_ordencarga').modal('show');
    }
    
-   function datePickerShow(){
-       console.log('llego');
-       $("#buscar_fecha").datepicker("show");
-   }
-   
    $(document).ready(function() {
       $('#b_nueva_ordencarga').click(function(event) {
          event.preventDefault();
@@ -87,13 +82,7 @@
                }
             }
          }
-      });
-      $(function() {
-        $( "#buscar_fecha" ).datepicker({
-            minDate: new Date(),
-            dateFormat: 'dd-mm-yy'
-        });
-      });
+      });      
    });
 </script>
 <div class="container-fluid" style="margin-top: 10px; margin-bottom: 10px;">
@@ -398,72 +387,5 @@
    </div>
 </form>
 <!-- Modal para buscar facturas pendientes de transportar -->
-<div class="modal" id="modal_nueva_ordencarga">
-<form class="form" role="form" id="f_nueva_ordencarga" name="f_nueva_ordencarga" action ="{$fsc->url()}" method="post">
-   <input type="hidden" name="offset" value="0"/>
-      <div class="modal-dialog" style="width: 99%; max-width: 950px;">
-         <div class="modal-content">
-            <div class="modal-header">
-               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-               <h4 class="modal-title">Agregar facturas</h4>
-               {if="$fsc->cliente"}
-               <p class="help-block">
-                  Estas buscando en las líneas de los {#FS_ALBARANES#} de {$fsc->cliente->nombre}.
-               </p>
-               {else}
-               <p class="help-block">Si quieres, puede <a href="{$fsc->url()}&mostrar=buscar">filtrar por cliente</a>.</p>
-               {/if}
-            </div>
-            <div class="modal-body">
-               {if="$fsc->cliente"}
-               <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
-               <div class="container-fluid">
-                  <div class="row">
-                     <div class="col-lg-6 col-md-6 col-sm-6">
-                        <div class="input-group">
-                           <input class="form-control" type="text" name="buscar_lineas" placeholder="Referencia" autocomplete="off"/>
-                           <span class="input-group-btn">
-                              <button class="btn btn-primary" type="submit">
-                                 <span class="glyphicon glyphicon-search"></span>
-                              </button>
-                           </span>
-                        </div>
-                     </div>
-                     <div class="col-lg-6 col-md-6 col-sm-6">
-                        <div class="form-group">
-                           <input class="form-control" type="text" name="buscar_lineas_o" placeholder="Observaciones" autocomplete="off"/>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-               {else}
-               <div class="input-group col-sm-12">
-                  <div class="col-sm-4"> 
-                     <div class="input-group">
-                        <input class="form-control" readonly type="text" id="buscar_fecha" name="buscar_fecha" placeholder="Fecha de las Facturas"/>
-                        <div class="input-group-btn">
-                            <button class="btn btn-primary" type="button" onClick="javascript:datePickerShow()">
-                                <span class="glyphicon glyphicon-calendar"></span>
-                            </button>
-                        </div>
-                      </div>
-                  </div>
-                  <div class="col-sm-6">
-                      
-                  </div>
-                  <div class="col-sm-2"> 
-                    <span class="input-group-btn">
-                      <button class="btn btn-primary" type="submit">
-                         <span class="glyphicon glyphicon-search"></span>
-                      </button>
-                   </span>
-                  </div>
-               </div>
-               {/if}
-            </div>
-            <div id="search_results" class="table-responsive"></div>
-         </div>
-      </div>
-</form>
-</div>
+{include="ordencarga/nueva"}
 {include="footer"}

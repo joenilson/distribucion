@@ -15,13 +15,140 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<html>
-    <head>
-        <title>TODO supply a title</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body>
-        <div>TODO write content</div>
-    </body>
-</html>
+<script type="text/javascript">
+    $.jgrid.defaults.styleUI = 'Bootstrap';
+    function buscar_facturas() {
+        var formData = "";
+        if (document.f_buscar_facturas.buscar_fecha.value === '')
+        {
+            $('#search_results_facturas').html('');
+        }
+        else
+        {
+            formData = $('form[name=f_buscar_facturas]').serialize();
+            console.log(formData);
+            $("#search_results_facturas").jqGrid('clearGridData');
+            $("#search_results_facturas").jqGrid({
+                url: '{$fsc->url()}' + '&' + formData,
+                mtype: 'GET',
+                prmNames: {page: "pagegrid"},
+                datatype: "json",
+                colModel: [
+                    {label: 'Id', name: 'idfactura', width: 10, key: true},
+                    {label: 'Factura', name: 'codigo', width: 35},
+                    {label: 'Cliente', name: 'nombrecliente', width: 75},
+                    {label: 'Dirección', name: 'direccion', width: 90},
+                    {label: 'Almacén', name: 'codalmacen', width: 20, sorttype: 'text'}
+                ],
+                loadonce: false,
+                viewrecords: true,
+                autowidth: true,
+                shrinkToFit: true,
+                height: 300,
+                rowNum: 20,
+                rowList: [20, 30, 50],
+                scrollPopUp: true,
+                scrollLeftOffset: "83%",
+                rownumbers: true,
+                rownumWidth: 25,
+                multiselect: true,
+                pager: "#search_results_facturas_pager"
+            });
+            $('#search_results_facturas').navGrid('#search_results_facturas_pager',
+                { edit: false, add: false, del: false, search: true, refresh: true, view: false, position: "left", cloneToTop: true });
+            $('#search_results_facturas').jqGrid()
+                .setGridParam({
+                    url: '{$fsc->url()}' + '&' + formData,
+                    mtype: 'GET',
+                    prmNames: {page: "pagegrid"}
+                })
+                .trigger("reloadGrid");
+            //$('#search_results_facturas').html('');
+        }
+    }
+
+    function datePickerShow() {
+        $("#buscar_fecha").datepicker("show");
+    }
+
+    function getSelectedRows() {
+        var grid = $("#jqGrid");
+        var rowKey = grid.getGridParam("selrow");
+
+        if (!rowKey)
+            alert("No rows are selected");
+        else {
+            var selectedIDs = grid.getGridParam("selarrrow");
+            var result = "";
+            for (var i = 0; i < selectedIDs.length; i++) {
+                result += selectedIDs[i] + ",";
+            }
+
+            alert(result);
+        }
+    }
+
+    $(document).ready(function () {
+        var formData = "";
+        $('#f_buscar_facturas').submit(function (event) {
+            event.preventDefault();
+            buscar_facturas();
+        });
+
+        $(function () {
+            $("#buscar_fecha").datepicker({
+                minDate: new Date(),
+                dateFormat: 'dd-mm-yy'
+            });
+        });
+        formData = $('form[name=f_buscar_facturas]').serialize();
+       
+    });
+</script>
+<div class="modal" id="modal_nueva_ordencarga">
+    <div class="modal-dialog" style="width: 99%; max-width: 950px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Orden de Carga Nueva</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form" role="form" id="f_buscar_facturas" name="f_buscar_facturas" action ="{$fsc->url()}" method="post">
+                    <input type="hidden" name="offset" value="O"/>
+                    <input type="hidden" name="type" value="buscar_facturas"/>
+                    <div class="input-group col-sm-12">
+                        <div class="col-sm-4"> 
+                            <div class="input-group">
+                                <input class="form-control" readonly type="text" id="buscar_fecha" name="buscar_fecha" placeholder="Fecha de las Facturas"/>
+                                <div class="input-group-btn">
+                                    <button class="btn btn-primary" type="button" onClick="javascript:datePickerShow()">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4"> 
+                            <div class="input-group">
+                                <select name="codalmacen" class="form-control">
+                                    <option value="">Almacén de Despacho</option>
+                                    {loop="$fsc->almacen->all()"}
+                                    <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-2"> 
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" type="submit">
+                                    <span class="glyphicon glyphicon-search"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <table id="search_results_facturas"></table>
+            <div id="search_results_facturas_pager"></div>
+        </div>
+    </div>
+</div>

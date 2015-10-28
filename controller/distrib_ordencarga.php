@@ -17,7 +17,8 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-
+require_model('factura_cliente');
+require_model('almacen');
 /**
  * Description of distribucion_creacion
  *
@@ -25,12 +26,40 @@
  */
 class distrib_ordencarga extends fs_controller {
 
+    public $facturas_cliente;
+    public $almacen;
+    public $resultados;
+    
     public function __construct() {
         parent::__construct(__CLASS__, '4 - Crear Orden de Carga', 'distribucion');
     }
 
     public function private_core() {
+        $this->almacen = new almacen();
+
         $this->share_extensions();
+        $type = \filter_input(INPUT_GET, 'type');
+        $buscar_fecha = \filter_input(INPUT_GET, 'buscar_fecha');
+        $codalmacen = \filter_input(INPUT_GET, 'codalmacen');
+        $offset = \filter_input(INPUT_GET, 'offset');
+        $this->facturas_cliente = new factura_cliente;
+        if($type === 'buscar_facturas'){
+            $this->buscar_facturas($buscar_fecha, $codalmacen, $offset);
+        }
+
+    }
+    
+    public function buscar_facturas($buscar_fecha, $codalmacen, $offset){
+        $this->template = FALSE;
+        $this->resultados = array();
+        $data_search = $this->facturas_cliente->all_desde($buscar_fecha, $buscar_fecha);
+        foreach ($data_search as $values){
+            if($values->codalmacen == $codalmacen){
+                $this->resultados[]=$values;
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($this->resultados);
     }
     
     public function total_pendientes(){
@@ -115,9 +144,9 @@ class distrib_ordencarga extends fs_controller {
         );
         $fsext4->save();
         
-        $fsext4 = new fs_extension(
+        $fsext5 = new fs_extension(
             array(
-                'name' => 'distribucion_css1',
+                'name' => 'distribucion_css4',
                 'page_from' => __CLASS__,
                 'page_to' => 'distrib_ordencarga',
                 'type' => 'head',
@@ -125,7 +154,45 @@ class distrib_ordencarga extends fs_controller {
                 'params' => ''
             )
         );
-        $fsext4->save();
+        $fsext5->save();
+        
+        $fsext6 = new fs_extension(
+            array(
+                'name' => 'distribucion_css5',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/> ',
+                'params' => ''
+            )
+        );
+        $fsext6->save();
+        
+        $fsext7 = new fs_extension(
+            array(
+                'name' => 'distribucion_css6',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
+                'params' => ''
+            )
+        );
+        $fsext7->save();
+        
+        $fsext8 = new fs_extension(
+            array(
+                'name' => 'distribucion_css7',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
+                'params' => ''
+            )
+        );
+        $fsext8->save();
+        
+        
     }
 
 }
