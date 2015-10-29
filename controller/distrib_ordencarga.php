@@ -19,6 +19,9 @@
  */
 require_model('factura_cliente');
 require_model('almacen');
+require_model('agencia_transporte.php');
+require_model('distribucion_conductores.php');
+require_model('distribucion_unidades.php');
 /**
  * Description of distribucion_creacion
  *
@@ -29,6 +32,9 @@ class distrib_ordencarga extends fs_controller {
     public $facturas_cliente;
     public $almacen;
     public $resultados;
+    public $agencia_transporte;
+    public $distrib_conductores;
+    public $distrib_unidades;
     
     public function __construct() {
         parent::__construct(__CLASS__, '4 - Crear Orden de Carga', 'distribucion');
@@ -36,15 +42,23 @@ class distrib_ordencarga extends fs_controller {
 
     public function private_core() {
         $this->almacen = new almacen();
-
+        $this->facturas_cliente = new factura_cliente();
+        
+        $this->agencia_transporte = new agencia_transporte();
+        $this->distrib_conductores = new distribucion_conductores();
+        $this->distrib_unidades = new distribucion_unidades();
+        
         $this->share_extensions();
         $type = \filter_input(INPUT_GET, 'type');
         $buscar_fecha = \filter_input(INPUT_GET, 'buscar_fecha');
         $codalmacen = \filter_input(INPUT_GET, 'codalmacen');
+        $codtrans = \filter_input(INPUT_GET, 'codtrans');
         $offset = \filter_input(INPUT_GET, 'offset');
-        $this->facturas_cliente = new factura_cliente;
+        
         if($type === 'buscar_facturas'){
             $this->buscar_facturas($buscar_fecha, $codalmacen, $offset);
+        }elseif($type === 'select-unidad'){
+            $this->lista_unidades($this->empresa->id,$codtrans,$codalmacen);
         }
 
     }
@@ -58,6 +72,14 @@ class distrib_ordencarga extends fs_controller {
                 $this->resultados[]=$values;
             }
         }
+        header('Content-Type: application/json');
+        echo json_encode($this->resultados);
+    }
+    
+    public function lista_unidades($idempresa,$codtrans,$codalmacen){
+        $this->template = FALSE;
+        $this->resultados = array();
+        $this->resultados = $this->distrib_unidades->activos_agencia_almacen($idempresa,$codtrans,$codalmacen);
         header('Content-Type: application/json');
         echo json_encode($this->resultados);
     }

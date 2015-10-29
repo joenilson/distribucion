@@ -19,13 +19,14 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
     $.jgrid.defaults.styleUI = 'Bootstrap';
     function buscar_facturas() {
         var formData = "";
-        if (document.f_buscar_facturas.buscar_fecha.value === '')
+        if (document.f_buscar_facturas.buscar_fecha.value === '' || document.f_buscar_facturas.codalmacen.value === '')
         {
-            $('#search_results_facturas').html('');
+            $('#search_results_facturas').html('<div class="alert alert-warning"> - Por favor <b>complete los campos</b> - </div>');
         }
         else
         {
             formData = $('form[name=f_buscar_facturas]').serialize();
+            document.f_nueva_ordencarga.almacenorig.value = document.f_buscar_facturas.codalmacen.value;
             $("#search_results_facturas").jqGrid('clearGridData');
             $("#search_results_facturas").jqGrid({
                 url: '{$fsc->url()}' + '&' + formData,
@@ -62,6 +63,12 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     prmNames: {page: "pagegrid"}
                 })
                 .trigger("reloadGrid");
+            if($('#tab-datos').attr('class') === 'hidden'){
+                $('#tab-datos').removeClass('hidden');
+            }
+            if($('#tab-observaciones').attr('class') === 'hidden'){
+                $('#tab-observaciones').removeClass('hidden');
+            }
         }
     }
 
@@ -87,7 +94,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
     }
 
     $(document).ready(function () {
-        var formData = "";
         $('#f_buscar_facturas').submit(function (event) {
             event.preventDefault();
             buscar_facturas();
@@ -95,11 +101,44 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
 
         $(function () {
             $("#buscar_fecha").datepicker({
-                minDate: new Date(),
+                minDate: '-1d',
                 dateFormat: 'dd-mm-yy'
             });
         });
-        formData = $('form[name=f_buscar_facturas]').serialize();
+        $('#codtrans').change(function() {
+            var data = "";
+            var almacen = document.f_nueva_ordencarga.almacenorig.value;
+            $.ajax({
+                type: 'GET',
+                url : '{$fsc->url()}&type=select-unidad',
+                data : "codtrans="+$(this).val()+'&codalmacen='+almacen,
+                async: false,
+                success : function(response) {
+                    if(response.length !== 0){
+                        data = response;
+                    }else{
+                        alert('No hay Unidades registradas a esta Agencia en este Almacén!');
+                    }
+                },
+                error: function() {
+                    alert('No hay Unidades registradas a esta Agencia');
+                }
+            });
+            var select = $('#codunidad');
+            select.empty();
+            if(data.length !== 0){
+                var array = data.filter(function(e){return e;});
+                select.append(
+                    $('<option></option>').val('').html('--------------')
+                );
+                $.each(array, function(index, value) {
+                    select.append(
+                        $('<option></option>').val(value.placa).html(value.placa)
+                    );
+                });
+            }
+            $('#codunidad').show();
+        });
        
     });
 </script>
@@ -127,8 +166,8 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         </div>
                         <div class="col-sm-4"> 
                             <div class="input-group">
-                                <select name="codalmacen" class="form-control">
-                                    <option value="">Almacén de Despacho</option>
+                                <select name="codalmacen" id"codalmacen" class="form-control">
+                                    <option value="">Almacén Origen</option>
                                     {loop="$fsc->almacen->all()"}
                                     <option value="{$value->codalmacen}">{$value->nombre}</option>
                                     {/loop}
@@ -144,9 +183,77 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         </div>
                     </div>
                 </form>
+                <br />
+                <form class="form-horizontal" role="form" id="f_nueva_ordencarga" name="f_nueva_ordencarga" action ="{$fsc->url()}" method="post">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#facturas">Facturas</a></li>
+                        <li id="tab-datos" class="hidden"><a data-toggle="tab" href="#datos">Datos de Transportista</a></li>
+                        <li id="tab-observaciones" class="hidden"><a data-toggle="tab" href="#observaciones">Observaciones</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div id="facturas" class="tab-pane fade in active">
+                            <table id="search_results_facturas"></table>
+                            <div id="search_results_facturas_pager"></div>
+                        </div>
+                        <div id="datos" class="tab-pane fade">
+                            <div class="form-group">
+                                <label for="almacenorig" class="col-sm-2 control-label">Almacén Origen</label>
+                                <div class="col-sm-4">
+                                    <select name="almacenorig" id="almacenorig" class="form-control" required>
+                                        {loop="$fsc->almacen->all()"}
+                                        <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                        {/loop}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="almacendest" class="col-sm-2 control-label">Almacén Destino</label>
+                                <div class="col-sm-4">
+                                    <select name="almacendest" id="almacendest" class="form-control" required>
+                                        <option value="NA">No aplica</option>
+                                        {loop="$fsc->almacen->all()"}
+                                        <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                        {/loop}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="codtrans" class="col-sm-2 control-label">Agencia</label>
+                                <div class="col-sm-4">
+                                    <select name="codtrans" id="codtrans" class="form-control" required>
+                                        <option value="">--------------</option>
+                                        {loop="$fsc->agencia_transporte->all()"}
+                                        <option value="{$value->codtrans}">{$value->nombre}</option>
+                                        {/loop}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="codunidad" class="col-sm-2 control-label">Unidad</label>
+                                <div class="col-sm-4">
+                                    <select name="codunidad" id="codunidad" class="form-control" required>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="conductor" class="col-sm-2 control-label">Conductor</label>
+                                <div class="col-sm-4">
+                                    <select name="conductor" id="conductor" class="form-control" required>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="observaciones" class="tab-pane fade">
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div align="right">
+                        <br />
+                        <button type="button" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
             </div>
-            <table id="search_results_facturas"></table>
-            <div id="search_results_facturas_pager"></div>
+            
         </div>
     </div>
 </div>
