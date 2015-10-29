@@ -26,7 +26,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         else
         {
             formData = $('form[name=f_buscar_facturas]').serialize();
-            console.log(formData);
             $("#search_results_facturas").jqGrid('clearGridData');
             $("#search_results_facturas").jqGrid({
                 url: '{$fsc->url()}' + '&' + formData,
@@ -63,7 +62,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     prmNames: {page: "pagegrid"}
                 })
                 .trigger("reloadGrid");
-            //$('#search_results_facturas').html('');
         }
     }
 
