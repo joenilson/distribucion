@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <!--
 Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
 
@@ -71,36 +70,111 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
             }
         }
     }
+    
+    function procesar_carga(){
+        var facturasSeleccionadas = getSelectedRows();
+        if(facturasSeleccionadas === 0){
+            alert('No ha seleccionado ninguna factura para agrupar');
+        }else{
+            $('#modal_resumen_ordencarga').modal('show');
+            $.ajax({
+                type: 'GET',
+                url: '{$fsc->url()}',
+                async: false,
+                data: $('form[name=f_nueva_ordencarga]').serialize()+'&facturas='+facturasSeleccionadas,
+                success: function(datos) {
+                   var re = /<!--(.*?)-->/g;
+                   var m = re.exec( datos );
+                   $('#grid_productos').jqGrid({
+                        data: datos.rows,
+                        datatype: "local",
+                        colModel: [
+                            {label: 'Ref.', name: 'referencia', width: 30, key: true},
+                            {label: 'Producto', name: 'producto', width: 60},
+                            {label: 'Cantidad', name: 'cantidad', width: 20, sorttype: 'number', 
+                                formatter: 'number', align: 'right', summaryType: 'sum',
+                                formatoptions : { decimalSeparator: ".", decimalPlaces:2, thousandsSeparator:"," }
+                            }
+                        ],
+                        loadonce: false,
+                        viewrecords: true,
+                        autowidth: true,
+                        shrinkToFit: true,
+                        footerrow: true,
+                        userData: datos.userData,
+                        userDataOnFooter: true
+                   });
+                }
+             });
+             $('#carga_observaciones').html('<b>'+document.f_nueva_ordencarga.observaciones.value+'</b>');
+        }
+    }
 
-    function datePickerShow() {
-        $("#buscar_fecha").datepicker("show");
+    function datePickerShow(element) {
+        $(element).datepicker("show");
     }
 
     function getSelectedRows() {
-        var grid = $("#jqGrid");
+        var grid = $("#search_results_facturas");
         var rowKey = grid.getGridParam("selrow");
 
         if (!rowKey)
-            alert("No rows are selected");
+            return 0;
         else {
             var selectedIDs = grid.getGridParam("selarrrow");
             var result = "";
             for (var i = 0; i < selectedIDs.length; i++) {
                 result += selectedIDs[i] + ",";
             }
-
-            alert(result);
+            return result;
         }
     }
+    
+    function validate(element){
+        var elementId = '#'+$(element).attr('id');
+        if(!$(elementId).val()){
+            $(elementId).selectpicker('setStyle', 'btn-danger');
+        }else{
+            $(elementId).selectpicker('setStyle', 'btn-danger', 'remove');
+        }
+    }
+    
+    function validateDate(element){
+        var elementId = '#'+$(element).attr('id');
+        if($(elementId).datepicker('getDate') === ''){
+            $(elementId).addClass('has-error');
+        }else{
+            $(elementId).removeClass('has-error');
+        }
+    }
+    
 
     $(document).ready(function () {
+        if( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+            $('.selectpicker').selectpicker('mobile');
+        }
+        
         $('#f_buscar_facturas').submit(function (event) {
             event.preventDefault();
             buscar_facturas();
         });
+        
+        $('#f_nueva_ordencarga').submit(function (event) {
+            event.preventDefault();
+            if (document.f_nueva_ordencarga.fecha_reparto.value === ''){
+                alert('Elija la fecha de reparto para continuar');
+            }else{
+                procesar_carga();
+            }
+        });
 
         $(function () {
             $("#buscar_fecha").datepicker({
+                minDate: '-1d',
+                dateFormat: 'dd-mm-yy'
+            });
+            
+            $("#fecha_reparto").datepicker({
                 minDate: '-1d',
                 dateFormat: 'dd-mm-yy'
             });
@@ -194,7 +268,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             <div class="input-group">
                                 <input class="form-control" readonly type="text" id="buscar_fecha" name="buscar_fecha" placeholder="Fecha de las Facturas"/>
                                 <div class="input-group-btn">
-                                    <button class="btn btn-primary" type="button" onClick="javascript:datePickerShow()">
+                                    <button class="btn btn-primary" type="button" onClick="javascript:datePickerShow('#buscar_fecha')">
                                         <span class="glyphicon glyphicon-calendar"></span>
                                     </button>
                                 </div>
@@ -221,6 +295,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 </form>
                 <br />
                 <form class="form-horizontal" role="form" id="f_nueva_ordencarga" name="f_nueva_ordencarga" action ="{$fsc->url()}" method="post">
+                    <input type="hidden" name="type" value="crear-carga"/>
                     <ul class="nav nav-tabs">
                         <li class="active"><a data-toggle="tab" href="#facturas">Facturas</a></li>
                         <li id="tab-datos" class="hidden"><a data-toggle="tab" href="#datos">Datos de Transportista</a></li>
@@ -274,26 +349,45 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
-                                    <div class="form-group has-success has-feedback">
+                                    <div class="form-group has-feedback">
                                         <label for="codunidad" class="col-sm-4 control-label">Unidad</label>
                                         <div class="col-sm-8">
-                                            <select name="codunidad" id="codunidad" class="selectpicker form-control" required>
+                                            <select name="codunidad" id="codunidad" class="selectpicker form-control" required onchange="validate(this);" oninvalid="validate(this);">
                                             </select>
                                             <span class="glyphicon form-control-feedback"></span>
                                         </div>
                                     </div>
                                  </div>
-                            </div>        
-                            <div class="form-group">
-                                <label for="conductor" class="col-sm-2 control-label">Conductor</label>
-                                <div class="col-sm-4" style="position:relative;">
-                                    <select name="conductor" id="conductor" class="selectpicker form-control" required="" oninvalid="Por favor escoja un conductor">
-                                    </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label for="conductor" class="col-sm-4 control-label">Conductor</label>
+                                        <div class="col-sm-8">
+                                            <select name="conductor" id="conductor" class="selectpicker form-control" required onchange="validate(this);" oninvalid="validate(this);">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label for="fecha_reparto" class="col-sm-4 control-label">Fecha Reparto</label>
+                                        <div class="col-sm-8">
+                                            <div class="input-group">
+                                                <input class="form-control" onsubmit="validateDate(this)" readonly type="text" id="fecha_reparto" name="fecha_reparto" placeholder="Fecha de reparto"/>
+                                            <div class="input-group-btn">
+                                                <button class="btn btn-primary" type="button" onClick="javascript:datePickerShow('#fecha_reparto')">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </button>
+                                            </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div id="observaciones" class="tab-pane fade">
-                            <textarea class="form-control" rows="3" style="margin-top: 5px;"></textarea>
+                            <textarea class="form-control" name="observaciones" rows="3" style="margin-top: 5px;"></textarea>
                         </div>
                     </div>
                     <div align="right">

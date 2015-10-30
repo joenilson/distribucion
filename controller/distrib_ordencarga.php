@@ -18,10 +18,12 @@
 
  */
 require_model('factura_cliente');
+require_model('linea_factura_cliente');
 require_model('almacen');
 require_model('agencia_transporte.php');
 require_model('distribucion_conductores.php');
 require_model('distribucion_unidades.php');
+require_model('cliente.php');
 /**
  * Description of distribucion_creacion
  *
@@ -30,11 +32,15 @@ require_model('distribucion_unidades.php');
 class distrib_ordencarga extends fs_controller {
 
     public $facturas_cliente;
+    public $linea_factura_cliente;
     public $almacen;
     public $resultados;
     public $agencia_transporte;
     public $distrib_conductores;
     public $distrib_unidades;
+    public $mostrar;
+    public $order;
+    public $cliente;
     
     public function __construct() {
         parent::__construct(__CLASS__, '4 - Crear Orden de Carga', 'distribucion');
@@ -43,6 +49,7 @@ class distrib_ordencarga extends fs_controller {
     public function private_core() {
         $this->almacen = new almacen();
         $this->facturas_cliente = new factura_cliente();
+        $this->linea_factura_cliente = new linea_factura_cliente();
         
         $this->agencia_transporte = new agencia_transporte();
         $this->distrib_conductores = new distribucion_conductores();
@@ -55,12 +62,31 @@ class distrib_ordencarga extends fs_controller {
         $codtrans = \filter_input(INPUT_GET, 'codtrans');
         $offset = \filter_input(INPUT_GET, 'offset');
         
+        $mostrar = \filter_input(INPUT_GET, 'mostrar');
+        $order = \filter_input(INPUT_GET, 'order');
+        $cliente = \filter_input(INPUT_GET, 'codcliente');
+        $this->mostrar = (isset($mostrar))?$mostrar:"todo";
+        $this->order = (isset($order))?str_replace('_', ' ', $order):"fecha DESC";
+        if(isset($cliente) AND !empty($cliente)){
+            $cli0 = new cliente();
+            $codcliente = $cli0->get($cliente);
+        }
+        $this->cliente = (isset($codcliente))?$codcliente:FALSE;
+        
         if($type === 'buscar_facturas'){
             $this->buscar_facturas($buscar_fecha, $codalmacen, $offset);
         }elseif($type === 'select-unidad'){
             $this->lista_unidades($this->empresa->id,$codtrans,$codalmacen);
         }elseif($type === 'select-conductor'){
             $this->lista_conductores($this->empresa->id,$codtrans,$codalmacen);
+        }elseif($type === 'crear-carga'){
+            $dataInicialCarga['almacenorig'] = \filter_input(INPUT_GET, 'almacenorig');
+            $dataInicialCarga['almacendest'] = \filter_input(INPUT_GET, 'almacendest');
+            $dataInicialCarga['codunidad'] = \filter_input(INPUT_GET, 'codunidad');
+            $dataInicialCarga['conductor'] = \filter_input(INPUT_GET, 'conductor');
+            $dataInicialCarga['observaciones'] = \filter_input(INPUT_GET, 'observaciones');
+            $dataInicialCarga['facturas'] = \filter_input(INPUT_GET, 'facturas');
+            $this->crear_carga($this->empresa->id,$codtrans,$codalmacen,$dataInicialCarga);
         }
 
     }
@@ -100,6 +126,34 @@ class distrib_ordencarga extends fs_controller {
     
     public function paginas(){
         return 10;
+    }
+    
+    public function crear_carga($idempresa,$codtrans,$codalmacen,$datos){
+        $this->template = FALSE;
+        $array_facturas = explode(",",$datos['facturas']);
+        $this->resultados = array();
+        $lineas_factura = array();
+        $lista_resumen = array();
+        $data_resumen = array();
+        $suma_cantidades = 0;
+        foreach($array_facturas as $key){
+            if($key){
+                $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($key);
+            }
+        }
+        foreach($lineas_factura as $linea_factura){
+            foreach($linea_factura as $key=>$values){
+                $lista_resumen[$values->referencia] += $values->cantidad;
+                $data_resumen[$values->referencia] = array('referencia'=>$values->referencia ,'producto'=>$values->descripcion, 'cantidad'=>$lista_resumen[$values->referencia]);
+                $suma_cantidades += $values->cantidad;
+            }
+        }
+        foreach($data_resumen as $key=>$datos){
+            $this->resultados[] = $datos;
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode(array('userData'=>array('referencia'=>"",'producto'=>'Total','cantidad'=>$suma_cantidades),'rows'=>$this->resultados));
     }
 
     public function nueva_carga() {

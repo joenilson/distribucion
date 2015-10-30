@@ -210,36 +210,6 @@
          </div>
          <div class="col-sm-2">
             <div class="form-group">
-               <select class="form-control" name="codserie" onchange="this.form.submit()">
-                  <option value="">Cualquier serie</option>
-                  <option value="">-----</option>
-                  {loop="$fsc->serie->all()"}
-                     {if="$value->codserie==$fsc->codserie"}
-                     <option value="{$value->codserie}" selected="">{$value->descripcion}</option>
-                     {else}
-                     <option value="{$value->codserie}">{$value->descripcion}</option>
-                     {/if}
-                  {/loop}
-               </select>
-            </div>
-         </div>
-         <div class="col-sm-2">
-            <div class="form-group">
-               <select name="codagente" class="form-control" onchange="this.form.submit()">
-                  <option value="">Cualquier empleado</option>
-                  <option value="">------</option>
-                  {loop="$fsc->agente->all()"}
-                     {if="$value->codagente==$fsc->codagente"}
-                     <option value="{$value->codagente}" selected="">{$value->get_fullname()}</option>
-                     {else}
-                     <option value="{$value->codagente}">{$value->get_fullname()}</option>
-                     {/if}
-                  {/loop}
-               </select>
-            </div>
-         </div>
-         <div class="col-sm-2">
-            <div class="form-group">
                <div class="input-group">
                   {if="$fsc->cliente"}
                   <input class="form-control" type="text" name="ac_cliente" value="{$fsc->cliente->nombre}" id="ac_cliente" placeholder="Cualquier cliente" autocomplete="off"/>
@@ -388,4 +358,6 @@
 </form>
 <!-- Modal para buscar facturas pendientes de transportar -->
 {include="ordencarga/nueva"}
+<!-- Modal para mostrar el resultado de las facturas seleccionadas a ser transportadas -->
+{include="ordencarga/resumen"}
 {include="footer"}
