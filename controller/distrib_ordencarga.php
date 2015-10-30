@@ -59,6 +59,8 @@ class distrib_ordencarga extends fs_controller {
             $this->buscar_facturas($buscar_fecha, $codalmacen, $offset);
         }elseif($type === 'select-unidad'){
             $this->lista_unidades($this->empresa->id,$codtrans,$codalmacen);
+        }elseif($type === 'select-conductor'){
+            $this->lista_conductores($this->empresa->id,$codtrans,$codalmacen);
         }
 
     }
@@ -80,6 +82,14 @@ class distrib_ordencarga extends fs_controller {
         $this->template = FALSE;
         $this->resultados = array();
         $this->resultados = $this->distrib_unidades->activos_agencia_almacen($idempresa,$codtrans,$codalmacen);
+        header('Content-Type: application/json');
+        echo json_encode($this->resultados);
+    }
+    
+    public function lista_conductores($idempresa,$codtrans,$codalmacen){
+        $this->template = FALSE;
+        $this->resultados = array();
+        $this->resultados = $this->distrib_conductores->activos_agencia_almacen($idempresa,$codtrans,$codalmacen);
         header('Content-Type: application/json');
         echo json_encode($this->resultados);
     }
@@ -184,7 +194,7 @@ class distrib_ordencarga extends fs_controller {
                 'page_from' => __CLASS__,
                 'page_to' => 'distrib_ordencarga',
                 'type' => 'head',
-                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/> ',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
                 'params' => ''
             )
         );
@@ -213,6 +223,42 @@ class distrib_ordencarga extends fs_controller {
             )
         );
         $fsext8->save();
+        
+        $fsext9 = new fs_extension(
+            array(
+                'name' => 'distribucion_js9',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>',
+                'params' => ''
+            )
+        );
+        $fsext9->save();
+        
+        $fsext10 = new fs_extension(
+            array(
+                'name' => 'distribucion_js10',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/locale/defaults-es_CL.min.js" type="text/javascript"></script>',
+                'params' => ''
+            )
+        );
+        $fsext10->save();
+        
+        $fsext11 = new fs_extension(
+            array(
+                'name' => 'distribucion_css11',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/bootstrap-select.min.css"/>',
+                'params' => ''
+            )
+        );
+        $fsext11->save();
         
         
     }

@@ -108,6 +108,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         $('#codtrans').change(function() {
             var data = "";
             var almacen = document.f_nueva_ordencarga.almacenorig.value;
+            /*
+                        *  Llenamos el selector de unidades
+                        */
             $.ajax({
                 type: 'GET',
                 url : '{$fsc->url()}&type=select-unidad',
@@ -137,9 +140,42 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     );
                 });
             }
-            $('#codunidad').show();
+            $('#codunidad').selectpicker('refresh');
+            
+            /*
+                        * Llenamos el selector de conductores
+                        */
+            $.ajax({
+                type: 'GET',
+                url : '{$fsc->url()}&type=select-conductor',
+                data : "codtrans="+$(this).val()+'&codalmacen='+almacen,
+                async: false,
+                success : function(response) {
+                    if(response.length !== 0){
+                        data = response;
+                    }else{
+                        alert('No hay Unidades registradas a esta Agencia en este Almacén!');
+                    }
+                },
+                error: function() {
+                    alert('No hay Unidades registradas a esta Agencia');
+                }
+            });
+            var select = $('#conductor');
+            select.empty();
+            if(data.length !== 0){
+                var array = data.filter(function(e){return e;});
+                select.append(
+                    $('<option></option>').val('').html('--------------')
+                );
+                $.each(array, function(index, value) {
+                    select.append(
+                        $('<option></option>').val(value.licencia).html(value.nombre)
+                    );
+                });
+            }
+            $('#conductor').selectpicker('refresh');
         });
-       
     });
 </script>
 <div class="modal" id="modal_nueva_ordencarga">
@@ -166,7 +202,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         </div>
                         <div class="col-sm-4"> 
                             <div class="input-group">
-                                <select name="codalmacen" id"codalmacen" class="form-control">
+                                <select name="codalmacen" id="codalmacen" data-width="auto" class="selectpicker form-control">
                                     <option value="">Almacén Origen</option>
                                     {loop="$fsc->almacen->all()"}
                                     <option value="{$value->codalmacen}">{$value->nombre}</option>
@@ -196,49 +232,62 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             <div id="search_results_facturas_pager"></div>
                         </div>
                         <div id="datos" class="tab-pane fade">
-                            <div class="form-group" style="margin-top: 5px;">
-                                <label for="almacenorig" class="col-sm-2 control-label">Almacén Origen</label>
-                                <div class="col-sm-4">
-                                    <select name="almacenorig" id="almacenorig" class="form-control" required>
-                                        {loop="$fsc->almacen->all()"}
-                                        <option value="{$value->codalmacen}">{$value->nombre}</option>
-                                        {/loop}
-                                    </select>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group" style="margin-top: 5px;">
+                                        <label for="almacenorig" class="col-sm-4 control-label">Almacén Origen</label>
+                                        <div class="col-sm-8">
+                                            <select name="almacenorig" id="almacenorig" class="selectpicker form-control" required>
+                                                {loop="$fsc->almacen->all()"}
+                                                <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                                {/loop}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group" style="margin-top: 5px;">
+                                        <label for="almacendest" class="col-sm-4 control-label">Almacén Destino</label>
+                                        <div class="col-sm-8">
+                                            <select name="almacendest" id="almacendest" class="selectpicker form-control" required>
+                                                <option value="NA">No aplica</option>
+                                                {loop="$fsc->almacen->all()"}
+                                                <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                                {/loop}
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label for="almacendest" class="col-sm-2 control-label">Almacén Destino</label>
-                                <div class="col-sm-4">
-                                    <select name="almacendest" id="almacendest" class="form-control" required>
-                                        <option value="NA">No aplica</option>
-                                        {loop="$fsc->almacen->all()"}
-                                        <option value="{$value->codalmacen}">{$value->nombre}</option>
-                                        {/loop}
-                                    </select>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label for="codtrans" class="col-sm-4 control-label">Agencia</label>
+                                        <div class="col-sm-8">
+                                            <select name="codtrans" id="codtrans" class="selectpicker form-control" required>
+                                                <option value="">--------------</option>
+                                                {loop="$fsc->agencia_transporte->all()"}
+                                                <option value="{$value->codtrans}">{$value->nombre}</option>
+                                                {/loop}
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="codtrans" class="col-sm-2 control-label">Agencia</label>
-                                <div class="col-sm-4">
-                                    <select name="codtrans" id="codtrans" class="form-control" required>
-                                        <option value="">--------------</option>
-                                        {loop="$fsc->agencia_transporte->all()"}
-                                        <option value="{$value->codtrans}">{$value->nombre}</option>
-                                        {/loop}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="codunidad" class="col-sm-2 control-label">Unidad</label>
-                                <div class="col-sm-4">
-                                    <select name="codunidad" id="codunidad" class="form-control" required>
-                                    </select>
-                                </div>
-                            </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group has-success has-feedback">
+                                        <label for="codunidad" class="col-sm-4 control-label">Unidad</label>
+                                        <div class="col-sm-8">
+                                            <select name="codunidad" id="codunidad" class="selectpicker form-control" required>
+                                            </select>
+                                            <span class="glyphicon form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                 </div>
+                            </div>        
                             <div class="form-group">
                                 <label for="conductor" class="col-sm-2 control-label">Conductor</label>
-                                <div class="col-sm-4">
-                                    <select name="conductor" id="conductor" class="form-control" required>
+                                <div class="col-sm-4" style="position:relative;">
+                                    <select name="conductor" id="conductor" class="selectpicker form-control" required="" oninvalid="Por favor escoja un conductor">
                                     </select>
                                 </div>
                             </div>
@@ -249,7 +298,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     </div>
                     <div align="right">
                         <br />
-                        <button type="button" class="btn btn-primary">Guardar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
                     </div>
                 </form>
             </div>
