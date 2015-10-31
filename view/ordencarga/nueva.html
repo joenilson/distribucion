@@ -85,6 +85,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 success: function(datos) {
                    var re = /<!--(.*?)-->/g;
                    var m = re.exec( datos );
+                   $("#grid_productos").jqGrid('clearGridData');
                    $('#grid_productos').jqGrid({
                         data: datos.rows,
                         datatype: "local",
@@ -104,8 +105,26 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         userData: datos.userData,
                         userDataOnFooter: true
                    });
+                   $('#grid_productos').jqGrid()
+                        .setGridParam({
+                            data: datos.rows,
+                            userData: datos.userData
+                        })
+                        .trigger("reloadGrid");                    
                 }
              });
+             $('#carga_almacenorig').html($('#almacenorig option:selected').text());
+             document.f_guardar_carga.carga_almacenorig.value = $('#almacenorig option:selected').val();
+             $('#carga_almacendest').html($('#almacendest option:selected').text());
+             document.f_guardar_carga.carga_almacendest.value = $('#almacendest option:selected').val();
+             $('#carga_conductor').html($('#conductor option:selected').text());
+             document.f_guardar_carga.carga_conductor.value = $('#conductor option:selected').val();
+             $('#carga_unidad').html($('#codunidad option:selected').text());
+             document.f_guardar_carga.carga_unidad.value = $('#codunidad option:selected').val();
+             $('#carga_fecha_reparto').html($('#fecha_reparto').val());
+             document.f_guardar_carga.carga_fechareparto.value = $('#fecha_reparto').val();
+             document.f_guardar_carga.carga_facturas.value = facturasSeleccionadas;
+             document.f_guardar_carga.carga_obs.value = document.f_nueva_ordencarga.observaciones.value;
              $('#carga_observaciones').html('<b>'+document.f_nueva_ordencarga.observaciones.value+'</b>');
         }
     }
@@ -147,7 +166,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
             $(elementId).removeClass('has-error');
         }
     }
-    
 
     $(document).ready(function () {
         if( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
@@ -166,6 +184,29 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
             }else{
                 procesar_carga();
             }
+        });
+        
+        $('#f_guardar_carga_btn').click(function (event) {
+            bootbox.dialog({
+                message: "Esta seguro que quiere guardar la Orden de Carga?, {$fsc->url()}",
+                title: "Guardar Previsualización de Carga",
+                buttons: {
+                  success: {
+                    label: "Guardar",
+                    className: "btn-success",
+                    callback: function() {
+                      $('#f_guardar_carga').submit();
+                    }
+                  },
+                  danger: {
+                    label: "Cancelar",
+                    className: "btn-danger",
+                    callback: function() {
+                      this.hide();
+                    }
+                  }
+                }
+            });
         });
 
         $(function () {
@@ -392,7 +433,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     </div>
                     <div align="right">
                         <br />
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="submit" class="btn btn-primary">Previsualizar</button>
                     </div>
                 </form>
             </div>

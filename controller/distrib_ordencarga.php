@@ -314,7 +314,17 @@ class distrib_ordencarga extends fs_controller {
         );
         $fsext11->save();
         
-        
+        $fsext12 = new fs_extension(
+            array(
+                'name' => 'distribucion_js12',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/bootbox.min.js" type="text/javascript"></script>',
+                'params' => ''
+            )
+        );
+        $fsext12->save();
     }
 
 }
