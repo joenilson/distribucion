@@ -19,52 +19,36 @@
  */
 
 /**
- * Description of distribucion_ordenescarga
+ * Description of distribucion_lineasordenescarga
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
-class distribucion_ordenescarga extends fs_model {
+class distribucion_lineasordenescarga extends fs_model {
     public $idempresa;
-    public $codalmacen;
     public $idordencarga;
-    public $codalmacen_dest;
+    public $codalmacen;
     public $fecha;
-    public $codtrans;
-    public $unidad;
-    public $tipounidad;
-    public $conductor;
-    public $tipolicencia;
-    public $totalcantidad;
-    public $totalpeso;
-    public $observaciones;
+    public $referencia;
+    public $cantidad;
+    public $peso;
     public $estado;
-    public $despachado;
-    public $cargado;
     public $usuario_creacion;
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
     
     public function __construct($t = false) {
-        parent::__construct('distribucion_ordenescarga','plugins/distribucion/');
+        parent::__construct('distribucion_lineasordenescarga','plugins/distribucion/');
         if($t)
         {
             $this->idempresa = $t['idempresa'];
             $this->codalmacen = $t['codalmacen'];
             $this->idordencarga = $t['idordencarga'];
-            $this->codalmacen_dest = $t['codalmacen_dest'];
             $this->fecha = $t['fecha'];
-            $this->codtrans = $t['codtrans'];
-            $this->unidad = $t['unidad'];
-            $this->tipounidad = $t['tipounidad'];
-            $this->conductor = $t['conductor'];
-            $this->tipolicencia = $t['tipolicencia'];
-            $this->totalcantidad = $t['totalcantidad'];
-            $this->totalpeso = $t['totalpeso'];
-            $this->observaciones = $t['observaciones'];
+            $this->referencia = $t['referencia'];
+            $this->cantidad = $t['cantidad'];
+            $this->peso = $t['peso'];
             $this->estado = $this->str2bool($t['estado']);
-            $this->despachado = $this->str2bool($t['despachado']);
-            $this->cargado = $this->str2bool($t['cargado']);
             $this->usuario_creacion = $t['usuario_creacion'];
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
             $this->usuario_modificacion = $t['usuario_modificacion'];
@@ -73,25 +57,17 @@ class distribucion_ordenescarga extends fs_model {
         else
         {
             $this->idempresa = null;
-            $this->codalmacen = null;
             $this->idordencarga = null;
-            $this->codalmacen_dest = null;
+            $this->codalmacen = null;
             $this->fecha = null;
-            $this->codtrans = null;
-            $this->unidad = null;
-            $this->tipounidad = null;
-            $this->conductor = null;
-            $this->tipolicencia = null;
-            $this->totalcantidad = null;
-            $this->totalpeso = null;
-            $this->observaciones = null;
+            $this->referencia = null;
+            $this->cantidad = null;
+            $this->peso = null;
             $this->estado = false;
-            $this->despachado = false;
-            $this->cargado = false;
             $this->usuario_creacion = null;
-            $this->fecha_creacion = Date('d-m-Y H:i');
+            $this->fecha_creacion = \Date('d-m-Y H:i');
             $this->usuario_modificacion = null;
-            $this->fecha_modificacion = null;
+            $this->fecha_modificacion  = \Date('d-m-Y H:i');
         }
     }
     
@@ -103,75 +79,52 @@ class distribucion_ordenescarga extends fs_model {
         return "";
     }
     
-    public function getNextId(){
-        $data = $this->db->select("SELECT max(idordencarga) FROM distribucion_ordenescarga WHERE ".
-                    "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "codalmacen = ".$this->var2str($this->codalmacen).";");
-        $id = $data[0]['max'];
-        $id++;
-        return $id;
-    }
-    
     public function exists() {
-        if(is_null($this->idordencarga))
-        {
-            return false;
-        }
-        else
-        {
-            return $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE ".
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                    "referencia = ".$this->var2str($this->referencia)." AND ".
                     "idordencarga = ".$this->intval($this->idordencarga).";");
+        if(count($data[0]) != 0){
+            return true;
+        }else{
+            return false;
         }
     }
     
     public function save() {
         if ($this->exists())
         {
-            $sql = "UPDATE distribucion_ordenescarga SET ".
+            $sql = "UPDATE distribucion_lineasordenescarga SET ".
                     "codalmacen = ".$this->var2str($this->codalmacen).", ".
-                    "codalmacen_dest = ".$this->var2str($this->codalmacen_dest).", ".
-                    "codtrans = ".$this->var2str($this->codtrans).", ".
-                    "unidad = ".$this->var2str($this->unidad).", ".
-                    "tipounidad = ".$this->intval($this->tipounidad).", ".
-                    "conductor = ".$this->var2str($this->conductor).", ".
-                    "tipolicencia = ".$this->var2str($this->tipolicencia).", ".
+                    "cantidad = ".$this->var2str($this->cantidad).", ".
+                    "peso = ".$this->intval($this->peso).", ".
+                    "referencia = ".$this->var2str($this->referencia).", ".
                     "fecha = ".$this->var2str($this->fecha).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
-                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).", ".
+                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
                     " WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                     "idordencarga = ".$this->intval($this->idordencarga).";";
-            
             return $this->db->exec($sql);
         }
         else
         {
-            $this->idordencarga = $this->getNextId();
-            $sql = "INSERT INTO distribucion_ordenescarga ( idempresa, codalmacen, idordencarga, codalmacen_dest, fecha, codtrans, unidad, tipounidad, conductor, tipolicencia, totalcantidad, totalpeso, observaciones, estado, despachado, cargado, usuario_creacion, fecha_creacion ) VALUES (".
+            $sql = "INSERT INTO distribucion_lineasordenescarga ( idempresa, codalmacen, idordencarga, fecha, referencia, cantidad, peso, estado, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
                     $this->var2str($this->codalmacen).", ".
                     $this->intval($this->idordencarga).", ".
-                    $this->var2str($this->codalmacen_dest).", ".
                     $this->var2str($this->fecha).", ".
-                    $this->var2str($this->codtrans).", ".
-                    $this->var2str($this->unidad).", ".
-                    $this->intval($this->tipounidad).", ".
-                    $this->var2str($this->conductor).", ".
-                    $this->var2str($this->tipolicencia).", ".
-                    $this->var2str($this->totalcantidad).", ".
-                    $this->intval($this->totalpeso).", ".
-                    $this->intval($this->observaciones).", ".
+                    $this->var2str($this->referencia).", ".
+                    $this->var2str($this->cantidad).", ".
+                    $this->var2str($this->peso).", ".
                     $this->var2str($this->estado).", ".
-                    $this->var2str($this->despachado).", ".
-                    $this->var2str($this->cargado).", ".
                     $this->var2str($this->usuario_creacion).", ".
                     $this->var2str($this->fecha_creacion).");";
             if($this->db->exec($sql))
             {
-                return $this->idordencarga;
+                return true;
             }
             else
             {
@@ -181,9 +134,10 @@ class distribucion_ordenescarga extends fs_model {
     }
     
     public function delete() {
-        $sql = "DELETE FROM distribucion_ordenescarga WHERE ".
+        $sql = "DELETE FROM distribucion_lineasordenescarga WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                "referencia = ".$this->var2str($this->referencia)." AND ".
                 "idordencarga = ".$this->intval($this->idordencarga).";";
         return $this->db->exec($sql);
     }
@@ -191,7 +145,7 @@ class distribucion_ordenescarga extends fs_model {
     public function all($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -206,7 +160,7 @@ class distribucion_ordenescarga extends fs_model {
     public function all_almacen($idempresa,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -221,7 +175,7 @@ class distribucion_ordenescarga extends fs_model {
     public function all_agencia($idempresa,$codtrans)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -236,7 +190,7 @@ class distribucion_ordenescarga extends fs_model {
     public function all_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -251,7 +205,7 @@ class distribucion_ordenescarga extends fs_model {
     public function activos($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -266,7 +220,7 @@ class distribucion_ordenescarga extends fs_model {
     public function activos_almacen($idempresa,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -281,7 +235,7 @@ class distribucion_ordenescarga extends fs_model {
     public function activos_agencia($idempresa,$codtrans)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -296,7 +250,7 @@ class distribucion_ordenescarga extends fs_model {
     public function activos_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -311,7 +265,7 @@ class distribucion_ordenescarga extends fs_model {
     public function get($idempresa,$idordencarga)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND placa = ".$this->intval($idordencarga).";");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND placa = ".$this->intval($idordencarga).";");
         
         if($data)
         {
