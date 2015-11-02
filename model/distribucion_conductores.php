@@ -19,7 +19,7 @@
  */
 
 /**
- * Description of distribucion_unidades
+ * Description of distribucion_conductores
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */

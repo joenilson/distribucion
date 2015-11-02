@@ -41,30 +41,44 @@ class distrib_ordencarga extends fs_controller {
     public $mostrar;
     public $order;
     public $cliente;
+    public $total_resultados;
+    public $total_resultados_txt;
+    public $num_resultados;
+    public $paginas;
     
     public function __construct() {
         parent::__construct(__CLASS__, '4 - Crear Orden de Carga', 'distribucion');
     }
 
     public function private_core() {
+        /*
+                *  Llamadas a models
+                */
         $this->almacen = new almacen();
         $this->facturas_cliente = new factura_cliente();
         $this->linea_factura_cliente = new linea_factura_cliente();
-        
         $this->agencia_transporte = new agencia_transporte();
         $this->distrib_conductores = new distribucion_conductores();
         $this->distrib_unidades = new distribucion_unidades();
         
+        /*
+                * Cargamos los plugins necesarios jss y css
+                */
         $this->share_extensions();
+        
+        /*
+                * Leemos las variables que nos manda el view
+                */
         $type = \filter_input(INPUT_GET, 'type');
+        $type_post = \filter_input(INPUT_POST, 'type');
         $buscar_fecha = \filter_input(INPUT_GET, 'buscar_fecha');
         $codalmacen = \filter_input(INPUT_GET, 'codalmacen');
         $codtrans = \filter_input(INPUT_GET, 'codtrans');
         $offset = \filter_input(INPUT_GET, 'offset');
-        
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
         $order = \filter_input(INPUT_GET, 'order');
         $cliente = \filter_input(INPUT_GET, 'codcliente');
+
         $this->mostrar = (isset($mostrar))?$mostrar:"todo";
         $this->order = (isset($order))?str_replace('_', ' ', $order):"fecha DESC";
         if(isset($cliente) AND !empty($cliente)){
@@ -87,7 +101,25 @@ class distrib_ordencarga extends fs_controller {
             $dataInicialCarga['observaciones'] = \filter_input(INPUT_GET, 'observaciones');
             $dataInicialCarga['facturas'] = \filter_input(INPUT_GET, 'facturas');
             $this->crear_carga($this->empresa->id,$codtrans,$codalmacen,$dataInicialCarga);
+        }elseif(isset($type_post) AND $type_post == 'guardar-carga'){
+            $almacenorig = \filter_input(INPUT_POST, 'carga_almacenorig');
+            $almacendest = \filter_input(INPUT_POST, 'carga_almacendest');
+            $codtrans = \filter_input(INPUT_POST, 'carga_codtrans');
+            $codunidad = \filter_input(INPUT_POST, 'carga_unidad');
+            $conductor = \filter_input(INPUT_POST, 'carga_conductor');
+            $fecha_reparto = \filter_input(INPUT_POST, 'carga_fechareparto');
+            $facturas_carga = \filter_input(INPUT_POST, 'carga_facturas');
+            $observaciones = \filter_input(INPUT_POST, 'carga_obs');
+            
+            $this->new_message('Orden de carga guardada correctamente');
+        }else{
+            $this->resultados = array();
         }
+        
+        $this->total_resultados = 0;
+        $this->total_resultados_txt = 0;
+        $this->num_resultados = 0;
+        $this->paginas = array();
 
     }
     
