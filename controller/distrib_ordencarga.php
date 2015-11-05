@@ -212,7 +212,7 @@ class distrib_ordencarga extends fs_controller {
     }
     
     public function paginas(){
-        return 10;
+        return array('actual'=>1, 'num'=> 1);
     }
     
     public function crear_carga($datos,$retorno){

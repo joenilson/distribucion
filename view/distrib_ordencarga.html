@@ -244,32 +244,52 @@
       <thead>
          <tr>
             <th></th>
-            <th class="text-left">Código + {#FS_NUMERO2#}</th>
-            <th class="text-left">Cliente</th>
+            <th class="text-left">Número</th>
+            <th class="text-left">Almacén Origen</th>
+            <th class="text-left">Agencia</th>
+            <th class="text-left">Conductor</th>
+            <th class="text-left">Unid. Transporte</th>
             <th class="text-left">Observaciones</th>
-            <th class="text-right">Total</th>
-            <th class="text-right">Fecha</th>
-            <th class="text-right hidden-sm">Hora</th>
+            <th class="text-right">Carga</th>
+            <th class="text-right">Fecha Reparto</th>
+            <th class="text-center hidden-sm">Generada</th>
+            <th class="text-center hidden-sm">Cargada</th>
+            <th class="text-center hidden-sm">Despachada</th>
+            <th></th>
          </tr>
       </thead>
       {loop="$fsc->resultados"}
-      <tr class='clickableRow{if="!$value->ptefactura"} success{elseif="$value->total<=0"} warning{/if}' href="{$value->url()}">
+      <tr>
          <td class="text-center">
-            {if="!$value->ptefactura"}
-            <span class="glyphicon glyphicon-paperclip" title="El {#FS_ALBARAN#} tiene vinculado una factura"></span>
-            {/if}
+            <button class="btn btn-sm btn-default" title="Imprimir Orden de Carga"><span class="glyphicon glyphicon-print"></span></button>
+            <button class="btn btn-sm btn-default" title="Ver Orden de Carga"><span class="glyphicon glyphicon-eye-open"></span></button>
          </td>
-         <td><a href="{$value->url()}">{$value->codigo}</a> {$value->numero2}</td>
+         <td><a href="{$value->url()}">{$value->idordencarga}</a></td>
          <td>
-            {$value->nombrecliente}
-            <a href="{$fsc->url()}&codcliente={$value->codcliente}" class="cancel_clickable" title="Ver más {#FS_ALBARANES#} de {$value->nombrecliente}">[+]</a>
+            {$value->codalmacen}
          </td>
-         <td>{$value->observaciones_resume()}</td>
-         <td class="text-right">{$fsc->show_precio($value->total, $value->coddivisa)}</td>
+         <td>
+            {$value->codtrans}
+         </td>
+         <td>
+            {$value->conductor}
+         </td>
+         <td>
+            {$value->unidad}
+         </td>
+         <td>{$value->observaciones}</td>
          <td class="text-right">
+            {$value->totalcantidad}
+         </td>
+        <td class="text-right">
             {if="$value->fecha==$fsc->today()"}<b>{$value->fecha}</b>{else}{$value->fecha}{/if}
          </td>
-         <td class="text-right hidden-sm">{$value->hora}</td>
+         <td class="text-center hidden-sm">{if="$value->estado"}<span class="glyphicon glyphicon-star"></span>{else}<span class="glyphicon glyphicon-star-empty"></span>{/if}</td>
+         <td class="text-center hidden-sm">{if="$value->cargado"}<span class="glyphicon glyphicon-star"></span>{else}<span class="glyphicon glyphicon-star-empty"></span>{/if}</td>
+         <td class="text-center hidden-sm">{if="$value->despachado"}<span class="glyphicon glyphicon-star"></span>{else}<span class="glyphicon glyphicon-star-empty"></span>{/if}</td>
+         <td>
+            <button class="btn btn-sm btn-danger" title="Eliminar Orden de Carga"><span class="glyphicon glyphicon-trash"></span></button>
+         </td>         
       </tr>
       {else}
       <tr class="warning">
@@ -277,14 +297,6 @@
          <td colspan="6">Ninguna Orden de Carga encontrada. Pulsa el botón <b>Nueva</b> para crear una.</td>
       </tr>
       {/loop}
-      {if="$fsc->total_resultados!==''"}
-      <tr>
-         <td colspan="5" class="text-right">
-            {$fsc->total_resultados_txt} &nbsp; <b>{$fsc->show_precio($fsc->total_resultados)}</b>
-         </td>
-         <td colspan="2"></td>
-      </tr>
-      {/if}
    </table>
 </div>
 

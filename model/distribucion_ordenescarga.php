@@ -27,6 +27,7 @@ class distribucion_ordenescarga extends fs_model {
     public $idempresa;
     public $codalmacen;
     public $idordencarga;
+    public $idtransporte;
     public $codalmacen_dest;
     public $fecha;
     public $codtrans;
@@ -52,6 +53,7 @@ class distribucion_ordenescarga extends fs_model {
             $this->idempresa = $t['idempresa'];
             $this->codalmacen = $t['codalmacen'];
             $this->idordencarga = $t['idordencarga'];
+            $this->idtransporte = $t['idtransporte'];
             $this->codalmacen_dest = $t['codalmacen_dest'];
             $this->fecha = $t['fecha'];
             $this->codtrans = $t['codtrans'];
@@ -75,6 +77,7 @@ class distribucion_ordenescarga extends fs_model {
             $this->idempresa = null;
             $this->codalmacen = null;
             $this->idordencarga = null;
+            $this->idtransporte = null;
             $this->codalmacen_dest = null;
             $this->fecha = null;
             $this->codtrans = null;
@@ -131,6 +134,7 @@ class distribucion_ordenescarga extends fs_model {
         {
             $sql = "UPDATE distribucion_ordenescarga SET ".
                     "codalmacen = ".$this->var2str($this->codalmacen).", ".
+                    "idtransporte = ".$this->var2str($this->idtransporte).", ".
                     "codalmacen_dest = ".$this->var2str($this->codalmacen_dest).", ".
                     "codtrans = ".$this->var2str($this->codtrans).", ".
                     "unidad = ".$this->var2str($this->unidad).", ".
@@ -161,9 +165,9 @@ class distribucion_ordenescarga extends fs_model {
                     $this->intval($this->tipounidad).", ".
                     $this->var2str($this->conductor).", ".
                     $this->var2str($this->tipolicencia).", ".
-                    $this->var2str($this->totalcantidad).", ".
+                    $this->intval($this->totalcantidad).", ".
                     $this->intval($this->totalpeso).", ".
-                    $this->intval($this->observaciones).", ".
+                    $this->var2str($this->observaciones).", ".
                     $this->var2str($this->estado).", ".
                     $this->var2str($this->despachado).", ".
                     $this->var2str($this->cargado).", ".
