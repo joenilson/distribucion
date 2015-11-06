@@ -192,6 +192,22 @@ class distribucion_ordenescarga extends fs_model {
         return $this->db->exec($sql);
     }
     
+    public function asignar_transporte(){
+        $sql = "UPDATE distribucion_ordenescarga SET ".
+                    "idtransporte = ".$this->var2str($this->idtransporte).", ".
+                    "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
+                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).", ".
+                    " WHERE ".
+                    "idempresa = ".$this->intval($this->idempresa)." AND ".
+                    "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                    "idordencarga = ".$this->intval($this->idordencarga).";";
+        if($this->db->exec($sql)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
     public function all($idempresa)
     {
         $lista = array();

@@ -176,6 +176,7 @@ class distrib_ordencarga extends fs_controller {
         }else{
             $this->new_error_msg('Orden de carga '.$ordencarga->idordencarga.' guardada con errores en los siguientes articulos: '.$erroresLinea.' por favor revise la información enviada.');
         }
+        $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id);
     }
     
     public function buscar_facturas($buscar_fecha, $codalmacen, $offset){

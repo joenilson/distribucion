@@ -66,6 +66,11 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
+        <nombre>idtransporte</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>observaciones</nombre>
         <tipo>text</tipo>
         <nulo>YES</nulo>
