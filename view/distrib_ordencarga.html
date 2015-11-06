@@ -4,6 +4,7 @@
     {
        $('#f_resultados input:checkbox').prop('checked', true);
     }
+    
     function fs_marcar_nada()
     {
        $('#f_resultados input:checkbox').prop('checked', false);
@@ -55,12 +56,75 @@
        $('#modal_nueva_ordencarga').modal('show');
    }
    
+   function mostrarOrdenCarga(id,almacen){
+       $('#modal_resumen_ordencarga').modal('show');
+       $.ajax({
+            type: 'GET',
+            url: '{$fsc->url()}',
+            async: false,
+            data: 'type=ver-carga&ordencarga='+id+'-'+almacen,
+            success: function(datos) {
+               var re = /<!--(.*?)-->/g;
+               var m = re.exec( datos );
+               $("#grid_productos").jqGrid('clearGridData');
+               $('#grid_productos').jqGrid({
+                    data: datos.rows,
+                    datatype: "local",
+                    colModel: [
+                        {label: 'Ref.', name: 'referencia', width: 30, key: true},
+                        {label: 'Producto', name: 'producto', width: 60},
+                        {label: 'Cantidad', name: 'cantidad', width: 20, sorttype: 'number', 
+                            formatter: 'number', align: 'right', summaryType: 'sum',
+                            formatoptions : { decimalSeparator: ".", decimalPlaces:2, thousandsSeparator:"," }
+                        }
+                    ],
+                    loadonce: false,
+                    viewrecords: true,
+                    autowidth: true,
+                    shrinkToFit: true,
+                    footerrow: true,
+                    userData: datos.userData,
+                    userDataOnFooter: true
+               });
+               $('#grid_productos').jqGrid()
+                    .setGridParam({
+                        data: datos.rows,
+                        userData: datos.userData
+                    })
+                    .trigger("reloadGrid");
+               $('#carga_almacenorig').html(datos.cabecera.codalmacen);
+               $('#carga_almacendest').html(datos.cabecera.codalmacen_dest);
+               $('#carga_conductor').html(datos.cabecera.conductor);
+               $('#carga_unidad').html(datos.cabecera.unidad);
+               $('#carga_fecha_reparto').html(datos.cabecera.fecha);
+               $('#carga_observaciones').html('<b>'+datos.cabecera.observaciones+'</b>');
+               $('#f_imprimir_carga_btn').val(datos.cabecera.idordencarga+'-'+datos.cabecera.codalmacen);
+               $('#f_guardar_carga_btn').addClass('hidden');
+               $('#f_imprimir_carga_btn').removeClass('hidden');
+
+            }
+         });
+   }
+   
    $(document).ready(function() {
-      $('#b_ver_ordencarga').click(function(event) {
+      $('#f_imprimir_carga_btn').click(function(event) {
+         event.preventDefault();
+         $.ajax({
+            type: 'GET',
+            url: '{$fsc->url()}',
+            async: false,
+            data: 'type=imprimir-carga&ordencarga='+$('#f_imprimir_carga_btn').val(),
+            success: function(datos) {
+                
+            }
+        });
+      });
+   
+      $('#b_imprimir_ordencarga').click(function(event) {
          event.preventDefault();
          $('#modal_nueva_ordencarga').modal('show');
          document.f_buscar_lineas.buscar_lineas.focus();
-      });       
+      });
    
       $('#b_nueva_ordencarga').click(function(event) {
          event.preventDefault();

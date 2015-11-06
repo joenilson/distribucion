@@ -26,6 +26,7 @@ require_model('distribucion_unidades.php');
 require_model('distribucion_ordenescarga.php');
 require_model('distribucion_lineasordenescarga.php');
 require_model('cliente.php');
+require_model('articulo');
 /**
  * Description of distribucion_creacion
  *
@@ -49,6 +50,7 @@ class distrib_ordencarga extends fs_controller {
     public $total_resultados_txt;
     public $num_resultados;
     public $paginas;
+    public $articulo;
     
     public function __construct() {
         parent::__construct(__CLASS__, '4 - Crear Orden de Carga', 'distribucion');
@@ -66,6 +68,7 @@ class distrib_ordencarga extends fs_controller {
         $this->distrib_unidades = new distribucion_unidades();
         $this->distrib_ordenescarga = new distribucion_ordenescarga();
         $this->distrib_lineasordenescarga = new distribucion_lineasordenescarga();
+        $this->articulo = new articulo;
         
         /*
                 * Cargamos los plugins necesarios jss y css
@@ -139,15 +142,43 @@ class distrib_ordencarga extends fs_controller {
             if($ordenCarga0->save()){
                 $this->guardar_lineas_ordencarga($ordenCarga0, $resultados_facturas['resultados']);
             }
+        }elseif($type === 'ver-carga'){
+            $ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+            $datos_ordencarga = explode('-', $ordencarga);
+            $idordencarga = $datos_ordencarga[0];
+            $codalmacen = $datos_ordencarga[1];
+            $this->visualizar_ordencarga($idordencarga,$codalmacen);
+        }elseif($type === 'imprimir-carga'){
+            $ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+            $this->imprimir_ordencarga($ordencarga);
         }else{
             $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id);
         }
-        
         $this->total_resultados = 0;
         $this->total_resultados_txt = 0;
         $this->num_resultados = 0;
-        $this->paginas = array();
-
+    }
+    
+    public function imprimir_ordencarga($ordencarga){
+        
+    }
+    
+    public function visualizar_ordencarga($idordencarga,$codalmacen){
+        $datos = array();
+        $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+        $datos['totalCantidad'] = $ordencarga[0]->totalcantidad;
+        $datos['totalPeso'] = $ordencarga[0]->totalpeso;
+        $lineasOrdencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+        $detalleLineas = array();
+        foreach($lineasOrdencarga as $values){
+            $producto = $this->articulo->get($values->referencia);
+            $values->producto = $producto->descripcion;
+            $detalleLineas[] = $values;
+        }
+        $datos['resultados'] = $detalleLineas;
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode(array('cabecera'=>$ordencarga[0],'userData'=>array('referencia'=>"",'producto'=>'Total','cantidad'=>$datos['totalCantidad']),'rows'=>$datos['resultados']));
     }
     
     public function guardar_lineas_ordencarga($ordencarga, $lineas){

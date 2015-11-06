@@ -151,7 +151,7 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $lista[] = new distribucion_lineasordenescarga($d);
             }
         }
         return $lista;
@@ -166,7 +166,7 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $lista[] = new distribucion_lineasordenescarga($d);
             }
         }
         return $lista;
@@ -181,7 +181,7 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $lista[] = new distribucion_lineasordenescarga($d);
             }
         }
         return $lista;
@@ -196,7 +196,7 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $lista[] = new distribucion_lineasordenescarga($d);
             }
         }
         return $lista;
@@ -211,7 +211,7 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $lista[] = new distribucion_lineasordenescarga($d);
             }
         }
         return $lista;
@@ -226,7 +226,7 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $lista[] = new distribucion_lineasordenescarga($d);
             }
         }
         return $lista;
@@ -241,7 +241,7 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $lista[] = new distribucion_lineasordenescarga($d);
             }
         }
         return $lista;
@@ -256,22 +256,22 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $lista[] = new distribucion_lineasordenescarga($d);
             }
         }
         return $lista;
     }
     
-    public function get($idempresa,$idordencarga)
+    public function get($idempresa,$idordencarga, $codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND placa = ".$this->intval($idordencarga).";");
+        $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND idordencarga = ".$this->intval($idordencarga)." AND codalmacen = ".$this->var2str($codalmacen).";");
         
         if($data)
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $lista[] = new distribucion_lineasordenescarga($d);
             }
         }
         return $lista;

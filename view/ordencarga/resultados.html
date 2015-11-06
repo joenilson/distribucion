@@ -11,7 +11,7 @@
                     <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_nada()" title="Desmarcar todo">
                        <span class="glyphicon glyphicon-unchecked"></span>
                     </button>
-                    <button class="btn btn-sm btn-success" title="Imprimir Ordenes de Carga Seleccionadas">
+                    <button class="btn btn-sm btn-success" type="button" id="b_imprimir_seleccion" title="Imprimir Ordenes de Carga Seleccionadas">
                         <span class="glyphicon glyphicon-print"></span>
                     </button>
                 </div>
@@ -33,10 +33,10 @@
       {loop="$fsc->resultados"}
       <tr>
          <td class="text-center">
-             <input type="checkbox" name="imprimir[]" value="{$value->idordencarga}" class="check-mark"/>
+             <input type="checkbox" name="imprimir" value="{$value->idordencarga}-{$value->codalmacen}" class="check-mark"/>
          </td>
          <td class="text-center">
-             <button class="btn btn-sm btn-default" title="Ver Orden de Carga" id="b_ver_ordencarga"><span class="glyphicon glyphicon-eye-open"></span></button>
+             <button class="btn btn-sm btn-default" type="button" title="Ver Orden de Carga" onclick="mostrarOrdenCarga('{$value->idordencarga}','{$value->codalmacen}')"><span class="glyphicon glyphicon-eye-open"></span></button>
          </td>
          <td><a href="{$value->url()}">{$value->idordencarga}</a></td>
          <td>

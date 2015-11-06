@@ -328,10 +328,10 @@ class distribucion_ordenescarga extends fs_model {
         return $lista;
     }
     
-    public function get($idempresa,$idordencarga)
+    public function get($idempresa,$idordencarga,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND placa = ".$this->intval($idordencarga).";");
+        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND idordencarga = ".$this->intval($idordencarga)." AND codalmacen = ".$this->var2str($codalmacen).";");
         
         if($data)
         {

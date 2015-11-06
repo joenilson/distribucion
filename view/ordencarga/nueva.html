@@ -127,6 +127,8 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
              document.f_guardar_carga.carga_obs.value = document.f_nueva_ordencarga.observaciones.value;
              document.f_guardar_carga.carga_codtrans.value = $('#codtrans option:selected').val();
              $('#carga_observaciones').html('<b>'+document.f_nueva_ordencarga.observaciones.value+'</b>');
+             $('#f_guardar_carga_btn').removeClass('hidden');
+             $('#f_imprimir_carga_btn').addClass('hidden');
         }
     }
 
@@ -186,10 +188,42 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 procesar_carga();
             }
         });
+        $('#b_imprimir_seleccion').click(function (event) {
+            var checkboxValues = [];
+            $('input[name=imprimir]:checked').map(function() {
+                        checkboxValues.push($(this).val());
+            });
+            console.log(checkboxValues);
+            if(checkboxValues.length !== 0){
+                //console.log($('input[name="imprimir"]:checked').serialize());
+                bootbox.dialog({
+                    message: "Esta seguro que quiere imprimir las Ordenes de Carga seleccionadas?",
+                    title: "Imprimir Ordenes de Carga",
+                    buttons: {
+                      success: {
+                        label: "Imprimir",
+                        className: "btn-success",
+                        callback: function() {
+                          this.hide();
+                        }
+                      },
+                      danger: {
+                        label: "Cancelar",
+                        className: "btn-danger",
+                        callback: function() {
+                          this.hide();
+                        }
+                      }
+                    }
+                });
+            }else{
+                alert('Debe seleccionar un item!');
+            }
+        });
         
         $('#f_guardar_carga_btn').click(function (event) {
             bootbox.dialog({
-                message: "Esta seguro que quiere guardar la Orden de Carga?, {$fsc->url()}",
+                message: "Esta seguro que quiere guardar la Orden de Carga?",
                 title: "Guardar Previsualización de Carga",
                 buttons: {
                   success: {
