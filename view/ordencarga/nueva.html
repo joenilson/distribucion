@@ -204,7 +204,19 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         label: "Imprimir",
                         className: "btn-success",
                         callback: function() {
-                          this.hide();
+                            $.ajax({
+                                type: 'GET',
+                                url: '{$fsc->url()}',
+                                async: false,
+                                data: 'type=imprimir-carga&ordencarga='+checkboxValues,
+                                success : function(datos) {
+                                    console.log(datos);
+                                },
+                                error: function() {
+                                    console.log(datos);
+                                }
+                            });
+                            //this.hide();
                         }
                       },
                       danger: {

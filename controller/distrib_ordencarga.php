@@ -160,7 +160,9 @@ class distrib_ordencarga extends fs_controller {
     }
     
     public function imprimir_ordencarga($ordencarga){
-        
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($ordencarga);
     }
     
     public function visualizar_ordencarga($idordencarga,$codalmacen){
