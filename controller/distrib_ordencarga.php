@@ -26,7 +26,10 @@ require_model('distribucion_unidades.php');
 require_model('distribucion_ordenescarga.php');
 require_model('distribucion_lineasordenescarga.php');
 require_model('cliente.php');
-require_model('articulo');
+require_model('articulo.php');
+
+require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
+
 /**
  * Description of distribucion_creacion
  *
@@ -161,8 +164,13 @@ class distrib_ordencarga extends fs_controller {
     
     public function imprimir_ordencarga($ordencarga){
         $this->template = false;
+        $pdfFile = new asgard_PDFHandler();
+        $pdfFile->pdf_create();
+        /*
         header('Content-Type: application/json');
         echo json_encode($ordencarga);
+         * 
+         */
     }
     
     public function visualizar_ordencarga($idordencarga,$codalmacen){

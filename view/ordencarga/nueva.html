@@ -210,7 +210,13 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 async: false,
                                 data: 'type=imprimir-carga&ordencarga='+checkboxValues,
                                 success : function(datos) {
-                                    console.log(datos);
+                                    //console.log(datos);
+                                    var myResponse = eval(datos);
+                                    $('#modal_impresion_ordencarga').modal('show');
+                                    $("<iframe />") // create an iframe
+                                      // add the source
+                                      .attr('src', 'data:application/pdf;base64,' + myResponse.base64EncodedResponse)
+                                      .appendTo('#modal_body_impresion_ordencarga');
                                 },
                                 error: function() {
                                     console.log(datos);

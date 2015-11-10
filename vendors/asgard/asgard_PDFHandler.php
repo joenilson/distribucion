@@ -17,7 +17,8 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-require_once('../tcpdf/tcpdf_autoconfig.php');
+require_once('plugins/distribucion/vendors/tcpdf/tcpdf_autoconfig.php');
+require_once('plugins/distribucion/vendors/tcpdf/tcpdf.php');
 /**
  * Esta clase será una clase agnostica para generar documentos de PDF
  * se coloca dentro de la carpeta vendors/asgard para diferenciarla de las otras librerias en uso
@@ -43,7 +44,7 @@ class asgard_PDFHandler {
         $pdf->setPageOrientation($this->pdf_orientacion);
         $pdf->AddPage($this->pdf_orientacion, $this->pdf_formato);
         //$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        
+        //echo 'Aqui: ';
         $pdf->Output($documento,'I');
     }
     

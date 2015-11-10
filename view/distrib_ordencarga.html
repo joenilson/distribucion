@@ -109,15 +109,13 @@
    $(document).ready(function() {
       $('#f_imprimir_carga_btn').click(function(event) {
          event.preventDefault();
-         $.ajax({
-            type: 'GET',
-            url: '{$fsc->url()}',
-            async: false,
-            data: 'type=imprimir-carga&ordencarga='+$('#f_imprimir_carga_btn').val(),
-            success: function(datos) {
-                console.log(datos);
-            }
-        });
+         
+         $('#modal_impresion_ordencarga').modal('show');
+        $("<iframe />")
+          .attr('src', '{$fsc->url()}&type=imprimir-carga&ordencarga='+$('#f_imprimir_carga_btn').val())
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_body_impresion_ordencarga');
       });
    
       $('#b_imprimir_ordencarga').click(function(event) {
@@ -393,5 +391,7 @@
 {include="ordencarga/nueva"}
 <!-- Modal para mostrar el resultado de las facturas seleccionadas a ser transportadas -->
 {include="ordencarga/resumen"}
+<!-- Modal para mostrar el pdf para las impresiones de las ordenes de carga -->
+{include="ordencarga/impresion"}
 <!-- Pie de Pagina -->
 {include="footer"}
