@@ -110,7 +110,7 @@
       $('#f_imprimir_carga_btn').click(function(event) {
          event.preventDefault();
          
-         $('#modal_impresion_ordencarga').modal('show');
+        $('#modal_impresion_ordencarga').modal('show');
         $("<iframe />")
           .attr('src', '{$fsc->url()}&type=imprimir-carga&ordencarga='+$('#f_imprimir_carga_btn').val())
           .attr('width', '100%')
