@@ -15,3 +15,113 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
+{include="header"}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                <span class="glyphicon glyphicon-refresh"></span>
+            </a>
+            Configuración de Datos Maestros
+        </h3>
+    </div>
+    <div class="panel-body">
+        <div class="col-md-2 col-sm-3">
+            <div class="btn-group-vertical" role="group" aria-label="...">
+                <button type="button" id="b_supervisores" value="panel_supervisores" onclick="botonActivo(this)" role="button" class="btn btn-default">
+                    <span class="glyphicon glyphicon-sunglasses pull-left"></span> &nbsp; Supervisores
+                </button>             
+                <button type="button" id="b_vendedores" value="panel_vendedores" onclick="botonActivo(this)" role="button" class="btn btn-default">
+                    <span class="glyphicon glyphicon-user pull-left"></span> &nbsp; Vendedores
+                </button>
+                <button type="button" id="b_rutas" value="panel_rutas" onclick="botonActivo(this)" role="button" class="btn btn-default">
+                    <span class="glyphicon glyphicon-road pull-left"></span> &nbsp; Rutas
+                </button>
+                <button type='button' id="b_canales" value="panel_canales" onclick="botonActivo(this)" role="button" class="btn btn-default">
+                    <span class="glyphicon glyphicon-align-justify pull-left"></span> &nbsp; Canales
+                </button>
+                <button type="button" id="b_subcanales" value="panel_subcanales" onclick="botonActivo(this)" role="button" class="btn btn-default">
+                    <span class="glyphicon glyphicon-list pull-left"></span> &nbsp; Subcanales
+                </button>
+            </div>
+        </div>
+        <div class="col-md-10 col-sm-9">
+            <div class="panel panel-info" id="panel_central">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Datos maestros de distribución para los clientes</h3>
+                </div>
+                <div class="panel-body">
+                    <p align="justify">Para el correcto uso del módulo de distribución para los clientes se debe crear como mínimo un Supervisor, un vendedor, una ruta, un canal y un subcanal, para ser asignado al cliente.</p>
+                    <p align="justify">Si adicional a esto se quiere utilizar el plugin de geolocalización de clientes, se debe agregar en la data maestra de los clientes las coordenadas de los mismos.</p>
+                    <p align="justify">A continuación seleccione una opción del menú de la izquierda para agregar la información básica.</p>
+                </div>
+            </div>
+            <div class="panel panel-info hidden" id="panel_supervisores">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Supervisores</h3>
+                </div>
+                <div class="panel-body">
+                    Listado de supervagos
+                </div>
+            </div>
+            <div class="panel panel-info hidden" id="panel_vendedores">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Vendedores</h3>
+                </div>
+                <div class="panel-body">
+                    Listado de vendedores
+                </div>
+            </div>
+            <div class="panel panel-info hidden" id="panel_rutas">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Rutas</h3>
+                </div>
+                <div class="panel-body">
+                    Listado de rutas
+                </div>
+            </div>
+            <div class="panel panel-info hidden" id="panel_canales">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Canales</h3>
+                </div>
+                <div class="panel-body">
+                    Listado de canales
+                </div>
+            </div>
+            <div class="panel panel-info hidden" id="panel_subcanales">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Subcanales</h3>
+                </div>
+                <div class="panel-body">
+                    Listado de subcanales
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    /*
+     * Cambia la clase a boton primario cuando el usuario le da Click y muestra el panel asociado
+     */
+    function botonActivo(element) {
+        var botones = ['b_supervisores', 'b_vendedores', 'b_rutas', 'b_canales', 'b_subcanales'];
+        var paneles = ['panel_supervisores', 'panel_vendedores', 'panel_rutas', 'panel_canales', 'panel_subcanales'];
+        $('#panel_central').hide();
+        for (var i = 0; i < botones.length; i++) {
+            var idElement = '#' + element.id;
+            var otherElement = '#' + botones[i];
+            var idPanel = '#' + paneles[i];
+            if (element.id === botones[i]) {
+                $(idElement).removeClass("btn-default");
+                $(idElement).addClass("btn-primary");
+                $(idPanel).removeClass('hidden');
+            } else {
+                $(otherElement).removeClass("btn-primary");
+                $(otherElement).addClass("btn-default");
+                $(idPanel).addClass('hidden');
+            }
+        }
+
+    }
+</script>
+{include="footer"}
