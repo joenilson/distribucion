@@ -28,6 +28,7 @@ class distrib_clientes extends fs_controller {
     public $codcliente;
     public $cliente;
     public $almacen;
+    public $supervisor;
     public $cliente_datos;
     
     public function __construct() {
