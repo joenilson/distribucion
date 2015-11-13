@@ -18,6 +18,7 @@
 
  */
 require_model('cliente.php');
+require_model('almacen.php');
 /**
  * Description of distribucion_creacion
  *
@@ -26,6 +27,7 @@ require_model('cliente.php');
 class distrib_clientes extends fs_controller {
     public $codcliente;
     public $cliente;
+    public $almacen;
     public $cliente_datos;
     
     public function __construct() {
@@ -33,13 +35,24 @@ class distrib_clientes extends fs_controller {
     }
     
     public function private_core(){
+        
         $this->share_extension();
+        
+        $this->almacen = new almacen();
+        
+        $type = \filter_input(INPUT_POST, 'type');
         $codcliente = \filter_input(INPUT_GET, 'codcliente');
         if(!empty($codcliente)){
             $this->codcliente = $codcliente;
             $this->cliente = new cliente();
             $this->cliente_datos = $this->cliente->get($codcliente);
             $this->template = 'extension/distrib_cliente';
+        }
+        if($type=='supervisor'){
+            $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
+            $nombre = \filter_input(INPUT_POST, 'nombre');
+            $docidentidad = \filter_input(INPUT_POST, 'docidentidad');
+            $estado = \filter_input(INPUT_POST, 'estado');
         }
     }
     

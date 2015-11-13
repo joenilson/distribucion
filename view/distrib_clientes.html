@@ -61,7 +61,93 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <h3 class="panel-title">Supervisores</h3>
                 </div>
                 <div class="panel-body">
-                    Listado de supervagos
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-left"><a href="{$fsc->almacen->url()}">Almacén</a></th>
+                                <th class="text-left">Nombre Completo</th>
+                                <th class="text-left">Documento Identidad</th>
+                                <th class="text-center">Activo</th>
+                                <th width="120"></th>
+                            </tr>
+                        </thead>
+                        {loop="$fsc->supervisores"}
+                        <form name="f_supervisores" id="f_supervisores" method="POST" action="{$fsc->url()}&type=supervisor">
+                            <tr{if="!$value1->estado"} class="danger"{/if}>
+                                <td>
+                                    <select name="codalmacen" class="form-control">
+                                        {loop="$fsc->almacen->all()"}
+                                        {if="$value1->codalmacen==$value2->codalmacen"}
+                                        <option value="{$value2->codalmacen}" selected="">{$value2->nombre}</option>
+                                        {else}
+                                        <option value="{$value2->codalmacen}">{$value2->nombre}</option>
+                                        {/if}
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="nombre" value="{$value1->nombre}" class="form-control" maxlength="32" autocomplete="off" {if="!$fsc->allow_delete"}readonly{/if}/>
+                                </td>
+                                <td>
+                                    <input type="text" name="docidentidad" value="{$value1->docidentidad}" class="form-control" maxlength="32" autocomplete="off" {if="!$fsc->allow_delete"}readonly{/if}/>
+                                </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            {if="$value->estado"}
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                            {else}
+                                            <input type="checkbox" name="estado" value="TRUE"/>
+                                            {/if}
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="btn-group">
+                                        {if="$fsc->allow_delete"}
+                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_supervisor('{$value->docidentidad}')">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </button>
+                                        {/if}
+                                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                   this.form.submit();" title="Guardar">
+                                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </form>
+                        {/loop}
+                        <form action="{$fsc->url()}&type=supervisor" method="post" class="form">
+                        <tr class="info">
+                           <td>
+                             <select name="codalmacen" class="form-control">
+                                  {loop="$fsc->almacen->all()"}
+                                  <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                  {/loop}
+                              </select>
+                           </td>
+                           <td>
+                              <input type="text" name="nombre" class="form-control" maxlength="32" autocomplete="off"/>
+                           </td>
+                           <td>
+                              <input type="text" name="docidentidad" class="form-control" maxlength="32" autocomplete="off"/>
+                           </td>
+                           <td class="text-center">
+                              <div class="checkbox">
+                                 <label>
+                                    <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                 </label>
+                              </div>
+                           </td>
+                           <td class="text-right">
+                              <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar">
+                                 <span class="glyphicon glyphicon-floppy-disk"></span>
+                              </button>
+                           </td>
+                        </tr>
+                     </form>
+                    </table>
                 </div>
             </div>
             <div class="panel panel-info hidden" id="panel_vendedores">
