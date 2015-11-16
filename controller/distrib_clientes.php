@@ -19,6 +19,7 @@
  */
 require_model('cliente.php');
 require_model('almacen.php');
+require_model('agente.php');
 /**
  * Description of distribucion_creacion
  *
@@ -29,6 +30,8 @@ class distrib_clientes extends fs_controller {
     public $cliente;
     public $almacen;
     public $supervisor;
+    public $vendedor;
+    public $agente;
     public $cliente_datos;
     
     public function __construct() {
@@ -40,6 +43,8 @@ class distrib_clientes extends fs_controller {
         $this->share_extension();
         
         $this->almacen = new almacen();
+        $this->agente = new agente();
+        $this->supervisores = $this->agente->get_activos_por('cargo','SUPERVISOR');
         
         $type = \filter_input(INPUT_POST, 'type');
         $codcliente = \filter_input(INPUT_GET, 'codcliente');
