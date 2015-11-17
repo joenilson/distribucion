@@ -36,6 +36,10 @@ class distrib_clientes extends fs_controller {
     public $cliente_datos;
     public $distribucion_agente;
     public $distribucion_organizacion;
+    public $supervisores_asignados;
+    public $supervisores_libres;
+    public $vendedores_asignados;
+    public $vendedores_libres;
     
     public function __construct() {
         parent::__construct(__CLASS__, '7 - Distribución Clientes', 'distribucion');
@@ -63,22 +67,46 @@ class distrib_clientes extends fs_controller {
             $estado_val = \filter_input(INPUT_POST, 'estado');
             $estado = (isset($estado_val))?true:false;
             $tipoagente = $this->agente->get($codagente);
-            $supervisor0 = new distribucion_organizacion();
-            $supervisor0->idempresa = $this->empresa->id;
-            $supervisor0->codalmacen = $codalmacen;
-            $supervisor0->codagente = $codagente;
-            $supervisor0->tipoagente = $tipoagente->cargo;
-            $supervisor0->estado = $estado;
-            $supervisor0->usuario_creacion = $this->user->nick;
-            $supervisor0->fecha_creacion = \Date('d-m-Y H:i:s');
-            if($supervisor0->save()){
-                $this->new_message("$supervisor0->tipoagente asignado correctamente.");
+            $agente0 = new distribucion_organizacion();
+            $agente0->idempresa = $this->empresa->id;
+            $agente0->codalmacen = $codalmacen;
+            $agente0->codagente = $codagente;
+            $agente0->tipoagente = $tipoagente->cargo;
+            $agente0->estado = $estado;
+            $agente0->usuario_creacion = $this->user->nick;
+            $agente0->fecha_creacion = \Date('d-m-Y H:i:s');
+            if($agente0->save()){
+                $this->new_message("$agente0->tipoagente asignado correctamente.");
             } else {
-                $this->new_error_msg("¡Imposible tratar los datos del ".$supervisor0->tipoagente."!");
+                $this->new_error_msg("¡Imposible tratar los datos del ".$agente0->tipoagente."!");
+            }
+        }elseif($type=='vendedor'){
+            $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
+            $codsupervisor = \filter_input(INPUT_POST, 'codsupervisor');
+            $codagente = \filter_input(INPUT_POST, 'codagente');
+            $estado_val = \filter_input(INPUT_POST, 'estado');
+            $estado = (isset($estado_val))?true:false;
+            $tipoagente = $this->agente->get($codagente);
+            $agente0 = new distribucion_organizacion();
+            $agente0->idempresa = $this->empresa->id;
+            $agente0->codalmacen = $codalmacen;
+            $agente0->codagente = $codagente;
+            $agente0->codsupervisor = $codsupervisor;
+            $agente0->tipoagente = $tipoagente->cargo;
+            $agente0->estado = $estado;
+            $agente0->usuario_creacion = $this->user->nick;
+            $agente0->fecha_creacion = \Date('d-m-Y H:i:s');
+            if($agente0->save()){
+                $this->new_message("$agente0->tipoagente asignado correctamente.");
+            } else {
+                $this->new_error_msg("¡Imposible tratar los datos del ".$agente0->tipoagente."!");
             }
         }
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');
         $this->supervisores_libres = $this->agente->get_activos_por('cargo','SUPERVISOR');
+        
+        $this->vendedores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'VENDEDOR');
+        $this->vendedores_libres = $this->agente->get_activos_por('cargo','VENDEDOR');
 
     }
     

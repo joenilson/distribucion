@@ -28,7 +28,7 @@ class distribucion_agente extends agente
       $campoigual = ($campo == 'cargo')?"tipoagente":$campo;
       $signo = (is_array($valores))?" IN ":" = ";
       $valor = (is_array($valores))?"(".implode(",", $valores).")":$this->var2str($valores);
-      $agentes = $this->db->select("SELECT agentes.* FROM ".$this->table_name." LEFT JOIN distribucion_organizacion ON ($campo = $campoigual) WHERE ".$this->table_name.".".$campo.$signo.$valor." AND agentes.codagente not in (select codagente from distribucion_organizacion);");
+      $agentes = $this->db->select("SELECT agentes.* FROM ".$this->table_name." LEFT JOIN distribucion_organizacion ON (agentes.codagente = distribucion_organizacion.codagente) WHERE ".$this->table_name.".".$campo.$signo.$valor." AND agentes.codagente not in (select codagente from distribucion_organizacion where $campoigual $signo $valor);");
       if($agentes)
       {
          foreach($agentes as $a)

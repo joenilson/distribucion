@@ -27,12 +27,15 @@ class distribucion_organizacion extends fs_model {
     public $idempresa;
     public $codalmacen;
     public $codagente;
+    public $codsupervisor;
     public $tipoagente;
     public $estado;
     public $usuario_creacion;
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
+    
+    public $agente;
     
     public function __construct($t = false) {
         parent::__construct('distribucion_organizacion','plugins/distribucion/');
@@ -41,6 +44,7 @@ class distribucion_organizacion extends fs_model {
             $this->idempresa = $t['idempresa'];
             $this->codalmacen = $t['codalmacen'];
             $this->codagente = $t['codagente'];
+            $this->codsupervisor = $t['codsupervisor'];
             $this->tipoagente = $t['tipoagente'];
             $this->estado = $this->str2bool($t['estado']);
             $this->usuario_creacion = $t['usuario_creacion'];
@@ -53,6 +57,7 @@ class distribucion_organizacion extends fs_model {
             $this->idempresa = null;
             $this->codalmacen = null;
             $this->codagente = null;
+            $this->codsupervisor = null;
             $this->tipoagente = null;
             $this->estado = false;
             $this->usuario_creacion = null;
@@ -60,6 +65,7 @@ class distribucion_organizacion extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
+        $this->agente = new agente();
     }
     
     public function url(){
@@ -87,6 +93,7 @@ class distribucion_organizacion extends fs_model {
         {
             $sql = "UPDATE distribucion_organizacion SET ".
                     "codalmacen = ".$this->var2str($this->codalmacen).", ".
+                    "codsupervisor = ".$this->var2str($this->codsupervisor).", ".
                     "tipoagente = ".$this->var2str($this->tipoagente).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
                     "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).", ".
@@ -99,10 +106,11 @@ class distribucion_organizacion extends fs_model {
         }
         else
         {
-            $sql = "INSERT INTO distribucion_organizacion ( idempresa, codalmacen, codagente, tipoagente, estado, usuario_creacion, fecha_creacion ) VALUES (".
+            $sql = "INSERT INTO distribucion_organizacion ( idempresa, codalmacen, codagente, codsupervisor, tipoagente, estado, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
                     $this->var2str($this->codalmacen).", ".
                     $this->var2str($this->codagente).", ".
+                    $this->var2str($this->codsupervisor).", ".
                     $this->var2str($this->tipoagente).", ".
                     $this->var2str($this->estado).", ".
                     $this->var2str($this->usuario_creacion).", ".
@@ -136,8 +144,7 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $agente = new agente();
-                $data_agente = $agente->get($value->codagente);
+                $data_agente = $this->agente->get($value->codagente);
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
                 $lista[] = $value;
             }
@@ -155,9 +162,10 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $agente = new agente();
-                $data_agente = $agente->get($value->codagente);
+                $data_agente = $this->agente->get($value->codagente);
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
+                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
@@ -174,9 +182,10 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $agente = new agente();
-                $data_agente = $agente->get($value->codagente);
+                $data_agente = $this->agente->get($value->codagente);
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
+                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
@@ -193,9 +202,10 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $agente = new agente();
-                $data_agente = $agente->get($value->codagente);
+                $data_agente = $this->agente->get($value->codagente);
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
+                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
@@ -212,9 +222,10 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $agente = new agente();
-                $data_agente = $agente->get($value->codagente);
+                $data_agente = $this->agente->get($value->codagente);
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
+                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
@@ -231,9 +242,10 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $agente = new agente();
-                $data_agente = $agente->get($value->codagente);
+                $data_agente = $this->agente->get($value->codagente);
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
+                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
@@ -250,9 +262,10 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $agente = new agente();
-                $data_agente = $agente->get($value->codagente);
+                $data_agente = $this->agente->get($value->codagente);
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
+                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }

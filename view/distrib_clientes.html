@@ -65,13 +65,13 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         <thead>
                             <tr>
                                 <th class="text-left"><a href="{$fsc->almacen->url()}">Almacén</a></th>
-                                <th class="text-left">Nombre Completo</th>
+                                <th class="text-left">Supervisor</th>
                                 <th class="text-center">Activo</th>
                                 <th width="120"></th>
                             </tr>
                         </thead>
                         {loop="$fsc->supervisores_asignados"}
-                        <form name="f_supervisores" id="f_supervisores" method="POST" action="{$fsc->url()}&type=supervisor">
+                        <form name="f_supervisores" id="f_supervisores" method="POST" action="{$fsc->url()}">
                             <tr{if="!$value1->estado"} class="danger"{/if}>
                                 <td>
                                     <select name="codalmacen" class="form-control">
@@ -155,7 +155,104 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <h3 class="panel-title">Vendedores</h3>
                 </div>
                 <div class="panel-body">
-                    Listado de vendedores
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-left"><a href="{$fsc->almacen->url()}">Almacén</a></th>
+                                <th class="text-left">Supervisor Responsable</th>
+                                <th class="text-left">Vendedor</th>
+                                <th class="text-center">Activo</th>
+                                <th width="120"></th>
+                            </tr>
+                        </thead>
+                        {loop="$fsc->vendedores_asignados"}
+                        <form name="f_vendedores" id="f_vendedores" method="POST" action="{$fsc->url()}">
+                            <tr{if="!$value1->estado"} class="danger"{/if}>
+                                <td>
+                                    <select name="codalmacen" class="form-control">
+                                        {loop="$fsc->almacen->all()"}
+                                        {if="$value1->codalmacen==$value2->codalmacen"}
+                                        <option value="{$value2->codalmacen}" selected="">{$value2->nombre}</option>
+                                        {else}
+                                        <option value="{$value2->codalmacen}">{$value2->nombre}</option>
+                                        {/if}
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="supervisor" readonly value="{$value1->nombre_supervisor}" class="form-control"/>
+                                </td>
+                                <td>
+                                    <input type="text" name="agente" readonly value="{$value1->nombre}" class="form-control"/>
+                                </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            {if="$value->estado"}
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                            {else}
+                                            <input type="checkbox" name="estado" value="TRUE"/>
+                                            {/if}
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="btn-group">
+                                        <input type='hidden' name='codagente' value='{$value1->codagente}'>
+                                        <input type='hidden' name='type' value='vendedor'>
+                                        {if="$fsc->allow_delete"}
+                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_vendedor('{$value->docidentidad}')">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </button>
+                                        {/if}
+                                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                   document.f_vendedores.submit();" title="Guardar">
+                                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </form>
+                        {/loop}
+                        <form name="n_vendedores" id="n_vendedores" action="{$fsc->url()}" method="post" class="form">
+                        <tr class="info">
+                           <td>
+                             <select name="codalmacen" class="form-control">
+                                  {loop="$fsc->almacen->all()"}
+                                    <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                  {/loop}
+                              </select>
+                           </td>
+                           <td>
+                              <select name="codsupervisor" class="form-control">
+                                {loop="$fsc->supervisores_asignados"}
+                                    <option value="{$value->codagente}">{$value->nombre}</option>
+                                {/loop}
+                              </select>
+                           </td>
+                           <td>
+                              <select name="codagente" class="form-control">
+                                {loop="$fsc->vendedores_libres"}
+                                    <option value="{$value->codagente}">{$value->nombre} {$value->apellidos}</option>
+                                {/loop}
+                              </select>
+                           </td>
+                           <td class="text-center">
+                              <div class="checkbox">
+                                 <label>
+                                    <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                 </label>
+                              </div>
+                           </td>
+                           <td class="text-right">
+                               <input type='hidden' name='type' value='vendedor'>
+                              <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;document.n_vendedores.submit();" title="Guardar">
+                                 <span class="glyphicon glyphicon-floppy-disk"></span>
+                              </button>
+                           </td>
+                        </tr>
+                     </form>
+                    </table>
                 </div>
             </div>
             <div class="panel panel-info hidden" id="panel_rutas">
@@ -163,7 +260,136 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <h3 class="panel-title">Rutas</h3>
                 </div>
                 <div class="panel-body">
-                    Listado de rutas
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-left">Vendedor</th>
+                                <th class="text-left">Código Ruta</th>
+                                <th class="text-left">Descripción Ruta</th>
+                                <th class="text-center">Días de Visita</th>
+                                <th class="text-center">Activo</th>
+                                <th width="120"></th>
+                            </tr>
+                        </thead>
+                        {loop="$fsc->rutas"}
+                        <form name="f_rutas" id="f_rutas" method="POST" action="{$fsc->url()}">
+                            <tr{if="!$value1->estado"} class="danger"{/if}>
+                                <td>
+                                    <input type="text" name="ruta" readonly value="{$value1->ruta}" class="form-control"/>
+                                </td>
+                                <td>
+                                    <input type="text" name="descripcion" readonly value="{$value1->descripcion}" class="form-control"/>
+                                </td>
+                                <td class="text-center">
+                               <div class="btn-group" data-toggle="buttons">
+                                <label  id="lunes" class="btn {if="!$value1->lunes"} btn-primary{else} btn-default{/if}">
+                                    <input name="lunes" type="checkbox" autocomplete="off" {if="!$value1->lunes"}checked{/if} onchange="checkboxAction(this)"> Lu
+                                </label>
+                                <label id="martes" class="btn {if="!$value1->martes"} btn-primary{else} btn-default{/if}">
+                                    <input name="martes" type="checkbox" autocomplete="off" {if="!$value1->martes"}checked{/if} onchange="checkboxAction(this)"> Ma
+                                </label>
+                                <label id="miercoles" class="btn {if="!$value1->miercoles"} btn-primary{else} btn-default{/if}">
+                                  <input name="miercoles" type="checkbox" autocomplete="off" {if="!$value1->miercoles"}checked{/if} onchange="checkboxAction(this)"> Mi
+                                </label>
+                                <label id="jueves" class="btn {if="!$value1->jueves"} btn-primary{else} btn-default{/if}">
+                                  <input name="jueves" type="checkbox" autocomplete="off" {if="!$value1->jueves"}checked{/if} onchange="checkboxAction(this)"> Ju
+                                </label>
+                                <label id="viernes" class="btn {if="!$value1->viernes"} btn-primary{else} btn-default{/if}">
+                                  <input name="viernes" type="checkbox" autocomplete="off" {if="!$value1->viernes"}checked{/if} onchange="checkboxAction(this)"> Vi
+                                </label>
+                                <label id="sabado" class="btn {if="!$value1->sabado"} btn-primary{else} btn-default{/if}">
+                                  <input name="sabado" type="checkbox" autocomplete="off" {if="!$value1->sabado"}checked{/if} onchange="checkboxAction(this)"> Sa
+                                </label>
+                                <label id="domingo" class="btn {if="!$value1->domingo"} btn-primary{else} btn-default{/if}">
+                                  <input name="domingo" type="checkbox" autocomplete="off" {if="!$value1->domingo"}checked{/if} onchange="checkboxAction(this)"> Do
+                                </label>
+                              </div>
+                           </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            {if="$value->estado"}
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                            {else}
+                                            <input type="checkbox" name="estado" value="TRUE"/>
+                                            {/if}
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="btn-group">
+                                        <input type='hidden' name='ruta' value='{$value1->codagente}'>
+                                        <input type='hidden' name='type' value='ruta'>
+                                        {if="$fsc->allow_delete"}
+                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_vendedor('{$value->docidentidad}')">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </button>
+                                        {/if}
+                                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                   document.f_rutas.submit();" title="Guardar">
+                                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </form>
+                        {/loop}
+                        <form name="n_rutas" id="n_rutas" action="{$fsc->url()}" method="POST" class="form">
+                        <tr class="info">
+                           <td>
+                              <select name="codagente" class="form-control">
+                                {loop="$fsc->vendedores_asignados"}
+                                    <option value="{$value->codagente}">{$value->nombre} {$value->apellidos}</option>
+                                {/loop}
+                              </select>
+                           </td>
+                           <td>
+                               <input type="text" name="ruta" class="form-control"/>
+                           </td>
+                           <td>
+                               <input type="text" name="descripcion" class="form-control"/>
+                           </td>
+                           <td class="text-center">
+                               <div class="btn-group" data-toggle="buttons">
+                                <label  id="nlunes" class="btn btn-default">
+                                    <input name="nlunes" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Lu
+                                </label>
+                                <label id="nmartes" class="btn btn-default">
+                                    <input name="nmartes" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Ma
+                                </label>
+                                <label id="nmiercoles" class="btn btn-default">
+                                  <input name="nmiercoles" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Mi
+                                </label>
+                                <label id="njueves" class="btn btn-default">
+                                  <input name="njueves" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Ju
+                                </label>
+                                <label id="nviernes" class="btn btn-default">
+                                  <input name="nviernes" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Vi
+                                </label>
+                                <label id="nsabado" class="btn btn-default">
+                                  <input name="nsabado" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Sa
+                                </label>
+                                <label id="ndomingo" class="btn btn-default">
+                                  <input name="ndomingo" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Do
+                                </label>
+                              </div>
+                           </td>
+                           <td class="text-center">
+                              <div class="checkbox">
+                                 <label>
+                                    <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                 </label>
+                              </div>
+                           </td>
+                           <td class="text-right">
+                               <input type='hidden' name='type' value='vendedor'>
+                              <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;document.n_rutas.submit();" title="Guardar">
+                                 <span class="glyphicon glyphicon-floppy-disk"></span>
+                              </button>
+                           </td>
+                        </tr>
+                     </form>
+                    </table>
                 </div>
             </div>
             <div class="panel panel-info hidden" id="panel_canales">
@@ -185,7 +411,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         </div>
     </div>
 </div>
-<script>
+<script type="text/javascript">
     /*
      * Cambia la clase a boton primario cuando el usuario le da Click y muestra el panel asociado
      */
@@ -209,5 +435,17 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         }
 
     }
+    
+    function checkboxAction(element){
+        var idElement = '#'+element.name;
+        if(element.checked){
+            $(idElement).removeClass('btn-default');
+            $(idElement).addClass('btn-primary');
+        }else{
+            $(idElement).removeClass('btn-primary');
+            $(idElement).addClass('btn-default');
+        }
+    }
+    
 </script>
 {include="footer"}
