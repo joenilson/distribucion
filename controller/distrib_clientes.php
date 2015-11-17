@@ -19,7 +19,8 @@
  */
 require_model('cliente.php');
 require_model('almacen.php');
-require_model('agente.php');
+require_model('distribucion_agente.php');
+require_model('distribucion_organizacion.php');
 /**
  * Description of distribucion_creacion
  *
@@ -33,19 +34,21 @@ class distrib_clientes extends fs_controller {
     public $vendedor;
     public $agente;
     public $cliente_datos;
+    public $distribucion_agente;
+    public $distribucion_organizacion;
     
     public function __construct() {
         parent::__construct(__CLASS__, '7 - Distribución Clientes', 'distribucion');
     }
     
     public function private_core(){
-        
+        $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->share_extension();
         
         $this->almacen = new almacen();
-        $this->agente = new agente();
-        $this->supervisores = $this->agente->get_activos_por('cargo','SUPERVISOR');
-        
+        $this->agente = new distribucion_agente();
+        $this->distribucion_organizacion = new distribucion_organizacion();
+
         $type = \filter_input(INPUT_POST, 'type');
         $codcliente = \filter_input(INPUT_GET, 'codcliente');
         if(!empty($codcliente)){
@@ -56,10 +59,27 @@ class distrib_clientes extends fs_controller {
         }
         if($type=='supervisor'){
             $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
-            $nombre = \filter_input(INPUT_POST, 'nombre');
-            $docidentidad = \filter_input(INPUT_POST, 'docidentidad');
-            $estado = \filter_input(INPUT_POST, 'estado');
+            $codagente = \filter_input(INPUT_POST, 'codagente');
+            $estado_val = \filter_input(INPUT_POST, 'estado');
+            $estado = (isset($estado_val))?true:false;
+            $tipoagente = $this->agente->get($codagente);
+            $supervisor0 = new distribucion_organizacion();
+            $supervisor0->idempresa = $this->empresa->id;
+            $supervisor0->codalmacen = $codalmacen;
+            $supervisor0->codagente = $codagente;
+            $supervisor0->tipoagente = $tipoagente->cargo;
+            $supervisor0->estado = $estado;
+            $supervisor0->usuario_creacion = $this->user->nick;
+            $supervisor0->fecha_creacion = \Date('d-m-Y H:i:s');
+            if($supervisor0->save()){
+                $this->new_message("$supervisor0->tipoagente asignado correctamente.");
+            } else {
+                $this->new_error_msg("¡Imposible tratar los datos del ".$supervisor0->tipoagente."!");
+            }
         }
+        $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');
+        $this->supervisores_libres = $this->agente->get_activos_por('cargo','SUPERVISOR');
+
     }
     
     private function share_extension() {
