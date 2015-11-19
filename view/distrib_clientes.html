@@ -275,6 +275,13 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         <form name="f_rutas" id="f_rutas" method="POST" action="{$fsc->url()}">
                             <tr{if="!$value1->estado"} class="danger"{/if}>
                                 <td>
+                                  <select name="codagente" class="form-control">
+                                    {loop="$fsc->vendedores_asignados"}
+                                    <option {if="$value1->codagente=$value2->codagente"}selected{/if} value="{$value2->codagente}">{$value2->nombre} {$value2->apellidos}</option>
+                                    {/loop}
+                                  </select>
+                                </td>
+                                <td>
                                     <input type="text" name="ruta" readonly value="{$value1->ruta}" class="form-control"/>
                                 </td>
                                 <td>
@@ -318,10 +325,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 </td>
                                 <td class="text-right">
                                     <div class="btn-group">
-                                        <input type='hidden' name='ruta' value='{$value1->codagente}'>
                                         <input type='hidden' name='type' value='ruta'>
                                         {if="$fsc->allow_delete"}
-                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_vendedor('{$value->docidentidad}')">
+                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_ruta('{$value->ruta}')">
                                             <span class="glyphicon glyphicon-trash"></span>
                                         </button>
                                         {/if}
@@ -344,33 +350,31 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                               </select>
                            </td>
                            <td>
-                               <input type="text" name="ruta" class="form-control"/>
-                           </td>
                            <td>
                                <input type="text" name="descripcion" class="form-control"/>
                            </td>
                            <td class="text-center">
                                <div class="btn-group" data-toggle="buttons">
                                 <label  id="nlunes" class="btn btn-default">
-                                    <input name="nlunes" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Lu
+                                    <input name="lunes" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Lu
                                 </label>
                                 <label id="nmartes" class="btn btn-default">
-                                    <input name="nmartes" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Ma
+                                    <input name="martes" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Ma
                                 </label>
                                 <label id="nmiercoles" class="btn btn-default">
-                                  <input name="nmiercoles" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Mi
+                                  <input name="miercoles" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Mi
                                 </label>
                                 <label id="njueves" class="btn btn-default">
-                                  <input name="njueves" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Ju
+                                  <input name="jueves" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Ju
                                 </label>
                                 <label id="nviernes" class="btn btn-default">
-                                  <input name="nviernes" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Vi
+                                  <input name="viernes" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Vi
                                 </label>
                                 <label id="nsabado" class="btn btn-default">
-                                  <input name="nsabado" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Sa
+                                  <input name="sabado" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Sa
                                 </label>
                                 <label id="ndomingo" class="btn btn-default">
-                                  <input name="ndomingo" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Do
+                                  <input name="domingo" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Do
                                 </label>
                               </div>
                            </td>
@@ -382,7 +386,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                               </div>
                            </td>
                            <td class="text-right">
-                               <input type='hidden' name='type' value='vendedor'>
+                               <input type='hidden' name='type' value='ruta'>
                               <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;document.n_rutas.submit();" title="Guardar">
                                  <span class="glyphicon glyphicon-floppy-disk"></span>
                               </button>
@@ -411,6 +415,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         </div>
     </div>
 </div>
+<input type="hidden" name='menu_activo' id='menu_activo' value="{$fsc->type}">
 <script type="text/javascript">
     /*
      * Cambia la clase a boton primario cuando el usuario le da Click y muestra el panel asociado
@@ -437,7 +442,8 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
     }
     
     function checkboxAction(element){
-        var idElement = '#'+element.name;
+        var elementType = element.getAttribute("var");
+        var idElement = (elementType === undefined)?'#'+element.name:'#'+elementType+element.name;
         if(element.checked){
             $(idElement).removeClass('btn-default');
             $(idElement).addClass('btn-primary');
@@ -446,6 +452,31 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
             $(idElement).addClass('btn-default');
         }
     }
-    
+    //$(document).ready(function(){
+        if($('#menu_activo').val()!==''){
+            $('#panel_central').hide();
+            if($('#menu_activo').val() === 'ruta'){
+                $('#b_rutas').removeClass("btn-default");
+                $('#b_rutas').addClass("btn-primary");
+                $('#panel_rutas').removeClass('hidden');
+            }else if($('#menu_activo').val() === 'supervisor'){
+                $('#b_supervisores').removeClass("btn-default");
+                $('#b_supervisores').addClass("btn-primary");
+                $('#panel_supervisores').removeClass('hidden');
+            }else if($('#menu_activo').val() === 'vendedor'){
+                $('#b_vendedores').removeClass("btn-default");
+                $('#b_vendedores').addClass("btn-primary");
+                $('#panel_vendedores').removeClass('hidden');
+            }else if($('#menu_activo').val() === 'canal'){
+                $('#b_canales').removeClass("btn-default");
+                $('#b_canales').addClass("btn-primary");
+                $('#panel_canales').removeClass('hidden');
+            }else if($('#menu_activo').val() === 'subcanal'){
+                $('#b_subcanales').removeClass("btn-default");
+                $('#b_subcanales').addClass("btn-primary");
+                $('#panel_subcanales').removeClass('hidden');
+            }
+        }
+    //});
 </script>
 {include="footer"}
