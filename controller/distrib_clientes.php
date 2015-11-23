@@ -111,7 +111,6 @@ class distrib_clientes extends fs_controller {
             $ruta = \filter_input(INPUT_POST, 'ruta');
             $descripcion = \filter_input(INPUT_POST, 'descripcion');
             $data_agente = $this->distribucion_organizacion->get($this->empresa->id, $codagente);
-            //echo "Aqui: ".$data_agente;
             $codalmacen = $data_agente[0]->codalmacen;
             $lunes_val = \filter_input(INPUT_POST, 'lunes');
             $martes_val = \filter_input(INPUT_POST, 'martes');
@@ -121,13 +120,13 @@ class distrib_clientes extends fs_controller {
             $sabado_val = \filter_input(INPUT_POST, 'sabado');
             $domingo_val = \filter_input(INPUT_POST, 'domingo');
             $estado_val = \filter_input(INPUT_POST, 'estado');
-            $lunes = (isset($lunes_val))?"true":"false";
-            $martes = (isset($martes_val))?"true":"false";
-            $miercoles = (isset($miercoles_val))?true:false;
-            $jueves = (isset($jueves_val))?true:false;
-            $viernes = (isset($viernes_val))?true:false;
-            $sabado = (isset($sabado_val))?true:false;
-            $domingo = (isset($domingo_val))?true:false;
+            $lunes = (isset($lunes_val))?1:0;
+            $martes = (isset($martes_val))?1:0;
+            $miercoles = (isset($miercoles_val))?1:0;
+            $jueves = (isset($jueves_val))?1:0;
+            $viernes = (isset($viernes_val))?1:0;
+            $sabado = (isset($sabado_val))?1:0;
+            $domingo = (isset($domingo_val))?1:0;
             $estado = (isset($estado_val))?true:false;
             $ruta0 = new distribucion_rutas();
             $ruta0->idempresa = $this->empresa->id;
@@ -146,10 +145,22 @@ class distrib_clientes extends fs_controller {
             $ruta0->usuario_creacion = $this->user->nick;
             $ruta0->fecha_creacion = \Date('d-m-Y H:i:s');
             if($ruta0->save()){
-                $this->new_message("$ruta0->ruta creada correctamente.");
+                $this->new_message("Ruta $ruta0->ruta tratada correctamente.");
             }else{
-                $this->new_error_msg("¡Imposible crear la ruta con los datos seleccionados!");
+                $this->new_error_msg("¡Imposible tratar la ruta con los datos seleccionados!");
             }
+        }elseif($type=='canal'){
+            $canal = \filter_input(INPUT_POST, 'canal');
+            $descripcion = \filter_input(INPUT_POST, 'descripcion');
+            $estado_val = \filter_input(INPUT_POST, 'estado');
+            $estado = (isset($estado_val))?true:false;
+        }elseif($type=='subcanal'){
+            $canal = \filter_input(INPUT_POST, 'canal');
+            $subcanal = \filter_input(INPUT_POST, 'subcanal');
+            $descripcion = \filter_input(INPUT_POST, 'descripcion');
+            $estado_val = \filter_input(INPUT_POST, 'estado');
+            $estado = (isset($estado_val))?true:false;
+            
         }
         $this->type = $type;
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');

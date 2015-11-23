@@ -127,7 +127,7 @@ class distribucion_rutas extends fs_model {
         {
             $sql = "UPDATE distribucion_rutas SET ".
                     "codalmacen = ".$this->var2str($this->codalmacen).", ".
-                    "codagente = ".$this->var2str($this->codsupervisor).", ".
+                    "codagente = ".$this->var2str($this->codagente).", ".
                     "descripcion = ".$this->var2str($this->descripcion).", ".
                     "lunes = ".$this->var2str($this->lunes).", ".
                     "martes = ".$this->var2str($this->martes).", ".

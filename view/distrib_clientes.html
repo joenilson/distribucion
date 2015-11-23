@@ -16,6 +16,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
 
 -->
 {include="header"}
+<style>
+.active { background-color: #006687 !important; border-color: #004b63 !important; color: #fff !important; }    
+</style>
 <div class="panel panel-default">
     <div class="panel-heading">
         <h3 class="panel-title">
@@ -108,7 +111,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                         </button>
                                         {/if}
                                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
-                                   document.f_supervisores.submit();" title="Guardar">
+                                                document.f_supervisores.submit();" title="Guardar">
                                             <span class="glyphicon glyphicon-floppy-disk"></span>
                                         </button>
                                     </div>
@@ -117,36 +120,37 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         </form>
                         {/loop}
                         <form name="n_supervisores" id="n_supervisores" action="{$fsc->url()}" method="post" class="form">
-                        <tr class="info">
-                           <td>
-                             <select name="codalmacen" class="form-control">
-                                  {loop="$fsc->almacen->all()"}
-                                    <option value="{$value->codalmacen}">{$value->nombre}</option>
-                                  {/loop}
-                              </select>
-                           </td>
-                           <td>
-                              <select name="codagente" class="form-control">
-                                {loop="$fsc->supervisores_libres"}
-                                    <option value="{$value->codagente}">{$value->codagente} - {$value->nombre} {$value->apellidos}</option>
-                                {/loop}
-                              </select>
-                           </td>
-                           <td class="text-center">
-                              <div class="checkbox">
-                                 <label>
-                                    <input type="checkbox" name="estado" value="TRUE" checked=""/>
-                                 </label>
-                              </div>
-                           </td>
-                           <td class="text-right">
-                               <input type='hidden' name='type' value='supervisor'>
-                              <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;document.n_supervisores.submit();" title="Guardar">
-                                 <span class="glyphicon glyphicon-floppy-disk"></span>
-                              </button>
-                           </td>
-                        </tr>
-                     </form>
+                            <tr class="info">
+                                <td>
+                                    <select name="codalmacen" class="form-control">
+                                        {loop="$fsc->almacen->all()"}
+                                        <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="codagente" class="form-control">
+                                        {loop="$fsc->supervisores_libres"}
+                                        <option value="{$value->codagente}">{$value->codagente} - {$value->nombre} {$value->apellidos}</option>
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <input type='hidden' name='type' value='supervisor'>
+                                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                            document.n_supervisores.submit();" title="Guardar">
+                                        <span class="glyphicon glyphicon-floppy-disk"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </form>
                     </table>
                 </div>
             </div>
@@ -206,7 +210,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                         </button>
                                         {/if}
                                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
-                                   document.f_vendedores.submit();" title="Guardar">
+                                                document.f_vendedores.submit();" title="Guardar">
                                             <span class="glyphicon glyphicon-floppy-disk"></span>
                                         </button>
                                     </div>
@@ -215,43 +219,44 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         </form>
                         {/loop}
                         <form name="n_vendedores" id="n_vendedores" action="{$fsc->url()}" method="post" class="form">
-                        <tr class="info">
-                           <td>
-                             <select name="codalmacen" class="form-control">
-                                  {loop="$fsc->almacen->all()"}
-                                    <option value="{$value->codalmacen}">{$value->nombre}</option>
-                                  {/loop}
-                              </select>
-                           </td>
-                           <td>
-                              <select name="codsupervisor" class="form-control">
-                                {loop="$fsc->supervisores_asignados"}
-                                    <option value="{$value->codagente}">{$value->nombre}</option>
-                                {/loop}
-                              </select>
-                           </td>
-                           <td>
-                              <select name="codagente" class="form-control">
-                                {loop="$fsc->vendedores_libres"}
-                                    <option value="{$value->codagente}">{$value->nombre} {$value->apellidos}</option>
-                                {/loop}
-                              </select>
-                           </td>
-                           <td class="text-center">
-                              <div class="checkbox">
-                                 <label>
-                                    <input type="checkbox" name="estado" value="TRUE" checked=""/>
-                                 </label>
-                              </div>
-                           </td>
-                           <td class="text-right">
-                               <input type='hidden' name='type' value='vendedor'>
-                              <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;document.n_vendedores.submit();" title="Guardar">
-                                 <span class="glyphicon glyphicon-floppy-disk"></span>
-                              </button>
-                           </td>
-                        </tr>
-                     </form>
+                            <tr class="info">
+                                <td>
+                                    <select name="codalmacen" class="form-control">
+                                        {loop="$fsc->almacen->all()"}
+                                        <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="codsupervisor" class="form-control">
+                                        {loop="$fsc->supervisores_asignados"}
+                                        <option value="{$value->codagente}">{$value->nombre}</option>
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="codagente" class="form-control">
+                                        {loop="$fsc->vendedores_libres"}
+                                        <option value="{$value->codagente}">{$value->nombre} {$value->apellidos}</option>
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <input type='hidden' name='type' value='vendedor'>
+                                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                            document.n_vendedores.submit();" title="Guardar">
+                                        <span class="glyphicon glyphicon-floppy-disk"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </form>
                     </table>
                 </div>
             </div>
@@ -272,46 +277,46 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             </tr>
                         </thead>
                         {loop="$fsc->rutas"}
-                        <form name="f_rutas" id="f_rutas" method="POST" action="{$fsc->url()}">
-                            <tr{if="!$value1->estado"} class="danger"{/if}>
+                        <form name="f_rutas{$value1->ruta}" id="f_rutas{$value1->ruta}" method="POST" action="{$fsc->url()}" class="form">
+                            <tr{if="!$value->estado"} class="danger"{/if}>
                                 <td>
-                                  <select name="codagente" class="form-control">
-                                    {loop="$fsc->vendedores_asignados"}
-                                    <option {if="$value1->codagente=$value2->codagente"}selected{/if} value="{$value2->codagente}">{$value2->nombre} {$value2->apellidos}</option>
-                                    {/loop}
-                                  </select>
+                                    <select name="codagente" class="form-control">
+                                        {loop="$fsc->vendedores_asignados"}
+                                        <option {if="$value1->codagente==$value2->codagente"}selected{/if} value="{$value2->codagente}">{$value2->codagente} {$value2->nombre} {$value2->apellidos}</option>
+                                        {/loop}
+                                    </select>
                                 </td>
                                 <td>
                                     <input type="text" name="ruta" readonly value="{$value1->ruta}" class="form-control"/>
                                 </td>
                                 <td>
-                                    <input type="text" name="descripcion" readonly value="{$value1->descripcion}" class="form-control"/>
+                                    <input type="text" name="descripcion" value="{$value1->descripcion}" class="form-control"/>
                                 </td>
                                 <td class="text-center">
-                               <div class="btn-group" data-toggle="buttons">
-                                <label  id="lunes" class="btn {if="!$value1->lunes"} btn-primary{else} btn-default{/if}">
-                                    <input name="lunes" type="checkbox" autocomplete="off" {if="!$value1->lunes"}checked{/if} onchange="checkboxAction(this)"> Lu
-                                </label>
-                                <label id="martes" class="btn {if="!$value1->martes"} btn-primary{else} btn-default{/if}">
-                                    <input name="martes" type="checkbox" autocomplete="off" {if="!$value1->martes"}checked{/if} onchange="checkboxAction(this)"> Ma
-                                </label>
-                                <label id="miercoles" class="btn {if="!$value1->miercoles"} btn-primary{else} btn-default{/if}">
-                                  <input name="miercoles" type="checkbox" autocomplete="off" {if="!$value1->miercoles"}checked{/if} onchange="checkboxAction(this)"> Mi
-                                </label>
-                                <label id="jueves" class="btn {if="!$value1->jueves"} btn-primary{else} btn-default{/if}">
-                                  <input name="jueves" type="checkbox" autocomplete="off" {if="!$value1->jueves"}checked{/if} onchange="checkboxAction(this)"> Ju
-                                </label>
-                                <label id="viernes" class="btn {if="!$value1->viernes"} btn-primary{else} btn-default{/if}">
-                                  <input name="viernes" type="checkbox" autocomplete="off" {if="!$value1->viernes"}checked{/if} onchange="checkboxAction(this)"> Vi
-                                </label>
-                                <label id="sabado" class="btn {if="!$value1->sabado"} btn-primary{else} btn-default{/if}">
-                                  <input name="sabado" type="checkbox" autocomplete="off" {if="!$value1->sabado"}checked{/if} onchange="checkboxAction(this)"> Sa
-                                </label>
-                                <label id="domingo" class="btn {if="!$value1->domingo"} btn-primary{else} btn-default{/if}">
-                                  <input name="domingo" type="checkbox" autocomplete="off" {if="!$value1->domingo"}checked{/if} onchange="checkboxAction(this)"> Do
-                                </label>
-                              </div>
-                           </td>
+                                    <div class="btn-group" data-toggle="buttons">
+                                        <label id="lunes{$value->ruta}" class="btn btn-default {if="$value->lunes"}active{/if}">
+                                            <input name="lunes" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->lunes"}checked{/if} onchange="checkboxAction(this)"> Lu
+                                        </label>
+                                        <label id="martes{$value->ruta}" class="btn btn-default {if="$value->martes"}active{/if}">
+                                            <input name="martes" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->martes"}checked{/if} onchange="checkboxAction(this)"> Ma
+                                        </label>
+                                        <label id="miercoles{$value->ruta}" class="btn btn-default {if="$value->miercoles"}active{/if}">
+                                            <input name="miercoles" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->miercoles"}checked{/if} onchange="checkboxAction(this)"> Mi
+                                        </label>
+                                        <label id="jueves{$value->ruta}" class="btn btn-default {if="$value->jueves"}active{/if}">
+                                            <input name="jueves" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->jueves"}checked{/if} onchange="checkboxAction(this)"> Ju
+                                        </label>
+                                        <label id="viernes{$value->ruta}" class="btn btn-default {if="$value->viernes"}active{/if}">
+                                            <input name="viernes" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->viernes"}checked{/if} onchange="checkboxAction(this)"> Vi
+                                        </label>
+                                        <label id="sabado{$value->ruta}" class="btn btn-default {if="$value->sabado"}active{/if}">
+                                            <input name="sabado" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->sabado"}checked{/if} onchange="checkboxAction(this)"> Sa
+                                        </label>
+                                        <label id="domingo{$value->ruta}" class="btn btn-default {if="$value->domingo"}active{/if}">
+                                            <input name="domingo" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->domingo"}checked{/if} onchange="checkboxAction(this)"> Do
+                                        </label>
+                                    </div>
+                                </td>
                                 <td class="text-center">
                                     <div class="checkbox">
                                         <label>
@@ -332,7 +337,121 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                         </button>
                                         {/if}
                                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
-                                   document.f_rutas.submit();" title="Guardar">
+                                                document.f_rutas{$value1->ruta}.submit();" title="Guardar">
+                                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                                        </button>
+                                    </div>
+                            </td>
+                            </tr>
+                        </form>
+                        {/loop}
+                        <form name="n_rutas" id="n_rutas" action="{$fsc->url()}" method="POST" class="form">
+                            <tr class="info">
+                                <td>
+                                    <select name="codagente" class="form-control">
+                                        {loop="$fsc->vendedores_asignados"}
+                                        <option value="{$value->codagente}">{$value->nombre} {$value->apellidos}</option>
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td>
+                                    
+                                </td>
+                                <td>
+                                    <input type="text" name="descripcion" class="form-control"/>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" data-toggle="buttons">
+                                        <label id="nlunes" class="btn btn-default">
+                                            <input name="lunes" var="n" type="checkbox" autocomplete="off"> Lu
+                                        </label>
+                                        <label id="nmartes" class="btn btn-default">
+                                            <input name="martes" var="n" type="checkbox" autocomplete="off"> Ma
+                                        </label>
+                                        <label id="nmiercoles" class="btn btn-default">
+                                            <input name="miercoles" var="n" type="checkbox" autocomplete="off"> Mi
+                                        </label>
+                                        <label id="njueves" class="btn btn-default">
+                                            <input name="jueves" var="n" type="checkbox" autocomplete="off"> Ju
+                                        </label>
+                                        <label id="nviernes" class="btn btn-default">
+                                            <input name="viernes" var="n" type="checkbox" autocomplete="off"> Vi
+                                        </label>
+                                        <label id="nsabado" class="btn btn-default">
+                                            <input name="sabado" var="n" type="checkbox" autocomplete="off"> Sa
+                                        </label>
+                                        <label id="ndomingo" class="btn btn-default">
+                                            <input name="domingo" var="n" type="checkbox" autocomplete="off"> Do
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <input type='hidden' name='type' value='ruta'>
+                                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                            document.n_rutas.submit();" title="Guardar">
+                                        <span class="glyphicon glyphicon-floppy-disk"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </form>
+                     </table>
+                  </div>
+              </div>
+            <div class="panel panel-info hidden" id="panel_canales">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Canales</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-left">Código Canal</th>
+                                <th class="text-left">Descripción Canal</th>
+                                <th class="text-center">Tarifa Asignada</th>
+                                <th class="text-center">Activo</th>
+                                <th width="120"></th>
+                            </tr>
+                        </thead>
+                        {loop="$fsc->canales"}
+                        <form name="f_canales" id="f_canales" method="POST" action="{$fsc->url()}" class="form">
+                            <tr{if="!$value->estado"} class="danger"{/if}>
+                                <td>
+                                    <input type="text" name="canal" readonly value="{$value1->canal}" class="form-control"/>
+                                </td>
+                                <td>
+                                    <input type="text" name="descripcion" value="{$value1->descripcion}" class="form-control"/>
+                                </td>
+                                <td>
+                                    Proximamente
+                                </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            {if="$value->estado"}
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                            {else}
+                                            <input type="checkbox" name="estado" value="TRUE"/>
+                                            {/if}
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="btn-group">
+                                        <input type='hidden' name='type' value='canal'>
+                                        {if="$fsc->allow_delete"}
+                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_canal('{$value->canal}')">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </button>
+                                        {/if}
+                                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                                document.f_canales.submit();" title="Guardar">
                                             <span class="glyphicon glyphicon-floppy-disk"></span>
                                         </button>
                                     </div>
@@ -340,68 +459,34 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             </tr>
                         </form>
                         {/loop}
-                        <form name="n_rutas" id="n_rutas" action="{$fsc->url()}" method="POST" class="form">
-                        <tr class="info">
-                           <td>
-                              <select name="codagente" class="form-control">
-                                {loop="$fsc->vendedores_asignados"}
-                                    <option value="{$value->codagente}">{$value->nombre} {$value->apellidos}</option>
-                                {/loop}
-                              </select>
-                           </td>
-                           <td>
-                           <td>
-                               <input type="text" name="descripcion" class="form-control"/>
-                           </td>
-                           <td class="text-center">
-                               <div class="btn-group" data-toggle="buttons">
-                                <label  id="nlunes" class="btn btn-default">
-                                    <input name="lunes" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Lu
-                                </label>
-                                <label id="nmartes" class="btn btn-default">
-                                    <input name="martes" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Ma
-                                </label>
-                                <label id="nmiercoles" class="btn btn-default">
-                                  <input name="miercoles" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Mi
-                                </label>
-                                <label id="njueves" class="btn btn-default">
-                                  <input name="jueves" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Ju
-                                </label>
-                                <label id="nviernes" class="btn btn-default">
-                                  <input name="viernes" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Vi
-                                </label>
-                                <label id="nsabado" class="btn btn-default">
-                                  <input name="sabado" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Sa
-                                </label>
-                                <label id="ndomingo" class="btn btn-default">
-                                  <input name="domingo" var="n" type="checkbox" autocomplete="off" onchange="checkboxAction(this)"> Do
-                                </label>
-                              </div>
-                           </td>
-                           <td class="text-center">
-                              <div class="checkbox">
-                                 <label>
-                                    <input type="checkbox" name="estado" value="TRUE" checked=""/>
-                                 </label>
-                              </div>
-                           </td>
-                           <td class="text-right">
-                               <input type='hidden' name='type' value='ruta'>
-                              <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;document.n_rutas.submit();" title="Guardar">
-                                 <span class="glyphicon glyphicon-floppy-disk"></span>
-                              </button>
-                           </td>
-                        </tr>
-                     </form>
+                        <form name="n_canales" id="n_canales" action="{$fsc->url()}" method="POST" class="form">
+                            <tr class="info">
+                                <td>
+
+                                </td>
+                                <td>
+                                    <input type="text" name="descripcion" class="form-control"/>
+                                </td>
+                                <td class="text-center">
+                                    Proximamente
+                                </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <input type='hidden' name='type' value='canal'>
+                                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                            document.n_canales.submit();" title="Guardar">
+                                        <span class="glyphicon glyphicon-floppy-disk"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </form>
                     </table>
-                </div>
-            </div>
-            <div class="panel panel-info hidden" id="panel_canales">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Canales</h3>
-                </div>
-                <div class="panel-body">
-                    Listado de canales
                 </div>
             </div>
             <div class="panel panel-info hidden" id="panel_subcanales">
@@ -438,45 +523,44 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 $(idPanel).addClass('hidden');
             }
         }
-
     }
-    
-    function checkboxAction(element){
+
+    function checkboxAction(element) {
         var elementType = element.getAttribute("var");
-        var idElement = (elementType === undefined)?'#'+element.name:'#'+elementType+element.name;
-        if(element.checked){
+        var elementRuta = element.getAttribute("ruta");
+        var idElement = (elementType === null) ? '#' + element.name : '#' + elementType + element.name + elementRuta;
+        if (element.checked) {
             $(idElement).removeClass('btn-default');
             $(idElement).addClass('btn-primary');
-        }else{
+        } else {
             $(idElement).removeClass('btn-primary');
             $(idElement).addClass('btn-default');
         }
     }
-    //$(document).ready(function(){
-        if($('#menu_activo').val()!==''){
-            $('#panel_central').hide();
-            if($('#menu_activo').val() === 'ruta'){
-                $('#b_rutas').removeClass("btn-default");
-                $('#b_rutas').addClass("btn-primary");
-                $('#panel_rutas').removeClass('hidden');
-            }else if($('#menu_activo').val() === 'supervisor'){
-                $('#b_supervisores').removeClass("btn-default");
-                $('#b_supervisores').addClass("btn-primary");
-                $('#panel_supervisores').removeClass('hidden');
-            }else if($('#menu_activo').val() === 'vendedor'){
-                $('#b_vendedores').removeClass("btn-default");
-                $('#b_vendedores').addClass("btn-primary");
-                $('#panel_vendedores').removeClass('hidden');
-            }else if($('#menu_activo').val() === 'canal'){
-                $('#b_canales').removeClass("btn-default");
-                $('#b_canales').addClass("btn-primary");
-                $('#panel_canales').removeClass('hidden');
-            }else if($('#menu_activo').val() === 'subcanal'){
-                $('#b_subcanales').removeClass("btn-default");
-                $('#b_subcanales').addClass("btn-primary");
-                $('#panel_subcanales').removeClass('hidden');
-            }
+    
+    if ($('#menu_activo').val() !== '') {
+        $('#panel_central').hide();
+        if ($('#menu_activo').val() === 'ruta') {
+            $('#b_rutas').removeClass("btn-default");
+            $('#b_rutas').addClass("btn-primary");
+            $('#panel_rutas').removeClass('hidden');
+        } else if ($('#menu_activo').val() === 'supervisor') {
+            $('#b_supervisores').removeClass("btn-default");
+            $('#b_supervisores').addClass("btn-primary");
+            $('#panel_supervisores').removeClass('hidden');
+        } else if ($('#menu_activo').val() === 'vendedor') {
+            $('#b_vendedores').removeClass("btn-default");
+            $('#b_vendedores').addClass("btn-primary");
+            $('#panel_vendedores').removeClass('hidden');
+        } else if ($('#menu_activo').val() === 'canal') {
+            $('#b_canales').removeClass("btn-default");
+            $('#b_canales').addClass("btn-primary");
+            $('#panel_canales').removeClass('hidden');
+        } else if ($('#menu_activo').val() === 'subcanal') {
+            $('#b_subcanales').removeClass("btn-default");
+            $('#b_subcanales').addClass("btn-primary");
+            $('#panel_subcanales').removeClass('hidden');
         }
-    //});
+    }
 </script>
 {include="footer"}
