@@ -101,6 +101,7 @@ class distribucion_segmentos extends fs_model {
         }
         else
         {
+            $this->codigo = $this->getNextId();
             $sql = "INSERT INTO distribucion_segmentos ( idempresa, codigo, descripcion, codigo_padre, tiposegmento, estado, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
                     $this->var2str($this->codigo).", ".
@@ -158,27 +159,23 @@ class distribucion_segmentos extends fs_model {
     public function all_tiposegmento($idempresa,$tiposegmento)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND tipoagente = ".$this->var2str($tipoagente)." ORDER BY codalmacen, codagente;");
+        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND tiposegmento = ".$this->var2str($tiposegmento)." ORDER BY codigo_padre, codigo;");
         
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_segmentos($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
         return $lista;
     }
     
-    public function all_almacen_tipoagente($idempresa,$codalmacen,$tipoagente)
+    public function all_codigopadre_tipoagente($idempresa,$codigopadre,$tiposegmento)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND tipoagente = ".$this->var2str($tipoagente)." ORDER BY codagente;");
+        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codigo_padre = ".$this->var2str($codigopadre)." AND tiposegmento = ".$this->var2str($tiposegmento)." ORDER BY codigo;");
         
         if($data)
         {
@@ -198,77 +195,61 @@ class distribucion_segmentos extends fs_model {
     public function activos($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, codtrans, nombre;");
+        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY tiposegmento, codigo_padre, codigo;");
         
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_segmentos($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
         return $lista;
     }
     
-    public function activos_tipoagente($idempresa,$tipoagente)
+    public function activos_tiposegmento($idempresa,$tiposegmento)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND tipoagente = ".$this->var2str($tipoagente)." AND estado = true ORDER BY codalmacen, codagente;");
+        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND tiposegmento = ".$this->var2str($tiposegmento)." AND estado = true ORDER BY codigo_padre, codigo;");
         
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_segmentos($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
         return $lista;
     }
     
-    public function activos_almacen_tipoagente($idempresa,$codalmacen,$tipoagente)
+    public function activos_codigopadre_tiposegmento($idempresa,$codigopadre,$tiposegmento)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND tipoagente = ".$this->var2str($tipoagente)." AND estado = true ORDER BY codalmacen, codagente;");
+        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codigo_padre = ".$this->var2str($codigopadre)." AND tiposegmento = ".$this->var2str($tiposegmento)." AND estado = true ORDER BY codigo_padre, codigo;");
         
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_segmentos($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
         return $lista;
     }
     
-    public function get($idempresa,$codagente)
+    public function get($idempresa,$codigo, $tiposegmento)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codagente = ".$this->var2str($codagente).";");
+        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codigo = ".$this->var2str($codigo)." AND tiposegmento = ".$this->var2str($tiposegmento).";");
         
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_segmentos($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }

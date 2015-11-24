@@ -420,15 +420,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             </tr>
                         </thead>
                         {loop="$fsc->canales"}
-                        <form name="f_canales" id="f_canales" method="POST" action="{$fsc->url()}" class="form">
+                        <form name="f_canales{$value1->codigo}" id="f_canales{$value1->codigo}" method="POST" action="{$fsc->url()}" class="form">
                             <tr{if="!$value->estado"} class="danger"{/if}>
                                 <td>
-                                    <input type="text" name="canal" readonly value="{$value1->canal}" class="form-control"/>
+                                    <input type="text" name="canal" readonly value="{$value1->codigo}" class="form-control"/>
                                 </td>
                                 <td>
                                     <input type="text" name="descripcion" value="{$value1->descripcion}" class="form-control"/>
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     Proximamente
                                 </td>
                                 <td class="text-center">
@@ -446,12 +446,12 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <div class="btn-group">
                                         <input type='hidden' name='type' value='canal'>
                                         {if="$fsc->allow_delete"}
-                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_canal('{$value->canal}')">
+                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_canal('{$value->codigo}')">
                                             <span class="glyphicon glyphicon-trash"></span>
                                         </button>
                                         {/if}
                                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
-                                                document.f_canales.submit();" title="Guardar">
+                                                document.f_canales{$value1->codigo}.submit();" title="Guardar">
                                             <span class="glyphicon glyphicon-floppy-disk"></span>
                                         </button>
                                     </div>
@@ -494,7 +494,99 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <h3 class="panel-title">Subcanales</h3>
                 </div>
                 <div class="panel-body">
-                    Listado de subcanales
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-left">Código Canal</th>
+                                <th class="text-left">Código Subcanal</th>
+                                <th class="text-left">Descripción Subcanal</th>
+                                <th class="text-center">Tarifa Asignada</th>
+                                <th class="text-center">Activo</th>
+                                <th width="120"></th>
+                            </tr>
+                        </thead>
+                        {loop="$fsc->subcanales"}
+                        <form name="f_subcanales{$value1->codigo}" id="f_subcanales{$value1->codigo}" method="POST" action="{$fsc->url()}" class="form">
+                            <tr{if="!$value->estado"} class="danger"{/if}>
+                                <td>
+                                    <select name="canal" class="form-control">
+                                        {loop="$fsc->canales"}
+                                        <option value="{$value2->codigo}" {if="$value1->codigo_padre==$value2->codigo"}selected{/if}>{$value2->descripcion}</option>
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="subcanal" readonly value="{$value1->codigo}" class="form-control"/>
+                                </td>
+                                <td>
+                                    <input type="text" name="descripcion" value="{$value1->descripcion}" class="form-control"/>
+                                </td>
+                                <td class="text-center">
+                                    Proximamente
+                                </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            {if="$value->estado"}
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                            {else}
+                                            <input type="checkbox" name="estado" value="TRUE"/>
+                                            {/if}
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="btn-group">
+                                        <input type='hidden' name='type' value='subcanal'>
+                                        {if="$fsc->allow_delete"}
+                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_subcanal('{$value->codigo}')">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </button>
+                                        {/if}
+                                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                                document.f_subcanales{$value1->codigo}.submit();" title="Guardar">
+                                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </form>
+                        {/loop}
+                        <form name="n_subcanales" id="n_subcanales" action="{$fsc->url()}" method="POST" class="form">
+                            <tr class="info">
+                                <td>
+                                    <select name="canal" class="form-control">
+                                        {loop="$fsc->canales_activos"}
+                                        <option value="{$value->codigo}">{$value->descripcion}</option>
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td>
+
+                                </td>
+                                <td>
+                                    <input type="text" name="descripcion" class="form-control"/>
+                                </td>
+                                <td class="text-center">
+                                    Proximamente
+                                </td>
+                                <td class="text-center">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <input type='hidden' name='type' value='subcanal'>
+                                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                            document.n_subcanales.submit();" title="Guardar">
+                                        <span class="glyphicon glyphicon-floppy-disk"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </form>
+                    </table>
                 </div>
             </div>
         </div>

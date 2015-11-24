@@ -22,6 +22,7 @@ require_model('almacen.php');
 require_model('distribucion_agente.php');
 require_model('distribucion_organizacion.php');
 require_model('distribucion_rutas.php');
+require_model('distribucion_segmentos.php');
 /**
  * Description of distribucion_creacion
  *
@@ -40,10 +41,14 @@ class distrib_clientes extends fs_controller {
     public $distribucion_agente;
     public $distribucion_organizacion;
     public $distribucion_rutas;
+    public $distribucion_segmentos;
     public $supervisores_asignados;
     public $supervisores_libres;
     public $vendedores_asignados;
     public $vendedores_libres;
+    public $canales;
+    public $canales_activos;
+    public $subcanales;
     
     public function __construct() {
         parent::__construct(__CLASS__, '7 - Distribución Clientes', 'distribucion');
@@ -57,6 +62,7 @@ class distrib_clientes extends fs_controller {
         $this->agente = new distribucion_agente();
         $this->distribucion_organizacion = new distribucion_organizacion();
         $this->distribucion_rutas = new distribucion_rutas();
+        $this->distribucion_segmentos = new distribucion_segmentos();
 
         $type = \filter_input(INPUT_POST, 'type');
         $codcliente = \filter_input(INPUT_GET, 'codcliente');
@@ -152,15 +158,43 @@ class distrib_clientes extends fs_controller {
         }elseif($type=='canal'){
             $canal = \filter_input(INPUT_POST, 'canal');
             $descripcion = \filter_input(INPUT_POST, 'descripcion');
+            $tiposegmento = strtoupper($type);
             $estado_val = \filter_input(INPUT_POST, 'estado');
             $estado = (isset($estado_val))?true:false;
+            $canal0 = new distribucion_segmentos();
+            $canal0->idempresa = $this->empresa->id;
+            $canal0->codigo = $canal;
+            $canal0->descripcion = $descripcion;
+            $canal0->tiposegmento = $tiposegmento;
+            $canal0->estado = $estado;
+            $canal0->usuario_creacion = $this->user->nick;
+            $canal0->fecha_creacion = \Date('d-m-Y H:i:s');
+            if($canal0->save()){
+                $this->new_message("Canal $canal0->codigo $canal0->descripcion tratado correctamente.");
+            }else{
+                $this->new_error_msg("¡Imposible tratar los datos ingresados!");
+            }
         }elseif($type=='subcanal'){
             $canal = \filter_input(INPUT_POST, 'canal');
             $subcanal = \filter_input(INPUT_POST, 'subcanal');
+            $tiposegmento = strtoupper($type);
             $descripcion = \filter_input(INPUT_POST, 'descripcion');
             $estado_val = \filter_input(INPUT_POST, 'estado');
             $estado = (isset($estado_val))?true:false;
-            
+            $subcanal0 = new distribucion_segmentos();
+            $subcanal0->idempresa = $this->empresa->id;
+            $subcanal0->codigo = $subcanal;
+            $subcanal0->codigo_padre = $canal;
+            $subcanal0->descripcion = $descripcion;
+            $subcanal0->tiposegmento = $tiposegmento;
+            $subcanal0->estado = $estado;
+            $subcanal0->usuario_creacion = $this->user->nick;
+            $subcanal0->fecha_creacion = \Date('d-m-Y H:i:s');
+            if($subcanal0->save()){
+                $this->new_message("Subcanal $subcanal0->codigo $subcanal0->descripcion tratado correctamente.");
+            }else{
+                $this->new_error_msg("¡Imposible tratar los datos ingresados!");
+            }
         }
         $this->type = $type;
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');
@@ -170,6 +204,10 @@ class distrib_clientes extends fs_controller {
         $this->vendedores_libres = $this->agente->get_activos_por('cargo','VENDEDOR');
         
         $this->rutas = $this->distribucion_rutas->all($this->empresa->id);
+        
+        $this->canales = $this->distribucion_segmentos->all_tiposegmento($this->empresa->id, 'CANAL');
+        $this->canales_activos = $this->distribucion_segmentos->activos_tiposegmento($this->empresa->id, 'CANAL');
+        $this->subcanales = $this->distribucion_segmentos->all_tiposegmento($this->empresa->id, 'SUBCANAL');
 
     }
     
