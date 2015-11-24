@@ -38,26 +38,41 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         </div>
     </div>
     <div class="row">
-        <form action="{$fsc->url()}" method="post" class="form">
+        <form action="{$fsc->url()}" name='f_distrib_cliente' method="POST" class="form">
             <div class="container">
                 <div class="row">
-                    <div class="col-sm-2">
-                        <label class="text-left" for="codsupervisor"><b>Supervisor:</b></label>
-                    </div>
-                    <div class="col-sm-2">
-                        <input type="text" class="form-control" id="codsupervisor" name="codsupervisor">
-                    </div>
-                    <div class="col-sm-2">
-                        <label class="text-left" for="codvendedor"><b>Vendedor:</b></label>
-                    </div>
-                    <div class="col-sm-2">
-                        <input type="text" class="form-control" id="codvendedor" name="codvendedor">
-                    </div>
                     <div class="col-sm-2">
                         <label class="text-left" for="ruta"><b>Ruta:</b></label>
                     </div>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control" id="ruta" name="ruta">
+                        <select name="ruta" class="form-control">
+                            <option value="" {if="$fsc->cliente_datos->ruta==''"}selected{/if}>Ninguna</option>
+                            {loop="$fsc->rutas"}
+                            <option {if="$fsc->cliente_datos->ruta==$value->ruta"}selected{/if} value="{$value->ruta}">{$value->ruta} {$value->descripcion}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="text-left" for="canal"><b>Canal:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <select name="canal" class="form-control">
+                            <option value="" {if="$fsc->cliente_datos->canal==''"}selected{/if}>Ninguna</option>
+                            {loop="$fsc->canales"}
+                            <option {if="$fsc->cliente_datos->canal==$value->codigo"}selected{/if} value="{$value->codigo}">{$value->codigo} {$value->descripcion}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="text-left" for="subcanal"><b>Subcanal:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <select name="subcanal" class="form-control">
+                            <option value="" {if="$fsc->cliente_datos->subcanal==''"}selected{/if}>Ninguna</option>
+                            {loop="$fsc->subcanales"}
+                            <option {if="$fsc->cliente_datos->subcanal==$value->codigo"}selected{/if} value="{$value->codigo}">{$value->codigo} {$value->descripcion}</option>
+                            {/loop}
+                        </select>
                     </div>
                 </div>
                 <div class="row" style="margin-top: 10px;">
@@ -67,17 +82,14 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <div class="col-sm-2">
                         <input type="text" class="form-control" id="coordenadas" name="coordenadas">
                     </div>
-                    <div class="col-sm-2">
-                        <label class="text-left" for="canal"><b>Canal:</b></label>
-                    </div>
-                    <div class="col-sm-2">
-                        <input type="text" class="form-control" id="canal" name="canal">
-                    </div>
-                    <div class="col-sm-2">
-                        <label class="text-left" for="subcanal"><b>subcanal:</b></label>
-                    </div>
-                    <div class="col-sm-2">
-                        <input type="text" class="form-control" id="subcanal" name="subcanal">
+                </div>
+                <div class="row" style="margin-top: 10px;" align='right'>
+                    <div class="btn-group">
+                        <input type='hidden' name='codcliente' value='{$fsc->codcliente}'>
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
+                                document.f_distrib_cliente.submit();" title="Guardar">
+                            <span class="glyphicon glyphicon-floppy-disk"></span> Guardar
+                        </button>
                     </div>
                 </div>
             </div>
