@@ -120,7 +120,6 @@ class distribucion_clientes extends fs_model {
         }
     }
     
-    
     public function delete() {
         $sql = "DELETE FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
