@@ -1,0 +1,60 @@
+{include="header2"}
+<script type="text/javascript">
+   function eliminar_devolucion(id)
+   {
+      if( confirm("¿Realmente desea eliminar la devolución?") )
+         window.location.href = '{$fsc->url()}&delete='+id;
+   }
+   
+    $(document).ready(function() {
+      $("#b_guardar").click(function(event) {
+         event.preventDefault();
+         if( confirm("¿Realmente desea guardar la devolución?") )
+            console.log(document.f_devolucion.validate());
+            document.f_devolucion.submit();
+      });
+   });
+</script>
+<div class="container-fluid">
+    <form action="{$fsc->url()}" method="post" class="form" name="f_devolucion" id="f_devolucion">
+        <input type="hidden" name="idfactura" value="{$fsc->factura}">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="text-left">Referencia</th>
+                    <th class="text-left">Producto</th>
+                    <th class="text-left">Precio</th>
+                    <th class="text-left">Impuestos</th>
+                    <th class="text-left">Cantidad</th>
+                    <th class="text-left">Devolución</th>
+                    <th class="text-left">Valor Dev</th>
+                </tr>
+            </thead>
+            {loop="$fsc->resultados"}
+                <tr>
+                    <td>{$value1->referencia}</td>
+                    <td>{$value1->descripcion}</td>
+                    <td>{$fsc->show_precio($value1->pvpunitario)}</td>
+                    <td>{$value1->iva}</td>
+                    <td>{$value1->cantidad}</td>
+                    <td><input name="{$value1->referencia}" type="number" min="1" max="{$value1->cantidad}"></td>
+                    <td></td>
+                </tr>
+            {/loop}
+            <tfoot>
+                <tr>
+                    <td class="text-right" colspan="7">
+                        <button id="b_guardar" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar" class="btn btn-sm btn-primary">
+                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                            &nbsp; Guardar Devolución
+                        </button>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    </form>
+    <div class="row">Aqui puede generar las devoluciones parciales para esta factura, por favor verifique bien las cantidades ingresadas, ya que una vez guardada la devolución, solo el contador podrá reversar la misma.</div>
+</div>
+{include="footer2"}

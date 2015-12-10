@@ -21,23 +21,58 @@ require_model('almacen.php');
 require_model('pais.php');
 require_model('agencia_transporte.php');
 require_model('distribucion_tipounidad.php');
+require_model('asiento.php');
+require_model('asiento_factura.php');
+require_model('cliente.php');
+require_model('ejercicio.php');
+require_model('factura_cliente.php');
+require_model('forma_pago.php');
+require_model('partida.php');
+require_model('subcuenta.php');
+require_model('ncf_ventas.php');
 
 /**
- * Description of admin_distribucion
+ * Description of distrib_facturas
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
-class admin_distribucion extends fs_controller {
+class distrib_facturas extends fs_controller {
 
     public $distribucion_tipounidad;
+    public $almacen;
+    public $asiento;
+    public $asiento_factura;
+    public $cliente;
+    public $factura_cliente;
+    public $factura;
+    public $ncf_ventas;
     public $listado;
+    public $resultados;
 
     public function __construct() {
-        parent::__construct(__CLASS__, '1 - Configuración', 'distribucion');
+        parent::__construct(__CLASS__, '8 - Configuración', 'distribucion', FALSE, FALSE);
     }
 
     public function private_core() {
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
+        $this->share_extension();
+        $this->factura_cliente = new factura_cliente();
+        $id = \filter_input(INPUT_GET, 'id');
+        $idfactura = \filter_input(INPUT_POST, 'idfactura');
+        if(!empty($id)){
+            $this->factura = $id;
+            $this->resultados = $this->factura_cliente->get($this->factura)->get_lineas();
+        }elseif(!empty($idfactura)){
+            $devoluciones = $this->factura_cliente->get($idfactura)->get_lineas();
+            echo $idfactura." <br />";
+            foreach($devoluciones as $data){
+                $dev = \filter_input(INPUT_POST, $data->referencia);
+                if(!empty($dev)){
+                    echo $dev." - ";
+                }
+            }
+        }
+        /*
         $delete = \filter_input(INPUT_GET, 'delete');
         $id_val = \filter_input(INPUT_POST, 'id');
         $descripcion = \filter_input(INPUT_POST, 'descripcion');
@@ -64,29 +99,29 @@ class admin_distribucion extends fs_controller {
         }
         $this->distribucion_tipounidad = new distribucion_tipounidad();
         $this->listado = $this->distribucion_tipounidad->all($this->empresa->id);
+         * 
+         */
     }
-
-    private function tratar_tipounidad($valor, $condicion, $descripcion, $estado) {
-        $dtu = new distribucion_tipounidad();
-        $dtu->id = $valor;
-        $dtu->idempresa = $this->empresa->id;
-        $dtu->descripcion = $descripcion;
-        $dtu->estado = $estado;
-        $dtu->usuario_modificacion = $this->user->nick;
-        $dtu->fecha_modificacion = \Date('d-m-Y H:i:s');
-        if ($condicion == 'delete') {
-            if ($dtu->delete()) {
-                $this->new_message("Tipo de Unidad " . $dtu->descripcion . " con el id " . $dtu->id . " eliminada correctamente.");
-            } else {
-                $this->new_error_msg("¡Imposible eliminar los datos del tipo de unidad!");
-            }
-        } elseif ($condicion == 'update') {
-            if ($dtu->save()) {
-                $this->new_message("Tipo de Unidad " . $dtu->descripcion . " con el id " . $dtu->id . " actualizada correctamente.");
-            } else {
-                $this->new_error_msg("¡Imposible actualizar los datos del tipo de unidad!");
+    
+    private function share_extension() {
+        $extensiones = array(
+            array(
+                'name' => 'devolucion_cliente',
+                'page_from' => __CLASS__,
+                'page_to' => 'ventas_factura',
+                'type' => 'tab',
+                'text' => '<span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span><span class="hidden-xs">&nbsp; Parciales</span>',
+                'params' => ''
+            )
+        );
+        foreach ($extensiones as $ext) {
+            $fsext0 = new fs_extension($ext);
+            if (!$fsext0->save()) {
+                $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
             }
         }
     }
-    
+
+
+
 }
