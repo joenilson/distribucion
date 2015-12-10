@@ -62,6 +62,8 @@ class distrib_facturas extends fs_controller {
         if(!empty($id)){
             $this->factura = $id;
             $this->resultados = $this->factura_cliente->get($this->factura)->get_lineas();
+        }
+        /*    
         }elseif(!empty($idfactura)){
             $devoluciones = $this->factura_cliente->get($idfactura)->get_lineas();
             echo $idfactura." <br />";
@@ -72,6 +74,8 @@ class distrib_facturas extends fs_controller {
                 }
             }
         }
+         * 
+         */
         /*
         $delete = \filter_input(INPUT_GET, 'delete');
         $id_val = \filter_input(INPUT_POST, 'id');

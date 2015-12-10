@@ -465,6 +465,18 @@ class distrib_ordencarga extends fs_controller {
             )
         );
         $fsext12->save();
+        
+        $fsext13 = new fs_extension(
+            array(
+                'name' => 'distribucion_js13',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_facturas',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>',
+                'params' => ''
+            )
+        );
+        $fsext13->save();
     }
 
 }
