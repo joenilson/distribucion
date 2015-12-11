@@ -20,6 +20,11 @@
 </script>
 <div class="container-fluid">
     <form action="{$fsc->url()}" method="post" data-toggle="validator" role="form" class="form" name="f_devolucion" id="f_devolucion">
+        {if="$fsc->devolucion"}
+        <div class="row panel-info">
+            <span class="col-sm-2">Nota de Crédito de deVolución:</span><span><b>{if="$fsc->resultados->ncf"}{$fsc->resultados->ncf}{else}{$fsc->resultados->idfactura}{/if}</b></span>
+        </div>
+        {/if}
         <input type="hidden" name="id" value="{$fsc->factura}">
         <input type="hidden" name="type" value="devolucion">
     <div class="table-responsive">
@@ -32,37 +37,44 @@
                     <th class="text-center">Impuestos</th>
                     <th class="text-right">Neto</th>
                     <th class="text-center">Cantidad</th>
-                    <th class="text-center">Devolución</th>
-                    <th class="text-right">Valor Dev</th>
+                    {if="!$fsc->devolucion"}
+                        <th class="text-center">Devolución</th>
+                    {else}
+                        <th class="text-center">&nbsp;</th>
+                    {/if}
                 </tr>
             </thead>
-            {loop="$fsc->resultados"}
+            {loop="$fsc->resultados->get_lineas()"}
                 <tr>
                     <td>{$value1->referencia}</td>
                     <td>{$value1->descripcion}</td>
                     <td class='text-right'>{$fsc->show_precio($value1->pvpunitario)}</td>
                     <td class='text-center'>{$value1->iva}</td>
                     <td class='text-right'>{$fsc->show_precio($value1->pvptotal)}</td>
-                    <td class='text-center'>{$value1->cantidad} {$value1->devolucion}</td>
-                    {if="$value1->devolucion==''"}
-                        <td class='text-center'><input name="{$value1->referencia}" type="number" min="0" max="{$value1->cantidad}" required></td>
-                        <td>&nbsp;</td>
+                    <td class='text-center'>{$value1->cantidad}</td>
+                    {if="!$fsc->devolucion"}
+                        <td class='text-center'><input name="id_{$value1->referencia}" type="number" min="0" max="{$value1->cantidad}" required></td>
                     {else}
-                        <td class='text-center'>{$value1->devolucion}</td>
-                        <td class='text-right'>{$fsc->show_precio($value1->devolucionneto)}</td>
+                        <td>&nbsp;</td>
                     {/if}
                     
                 </tr>
             {/loop}
+            <tr>
+                <td colspan='3'>&nbsp;</td>
+                <th class="text-right">Impuestos</th>
+                <th class="text-right">Valor Neto</th>
+                <th class="text-right">Valor Total</th>
+            </tr>
+            <tr>
+                <td colspan='3'>&nbsp;</td>
+                <td class="text-right"><b>{$fsc->show_precio($fsc->resultados->totaliva)}</b></td>
+                <td class="text-right"><b>{$fsc->show_precio($fsc->resultados->neto)}</b></td>
+                <td class="text-right"><b>{$fsc->show_precio($fsc->resultados->total)}</b></td>
+            </tr>
             <tfoot>
                 <tr>
-                    <td class="text-right" colspan="8">
-                        {if="$fsc->allow_delete"}
-                        <button id="b_eliminar" type="button" onclick="this.disabled=true;" title="Guardar" class="btn btn-sm btn-danger">
-                            <span class="glyphicon glyphicon-trash"></span>
-                            &nbsp; Eliminar Devolución
-                        </button>
-                        {/if}
+                    <td class="text-right" colspan="7">
                         <button id="b_guardar" data-disable="true" type="submit" class="btn btn-sm btn-primary">
                             <span class="glyphicon glyphicon-floppy-disk"></span>
                             &nbsp; Guardar Devolución

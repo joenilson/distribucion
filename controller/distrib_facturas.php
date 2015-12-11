@@ -30,8 +30,13 @@ require_model('factura_cliente.php');
 require_model('forma_pago.php');
 require_model('partida.php');
 require_model('subcuenta.php');
-require_model('ncf_ventas.php');
-require_model('ncf_rango.php');
+require_model('distribucion_devoluciones.php');
+
+$dirname = 'plugins/republica_dominicana/';
+if(is_dir($dirname)){
+    require_model('ncf_ventas.php');
+    require_model('ncf_rango.php');
+}
 
 /**
  * Description of distrib_facturas
@@ -41,6 +46,7 @@ require_model('ncf_rango.php');
 class distrib_facturas extends fs_controller {
 
     public $distribucion_tipounidad;
+    public $distribucion_devoluciones;
     public $almacen;
     public $asiento;
     public $asiento_factura;
@@ -50,20 +56,33 @@ class distrib_facturas extends fs_controller {
     public $ncf_ventas;
     public $listado;
     public $resultados;
+    public $devolucion;
 
     public function __construct() {
         parent::__construct(__CLASS__, '8 - Configuración', 'distribucion', FALSE, FALSE);
     }
 
     public function private_core() {
+        $dirname = 'plugins/republica_dominicana/';
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->share_extension();
         $this->factura_cliente = new factura_cliente();
+        $this->distribucion_devoluciones = new distribucion_devoluciones();
         $id = \filter_input(INPUT_GET, 'id');
         $idfactura = \filter_input(INPUT_POST, 'id');
         if (!empty($id)) {
             $this->factura = $id;
-            $this->resultados = $this->factura_cliente->get($this->factura)->get_lineas();
+            $buscar_dev = $this->distribucion_devoluciones->get_devolucion($this->factura);
+            $buscar_fact = $this->factura_cliente->get($this->factura);
+            $factura_elegida = ($buscar_dev)?$buscar_dev:$buscar_fact;
+            if(is_dir($dirname)){
+                $ncf = new ncf_ventas();
+                $ncf_factura = $ncf->get_ncf($this->empresa->id, $factura_elegida->idfactura, $factura_elegida->codcliente);
+                $factura_elegida->ncf = $ncf_factura->ncf;
+                $factura_elegida->ncf_modifica = $ncf_factura->ncf_modifica;
+            }
+            $this->resultados = $factura_elegida;
+            $this->devolucion = ($buscar_dev)?TRUE:FALSE;
         } elseif (!empty($idfactura)) {
             $factura_original = $this->factura_cliente->get($idfactura);
             $this->crear_devolucion($factura_original);
@@ -99,7 +118,7 @@ class distrib_facturas extends fs_controller {
         /// Regresamos el stock al almacén de las cantidades ingresadas
         $art0 = new articulo();
         foreach ($fact_lineas as $key=>$linea) {
-            $dev = \filter_input(INPUT_POST, $linea->referencia);
+            $dev = \filter_input(INPUT_POST, "id_".$linea->referencia);
             $articulo = $art0->get($linea->referencia);
             if (!empty($dev) and isset($articulo)) {
                 $valor = $dev * $linea->pvpunitario;
@@ -127,8 +146,8 @@ class distrib_facturas extends fs_controller {
         $fact->codigo = NULL;
         $fact->idasiento = NULL;
         $fact->total = $fact->neto + $fact->totaliva + $fact->totalirpf + $fact->totalrecargo;
-        $fact->fecha = date('Y-m-d');
-        $fact->vencimiento = date('Y-m-d');
+        $fact->fecha = Date('d-m-Y');
+        $fact->vencimiento = Date('d-m-Y');
         $fact->codagente = $this->user->codagente;
         if ($fact->save()) {
             $linea_factura = new linea_factura_cliente();
@@ -159,17 +178,19 @@ class distrib_facturas extends fs_controller {
             }else{
                 $this->new_message("Devolución ingresada correctamente, se generó la nota de crédito: " . $fact->codigo);
             }
-            
-            $lineas_factura_origen = $this->factura_cliente->get($factura_original)->get_lineas();
-            foreach ($lineas_factura_origen as $key=>$items){
-                if($cantidad_devolucion[$items->referencia]){
-                    $lineas_factura_origen[$key]->devolucion = $cantidad_devolucion[$items->referencia];
-                    $lineas_factura_origen[$key]->devolucionneto = $monto_devolucion[$items->referencia];
-                }
+            $devolucion = new distribucion_devoluciones();
+            $lineas_devolucion = $devolucion->get_devolucion($factura_original);
+            if(is_dir($dirname)){
+                $ncf = new ncf_ventas();
+                $ncf_factura = $ncf->get_ncf($this->empresa->id, $fact->idfactura, $fact->codcliente);
+                $factura_elegida->ncf = $ncf_factura->ncf;
+                $factura_elegida->ncf_modifica = $ncf_factura->ncf_modifica;
             }
-            $this->resultados = $lineas_factura_origen;
+            $this->resultados = ($lineas_devolucion)?$lineas_devolucion:NULL;
+            $this->devolucion = ($lineas_devolucion)?TRUE:FALSE;
         } else {
             $this->new_error_msg("¡Imposible agregar la devolución a esta factura!");
+            
         }
     }
     
@@ -177,14 +198,16 @@ class distrib_facturas extends fs_controller {
         if ($numero_ncf['NCF'] == 'NO_DISPONIBLE'){
             return $this->new_error_msg('No hay números NCF disponibles del tipo '.$tipo_comprobante.', la factura '. $factura->idfactura .' se creo sin NCF.');
         }else{
+            $ncf_orig = new ncf_ventas();
+            $val_ncf = $ncf_orig->get_ncf($this->empresa->id, $factura->idfacturarect, $factura->codcliente);
             $ncf_factura = new ncf_ventas();
             $ncf_factura->idempresa = $idempresa;
             $ncf_factura->codalmacen = $factura->codalmacen;
             $ncf_factura->entidad = $factura->codcliente;
             $ncf_factura->cifnif = $factura->cifnif;
             $ncf_factura->documento = $factura->idfactura;
-            $ncf_factura->documento_modifica = NULL;
-            $ncf_factura->NCF_modifica = NULL;
+            $ncf_factura->documento_modifica = $factura->idfacturarect;
+            $ncf_factura->NCF_modifica = $val_ncf->ncf;
             $ncf_factura->fecha = $factura->fecha;
             $ncf_factura->tipo_comprobante = $tipo_comprobante;
             $ncf_factura->ncf = $numero_ncf['NCF'];
@@ -196,7 +219,12 @@ class distrib_facturas extends fs_controller {
                 $this->ncf_rango->update($ncf_factura->idempresa, $ncf_factura->codalmacen, $numero_ncf['SOLICITUD'], $numero_ncf['NCF'], $this->user->nick);
             }
         }
-   }
+    }
+   
+    private function buscar_devolucion($factura){
+        
+    }
+    
     private function share_extension() {
         $extensiones = array(
             array(
