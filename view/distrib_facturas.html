@@ -1,4 +1,5 @@
 {include="header2"}
+<script src="plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>
 <script type="text/javascript">
    function eliminar_devolucion(id)
    {
@@ -7,17 +8,18 @@
    }
    
     $(document).ready(function() {
-      $("#b_guardar").click(function(event) {
-         event.preventDefault();
-         var win = confirm("¿Realmente desea guardar la devolución?");
-         if(win){
-            document.f_devolucion.submit();
-         }
+      $('#f_devolucion').validator().on('submit', function (e) {
+        if (e.isDefaultPrevented()) {
+          alert('Formulario Invalido!');
+        } else {
+            if(confirm("¿Realmente desea guardar la devolución?"))
+                return true;
+        }
       });
    });
 </script>
 <div class="container-fluid">
-    <form action="{$fsc->url()}" method="post" data-toggle="validator" class="form" name="f_devolucion" id="f_devolucion">
+    <form action="{$fsc->url()}" method="post" data-toggle="validator" role="form" class="form" name="f_devolucion" id="f_devolucion">
         <input type="hidden" name="id" value="{$fsc->factura}">
         <input type="hidden" name="type" value="devolucion">
     <div class="table-responsive">
@@ -43,7 +45,7 @@
                     <td class='text-right'>{$fsc->show_precio($value1->pvptotal)}</td>
                     <td class='text-center'>{$value1->cantidad}</td>
                     {if="$value1->devolucion==''"}
-                        <td class='text-center'><input name="{$value1->referencia}" type="number" min="1" max="{$value1->cantidad}"></td>
+                        <td class='text-center'><input name="{$value1->referencia}" type="number" min="0" max="{$value1->cantidad}" required></td>
                         <td>&nbsp;</td>
                     {else}
                         <td class='text-center'>{$value1->devolucion}</td>
@@ -54,14 +56,14 @@
             {/loop}
             <tfoot>
                 <tr>
-                    <td class="text-right" colspan="7">
+                    <td class="text-right" colspan="8">
                         {if="$fsc->allow_delete"}
                         <button id="b_eliminar" type="button" onclick="this.disabled=true;" title="Guardar" class="btn btn-sm btn-danger">
                             <span class="glyphicon glyphicon-trash"></span>
                             &nbsp; Eliminar Devolución
                         </button>
                         {/if}
-                        <button id="b_guardar" type="submit" onclick="this.disabled=true;" title="Guardar" class="btn btn-sm btn-primary">
+                        <button id="b_guardar" data-disable="true" type="submit" class="btn btn-sm btn-primary">
                             <span class="glyphicon glyphicon-floppy-disk"></span>
                             &nbsp; Guardar Devolución
                         </button>
