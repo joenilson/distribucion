@@ -43,7 +43,7 @@
                     <td class='text-right'>{$fsc->show_precio($value1->pvpunitario)}</td>
                     <td class='text-center'>{$value1->iva}</td>
                     <td class='text-right'>{$fsc->show_precio($value1->pvptotal)}</td>
-                    <td class='text-center'>{$value1->cantidad}</td>
+                    <td class='text-center'>{$value1->cantidad} {$value1->devolucion}</td>
                     {if="$value1->devolucion==''"}
                         <td class='text-center'><input name="{$value1->referencia}" type="number" min="0" max="{$value1->cantidad}" required></td>
                         <td>&nbsp;</td>

@@ -71,18 +71,21 @@ class distrib_facturas extends fs_controller {
     }
 
     private function crear_devolucion($fact) {
-        /*
-         * Verificación de disponibilidad del Número de NCF para Notas de Crédito
-         */
         $factura_original = $fact->idfactura;
-        $tipo_comprobante = '04';
-        $this->ncf_rango = new ncf_rango();
-        $numero_ncf = $this->ncf_rango->generate($this->empresa->id, $fact->codalmacen, $tipo_comprobante);
-        if ($numero_ncf['NCF'] == 'NO_DISPONIBLE') {
-            $continuar = FALSE;
-            return $this->new_error_msg('No hay números NCF disponibles del tipo ' . $tipo_comprobante . ', no se podrá generar la Nota de Crédito.');
+        //Si esta activo el plugin de republica dominicana generamos el numero de NCF
+        // TODO mover este código al plugin de república dominicana
+        $dirname = 'plugins/republica_dominicana/';
+        if(is_dir($dirname)){
+            /*
+             * Verificación de disponibilidad del Número de NCF para Notas de Crédito
+             */
+            $tipo_comprobante = '04';
+            $this->ncf_rango = new ncf_rango();
+            $numero_ncf = $this->ncf_rango->generate($this->empresa->id, $fact->codalmacen, $tipo_comprobante);
+            if ($numero_ncf['NCF'] == 'NO_DISPONIBLE') {
+                return $this->new_error_msg('No hay números NCF disponibles del tipo ' . $tipo_comprobante . ', no se podrá generar la Nota de Crédito.');
+            }
         }
-
         $fact_lineas = $fact->get_lineas();
         $fact->deabono = TRUE;
         $fact->idfacturarect = $fact->idfactura;
@@ -91,6 +94,8 @@ class distrib_facturas extends fs_controller {
         $fact->totaliva = 0;
         $fact->totalirpf = 0;
         $fact->totalrecargo = 0;
+        $cantidad_devolucion = array();
+        $monto_devolucion = array();
         /// Regresamos el stock al almacén de las cantidades ingresadas
         $art0 = new articulo();
         foreach ($fact_lineas as $key=>$linea) {
@@ -107,13 +112,14 @@ class distrib_facturas extends fs_controller {
                 $fact->totaliva += $linea->pvptotal * $linea->iva / 100;
                 $fact->totalirpf += $linea->pvptotal * $linea->irpf / 100;
                 $fact->totalrecargo += $linea->pvptotal * $linea->recargo / 100;
+                $cantidad_devolucion[$linea->referencia] = $dev;
+                $monto_devolucion[$linea->referencia] = $valor;
             }elseif(empty($dev)){
                 //Eliminamos lo que no devolveremos
                 unset($fact_lineas[$key]);
             }
-            
         }
-        //die();
+        
         /*
          * Mantenemos los valores de la factura menos su id para no repetir toda la data
          */
@@ -142,27 +148,32 @@ class distrib_facturas extends fs_controller {
                 $this->new_message("<a href='" . $asiento_factura->asiento->url() . "'>Asiento</a> generado correctamente.");
                 $this->new_change('Nota de Crédito ' . $fact->codigo, $fact->url());
             }
-            /*
-             * Luego de que todo este correcto generamos el NCF la Nota de Credito
-             */
-            //Con el codigo del almacen desde donde facturaremos generamos el número de NCF
-            $numero_ncf = $this->ncf_rango->generate($this->empresa->id, $fact->codalmacen, $tipo_comprobante);
-            $this->guardar_ncf($this->empresa->id, $fact, $tipo_comprobante, $numero_ncf);
-
-            $this->new_message("Devolución ingresada correctamente, se generó la nota de crédito: " . $numero_ncf['NCF']);
+            if(is_dir($dirname)){
+                /*
+                 * Luego de que todo este correcto generamos el NCF la Nota de Credito
+                 */
+                //Con el codigo del almacen desde donde facturaremos generamos el número de NCF
+                $numero_ncf = $this->ncf_rango->generate($this->empresa->id, $fact->codalmacen, $tipo_comprobante);
+                $this->guardar_ncf($this->empresa->id, $fact, $tipo_comprobante, $numero_ncf);
+                $this->new_message("Devolución ingresada correctamente, se generó la nota de crédito: " . $numero_ncf['NCF']);
+            }else{
+                $this->new_message("Devolución ingresada correctamente, se generó la nota de crédito: " . $fact->codigo);
+            }
+            
             $lineas_factura_origen = $this->factura_cliente->get($factura_original)->get_lineas();
-            foreach ($lineas_factura_origen as $items){
-                if($fact_lineas[$items->referencia]){
-                    $lineas_factura_origen->devolucion = $fact_lineas[$items->referencia]->cantidad;
-                    $lineas_factura_origen->devolucionneto = $fact_lineas[$items->referencia]->pvptotal;
+            foreach ($lineas_factura_origen as $key=>$items){
+                if($cantidad_devolucion[$items->referencia]){
+                    $lineas_factura_origen[$key]->devolucion = $cantidad_devolucion[$items->referencia];
+                    $lineas_factura_origen[$key]->devolucionneto = $monto_devolucion[$items->referencia];
                 }
             }
             $this->resultados = $lineas_factura_origen;
-        } else
+        } else {
             $this->new_error_msg("¡Imposible agregar la devolución a esta factura!");
+        }
     }
     
-       private function guardar_ncf($idempresa,$factura,$tipo_comprobante,$numero_ncf){
+    private function guardar_ncf($idempresa,$factura,$tipo_comprobante,$numero_ncf){
         if ($numero_ncf['NCF'] == 'NO_DISPONIBLE'){
             return $this->new_error_msg('No hay números NCF disponibles del tipo '.$tipo_comprobante.', la factura '. $factura->idfactura .' se creo sin NCF.');
         }else{
