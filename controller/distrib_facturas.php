@@ -69,19 +69,7 @@ class distrib_facturas extends fs_controller {
             $this->crear_devolucion($factura_original);
         }
     }
-    /*
-    private function crear_devolucion($factura) {
-        $devoluciones = $factura->get_lineas();
-        echo $factura->idfactura . " <br />";
-        foreach ($devoluciones as $data) {
-            $dev = \filter_input(INPUT_POST, $data->referencia);
-            if (!empty($dev)) {
-                $valor = $dev * $data->pvpunitario;
-                echo $data->referencia . " - " . $dev . " - " . $valor;
-            }
-        }
-    }
-    */
+
     private function crear_devolucion($fact) {
         /*
          * Verificación de disponibilidad del Número de NCF para Notas de Crédito
