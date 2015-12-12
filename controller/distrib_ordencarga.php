@@ -316,7 +316,7 @@ class distrib_ordencarga extends fs_controller {
     }
     
     public function total_pendientes(){
-        return 10;
+        return 0;
     }
     
     public function paginas(){
