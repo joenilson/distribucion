@@ -37,14 +37,16 @@ class asgard_PDFHandler {
     public $pdf_fincuerpo;
     public $pdf_piedepagina;
     
-    public function pdf_create($formato = 'letter', $documento = 'doc0.pdf', $orientacion = 'P'){
+    public function pdf_create($cabecera = null, $contenido = null, $pie = null, $formato = 'letter', $documento = 'doc0.pdf', $orientacion = 'P'){
+        unlink($documento);
         $this->pdf_formato = $formato;
         $this->pdf_orientacion = $orientacion;
         $pdf = new TCPDF();
         $pdf->setPageOrientation($this->pdf_orientacion);
         $pdf->AddPage($this->pdf_orientacion, $this->pdf_formato);
-        //$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        //echo 'Aqui: ';
+        $pdf->writeHTML($cabecera);
+        $pdf->writeHTML($contenido);
+        $pdf->writeHTML($pie);
         $pdf->Output($documento,'I');
     }
     

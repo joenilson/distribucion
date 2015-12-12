@@ -152,8 +152,13 @@ class distrib_ordencarga extends fs_controller {
             $codalmacen = $datos_ordencarga[1];
             $this->visualizar_ordencarga($idordencarga,$codalmacen);
         }elseif($type === 'imprimir-carga'){
-            $ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-            $this->imprimir_ordencarga($ordencarga);
+            $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+            $datos_ordencarga = explode('-', $value_ordencarga);
+            $idordencarga = $datos_ordencarga[0];
+            $codalmacen = $datos_ordencarga[1];
+            $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+            $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+            $this->imprimir_ordencarga($ordencarga,$lineasordencarga);
         }else{
             $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id);
         }
@@ -162,15 +167,76 @@ class distrib_ordencarga extends fs_controller {
         $this->num_resultados = 0;
     }
     
-    public function imprimir_ordencarga($ordencarga){
+    public function imprimir_ordencarga($ordencarga,$lineasordencarga){
         $this->template = false;
         $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
+        $pdfFile->pdf_create($this->cabecera($ordencarga), $this->contenido($lineasordencarga), $this->pie($ordencarga));
         /*
         header('Content-Type: application/json');
         echo json_encode($ordencarga);
          * 
          */
+    }
+    
+    private function cabecera($ordencarga){
+        //var_dump($ordencarga);
+        $table= '<table style=""width: 100%;>';
+        $table.= '<tr>';
+        $table.= '<td>';
+        $table.= '<b>Orden de Carga</b>';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '</table>';
+        return  '<div class="panel-body">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <b>Orden de Carga:</b>
+                        <span id="carga_codtrans">'.str_pad($ordencarga[0]->idordencarga,10,"0",STR_PAD_LEFT).'</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <b>Fecha de Reparto:</b>
+                        <span id="carga_fecha_reparto">'.$ordencarga[0]->fechareparto.'</span>
+                    </div>                                    
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <b>Almacén Origen:</b>
+                        <span id="carga_almacenorig">'.$ordencarga[0]->almacenorig.'</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <b>Almacén Destino:</b>
+                        <span id="carga_almacendest">'.$ordencarga[0]->almacendest.'</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <b>Conductor:</b>
+                        <span id="carga_conductor">'.$ordencarga[0]->conductor.'</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <b>Unidad:</b>
+                        <span id="carga_unidad">'.$ordencarga[0]->codunidad.'</span>
+                    </div>
+                </div>
+            </div>
+        </div>';
+    }
+    
+    private function contenido($lineasordencarga){
+        return  '<div class="modal-header">'.
+            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'.
+            '<h4 class="modal-title">Contenido de Carga</h4>'.
+            '<p class="warning" align="justify">Si no esta conforme con los datos, cierre esta ventana y vuelva a seleccionar los valores en la ventana anterior.</p>'.
+        '</div>';
+    }
+    
+    private function pie($ordencarga){
+        return  '<div class="modal-header">'.
+            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'.
+            '<h4 class="modal-title">Observaciones</h4>'.
+            '<p class="warning" align="justify">'.$ordencarga[0]->observaciones.'</p>'.
+        '</div>';
     }
     
     public function visualizar_ordencarga($idordencarga,$codalmacen){

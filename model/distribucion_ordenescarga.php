@@ -211,7 +211,7 @@ class distribucion_ordenescarga extends fs_model {
     public function all($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans;");
         
         if($data)
         {
