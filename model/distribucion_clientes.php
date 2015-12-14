@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
  *
@@ -15,9 +14,7 @@
  *  * 
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
  */
-
 /**
  * Description of distribucion_clientes
  *
@@ -74,13 +71,14 @@ class distribucion_clientes extends fs_model {
     }
     
     public function exists() {
-         if(is_null($this->codigo)){
-            return false;
-        }else{
-            return $this->db->select("SELECT * FROM distribucion_clientes WHERE ".
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "codcliente = ".$this->var2str($this->codcliente).";");
-        }
+        if($data){
+            return true;
+        }else{
+            return false;
+        }        
     }
     
     public function save() {
@@ -130,7 +128,55 @@ class distribucion_clientes extends fs_model {
     public function all($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." ORDER BY tiposegmento, codigo_padre, codigo;");
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." ORDER BY ruta, canal, subcanal, codcliente;");
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $value = new distribucion_clientes($d);
+                $lista[] = $value;
+            }
+        }
+        return $lista;
+    }
+       
+    public function clientes_ruta($idempresa,$ruta)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta)." ORDER BY ruta, codcliente;");
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $value = new distribucion_clientes($d);
+                $lista[] = $value;
+            }
+        }
+        return $lista;
+    }
+
+    public function clientes_canal($idempresa,$canal)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND canal = ".$this->var2str($canal)." ORDER BY canal, ruta, codcliente;");
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $value = new distribucion_clientes($d);
+                $lista[] = $value;
+            }
+        }
+        return $lista;
+    }
+
+    public function clientes_subcanal($idempresa,$subcanal)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND subcanal = ".$this->var2str($subcanal)." ORDER BY subcanal, ruta, codcliente;");
         
         if($data)
         {
@@ -143,103 +189,15 @@ class distribucion_clientes extends fs_model {
         return $lista;
     }
     
-    public function all_tiposegmento($idempresa,$tiposegmento)
+    public function get($idempresa,$codcliente)
     {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND tiposegmento = ".$this->var2str($tiposegmento)." ORDER BY codigo_padre, codigo;");
-        
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codcliente = ".$this->var2str($codcliente).";");
         if($data)
         {
-            foreach($data as $d)
-            {
-                $value = new distribucion_clientes($d);
-                $lista[] = $value;
-            }
+            $resultado = new distribucion_clientes($data[0]);
+            return $resultado;
+        }else{
+            return false;
         }
-        return $lista;
-    }
-    
-    public function all_codigopadre_tipoagente($idempresa,$codigopadre,$tiposegmento)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codigo_padre = ".$this->var2str($codigopadre)." AND tiposegmento = ".$this->var2str($tiposegmento)." ORDER BY codigo;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $value = new distribucion_clientes($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
-            }
-        }
-        return $lista;
-    }
-    
-    public function activos($idempresa)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY tiposegmento, codigo_padre, codigo;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $value = new distribucion_clientes($d);
-                $lista[] = $value;
-            }
-        }
-        return $lista;
-    }
-    
-    public function activos_tiposegmento($idempresa,$tiposegmento)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND tiposegmento = ".$this->var2str($tiposegmento)." AND estado = true ORDER BY codigo_padre, codigo;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $value = new distribucion_clientes($d);
-                $lista[] = $value;
-            }
-        }
-        return $lista;
-    }
-    
-    public function activos_codigopadre_tiposegmento($idempresa,$codigopadre,$tiposegmento)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codigo_padre = ".$this->var2str($codigopadre)." AND tiposegmento = ".$this->var2str($tiposegmento)." AND estado = true ORDER BY codigo_padre, codigo;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $value = new distribucion_clientes($d);
-                $lista[] = $value;
-            }
-        }
-        return $lista;
-    }
-    
-    public function get($idempresa,$codigo, $tiposegmento)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codigo = ".$this->var2str($codigo)." AND tiposegmento = ".$this->var2str($tiposegmento).";");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $value = new distribucion_clientes($d);
-                $lista[] = $value;
-            }
-        }
-        return $lista;
     }
 }

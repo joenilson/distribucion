@@ -23,6 +23,7 @@ require_model('distribucion_agente.php');
 require_model('distribucion_organizacion.php');
 require_model('distribucion_rutas.php');
 require_model('distribucion_segmentos.php');
+require_model('distribucion_clientes.php');
 /**
  * Description of distribucion_creacion
  *
@@ -42,6 +43,7 @@ class distrib_clientes extends fs_controller {
     public $distribucion_organizacion;
     public $distribucion_rutas;
     public $distribucion_segmentos;
+    public $distribucion_clientes;
     public $supervisores_asignados;
     public $supervisores_libres;
     public $vendedores_asignados;
@@ -63,13 +65,17 @@ class distrib_clientes extends fs_controller {
         $this->distribucion_organizacion = new distribucion_organizacion();
         $this->distribucion_rutas = new distribucion_rutas();
         $this->distribucion_segmentos = new distribucion_segmentos();
-
+        $this->distribucion_clientes = new distribucion_clientes();
+        $this->cliente = new cliente();
+        
         $type = \filter_input(INPUT_POST, 'type');
         $codcliente = \filter_input(INPUT_GET, 'codcliente');
         if(!empty($codcliente)){
             $this->codcliente = $codcliente;
-            $this->cliente = new cliente();
-            $this->cliente_datos = $this->cliente->get($codcliente);
+            $auxiliar_cliente = $this->cliente->get($codcliente);
+            $datos_cliente = $this->distribucion_clientes->get($this->empresa->id,$this->codcliente);
+            $datos_cliente->nombre = $auxiliar_cliente->nombre;
+            $this->cliente_datos = $datos_cliente;
             $this->template = 'extension/distrib_cliente';
         }
         if($type=='supervisor'){
@@ -195,6 +201,31 @@ class distrib_clientes extends fs_controller {
             }else{
                 $this->new_error_msg("¡Imposible tratar los datos ingresados!");
             }
+        }elseif($type == 'distrib_cliente'){
+            $codcliente = \filter_input(INPUT_POST, 'codcliente');
+            $ruta = \filter_input(INPUT_POST, 'ruta');
+            $canal = \filter_input(INPUT_POST, 'canal');
+            $subcanal = \filter_input(INPUT_POST, 'subcanal');
+            $coordenadas = \filter_input(INPUT_POST, 'coordenadas');
+            $distcli0 = new distribucion_clientes();
+            $distcli0->idempresa = $this->empresa->id;
+            $distcli0->codcliente = $codcliente;
+            $distcli0->ruta = $ruta;
+            $distcli0->canal = $canal;
+            $distcli0->subcanal = $subcanal;
+            $distcli0->coordenadas = $coordenadas;
+            $distcli0->fecha_creacion = \Date('d-m-Y H:i:s');
+            $distcli0->usuario_creacion = $this->user->nick;
+            if($distcli0->save()){
+                $this->new_message("Datos del cliente $distcli0->codcliente tratados correctamente.");
+            }else{
+                $this->new_error_msg("¡Imposible tratar los datos ingresados!");
+            }
+            $auxiliar_cliente = $this->cliente->get($codcliente);
+            $datos_cliente = $this->distribucion_clientes->get($this->empresa->id,$this->codcliente);
+            $datos_cliente->nombre = $auxiliar_cliente->nombre;
+            $this->cliente_datos = $datos_cliente;
+            $this->template = 'extension/distrib_cliente';
         }
         $this->type = $type;
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');

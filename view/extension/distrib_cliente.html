@@ -38,7 +38,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         </div>
     </div>
     <div class="row">
-        <form action="{$fsc->url()}" name='f_distrib_cliente' method="POST" class="form">
+        <form action="{$fsc->url()}&codcliente={$fsc->codcliente}" name='f_distrib_cliente' method="POST" class="form">
             <div class="container">
                 <div class="row">
                     <div class="col-sm-2">
@@ -86,6 +86,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 <div class="row" style="margin-top: 10px;" align='right'>
                     <div class="btn-group">
                         <input type='hidden' name='codcliente' value='{$fsc->codcliente}'>
+                        <input type='hidden' name='type' value='distrib_cliente'>
                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
                                 document.f_distrib_cliente.submit();" title="Guardar">
                             <span class="glyphicon glyphicon-floppy-disk"></span> Guardar
