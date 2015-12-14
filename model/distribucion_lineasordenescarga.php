@@ -17,7 +17,7 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-
+require_model('articulo.php');
 /**
  * Description of distribucion_lineasordenescarga
  *
@@ -36,6 +36,8 @@ class distribucion_lineasordenescarga extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
+    
+    public $articulo;
     
     public function __construct($t = false) {
         parent::__construct('distribucion_lineasordenescarga','plugins/distribucion/');
@@ -69,6 +71,8 @@ class distribucion_lineasordenescarga extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion  = \Date('d-m-Y H:i');
         }
+        
+        $this->articulo = new articulo();
     }
     
     public function url(){
@@ -271,7 +275,10 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_lineasordenescarga($d);
+                $valor_linea = new distribucion_lineasordenescarga($d);
+                $descripcion_producto = $this->articulo->get($valor_linea->referencia);
+                $valor_linea->descripcion = $descripcion_producto->descripcion;
+                $lista[] = $valor_linea;
             }
         }
         return $lista;

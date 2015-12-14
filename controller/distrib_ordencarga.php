@@ -179,60 +179,131 @@ class distrib_ordencarga extends fs_controller {
     }
     
     private function cabecera($ordencarga){
-        //var_dump($ordencarga);
-        $table= '<table style=""width: 100%;>';
+        setlocale(LC_ALL, 'es_DO.UTF-8');
+        $table= '<table width: 100%;>';
         $table.= '<tr>';
-        $table.= '<td>';
-        $table.= '<b>Orden de Carga</b>';
+        $table.= '<td align="center" style="font-size: 14px;" colspan="2">';
+        $table.= '<b>Orden de Carga</b><br />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td width="20%">';
+        $table.= '<b>Orden de Carga:</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%">';
+        $table.= str_pad($ordencarga[0]->idordencarga,10,"0",STR_PAD_LEFT);
+        $table.= '</td>';
+        $table.= '<td width="20%" align="right">';
+        $table.= '<b>Fecha de Reparto:</b>';
+        $table.= '</td>';
+        $table.= '<td width="40%" align="right">';
+        $table.= strftime("%A %d, %B %Y", strtotime($ordencarga[0]->fecha));
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td width="20%">';
+        $table.= '<b>Almacén Origen:</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%">';
+        $table.= $ordencarga[0]->codalmacen;
+        $table.= '</td>';
+        $table.= '<td width="20%" align="right">';
+        $table.= '<b>Almacén Destino:</b>';
+        $table.= '</td>';
+        $table.= '<td width="40%" align="right">';
+        $table.= $ordencarga[0]->codalmacen_dest;
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td width="20%">';
+        $table.= '<b>Unidad:</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%">';
+        $table.= $ordencarga[0]->unidad;
+        $table.= '</td>';
+        $table.= '<td width="20%" align="right">';
+        $table.= '<b>Conductor:</b>';
+        $table.= '</td>';
+        $table.= '<td width="40%" align="right">';
+        $table.= $ordencarga[0]->conductor_nombre;
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '</table>';
-        return  '<div class="panel-body">
-            <div class="container">
-                <div class="row">
-                    <div class="col-sm-6">
-                        <b>Orden de Carga:</b>
-                        <span id="carga_codtrans">'.str_pad($ordencarga[0]->idordencarga,10,"0",STR_PAD_LEFT).'</span>
-                    </div>
-                    <div class="col-sm-6">
-                        <b>Fecha de Reparto:</b>
-                        <span id="carga_fecha_reparto">'.$ordencarga[0]->fechareparto.'</span>
-                    </div>                                    
-                </div>
-                <div class="row">
-                    <div class="col-sm-6">
-                        <b>Almacén Origen:</b>
-                        <span id="carga_almacenorig">'.$ordencarga[0]->almacenorig.'</span>
-                    </div>
-                    <div class="col-sm-6">
-                        <b>Almacén Destino:</b>
-                        <span id="carga_almacendest">'.$ordencarga[0]->almacendest.'</span>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-6">
-                        <b>Conductor:</b>
-                        <span id="carga_conductor">'.$ordencarga[0]->conductor.'</span>
-                    </div>
-                    <div class="col-sm-6">
-                        <b>Unidad:</b>
-                        <span id="carga_unidad">'.$ordencarga[0]->codunidad.'</span>
-                    </div>
-                </div>
-            </div>
-        </div>';
+        $table.= '<br /><br /><hr />';
+        return $table;
     }
     
     private function contenido($lineasordencarga){
-        return  '<div class="modal-header">'.
-            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'.
-            '<h4 class="modal-title">Contenido de Carga</h4>'.
-            '<p class="warning" align="justify">Si no esta conforme con los datos, cierre esta ventana y vuelva a seleccionar los valores en la ventana anterior.</p>'.
-        '</div>';
+        $table= '<table width: 100%;>';
+        $table.= '<tr style="font-size: 10px;">';
+        $table.= '<td width="30%">';
+        $table.= '<b>Referencia</b>';
+        $table.= '</td>';
+        $table.= '<td width="40%">';
+        $table.= '<b>Producto</b>';
+        $table.= '</td>';
+        $table.= '<td width="30%" align="right">';
+        $table.= '<b>Cantidad</b>';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $maxLineas = 34;
+        
+        foreach($lineasordencarga as $key=>$linea){
+            $table.= '<tr style="font-size: 10px;">';
+            $table.= '<td width="30%">';
+            $table.= $linea->referencia;
+            $table.= '</td>';
+            $table.= '<td width="40%">';
+            $table.= $linea->descripcion;
+            $table.= '</td>';
+            $table.= '<td width="30%" align="right">';
+            $table.= number_format($linea->cantidad,2,".",",");
+            $table.= '</td>';
+            $table.= '</tr>';
+            $maxLineas--;
+        }
+        $table.= '</table>';
+        for($x=0; $x<$maxLineas; $x++){
+            $table.="<br />";
+        }
+        $table.= '<hr /><br />';
+        
+        return $table;
     }
     
     private function pie($ordencarga){
-        return  '<div class="modal-header">'.
+        $table= '<table width: 100%;>';
+        $table.= '<tr>';
+        $table.= '<td align="left" style="font-size: 10px;" colspan="3">';
+        $table.= '<b>Observaciones</b><br />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td align="left" style="font-size: 10px;" colspan="3">';
+        $table.= $ordencarga[0]->observaciones.'<br /><br /><br />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td style="font-size: 10px;">';
+        $table.= '<br /><hr />';
+        $table.= '</td>';
+        $table.= '<td width="30%">&nbsp;</td>';
+        $table.= '<td style="font-size: 10px;">';
+        $table.= '<br /><hr />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td align="center" style="font-size: 10px;">';
+        $table.= '<b>Firma Distribuci&oacute;n</b><br />';
+        $table.= '</td>';
+        $table.= '<td width="30%">&nbsp;</td>';
+        $table.= '<td align="center" style="font-size: 10px;">';
+        $table.= '<b>Firma Almac&eacute;n</b><br />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '</table>';
+        return $table;
+        $var3 =  '<div class="modal-header">'.
             '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'.
             '<h4 class="modal-title">Observaciones</h4>'.
             '<p class="warning" align="justify">'.$ordencarga[0]->observaciones.'</p>'.

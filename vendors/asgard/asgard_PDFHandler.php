@@ -38,7 +38,6 @@ class asgard_PDFHandler {
     public $pdf_piedepagina;
     
     public function pdf_create($cabecera = null, $contenido = null, $pie = null, $formato = 'letter', $documento = 'doc0.pdf', $orientacion = 'P'){
-        unlink($documento);
         $this->pdf_formato = $formato;
         $this->pdf_orientacion = $orientacion;
         $pdf = new TCPDF();

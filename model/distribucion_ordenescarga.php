@@ -17,7 +17,8 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-
+require_model('distribucion_conductores');
+require_model('distribucion_unidades');
 /**
  * Description of distribucion_ordenescarga
  *
@@ -45,6 +46,9 @@ class distribucion_ordenescarga extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
+    
+    public $distribucion_conductores;
+    public $distribucion_unidades;
     
     public function __construct($t = false) {
         parent::__construct('distribucion_ordenescarga','plugins/distribucion/');
@@ -96,6 +100,9 @@ class distribucion_ordenescarga extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
+        
+        $this->distribucion_conductores = new distribucion_conductores();
+        $this->distribucion_unidades = new distribucion_unidades();
     }
     
     public function url(){
@@ -337,7 +344,10 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor_lista = new distribucion_ordenescarga($d);
+                $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
+                $valor_lista->conductor_nombre = $datos_conductor[0]->nombre;
+                $lista[] = $valor_lista;
             }
         }
         return $lista;
