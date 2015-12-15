@@ -14,6 +14,9 @@
                     <button class="btn btn-sm btn-success" type="button" id="b_imprimir_seleccion" title="Imprimir Ordenes de Carga Seleccionadas">
                         <span class="glyphicon glyphicon-print"></span>
                     </button>
+                    <button class="btn btn-sm btn-primary" type="button" id="b_confirmar_ordenes" onClick="confirmarOrdenCarga()" title="Confirmar Ordenes de Carga Seleccionadas">
+                        <span class="glyphicon glyphicon-ok"></span>
+                    </button>
                 </div>
             </th>
             <th class="text-left">Número</th>
@@ -37,6 +40,7 @@
          </td>
          <td class="text-center">
              <button class="btn btn-sm btn-default" type="button" title="Ver Orden de Carga" onclick="mostrarOrdenCarga('{$value->idordencarga}','{$value->codalmacen}')"><span class="glyphicon glyphicon-eye-open"></span></button>
+             <button class="btn btn-sm btn-primary" type="button" title="Confirmar Carga" onclick="confirmarOrdenCarga('{$value->idordencarga}','{$value->codalmacen}')"><span class="glyphicon glyphicon-ok-circle"></span></button>
          </td>
          <td><a href="{$value->url()}">{$value->idordencarga}</a></td>
          <td>

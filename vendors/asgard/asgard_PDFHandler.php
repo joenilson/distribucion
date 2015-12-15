@@ -36,19 +36,30 @@ class asgard_PDFHandler {
     public $pdf_cuerpo;
     public $pdf_fincuerpo;
     public $pdf_piedepagina;
-    
-    public function pdf_create($cabecera = null, $contenido = null, $pie = null, $formato = 'letter', $documento = 'doc0.pdf', $orientacion = 'P'){
-        $this->pdf_formato = $formato;
-        $this->pdf_orientacion = $orientacion;
-        $pdf = new TCPDF();
-        $pdf->setPageOrientation($this->pdf_orientacion);
-        $pdf->AddPage($this->pdf_orientacion, $this->pdf_formato);
-        $pdf->writeHTML($cabecera);
-        $pdf->writeHTML($contenido);
-        $pdf->writeHTML($pie);
-        $pdf->Output($documento,'I');
+    public $pdf;
+    public function __construct() {
+        $this->pdf = new TCPDF();
     }
     
+    public function pdf_create($formato = 'letter', $documento = 'doc0.pdf', $orientacion = 'P'){
+        $this->pdf_formato = $formato;
+        $this->pdf_orientacion = $orientacion;
+        $this->pdf_documento = $documento;
+        $this->pdf->setPageOrientation($this->pdf_orientacion);
+    }
+    
+    public function pdf_pagina($cabecera = null, $contenido = null, $pie = null){
+        $this->pdf->AddPage($this->pdf_orientacion, $this->pdf_formato);
+        $this->pdf->writeHTML($cabecera);
+        $this->pdf->writeHTML($contenido);
+        $this->pdf->writeHTML($pie);
+    }
+    
+    public function pdf_mostrar(){
+        $this->pdf->Output($this->pdf_documento,'I');
+    }
+
+
     public function pdf_constantes(){
 
     }

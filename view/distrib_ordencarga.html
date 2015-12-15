@@ -56,6 +56,54 @@
        $('#modal_nueva_ordencarga').modal('show');
    }
    
+   function confirmarOrdenCarga(id,almacen){
+       var checkboxValues = [];
+       $('input[name=imprimir]:checked').map(function() {
+           checkboxValues.push($(this).val());
+       });
+       console.log(checkboxValues.length);
+       console.log(id);
+       if(checkboxValues.length === 0 && id !== undefined && almacen !== undefined){
+          checkboxValues.push(id+'-'+almacen); 
+       }else if(checkboxValues.length === 0 && id === undefined && almacen === undefined){
+           alert('Error de informacion enviada a procesar!');
+       }
+       var frase = (checkboxValues.length===1)?"la orden de carga seleccionada":"las ordenes de carga seleccionadas";
+       bootbox.dialog({
+        message: "Esta seguro que quiere confirmar "+frase+"?",
+        title: "Confirmar Ordenes de Carga",
+        buttons: {
+          success: {
+            label: "Confirmar",
+            className: "btn-success",
+            callback: function() {
+                $.ajax({
+                  type: 'GET',
+                  url: '{$fsc->url()}',
+                  async: false,
+                  data: 'type=confirmar-carga&ordencarga='+checkboxValues,
+                  success : function(datos) {
+                    bootbox.alert(datos.mensaje, function() {
+                       location.reload();
+                    });
+                  },
+                  error: function() {
+                      bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                  }
+              });
+            }
+          },
+          danger: {
+            label: "Cancelar",
+            className: "btn-danger",
+            callback: function() {
+              this.hide();
+            }
+          }
+        }
+    });
+   }
+   
    function mostrarOrdenCarga(id,almacen){
        $('#modal_resumen_ordencarga').modal('show');
        $.ajax({

@@ -203,8 +203,40 @@ class distribucion_ordenescarga extends fs_model {
         $sql = "UPDATE distribucion_ordenescarga SET ".
                     "idtransporte = ".$this->var2str($this->idtransporte).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
-                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).", ".
-                    " WHERE ".
+                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
+                    "WHERE ".
+                    "idempresa = ".$this->intval($this->idempresa)." AND ".
+                    "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                    "idordencarga = ".$this->intval($this->idordencarga).";";
+        if($this->db->exec($sql)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    public function confirmar_cargada(){
+        $sql = "UPDATE distribucion_ordenescarga SET ".
+                    "cargado = ".$this->var2str($this->cargado).", ".
+                    "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
+                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
+                    "WHERE ".
+                    "idempresa = ".$this->intval($this->idempresa)." AND ".
+                    "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                    "idordencarga = ".$this->intval($this->idordencarga).";";
+        if($this->db->exec($sql)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    public function confirmar_despachada(){
+        $sql = "UPDATE distribucion_ordenescarga SET ".
+                    "despachado = ".$this->var2str($this->despachado).", ".
+                    "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
+                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
+                    "WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                     "idordencarga = ".$this->intval($this->idordencarga).";";

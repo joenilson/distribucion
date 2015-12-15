@@ -188,14 +188,59 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 procesar_carga();
             }
         });
+        
+        $('#b_confirmar_seleccion').click(function (event) {
+            var checkboxValues = [];
+            $('input[name=imprimir]:checked').map(function() {
+                checkboxValues.push($(this).val());
+            });
+            if(checkboxValues.length !== 0){
+                bootbox.dialog({
+                    message: "Esta seguro que quiere confirmar las Ordenes de Carga?<br />"+
+                            "Esto signifíca que ya estan cargadas en la unidad de transporte.",
+                    title: "Confirmar Orden de Carga",
+                    buttons: {
+                      success: {
+                        label: "Confirmar",
+                        className: "btn-success",
+                        callback: function() {
+                          $.ajax({
+                                type: 'GET',
+                                url: '{$fsc->url()}',
+                                async: false,
+                                data: 'type=confirmar-carga&ordencarga='+checkboxValues,
+                                success : function(datos) {
+                                    console.log('Exito');
+                                    console.log(datos);
+                                },
+                                error: function() {
+                                    console.log('Error');
+                                    console.log(datos);
+                                }
+                            });
+                        }
+                      },
+                      danger: {
+                        label: "Cancelar",
+                        className: "btn-danger",
+                        callback: function() {
+                          this.hide();
+                        }
+                      }
+                    }
+                });
+            }else{
+                alert('Debe seleccionar un item!');                
+            }
+        });
+        
         $('#b_imprimir_seleccion').click(function (event) {
             var checkboxValues = [];
             $('input[name=imprimir]:checked').map(function() {
-                        checkboxValues.push($(this).val());
+                checkboxValues.push($(this).val());
             });
-            console.log(checkboxValues);
+            //console.log(checkboxValues);
             if(checkboxValues.length !== 0){
-                //console.log($('input[name="imprimir"]:checked').serialize());
                 bootbox.dialog({
                     message: "Esta seguro que quiere imprimir las Ordenes de Carga seleccionadas?",
                     title: "Imprimir Ordenes de Carga",
@@ -204,24 +249,13 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         label: "Imprimir",
                         className: "btn-success",
                         callback: function() {
-                            $.ajax({
-                                type: 'GET',
-                                url: '{$fsc->url()}',
-                                async: false,
-                                data: 'type=imprimir-carga&ordencarga='+checkboxValues,
-                                success : function(datos) {
-                                    //console.log(datos);
-                                    var myResponse = eval(datos);
-                                    $('#modal_impresion_ordencarga').modal('show');
-                                    $("<iframe />") // create an iframe
-                                      // add the source
-                                      .attr('src', 'data:application/pdf;base64,' + myResponse.base64EncodedResponse)
-                                      .appendTo('#modal_body_impresion_ordencarga');
-                                },
-                                error: function() {
-                                    console.log(datos);
-                                }
-                            });
+                            $('#modal_impresion_ordencarga').modal('show');
+                            $("#imprimir_ordencarga").detach();
+                            $("<iframe id='imprimir_ordencarga' />")
+                              .attr('src', '{$fsc->url()}&type=imprimir-carga&ordencarga='+checkboxValues)
+                              .attr('width', '100%')
+                              .attr('height', '500')
+                              .appendTo('#modal_body_impresion_ordencarga');
                             //this.hide();
                         }
                       },

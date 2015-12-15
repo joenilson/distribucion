@@ -152,13 +152,58 @@ class distrib_ordencarga extends fs_controller {
             $codalmacen = $datos_ordencarga[1];
             $this->visualizar_ordencarga($idordencarga,$codalmacen);
         }elseif($type === 'imprimir-carga'){
+            $this->template = false;
             $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-            $datos_ordencarga = explode('-', $value_ordencarga);
+            $lista_ordenescargar = explode(',', $value_ordencarga);
+            $contador_ordenescarga=0;
+            $pdfFile = new asgard_PDFHandler();
+            $pdfFile->pdf_create();
+            foreach($lista_ordenescargar as $ordencarga){
+                $datos_ordencarga = explode('-', $ordencarga);
+                $idordencarga = $datos_ordencarga[0];
+                $codalmacen = $datos_ordencarga[1];
+                $contador_ordenescarga++;
+                $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+                $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+                $pdfFile->pdf_pagina($this->cabecera($ordencarga), $this->contenido($lineasordencarga), $this->pie($ordencarga));
+            }
+            $pdfFile->pdf_mostrar();            
+        }elseif($type === 'confirmar-carga'){
+            $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+            $lista_ordenescargar = explode(',', $value_ordencarga);
+            $contador_ordenescarga=0;
+            $contador_ordenescarga_confirmadas=0;
             $idordencarga = $datos_ordencarga[0];
             $codalmacen = $datos_ordencarga[1];
-            $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-            $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-            $this->imprimir_ordencarga($ordencarga,$lineasordencarga);
+            foreach($lista_ordenescargar as $ordencarga){
+                $datos_ordencarga = explode('-', $ordencarga);
+                $idordencarga = $datos_ordencarga[0];
+                $codalmacen = $datos_ordencarga[1];
+                $contador_ordenescarga++;
+                $oc0 = new distribucion_ordenescarga();
+                $oc0->idempresa = $this->empresa->id;
+                $oc0->idordencarga = $idordencarga;
+                $oc0->codalmacen = $codalmacen;
+                $oc0->usuario_modificacion = $this->user->nick;
+                $oc0->fecha_modificacion = Date("d-m-Y H:i");
+                $oc0->cargado = TRUE;
+                if($oc0->confirmar_cargada()){
+                    $contador_ordenescarga_confirmadas++;
+                }
+            }
+            if($contador_ordenescarga_confirmadas == $contador_ordenescarga){
+                $data['success']=TRUE;
+                $data['mensaje']="Todas las ordenes fueron confirmadas correctamente.";
+            }elseif($contador_ordenescarga_confirmadas == 0){
+                $data['success']=FALSE;
+                $data['mensaje']="No se pudieron procesar las ordenes de carga, por favor contacte a su administrador de sistemas..";
+            }elseif($contador_ordenescarga_confirmadas != 0 AND ($contador_ordenescarga_confirmadas != $contador_ordenescarga)){
+                $data['success']=TRUE;
+                $data['mensaje']="No se pudieron procesar todas las ordenes de carga, por favor contacte a su administrador de sistemas..";
+            }
+            $this->template = false;
+            header('Content-Type: application/json');
+            echo json_encode($data);
         }else{
             $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id);
         }
@@ -167,19 +212,8 @@ class distrib_ordencarga extends fs_controller {
         $this->num_resultados = 0;
     }
     
-    public function imprimir_ordencarga($ordencarga,$lineasordencarga){
-        $this->template = false;
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create($this->cabecera($ordencarga), $this->contenido($lineasordencarga), $this->pie($ordencarga));
-        /*
-        header('Content-Type: application/json');
-        echo json_encode($ordencarga);
-         * 
-         */
-    }
-    
     private function cabecera($ordencarga){
-        setlocale(LC_ALL, 'es_DO.UTF-8');
+        setlocale(LC_ALL, 'es_ES');
         $table= '<table width: 100%;>';
         $table.= '<tr>';
         $table.= '<td align="center" style="font-size: 14px;" colspan="2">';
@@ -275,7 +309,7 @@ class distrib_ordencarga extends fs_controller {
         $table= '<table width: 100%;>';
         $table.= '<tr>';
         $table.= '<td align="left" style="font-size: 10px;" colspan="3">';
-        $table.= '<b>Observaciones</b><br />';
+        $table.= '<b>Observaciones</b>';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr>';
@@ -303,11 +337,6 @@ class distrib_ordencarga extends fs_controller {
         $table.= '</tr>';
         $table.= '</table>';
         return $table;
-        $var3 =  '<div class="modal-header">'.
-            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'.
-            '<h4 class="modal-title">Observaciones</h4>'.
-            '<p class="warning" align="justify">'.$ordencarga[0]->observaciones.'</p>'.
-        '</div>';
     }
     
     public function visualizar_ordencarga($idordencarga,$codalmacen){
