@@ -56,52 +56,103 @@
        $('#modal_nueva_ordencarga').modal('show');
    }
    
-   function confirmarOrdenCarga(id,almacen){
+   function generarTransporte(){
        var checkboxValues = [];
+       var seguir = true;
        $('input[name=imprimir]:checked').map(function() {
            checkboxValues.push($(this).val());
        });
-       console.log(checkboxValues.length);
-       console.log(id);
+       if(checkboxValues.length === 0){
+           seguir = false;
+           alert('Error de informacion enviada a procesar!');
+       }
+       
+       if(seguir){
+        var frase = (checkboxValues.length===1)?"la orden de carga seleccionada":"las ordenes de carga seleccionadas";
+        bootbox.dialog({
+             message: "Esta seguro que quiere generar el transporte para "+frase+"?",
+             title: "Generar Transporte",
+             buttons: {
+               success: {
+                 label: "Confirmar",
+                 className: "btn-success",
+                 callback: function() {
+                     $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=generar-transporte&ordencarga='+checkboxValues,
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            location.reload();
+                         });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                 }
+               },
+               danger: {
+                 label: "Cancelar",
+                 className: "btn-danger",
+                 callback: function() {
+                   this.hide();
+                 }
+               }
+             }
+         });
+     }
+   }
+   
+   function confirmarOrdenCarga(id,almacen){
+       var checkboxValues = [];
+       var seguir = true;
+       $('input[name=imprimir]:checked').map(function() {
+           checkboxValues.push($(this).val());
+       });
        if(checkboxValues.length === 0 && id !== undefined && almacen !== undefined){
           checkboxValues.push(id+'-'+almacen); 
        }else if(checkboxValues.length === 0 && id === undefined && almacen === undefined){
+           seguir = false;
            alert('Error de informacion enviada a procesar!');
        }
-       var frase = (checkboxValues.length===1)?"la orden de carga seleccionada":"las ordenes de carga seleccionadas";
-       bootbox.dialog({
-        message: "Esta seguro que quiere confirmar "+frase+"?",
-        title: "Confirmar Ordenes de Carga",
-        buttons: {
-          success: {
-            label: "Confirmar",
-            className: "btn-success",
-            callback: function() {
-                $.ajax({
-                  type: 'GET',
-                  url: '{$fsc->url()}',
-                  async: false,
-                  data: 'type=confirmar-carga&ordencarga='+checkboxValues,
-                  success : function(datos) {
-                    bootbox.alert(datos.mensaje, function() {
-                       location.reload();
-                    });
-                  },
-                  error: function() {
-                      bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
-                  }
-              });
-            }
-          },
-          danger: {
-            label: "Cancelar",
-            className: "btn-danger",
-            callback: function() {
-              this.hide();
-            }
-          }
-        }
-    });
+       if(seguir){
+        var frase = (checkboxValues.length===1)?"la orden de carga seleccionada":"las ordenes de carga seleccionadas";
+        bootbox.dialog({
+             message: "Esta seguro que quiere confirmar "+frase+"?",
+             title: "Confirmar Ordenes de Carga",
+             buttons: {
+               success: {
+                 label: "Confirmar",
+                 className: "btn-success",
+                 callback: function() {
+                     $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=confirmar-carga&ordencarga='+checkboxValues,
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            location.reload();
+                         });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                 }
+               },
+               danger: {
+                 label: "Cancelar",
+                 className: "btn-danger",
+                 callback: function() {
+                   this.hide();
+                 }
+               }
+             }
+         });
+       }
    }
    
    function mostrarOrdenCarga(id,almacen){
@@ -152,6 +203,16 @@
 
             }
          });
+   }
+   
+   function mostrarTransporte(idtransporte,id,almacen){
+       $('#modal_impresion_ordencarga').modal('show');
+        $("#imprimir_ordencarga").detach();
+        $("<iframe id='imprimir_ordencarga' />")
+          .attr('src', '{$fsc->url()}&type=imprimir-transporte&ordencarga='+id+'-'+almacen+'-'+idtransporte)
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_body_impresion_ordencarga');
    }
    
    $(document).ready(function() {
