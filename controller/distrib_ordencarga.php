@@ -24,6 +24,7 @@ require_model('agencia_transporte.php');
 require_model('distribucion_conductores.php');
 require_model('distribucion_unidades.php');
 require_model('distribucion_ordenescarga.php');
+require_model('distribucion_ordenescarga_facturas.php');
 require_model('distribucion_lineasordenescarga.php');
 require_model('cliente.php');
 require_model('articulo.php');
@@ -45,6 +46,7 @@ class distrib_ordencarga extends fs_controller {
     public $distrib_conductores;
     public $distrib_unidades;
     public $distrib_ordenescarga;
+    public $distrib_ordenescarga_facturas;
     public $distrib_lineasordenescarga;
     public $mostrar;
     public $order;
@@ -70,6 +72,7 @@ class distrib_ordencarga extends fs_controller {
         $this->distrib_conductores = new distribucion_conductores();
         $this->distrib_unidades = new distribucion_unidades();
         $this->distrib_ordenescarga = new distribucion_ordenescarga();
+        $this->distrib_ordenescarga_facturas = new distribucion_ordenescarga_facturas();
         $this->distrib_lineasordenescarga = new distribucion_lineasordenescarga();
         $this->articulo = new articulo;
         
@@ -143,6 +146,7 @@ class distrib_ordencarga extends fs_controller {
             $ordenCarga0->usuario_modificacion = $this->user->nick;
             $ordenCarga0->fecha_creacion = \Date('d-m-Y H:i:s');
             if($ordenCarga0->save()){
+                $this->guardar_facturas_ordencarga($ordenCarga0, $carga_facturas);
                 $this->guardar_lineas_ordencarga($ordenCarga0, $resultados_facturas['resultados']);
             }
         }elseif($type === 'ver-carga'){
@@ -357,6 +361,35 @@ class distrib_ordencarga extends fs_controller {
         echo json_encode(array('cabecera'=>$ordencarga[0],'userData'=>array('referencia'=>"",'producto'=>'Total','cantidad'=>$datos['totalCantidad']),'rows'=>$datos['resultados']));
     }
     
+    public function guardar_facturas_ordencarga($ordencarga,$facturas){
+        $datos_fact = explode(",",$facturas);
+        $facturasoc0 = new distribucion_ordenescarga_facturas();
+        $facturasoc0->idempresa = $ordencarga->idempresa;
+        $facturasoc0->codalmacen = $ordencarga->codalmacen;
+        $facturasoc0->idordencarga = $ordencarga->idordencarga;
+        $facturasoc0->fecha = $ordencarga->fecha;
+        $facturasoc0->usuario_creacion = $ordencarga->usuario_creacion;
+        $facturasoc0->fecha_creacion = $ordencarga->fecha_creacion;
+        $erroresLinea = "";
+        $contadorFacturas = 0;
+        foreach($datos_fact as $fact){
+            if(!empty($fact)){
+                $facturasoc0->idfactura = $fact;
+                if(!$facturasoc0->save()){
+                    $coma = (isset($erroresLinea))?", ":"";
+                    $erroresLinea .= $coma.$fact;
+                }else{
+                    $contadorFacturas++;
+                }
+            }
+        }
+        if(empty($erroresLinea)){
+            $this->new_message($contadorFacturas.' facturas de la Orden de carga '.$ordencarga->idordencarga.' guardadas correctamente');
+        }else{
+            $this->new_error_msg('Facturas de la Orden de carga '.$ordencarga->idordencarga.' con errores al guardar las siguientes facturas: '.$erroresLinea.' por favor revise la información enviada.');
+        }
+    }
+    
     public function guardar_lineas_ordencarga($ordencarga, $lineas){
         $this->template = 'distrib_ordencarga';
         $lineasOrdenCarga0 = new distribucion_lineasordenescarga();
@@ -391,8 +424,8 @@ class distrib_ordencarga extends fs_controller {
         $this->resultados = array();
         $data_search = $this->facturas_cliente->all_desde($buscar_fecha, $buscar_fecha);
         foreach ($data_search as $values){
-            if($values->codalmacen == $codalmacen){
-                $this->resultados[]=$values;
+            if($values->codalmacen == $codalmacen AND (!$this->distrib_ordenescarga_facturas->get($this->empresa->id, $values->idfactura, $codalmacen))){
+                $this->resultados[]=$values;    
             }
         }
         header('Content-Type: application/json');

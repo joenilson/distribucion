@@ -75,7 +75,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
     public function exists() {
         $datos = $this->db->select("SELECT * FROM distribucion_ordenescarga_facturas WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "idfactura = ".$this->var2str($this->idfactura).";");
+                    "idfactura = ".$this->intval($this->idfactura).";");
         if($datos){
             return true;
         }else{
