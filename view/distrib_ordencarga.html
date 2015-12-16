@@ -134,7 +134,7 @@
                        data: 'type=confirmar-carga&ordencarga='+checkboxValues,
                        success : function(datos) {
                          bootbox.alert(datos.mensaje, function() {
-                            location.reload();
+                            this.hide();
                          });
                        },
                        error: function() {
