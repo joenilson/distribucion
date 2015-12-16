@@ -84,7 +84,7 @@
                        data: 'type=generar-transporte&ordencarga='+checkboxValues,
                        success : function(datos) {
                          bootbox.alert(datos.mensaje, function() {
-                            location.reload();
+                            window.location.assign("{$fsc->url}");
                          });
                        },
                        error: function() {
@@ -135,6 +135,8 @@
                        success : function(datos) {
                          bootbox.alert(datos.mensaje, function() {
                             this.hide();
+                            window.location.assign("{$fsc->url}");
+                            
                          });
                        },
                        error: function() {

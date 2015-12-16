@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
  *
@@ -15,7 +14,6 @@
  *  * 
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
  */
 require_model('factura_cliente');
 require_model('linea_factura_cliente');
@@ -32,6 +30,8 @@ require_model('cliente.php');
 require_model('articulo.php');
 
 require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
+require_once 'helper_ordencarga.php';
+require_once 'helper_transportes.php';
 
 /**
  * Description of distribucion_creacion
@@ -60,12 +60,14 @@ class distrib_ordencarga extends fs_controller {
     public $num_resultados;
     public $paginas;
     public $articulo;
-    
+    public $helper_ordencarga;
+    public $helper_transportes;
     public function __construct() {
         parent::__construct(__CLASS__, '4 - Crear Orden de Carga', 'distribucion');
     }
 
     public function private_core() {
+        $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         /*
         **  Llamadas a models
         */
@@ -163,6 +165,7 @@ class distrib_ordencarga extends fs_controller {
             $this->visualizar_ordencarga($idordencarga,$codalmacen);
         }elseif($type === 'imprimir-carga'){
             $this->template = false;
+            $this->helper_ordencarga = new helper_ordencarga();
             $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
             $lista_ordenescargar = explode(',', $value_ordencarga);
             $contador_ordenescarga=0;
@@ -176,12 +179,13 @@ class distrib_ordencarga extends fs_controller {
                     $contador_ordenescarga++;
                     $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
                     $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                    $pdfFile->pdf_pagina($this->cabecera($ordencarga), $this->contenido($lineasordencarga), $this->pie($ordencarga));
+                    $pdfFile->pdf_pagina($this->helper_ordencarga->cabecera($ordencarga), $this->helper_ordencarga->contenido($lineasordencarga), $this->helper_ordencarga->pie($ordencarga));
                 }
             }
             $pdfFile->pdf_mostrar();            
         }elseif($type === 'imprimir-transporte'){
             $this->template = false;
+            $this->helper_transportes = new helper_transportes();
             $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
             $lista_ordenescargar = explode(',', $value_ordencarga);
             $contador_transporte=0;
@@ -196,7 +200,7 @@ class distrib_ordencarga extends fs_controller {
                     $contador_transporte++;
                     $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
                     $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                    $pdfFile->pdf_pagina($this->cabecera_transporte($transporte), $this->contenido_transporte($lineastransporte), $this->pie_transporte($transporte));
+                    $pdfFile->pdf_pagina($this->helper_transportes->cabecera_transporte($transporte), $this->helper_transportes->contenido_transporte($lineastransporte), $this->helper_transportes->pie_transporte($transporte));
                 }
             }
             $pdfFile->pdf_mostrar();            
@@ -329,293 +333,6 @@ class distrib_ordencarga extends fs_controller {
         $this->template = false;
         header('Content-Type: application/json');
         echo json_encode($data);
-    }
-
-
-    private function cabecera($ordencarga){
-        setlocale(LC_ALL, 'es_ES');
-        $table= '<table width: 100%;>';
-        $table.= '<tr>';
-        $table.= '<td align="center" style="font-size: 14px;" colspan="2">';
-        $table.= '<b>Orden de Carga</b><br />';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td width="20%">';
-        $table.= '<b>Orden de Carga:</b>';
-        $table.= '</td>';
-        $table.= '<td width="20%">';
-        $table.= str_pad($ordencarga[0]->idordencarga,10,"0",STR_PAD_LEFT);
-        $table.= '</td>';
-        $table.= '<td width="20%" align="right">';
-        $table.= '<b>Fecha de Reparto:</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%" align="right">';
-        $table.= strftime("%A %d, %B %Y", strtotime($ordencarga[0]->fecha));
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td width="20%">';
-        $table.= '<b>Almacén Origen:</b>';
-        $table.= '</td>';
-        $table.= '<td width="20%">';
-        $table.= $ordencarga[0]->codalmacen;
-        $table.= '</td>';
-        $table.= '<td width="20%" align="right">';
-        $table.= '<b>Almacén Destino:</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%" align="right">';
-        $table.= $ordencarga[0]->codalmacen_dest;
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td width="20%">';
-        $table.= '<b>Unidad:</b>';
-        $table.= '</td>';
-        $table.= '<td width="20%">';
-        $table.= $ordencarga[0]->unidad;
-        $table.= '</td>';
-        $table.= '<td width="20%" align="right">';
-        $table.= '<b>Conductor:</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%" align="right">';
-        $table.= $ordencarga[0]->conductor_nombre;
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '</table>';
-        $table.= '<br /><br /><hr />';
-        return $table;
-    }
-    
-    private function contenido($lineasordencarga){
-        $table= '<table width: 100%;>';
-        $table.= '<tr style="font-size: 10px;">';
-        $table.= '<td width="30%">';
-        $table.= '<b>Referencia</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%">';
-        $table.= '<b>Producto</b>';
-        $table.= '</td>';
-        $table.= '<td width="30%" align="right">';
-        $table.= '<b>Cantidad</b>';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $maxLineas = 34;
-        
-        foreach($lineasordencarga as $key=>$linea){
-            $table.= '<tr style="font-size: 10px;">';
-            $table.= '<td width="30%">';
-            $table.= $linea->referencia;
-            $table.= '</td>';
-            $table.= '<td width="40%">';
-            $table.= $linea->descripcion;
-            $table.= '</td>';
-            $table.= '<td width="30%" align="right">';
-            $table.= number_format($linea->cantidad,2,".",",");
-            $table.= '</td>';
-            $table.= '</tr>';
-            $maxLineas--;
-        }
-        $table.= '</table>';
-        for($x=0; $x<$maxLineas; $x++){
-            $table.="<br />";
-        }
-        $table.= '<hr /><br />';
-        
-        return $table;
-    }
-    
-    private function pie($ordencarga){
-        $table= '<table width: 100%;>';
-        $table.= '<tr>';
-        $table.= '<td align="left" style="font-size: 10px;" colspan="3">';
-        $table.= '<b>Observaciones</b>';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td align="left" style="font-size: 10px;" colspan="3">';
-        $table.= $ordencarga[0]->observaciones.'<br /><br /><br />';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td style="font-size: 10px;">';
-        $table.= '<br /><hr />';
-        $table.= '</td>';
-        $table.= '<td width="30%">&nbsp;</td>';
-        $table.= '<td style="font-size: 10px;">';
-        $table.= '<br /><hr />';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td align="center" style="font-size: 10px;">';
-        $table.= '<b>Firma Distribuci&oacute;n</b><br />';
-        $table.= '</td>';
-        $table.= '<td width="30%">&nbsp;</td>';
-        $table.= '<td align="center" style="font-size: 10px;">';
-        $table.= '<b>Firma Almac&eacute;n</b><br />';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '</table>';
-        return $table;
-    }
-    
-    private function cabecera_transporte($transporte){
-        setlocale(LC_ALL, 'es_ES.UTF-8');
-        $table= '<table style="width: 100%;">';
-        $table.= '<tr>';
-        $table.= '<td align="center" style="font-size: 14px;" colspan="4">';
-        $table.= '<b>Transporte</b><br />';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr style="font-size: 10px;">';
-        $table.= '<td width="20%" style="font-size: 10px;">';
-        $table.= '<b>Empresa:</b>';
-        $table.= '</td>';
-        $table.= '<td width="20%" style="font-size: 10px;">';
-        $table.= $this->empresa->nombre;
-        $table.= '</td>';
-        $table.= '<td width="20%" align="right" style="font-size: 10px;">';
-        $table.= '<b>Direcci&oacute;n:</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%" align="right" style="font-size: 10px;">';
-        $table.= $this->empresa->direccion;
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr style="font-size: 10px;">';
-        $table.= '<td width="20%" style="font-size: 10px;">';
-        $table.= '<b>RNC:</b>';
-        $table.= '</td>';
-        $table.= '<td width="20%" style="font-size: 10px;">';
-        $table.= $this->empresa->cifnif;
-        $table.= '</td>';
-        $table.= '<td width="20%" style="font-size: 10px;" align="right">';
-        $table.= '<b>Teléfono:</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%" style="font-size: 10px;" align="right">';
-                $table.= $this->empresa->telefono;
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr style="font-size: 10px;">';
-        $table.= '<td width="20%" style="font-size: 10px;">';
-        $table.= '<b>Conduce:</b>';
-        $table.= '</td>';
-        $table.= '<td width="20%" style="font-size: 10px;">';
-        $table.= str_pad($transporte[0]->idtransporte,10,"0",STR_PAD_LEFT);
-        $table.= '</td>';
-        $table.= '<td width="20%" align="right" style="font-size: 10px;">';
-        $table.= '<b>Fecha de Reparto:</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%" align="right" style="font-size: 10px;">';
-        $table.= strftime("%A %d, %B %Y", strtotime($transporte[0]->fecha));
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td width="20%" style="font-size: 10px;">';
-        $table.= '<b>Almacén Origen:</b>';
-        $table.= '</td>';
-        $table.= '<td width="20%" style="font-size: 10px;">';
-        $table.= $transporte[0]->codalmacen;
-        $table.= '</td>';
-        $table.= '<td width="20%" align="right" style="font-size: 10px;">';
-        $table.= '<b>Almacén Destino:</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%" align="right" style="font-size: 10px;">';
-        $table.= $transporte[0]->codalmacen_dest;
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td width="20%" style="font-size: 10px;">';
-        $table.= '<b>Unidad:</b>';
-        $table.= '</td>';
-        $table.= '<td width="20%">';
-        $table.= $transporte[0]->unidad;
-        $table.= '</td>';
-        $table.= '<td width="20%" align="right" style="font-size: 10px;">';
-        $table.= '<b>Conductor:</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%" align="right" style="font-size: 10px;">';
-        $table.= $transporte[0]->conductor_nombre;
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '</table>';
-        $table.= '<br /><hr />';
-        return $table;
-    }
-    
-    private function contenido_transporte($lineastransporte){
-        $table= '<table width: 100%;>';
-        $table.= '<tr style="font-size: 10px;">';
-        $table.= '<td width="30%">';
-        $table.= '<b>Referencia</b>';
-        $table.= '</td>';
-        $table.= '<td width="40%">';
-        $table.= '<b>Producto</b>';
-        $table.= '</td>';
-        $table.= '<td width="30%" align="right">';
-        $table.= '<b>Cantidad</b>';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $maxLineas = 34;
-        
-        foreach($lineastransporte as $key=>$linea){
-            $table.= '<tr style="font-size: 10px;">';
-            $table.= '<td width="30%">';
-            $table.= $linea->referencia;
-            $table.= '</td>';
-            $table.= '<td width="40%">';
-            $table.= $linea->descripcion;
-            $table.= '</td>';
-            $table.= '<td width="30%" align="right">';
-            $table.= number_format($linea->cantidad,2,".",",");
-            $table.= '</td>';
-            $table.= '</tr>';
-            $maxLineas--;
-        }
-        $table.= '</table>';
-        for($x=0; $x<$maxLineas; $x++){
-            $table.="<br />";
-        }
-        $table.= '<hr /><br />';
-        
-        return $table;
-    }
-    
-    private function pie_transporte($transporte){
-        $table= '<table style="width: 100%;">';
-        $table.= '<tr>';
-        $table.= '<td align="right" style="font-size: 10px;" colspan="5">';
-        $table.= '<b>Total Cantidad:</b> &nbsp;'.number_format($transporte[0]->totalcantidad,2,".",",");
-        $table.= '<br /><br /><br />';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td style="font-size: 10px;">';
-        $table.= '<br /><hr />';
-        $table.= '</td>';
-        $table.= '<td width="15%">&nbsp;</td>';
-        $table.= '<td style="font-size: 10px;">';
-        $table.= '<br /><hr />';
-        $table.= '</td>';
-        $table.= '<td width="15%">&nbsp;</td>';
-        $table.= '<td style="font-size: 10px;">';
-        $table.= '<br /><hr />';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '<tr>';
-        $table.= '<td align="center" style="font-size: 10px;">';
-        $table.= '<b>Firma Distribuci&oacute;n</b><br />';
-        $table.= '</td>';
-        $table.= '<td width="15%">&nbsp;</td>';
-        $table.= '<td align="center" style="font-size: 10px;">';
-        $table.= '<b>Firma Seguridad</b><br />';
-        $table.= '</td>';
-        $table.= '<td width="15%">&nbsp;</td>';
-        $table.= '<td align="center" style="font-size: 10px;">';
-        $table.= '<b>Firma Almac&eacute;n</b><br />';
-        $table.= '</td>';
-        $table.= '</tr>';
-        $table.= '</table>';
-        return $table;
     }
     
     public function visualizar_ordencarga($idordencarga,$codalmacen){

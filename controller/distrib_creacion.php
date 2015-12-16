@@ -15,8 +15,23 @@
  *  * 
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
  */
+require_model('factura_cliente');
+require_model('linea_factura_cliente');
+require_model('almacen');
+require_model('agencia_transporte.php');
+require_model('distribucion_conductores.php');
+require_model('distribucion_unidades.php');
+require_model('distribucion_ordenescarga.php');
+require_model('distribucion_ordenescarga_facturas.php');
+require_model('distribucion_lineasordenescarga.php');
+require_model('distribucion_transporte.php');
+require_model('distribucion_lineastransporte.php');
+require_model('cliente.php');
+require_model('articulo.php');
+require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
+require_once 'helper_ordencarga.php';
+require_once 'helper_transportes.php';
 
 /**
  * Description of distribucion_creacion
@@ -24,11 +39,201 @@
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class distrib_creacion extends fs_controller {
+    public $distrib_transporte;
+    public $distrib_lineastransporte;
+    public $distrib_facturas;
+    public $distrib_cliente;
+    public $resultados;
+    public $mostrar;
+    public $order;
+    public $cliente;
+    public $helper_ordencarga;
+    public $helper_transportes;
+    public $transporte;
+    public $lineastransporte;
+    public $facturastransporte;
     public function __construct() {
-        parent::__construct(__CLASS__, '5 - Crear Transporte', 'distribucion');
+        parent::__construct(__CLASS__, '5 - Transportes', 'distribucion');
     }
     
     public function private_core(){
+        $this->share_extensions();
+        $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
+        $this->distrib_transporte = new distribucion_transporte();
+        $this->distrib_lineastransporte = new distribucion_lineastransporte();
+        $this->distrib_facturas = new distribucion_ordenescarga_facturas();
         
+        $type = \filter_input(INPUT_GET, 'type');
+        $mostrar = \filter_input(INPUT_GET, 'mostrar');
+        $order = \filter_input(INPUT_GET, 'order');
+        $cliente = \filter_input(INPUT_GET, 'codcliente');
+
+        $this->mostrar = (isset($mostrar))?$mostrar:"todo";
+        $this->order = (isset($order))?str_replace('_', ' ', $order):"fecha DESC";
+        if(isset($cliente) AND !empty($cliente)){
+            $cli0 = new cliente();
+            $codcliente = $cli0->get($cliente);
+        }
+        $this->cliente = (isset($codcliente))?$codcliente:FALSE;
+        if($type === 'imprimir-transporte'){
+            $this->template = false;
+            $this->helper_transportes = new helper_transportes();
+            $value_transporte = \filter_input(INPUT_GET, 'transporte');
+            $lista_transporte = explode(',', $value_transporte);
+            $contador_transporte=0;
+            $pdfFile = new asgard_PDFHandler();
+            $pdfFile->pdf_create();
+            foreach($lista_transporte as $linea){
+                if(!empty($linea)){
+                    $datos_transporte = explode('-', $linea);
+                    $idtransporte = $datos_transporte[0];
+                    $codalmacen = $datos_transporte[1];
+                    $contador_transporte++;
+                    $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+                    $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
+                    $pdfFile->pdf_pagina($this->helper_transportes->cabecera_transporte($transporte), $this->helper_transportes->contenido_transporte($lineastransporte), $this->helper_transportes->pie_transporte($transporte));
+                }
+            }
+            $pdfFile->pdf_mostrar();            
+        }elseif($type=='liquidar-transporte'){
+            $this->helper_transportes = new helper_transportes();
+            $value_transporte = \filter_input(INPUT_GET, 'transporte');
+            $datos_transporte = explode('-', $value_transporte);
+            $idtransporte = $datos_transporte[0];
+            $codalmacen = $datos_transporte[1];
+            $this->transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $this->lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $this->facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
+            $this->template = 'extension/liquidar_transporte';
+        }
+        $this->resultados = $this->distrib_transporte->all($this->empresa->id);
+    }
+    
+    public function total_pendientes(){
+        return 0;
+    }
+    
+    public function share_extensions(){
+        $extensiones = array(
+            array(
+                'name' => 'ordencarga_datepicker_es_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'ordencarga_jqueryui_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="plugins/distribucion/view/js/jquery-ui.min.js"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'ordencarga_jqueryui_css1',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/jquery-ui.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'ordencarga_jqueryui_css2',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'ordencarga_jqueryui_css3',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css4',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/distribucion.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css5',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css6',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css7',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_js9',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_js10',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/locale/defaults-es_CL.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css11',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/bootstrap-select.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_js12',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/bootbox.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_js13',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_creacion',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>',
+                'params' => ''
+            )
+        );
+        
+        foreach ($extensiones as $ext) {
+            $fsext0 = new fs_extension($ext);
+            if (!$fsext0->save()) {
+                $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
+            }
+        }
     }
 }

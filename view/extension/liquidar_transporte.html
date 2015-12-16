@@ -1,0 +1,150 @@
+<!--
+Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+{include="header"}
+<script type="text/javascript">
+   function fs_marcar_todo()
+   {
+      $("#f_agrupar_cli input[name='idfactura[]']").prop('checked', true);
+   }
+   function fs_marcar_nada()
+   {
+      $("#f_agrupar_cli input[name='idfactura[]']").prop('checked', false);
+   }
+   $(document).ready(function() {
+      $("#ac_cliente").autocomplete({
+         serviceUrl: '{$fsc->url()}',
+         paramName: 'buscar_cliente',
+         onSelect: function (suggestion) {
+            if(suggestion)
+            {
+               if(document.f_pagar_facturas.codcliente.value != suggestion.data)
+               {
+                  document.f_pagar_facturas.codcliente.value = suggestion.data;
+               }
+            }
+         }
+      });
+   });
+</script>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-header">
+                <h3>
+                    <span class="glyphicon glyphicon-transfer"></span>
+                    Liquidaci&oacute;n de Transporte {$fsc->transporte[0]->idtransporte}
+                    <a class="btn btn-xs btn-default" href="{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte[0]->idtransporte}-{$fsc->transporte[0]->codalmacen}" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    <span class="btn-group">
+                        <a href="{$fsc->url()}" class="btn btn-sm btn-default">
+                            <span class="glyphicon glyphicon-arrow-left"></span>
+                            <span class="hidden-xs">&nbsp; Todos los Transportes</span>
+                        </a>
+                    </span>
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <form action="{$fsc->url()}&type=giardar-liqudiacion&idtransporte={$fsc->transporte[0]->idtransporte}" name='f_liquidar_transporte' method="POST" class="form">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-2">
+                        <label class="text-left" for="idordencarga"><b>Orden de Carga:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input class="form-control" type="text" readonly name="idordencarga" value="{$fsc->transporte[0]->idordencarga}">
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="text-left" for="fecha"><b>Fecha de Reparto:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input class="form-control" type="text" readonly name="fecha" value="{$fsc->transporte[0]->fecha}">
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="text-left" for="codalmacen"><b>Almacen:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input class="form-control" type="text" readonly name="codalmacen" value="{$fsc->transporte[0]->codalmacen}">
+                    </div>
+                </div>
+                <div class="panel panel-default" style="margin-top: 10px;">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Facturas Asociadas al Transporte</h3>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-responsive">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Factura</th>
+                                    <th>NCF</th>
+                                    <th>Fecha</th>
+                                    <th>Cantidad</th>
+                                    <th>Monto</th>
+                                    <th>Abono</th>
+                                    <th>Saldo</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            {loop="$fsc->facturastransporte"}
+                            <tr>
+                                <td class="text-center">
+                                   {if condition="$value->pagada"}
+                                   <span class="glyphicon glyphicon-ok" title="La factura está pagada"></span>
+                                   {else}
+                                   <input type="checkbox" name="idfactura[]" value="{$value->idfactura}" checked="checked"/>
+                                   <!--{$total+=$value->total}-->
+                                   {/if}
+                                </td>
+                                <td>{$value->idfactura}</td>
+                                <td></td>
+                                <td>{$value->fecha_factura}</td>
+                                <td></td>
+                                <td>{$fsc->show_numero($value->monto)}</td>
+                                <td></td>
+                                <td>{$fsc->show_numero($value->monto)}</td>
+                                <td>{$value->pagada}</td>
+                            </tr>
+                            {/loop}
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                       <div class="btn-group">
+                          <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_todo()" title="Marcar todo">
+                             <span class="glyphicon glyphicon-check"></span>
+                          </button>
+                          <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_nada()" title="Desmarcar todo">
+                             <span class="glyphicon glyphicon-unchecked"></span>
+                          </button>
+                       </div>
+                    </div>
+                    <div class="col-sm-6 text-right">
+                       <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+                          <span class="glyphicon glyphicon-ok"></span> &nbsp; Marcar como pagadas
+                       </button>
+                    </div>
+                 </div>
+            </div>
+        </form>
+    </div>
+</div>
+{include="footer"}

@@ -1,154 +1,493 @@
 {include="header"}
 <script type="text/javascript">
-   function delete_unidad(codigo, nombre)
+    function fs_marcar_todo()
+    {
+       $('#f_resultados input:checkbox').prop('checked', true);
+    }
+    
+    function fs_marcar_nada()
+    {
+       $('#f_resultados input:checkbox').prop('checked', false);
+    }
+    
+   function buscar_lineas()
    {
-      if( confirm("¿Realmente desea eliminar al conductor "+nombre+"?") )
-         window.location.href = '{$fsc->url()}&delete='+codigo;
+      if(document.f_buscar_lineas.buscar_lineas.value == '')
+      {
+         $('#search_results').html('');
+      }
+      else
+      {
+         $.ajax({
+            type: 'POST',
+            url: '{$fsc->url()}',
+            dataType: 'html',
+            data: $('form[name=f_buscar_lineas]').serialize(),
+            success: function(datos) {
+               var re = /<!--(.*?)-->/g;
+               var m = re.exec( datos );
+               if( m[1] == document.f_buscar_lineas.buscar_lineas.value )
+               {
+                  $('#search_results').html(datos);
+               }
+            }
+         });
+      }
    }
+   function mas_resultados(num)
+   {
+      document.f_buscar_lineas.offset.value = parseInt(document.f_buscar_lineas.offset.value) + parseInt(num);
+      
+      if(document.f_buscar_lineas.offset.value < 0)
+      {
+         document.f_buscar_lineas.offset.value = 0;
+      }
+      
+      buscar_lineas();
+   }
+   function clean_cliente()
+   {
+      document.f_custom_search.ac_cliente.value='';
+      document.f_custom_search.codcliente.value='';
+      document.f_custom_search.ac_cliente.focus();
+   }
+   
+   function nuevoTransporte(){
+       $('#modal_nuevo_transporte').modal('show');
+   }
+   
+   function generarTransporte(){
+       var checkboxValues = [];
+       var seguir = true;
+       $('input[name=imprimir]:checked').map(function() {
+           checkboxValues.push($(this).val());
+       });
+       if(checkboxValues.length === 0){
+           seguir = false;
+           alert('Error de informacion enviada a procesar, no ha seleccionado nada!');
+       }
+       
+       if(seguir){
+        var frase = (checkboxValues.length===1)?"el transporte seleccionado":"los transportes seleccionados";
+        bootbox.dialog({
+             message: "Esta seguro que quiere generar el transporte para "+frase+"?",
+             title: "Generar Transporte",
+             buttons: {
+               success: {
+                 label: "Confirmar",
+                 className: "btn-success",
+                 callback: function() {
+                     $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=generar-transporte&ordencarga='+checkboxValues,
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            location.reload();
+                         });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                 }
+               },
+               danger: {
+                 label: "Cancelar",
+                 className: "btn-danger",
+                 callback: function() {
+                   this.hide();
+                 }
+               }
+             }
+         });
+     }
+   }
+   
+   function confirmarTransporte(id,almacen){
+       var checkboxValues = [];
+       var seguir = true;
+       $('input[name=imprimir]:checked').map(function() {
+           checkboxValues.push($(this).val());
+       });
+       if(checkboxValues.length === 0 && id !== undefined && almacen !== undefined){
+          checkboxValues.push(id+'-'+almacen); 
+       }else if(checkboxValues.length === 0 && id === undefined && almacen === undefined){
+           seguir = false;
+           alert('Error de informacion enviada a procesar!');
+       }
+       if(seguir){
+        var frase = (checkboxValues.length===1)?"la orden de carga seleccionada":"las ordenes de carga seleccionadas";
+        bootbox.dialog({
+             message: "Esta seguro que quiere confirmar "+frase+"?",
+             title: "Confirmar Ordenes de Carga",
+             buttons: {
+               success: {
+                 label: "Confirmar",
+                 className: "btn-success",
+                 callback: function() {
+                     $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=confirmar-transporte&transporte='+checkboxValues,
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            this.hide();
+                         });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                 }
+               },
+               danger: {
+                 label: "Cancelar",
+                 className: "btn-danger",
+                 callback: function() {
+                   this.hide();
+                 }
+               }
+             }
+         });
+       }
+   }
+   
+    function liquidarTransporte(id){
+        bootbox.dialog({
+            message: "Esta seguro que quiere generar la liquidación a este transporte?",
+            title: "Liquidar Transporte",
+            buttons: {
+              success: {
+                label: "Liquidar",
+                className: "btn-success",
+                callback: function() {
+                    window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte="+id);
+                }
+              },
+              danger: {
+                label: "Cancelar",
+                className: "btn-danger",
+                callback: function() {
+                  this.hide();
+                }
+              }
+            }
+        });
+    }
+   
+   function mostrarTransporte(idtransporte,almacen){
+        $('#modal_impresion_transporte').modal('show');
+        $("#imprimir_transporte").detach();
+        $("<iframe id='imprimir_transporte' />")
+          .attr('src', '{$fsc->url()}&type=imprimir-transporte&transporte='+idtransporte+'-'+almacen)
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_body_impresion_transporte');
+   }
+   
+   $(document).ready(function() {
+        $('#b_imprimir_seleccion').click(function (event) {
+            var checkboxValues = [];
+            $('input[name=imprimir]:checked').map(function() {
+                checkboxValues.push($(this).val());
+            });
+            if(checkboxValues.length !== 0){
+                bootbox.dialog({
+                    message: "Esta seguro que quiere imprimir las Ordenes de Carga seleccionadas?",
+                    title: "Imprimir Ordenes de Carga",
+                    buttons: {
+                      success: {
+                        label: "Imprimir",
+                        className: "btn-success",
+                        callback: function() {
+                            $('#modal_impresion_transporte').modal('show');
+                            $("#imprimir_transporte").detach();
+                            $("<iframe id='imprimir_transporte' />")
+                              .attr('src', '{$fsc->url()}&type=imprimir-transporte&transporte='+checkboxValues)
+                              .attr('width', '100%')
+                              .attr('height', '500')
+                              .appendTo('#modal_body_impresion_transporte');
+                        }
+                      },
+                      danger: {
+                        label: "Cancelar",
+                        className: "btn-danger",
+                        callback: function() {
+                          this.hide();
+                        }
+                      }
+                    }
+                });
+            }else{
+                alert('Debe seleccionar un transporte!');
+            }
+        });
+   
+      $('#b_imprimir_ordencarga').click(function(event) {
+         event.preventDefault();
+         $('#modal_nueva_ordencarga').modal('show');
+         document.f_buscar_lineas.buscar_lineas.focus();
+      });
+   
+      $('#b_nueva_ordencarga').click(function(event) {
+         event.preventDefault();
+         $('#modal_nueva_ordencarga').modal('show');
+         document.f_buscar_lineas.buscar_lineas.focus();
+      });
+      
+      {if="$fsc->mostrar=='buscar'"}
+      document.f_custom_search.query.focus();
+      {/if}
+      
+      $('#b_buscar_lineas').click(function(event) {
+         event.preventDefault();
+         $('#modal_buscar_lineas').modal('show');
+         document.f_buscar_lineas.buscar_lineas.focus();
+      });
+      $('#f_buscar_lineas').keyup(function() {
+         buscar_lineas();
+      });
+      $('#f_buscar_lineas').submit(function(event) {
+         event.preventDefault();
+         buscar_lineas();
+      });
+      $("#ac_cliente").autocomplete({
+         serviceUrl: '{$fsc->url()}',
+         paramName: 'buscar_cliente',
+         onSelect: function (suggestion) {
+            if(suggestion)
+            {
+               if(document.f_custom_search.codcliente.value != suggestion.data && suggestion.data != '')
+               {
+                  document.f_custom_search.codcliente.value = suggestion.data;
+                  document.f_custom_search.submit();
+               }
+            }
+         }
+      });      
+   });
 </script>
-
-<div class="container">
-   <div class="row">
-      <div class="col-sm-12">
-         <div class="page-header">
-            <h1>
-               <span class="glyphicon glyphicon-list"></span>
-               Creación de Transporte
-               <a class="btn btn-xs btn-default" href="{$fsc->url()}" title="Recargar la página">
-                  <span class="glyphicon glyphicon-refresh"></span>
-               </a>
-               <span class="btn-group">
-                  <a id="b_nueva_ordencarga" class="btn btn-xs btn-success" href="#">
-                    <span class="glyphicon glyphicon-plus"></span>
-                    <span class="hidden-sm">&nbsp; Nueva Orden de Carga</span>
-                  </a>
-                  {loop="$fsc->extensions"}
-                     {if="$value->type=='button'"}
-                     <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
-                     {/if}
-                  {/loop}
-               </span>
-            </h1>
-         </div>
-      </div>
+<div class="container-fluid" style="margin-top: 10px; margin-bottom: 10px;">
+    <div class="page-header" style="margin-top: -10px;">
+        <h3>
+           <span class="glyphicon glyphicon-list"></span>
+           Transportes
+        </h3>
    </div>
    <div class="row">
-      <div class="col-sm-12">
-         <div class="table-responsive">
-            <table class="table table-hover">
-               <thead>
-                  <tr>
-                     <th class="text-left"><a href="{$fsc->almacen->url()}">Almacén</a></th>
-                     <th class="text-left"><a href="{$fsc->agencia_transporte->url()}">Agencia</a></th>
-                     <th class="text-left">Nombre</th>
-                     <th class="text-left">Nro Licencia</th>
-                     <th class="text-left">Tipo Licencia</th>
-                     <th class="text-center">Activo</th>
-                     <th width="120"></th>
-                  </tr>
-               </thead>
-               {loop="$fsc->listado"}
-               <form action="{$fsc->url()}" method="post" class="form">
-                  <tr{if="!$value1->estado"} class="danger"{/if}>
-                      <td>
-                        <select name="codalmacen" class="form-control">
-                            {loop="$fsc->almacen->all()"}
-                            {if="$value1->codalmacen==$value2->codalmacen"}
-                            <option value="{$value2->codalmacen}" selected="">{$value2->nombre}</option>
-                            {else}
-                            <option value="{$value2->codalmacen}">{$value2->nombre}</option>
-                            {/if}
-                            {/loop}
-                        </select>
-                      </td>
-                     <td>
-                        <select name="codtrans" class="form-control" >
-                            {loop="$fsc->agencia_transporte->all()"}
-                            {if="$value1->codtrans==$value2->codtrans"}
-                            <option value="{$value2->codtrans}" selected="">{$value2->nombre}</option>
-                            {else}
-                            <option value="{$value2->codtrans}">{$value2->nombre}</option>
-                            {/if}
-                            {/loop}
-                        </select>
-                     </td>
-                     <td>
-                        <input type="text" name="nombre" value="{$value1->nombre}" class="form-control" maxlength="80" autocomplete="off" {if="!$fsc->allow_delete"}readonly{/if}/>
-                     </td>
-                     <td>
-                        <input type="text" name="licencia" value="{$value1->licencia}" class="form-control" maxlength="32" autocomplete="off" readonly/>
-                     </td>
-                     <td>
-                        <input type="text" name="tipolicencia" value="{$value1->tipolicencia}" maxlength="32" class="form-control" autocomplete="off" {if="!$fsc->allow_delete"}readonly{/if}/>
-                     </td>
-                     <td class="text-center">
-                        <div class="checkbox">
-                           <label>
-                              {if="$value->estado"}
-                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
-                              {else}
-                              <input type="checkbox" name="estado" value="TRUE"/>
-                              {/if}
-                           </label>
-                        </div>
-                     </td>
-                     <td class="text-right">
-                        <div class="btn-group">
-                           {if="$fsc->allow_delete"}
-                           <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_unidad('{$value1->licencia}','{$value1->nombre}')">
-                              <span class="glyphicon glyphicon-trash"></span>
-                           </button>
-                           {/if}
-                           <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar">
-                              <span class="glyphicon glyphicon-floppy-disk"></span>
-                           </button>
-                        </div>
-                     </td>
-                  </tr>
-               </form>
-               {/loop}
-               <form action="{$fsc->url()}" method="post" class="form">
-                  <tr class="info">
-                     <td>
-                       <select name="codalmacen" class="form-control">
-                            {loop="$fsc->almacen->all()"}
-                            <option value="{$value->codalmacen}">{$value->nombre}</option>
-                            {/loop}
-                        </select>
-                     </td>
-                     <td>
-                        <select name="codtrans" class="form-control">
-                            {loop="$fsc->agencia_transporte->all()"}
-                            <option value="{$value->codtrans}">{$value->nombre}</option>
-                            {/loop}
-                        </select>
-                     </td>
-                     <td>
-                        <input type="text" name="nombre" class="form-control" maxlength="80" autocomplete="off" placeholder="Nombre del Conductor"/>
-                     </td>
-                     <td>
-                        <input type="text" name="licencia" class="form-control" maxlength="32" autocomplete="off" placeholder="Licencia"/>
-                     </td>
-                     <td>
-                        <input type="text" name="tipolicencia" class="form-control" maxlength="32" placeholder="Tipo licencia"/>
-                     </td>
-                     <td class="text-center">
-                        <div class="checkbox">
-                           <label>
-                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
-                           </label>
-                        </div>
-                     </td>
-                     <td class="text-right">
-                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar">
-                           <span class="glyphicon glyphicon-floppy-disk"></span>
-                        </button>
-                     </td>
-                  </tr>
-               </form>
-            </table>
+      <div class="col-sm-8 col-xs-6">
+         <div class="btn-group hidden-xs">
+            <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+               <span class="glyphicon glyphicon-refresh"></span>
+            </a>
+            {if="$fsc->page->is_default()"}
+            <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+               <span class="glyphicon glyphicon-home"></span>
+            </a>
+            {else}
+            <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+               <span class="glyphicon glyphicon-home"></span>
+            </a>
+            {/if}
+         </div>
+         <div class="btn-group">
+             <a id="b_nueva_ordencarga" class="btn btn-sm btn-success">
+               <span class="glyphicon glyphicon-plus"></span>
+               <span class="hidden-xs">&nbsp; Nuevo Transporte</span>
+            </a>
+            {loop="$fsc->extensions"}
+               {if="$value->type=='button'"}
+               <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
+               {/if}
+            {/loop}
+         </div>
+      </div>
+      <div class="col-sm-4 col-xs-6 text-right">
+         <a id="b_buscar_lineas" class="btn btn-sm btn-info" title="Buscar en las líneas">
+            <span class="glyphicon glyphicon-search"></span> &nbsp; Líneas
+         </a>
+         <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+               <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+               <li>
+                  <a href="{$fsc->url()}&mostrar={$fsc->mostrar}&order=fecha_desc">
+                     <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span>
+                     &nbsp; Fecha &nbsp;
+                     {if="$fsc->order=='fecha DESC'"}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{/if}
+                  </a>
+               </li>
+               <li>
+                  <a href="{$fsc->url()}&mostrar={$fsc->mostrar}&order=fecha_asc">
+                     <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
+                     &nbsp; Fecha &nbsp;
+                     {if="$fsc->order=='fecha ASC'"}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{/if}
+                  </a>
+               </li>
+               <li>
+                  <a href="{$fsc->url()}&mostrar={$fsc->mostrar}&order=codigo_desc">
+                     <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span>
+                     &nbsp; Código &nbsp;
+                     {if="$fsc->order=='codigo DESC'"}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{/if}
+                  </a>
+               </li>
+               <li>
+                  <a href="{$fsc->url()}&mostrar={$fsc->mostrar}&order=codigo_asc">
+                     <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
+                     &nbsp; Código &nbsp;
+                     {if="$fsc->order=='codigo ASC'"}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{/if}
+                  </a>
+               </li>
+            </ul>
          </div>
       </div>
    </div>
 </div>
+
+<ul class="nav nav-tabs" role="tablist">
+   <li{if="$fsc->mostrar=='todo'"} class="active"{/if}>
+      <a href="{$fsc->url()}&mostrar=todo">
+         Todas
+      </a>
+   </li>
+   <li{if="$fsc->mostrar=='pendientes'"} class="active"{/if}>
+      <a href="{$fsc->url()}&mostrar=pendientes">
+         <span class="glyphicon glyphicon-time"></span>
+         <span class="hidden-xs">&nbsp; Pendientes</span>
+         <span class="hidden-xs badge">{$fsc->total_pendientes()}</span>
+      </a>
+   </li>
+   <li{if="$fsc->mostrar=='buscar'"} class="active"{/if}>
+      <a href="{$fsc->url()}&mostrar=buscar" title="Buscar">
+         <span class="glyphicon glyphicon-search"></span>
+         {if="$fsc->num_resultados!==''"}
+         <span class="hidden-xs badge">{$fsc->num_resultados}</span>
+         {/if}
+      </a>
+   </li>
+</ul>
+
+{if="$fsc->mostrar=='buscar'"}
+<br/>
+<form name="f_custom_search" action="{$fsc->url()}" method="post" class="form">
+   {if="$fsc->cliente"}
+   <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+   {else}
+   <input type="hidden" name="codcliente"/>
+   {/if}
+   <div class="container-fluid">
+      <div class="row">
+         <div class="col-sm-2">
+            <div class="form-group">
+               <div class="input-group">
+                  <input class="form-control" type="text" name="query" value="{$fsc->query}" autocomplete="off" placeholder="Buscar">
+                  <span class="input-group-btn">
+                     <button class="btn btn-primary hidden-sm" type="submit">
+                        <span class="glyphicon glyphicon-search"></span>
+                     </button>
+                  </span>
+               </div>
+            </div>
+         </div>
+         <div class="col-sm-2">
+            <div class="form-group">
+               <div class="input-group">
+                  {if="$fsc->cliente"}
+                  <input class="form-control" type="text" name="ac_cliente" value="{$fsc->cliente->nombre}" id="ac_cliente" placeholder="Cualquier cliente" autocomplete="off"/>
+                  {else}
+                  <input class="form-control" type="text" name="ac_cliente" id="ac_cliente" placeholder="Cualquier cliente" autocomplete="off"/>
+                  {/if}
+                  <span class="input-group-btn">
+                     <button class="btn btn-default" type="button" onclick="clean_cliente()">
+                        <span class="glyphicon glyphicon-remove"></span>
+                     </button>
+                  </span>
+               </div>
+            </div>
+         </div>
+         <div class="col-sm-2">
+            <div class="form-group">
+               <input type="text" name="desde" value="{$fsc->desde}" class="form-control datepicker" placeholder="Desde" autocomplete="off" onchange="this.form.submit()"/>
+            </div>
+         </div>
+         <div class="col-sm-2">
+            <div class="form-group">
+               <input type="text" name="hasta" value="{$fsc->hasta}" class="form-control datepicker" placeholder="Hasta" autocomplete="off" onchange="this.form.submit()"/>
+            </div>
+         </div>
+      </div>
+   </div>
+</form>
+{/if}
+
+<!-- Resultados de ordenes de compra generadas -->
+{include="transporte/resultados"}
+
+<form class="form" role="form" id="f_buscar_lineas" name="f_buscar_lineas" action ="{$fsc->url()}" method="post">
+   <input type="hidden" name="offset" value="0"/>
+   <div class="modal" id="modal_buscar_lineas">
+      <div class="modal-dialog" style="width: 99%; max-width: 950px;">
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+               <h4 class="modal-title">Buscar en las líneas</h4>
+               {if="$fsc->cliente"}
+               <p class="help-block">
+                  Estas buscando en las líneas de los {#FS_ALBARANES#} de {$fsc->cliente->nombre}.
+               </p>
+               {else}
+               <p class="help-block">Si quieres, puede <a href="{$fsc->url()}&mostrar=buscar">filtrar por cliente</a>.</p>
+               {/if}
+            </div>
+            <div class="modal-body">
+               {if="$fsc->cliente"}
+               <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+               <div class="container-fluid">
+                  <div class="row">
+                     <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group">
+                           <input class="form-control" type="text" name="buscar_lineas" placeholder="Referencia" autocomplete="off"/>
+                           <span class="input-group-btn">
+                              <button class="btn btn-primary" type="submit">
+                                 <span class="glyphicon glyphicon-search"></span>
+                              </button>
+                           </span>
+                        </div>
+                     </div>
+                     <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="form-group">
+                           <input class="form-control" type="text" name="buscar_lineas_o" placeholder="Observaciones" autocomplete="off"/>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               {else}
+               <div class="input-group">
+                  <input class="form-control" type="text" name="buscar_lineas" placeholder="Referencia" autocomplete="off"/>
+                  <span class="input-group-btn">
+                     <button class="btn btn-primary" type="submit">
+                        <span class="glyphicon glyphicon-search"></span>
+                     </button>
+                  </span>
+               </div>
+               {/if}
+            </div>
+            <div id="search_results" class="table-responsive"></div>
+         </div>
+      </div>
+   </div>
+</form>
+<!-- Modal para generar las devoluciones de producto del transporte -->
+{include="transporte/devolucion"}
+<!-- Modal para mostrar el resumen del transporte -->
+{include="transporte/resumen"}
+<!-- Modal para mostrar la pantalla de liquidación del transporte -->
+{include="transporte/liquidacion"}
+<!-- Modal para mostrar el pdf para las impresiones de los transportes -->
+{include="transporte/impresion"}
+<!-- Pie de Pagina -->
 {include="footer"}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<!--
+Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<div class="table-responsive">
+   <form name="f_resultados" method="POST" action="{$fsc->url()}" id="f_resultados">
+   <table class="table table-hover">
+      <thead>
+         <tr>
+             <th colspan="2">
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_todo()" title="Marcar todo">
+                       <span class="glyphicon glyphicon-check"></span>
+                    </button>
+                    <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_nada()" title="Desmarcar todo">
+                       <span class="glyphicon glyphicon-unchecked"></span>
+                    </button>
+                    <button class="btn btn-sm btn-success" type="button" id="b_imprimir_seleccion" title="Imprimir Transportes Seleccionados">
+                        <span class="glyphicon glyphicon-print"></span>
+                    </button>
+                    <button class="btn btn-sm btn-primary" type="button" id="b_confirmar_ordenes" onClick="confirmarOrdenCarga()" title="Despachar Transportes Seleccionados">
+                        <span class="glyphicon glyphicon-ok"></span>
+                    </button>
+                    <button class="btn btn-sm btn-info" type="button" id="b_generar_transporte" onClick="generarTransporte()" title="Generar Transportes de Ordenes Seleccionadas">
+                        <span class="glyphicon glyphicon-flag"></span>
+                    </button>
+                </div>
+            </th>
+            <th class="text-left">Número</th>
+            <th class="text-left">Almacén Origen</th>
+            <th class="text-left">Agencia</th>
+            <th class="text-left">Conductor</th>
+            <th class="text-left">Unid. Transporte</th>
+            <th class="text-right">Carga</th>
+            <th class="text-right">Fecha Reparto</th>
+            <th class="text-center hidden-sm">Generada</th>
+            <th class="text-center hidden-sm">Despachada</th>
+            <th class="text-center hidden-sm">Liquidada</th>
+            <th></th>
+         </tr>
+      </thead>
+      {loop="$fsc->resultados"}
+      <tr>
+         <td class="text-center">
+             <input type="checkbox" name="imprimir" value="{$value->idtransporte}-{$value->codalmacen}" class="check-mark"/>
+         </td>
+         <td class="text-center">
+             <button class="btn btn-sm btn-default" type="button" title="Ver Transporte" onclick="mostrarTransporte('{$value->idtransporte}','{$value->codalmacen}')"><span class="glyphicon glyphicon-eye-open"></span></button>
+             <button class="btn btn-sm btn-primary" type="button" title="Confirmar Transporte" onclick="confirmarTransporte('{$value->idtransporte}','{$value->codalmacen}')"><span class="glyphicon glyphicon-ok-circle"></span></button>
+             {if="!$value->despachado"}
+             <button class="btn btn-sm btn-info" type="button" title="Liquidar Transporte" onclick="liquidarTransporte('{$value->idtransporte}-{$value->codalmacen}')"><span class="glyphicon glyphicon glyphicon-list-alt"></span></button>
+             {/if}
+         </td>
+         <td><a href="{$value->url()}">{$value->idtransporte}</a></td>
+         <td>
+            {$value->codalmacen}
+         </td>
+         <td>
+            {$value->codtrans}
+         </td>
+         <td>
+            {$value->conductor}
+         </td>
+         <td>
+            {$value->unidad}
+         </td>
+         <td class="text-right">
+            {$value->totalcantidad}
+         </td>
+        <td class="text-right">
+            {if="$value->fecha==$fsc->today()"}<b>{$value->fecha}</b>{else}{$value->fecha}{/if}
+         </td>
+         <td class="text-center hidden-sm">{if="$value->estado"}<span class="glyphicon glyphicon-star"></span>{else}<span class="glyphicon glyphicon-star-empty"></span>{/if}</td>
+         <td class="text-center hidden-sm">{if="$value->despachado"}<span class="glyphicon glyphicon-star"></span>{else}<span class="glyphicon glyphicon-star-empty"></span>{/if}</td>
+         <td class="text-center hidden-sm">{if="$value->liquidado"}<span class="glyphicon glyphicon-star"></span>{else}<span class="glyphicon glyphicon-star-empty"></span>{/if}</td>
+         <td>
+            <button class="btn btn-sm btn-danger" title="Eliminar Orden de Carga"><span class="glyphicon glyphicon-trash"></span></button>
+         </td>         
+      </tr>
+      {else}
+      <tr class="warning">
+         <td></td>
+         <td colspan="6">Ninguna Orden de Carga encontrada. Pulsa el botón <b>Nueva</b> para crear una.</td>
+      </tr>
+      {/loop}
+   </table>
+   </form>
+</div>

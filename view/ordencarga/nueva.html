@@ -239,7 +239,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
             $('input[name=imprimir]:checked').map(function() {
                 checkboxValues.push($(this).val());
             });
-            //console.log(checkboxValues);
             if(checkboxValues.length !== 0){
                 bootbox.dialog({
                     message: "Esta seguro que quiere imprimir las Ordenes de Carga seleccionadas?",
@@ -256,7 +255,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                               .attr('width', '100%')
                               .attr('height', '500')
                               .appendTo('#modal_body_impresion_ordencarga');
-                            //this.hide();
                         }
                       },
                       danger: {

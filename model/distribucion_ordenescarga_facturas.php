@@ -17,6 +17,13 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
+require_model('factura_cliente');
+require_model('cliente');
+$dirname = 'plugins/republica_dominicana/';
+if(is_dir($dirname)){
+    require_model('ncf_ventas.php');
+    require_model('ncf_rango.php');
+}
 /**
  * Description of distribucion_ordenescarga
  *
@@ -33,7 +40,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
-        
+    
+    public $factura_cliente;
+    public $cliente;
+    public $ncf_ventas;
+    public $ncf_rango;
+    
     public function __construct($t = false) {
         parent::__construct('distribucion_ordenescarga_facturas','plugins/distribucion/');
         if($t)
@@ -61,6 +73,13 @@ class distribucion_ordenescarga_facturas extends fs_model {
             $this->fecha_creacion = Date('d-m-Y H:i');
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
+        }
+        
+        $this->factura_cliente = new factura_cliente();
+        $this->cliente = new cliente();
+        $dirname = 'plugins/republica_dominicana/';
+        if(is_dir($dirname)){
+            $this->ncf_ventas = new ncf_ventas();
         }
     }
     
@@ -143,7 +162,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = new distribucion_ordenescarga_facturas($d);
+                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
+                $valor_lista->fecha_factura = $info_factura->fecha;
+                $valor_lista->pagada = $info_factura->pagada;
+                $valor_lista->monto = $info_factura->total;
+                $lista[] = $valor_lista;
             }
         }
         return $lista;
@@ -158,7 +182,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = new distribucion_ordenescarga_facturas($d);
+                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
+                $valor_lista->fecha_factura = $info_factura->fecha;
+                $valor_lista->pagada = $info_factura->pagada;
+                $valor_lista->monto = $info_factura->total;
+                $lista[] = $valor_lista;
             }
         }
         return $lista;
@@ -173,7 +202,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = new distribucion_ordenescarga_facturas($d);
+                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
+                $valor_lista->fecha_factura = $info_factura->fecha;
+                $valor_lista->pagada = $info_factura->pagada;
+                $valor_lista->monto = $info_factura->total;
+                $lista[] = $valor_lista;
             }
         }
         return $lista;
@@ -188,7 +222,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = new distribucion_ordenescarga_facturas($d);
+                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
+                $valor_lista->fecha_factura = $info_factura->fecha;
+                $valor_lista->pagada = $info_factura->pagada;
+                $valor_lista->monto = $info_factura->total;
+                $lista[] = $valor_lista;
             }
         }
         return $lista;
@@ -198,12 +237,15 @@ class distribucion_ordenescarga_facturas extends fs_model {
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_ordenescarga_facturas WHERE idempresa = ".$this->intval($idempresa)." AND idfactura = ".$this->intval($idfactura)." AND codalmacen = ".$this->var2str($codalmacen).";");
-        
         if($data)
         {
             foreach($data as $d)
             {
                 $valor_lista = new distribucion_ordenescarga_facturas($d);
+                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
+                $valor_lista->fecha_factura = $info_factura->fecha;
+                $valor_lista->pagada = $info_factura->pagada;
+                $valor_lista->monto = $info_factura->total;
                 $lista[] = $valor_lista;
             }
         }
