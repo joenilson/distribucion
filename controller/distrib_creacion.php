@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
  *
@@ -52,6 +51,7 @@ class distrib_creacion extends fs_controller {
     public $transporte;
     public $lineastransporte;
     public $facturastransporte;
+    public $factura_cliente;
     public function __construct() {
         parent::__construct(__CLASS__, '5 - Transportes', 'distribucion');
     }
@@ -62,6 +62,7 @@ class distrib_creacion extends fs_controller {
         $this->distrib_transporte = new distribucion_transporte();
         $this->distrib_lineastransporte = new distribucion_lineastransporte();
         $this->distrib_facturas = new distribucion_ordenescarga_facturas();
+        $this->factura_cliente = new factura_cliente();
         
         $type = \filter_input(INPUT_GET, 'type');
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
@@ -105,6 +106,44 @@ class distrib_creacion extends fs_controller {
             $this->lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
             $this->facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
             $this->template = 'extension/liquidar_transporte';
+        }elseif($type=='pagar-factura'){
+            $value_factura = \filter_input(INPUT_GET, 'factura');
+            $lista_facturas = explode(',', $value_factura);
+            $fact0 = new factura_cliente();
+            $num=0;
+            foreach($lista_facturas as $factura){
+                $datos_factura = explode('-', $factura);
+                $factura = $fact0->get($datos_factura[0]);
+                if($factura) {
+                   $factura->pagada = TRUE;
+                   $factura->save();
+                   $num++;
+                }
+            }
+            $data['success']=TRUE;
+            $data['facturas_procesadas']=$num;
+            $this->template = false;
+            header('Content-Type: application/json');
+            echo json_encode($data);
+        }elseif($type=='extornar-factura'){
+            $value_factura = \filter_input(INPUT_GET, 'factura');
+            $lista_facturas = explode(',', $value_factura);
+            $fact0 = new factura_cliente();
+            foreach($lista_facturas as $factura){
+                $datos_factura = explode('-', $value_factura);
+                $factura = $fact0->get($datos_factura[0]);
+                $num=0;
+                if($factura) {
+                   $factura->pagada = TRUE;
+                   $factura->save();
+                   $num++;
+                }
+            }
+            $data['success']=TRUE;
+            $data['facturas_procesadas']=$num;
+            $this->template = false;
+            header('Content-Type: application/json');
+            echo json_encode($data);
         }
         $this->resultados = $this->distrib_transporte->all($this->empresa->id);
     }

@@ -37,7 +37,10 @@ if(is_dir($dirname)){
     require_model('ncf_ventas.php');
     require_model('ncf_rango.php');
 }
-
+$tesoreria = 'plugins/tesoreria/';
+if(is_dir($tesoreria)){
+    require_model('recibo_cliente.php');
+}
 /**
  * Description of distrib_facturas
  *
@@ -57,13 +60,24 @@ class distrib_facturas extends fs_controller {
     public $listado;
     public $resultados;
     public $devolucion;
+    public $recibo;
+    public $pago_recibo;
+    public $tesoreria_plugin;
+    public $rd_plugin;
 
     public function __construct() {
         parent::__construct(__CLASS__, '8 - Configuración', 'distribucion', FALSE, FALSE);
     }
 
     public function private_core() {
-        $dirname = 'plugins/republica_dominicana/';
+        $rd = 'plugins/republica_dominicana/';
+        $tesoreria = 'plugins/tesoreria/';
+        $this->rd_plugin = (is_dir($rd))?true:false;
+        $this->tesoreria_plugin = (is_dir($tesoreria))?true:false;
+        if($this->tesoreria_plugin){
+            $this->recibo = new recibo_cliente();
+            $this->pago_recibo = new pago_recibo_cliente();
+        }
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->share_extension();
         $this->factura_cliente = new factura_cliente();
@@ -75,7 +89,7 @@ class distrib_facturas extends fs_controller {
             $buscar_dev = $this->distribucion_devoluciones->get_devolucion($this->factura);
             $buscar_fact = $this->factura_cliente->get($this->factura);
             $factura_elegida = ($buscar_dev)?$buscar_dev:$buscar_fact;
-            if(is_dir($dirname)){
+            if($this->rd_plugin){
                 $ncf = new ncf_ventas();
                 $ncf_factura = $ncf->get_ncf($this->empresa->id, $factura_elegida->idfactura, $factura_elegida->codcliente);
                 $factura_elegida->ncf = $ncf_factura->ncf;
@@ -91,10 +105,10 @@ class distrib_facturas extends fs_controller {
 
     private function crear_devolucion($fact) {
         $factura_original = $fact->idfactura;
+        $factura_original_info = &$fact;
         //Si esta activo el plugin de republica dominicana generamos el numero de NCF
         // TODO mover este código al plugin de república dominicana
-        $dirname = 'plugins/republica_dominicana/';
-        if(is_dir($dirname)){
+        if($this->rd_plugin){
             /*
              * Verificación de disponibilidad del Número de NCF para Notas de Crédito
              */
@@ -167,7 +181,7 @@ class distrib_facturas extends fs_controller {
                 $this->new_message("<a href='" . $asiento_factura->asiento->url() . "'>Asiento</a> generado correctamente.");
                 $this->new_change('Nota de Crédito ' . $fact->codigo, $fact->url());
             }
-            if(is_dir($dirname)){
+            if($this->rd_plugin){
                 /*
                  * Luego de que todo este correcto generamos el NCF la Nota de Credito
                  */
@@ -180,7 +194,7 @@ class distrib_facturas extends fs_controller {
             }
             $devolucion = new distribucion_devoluciones();
             $lineas_devolucion = $devolucion->get_devolucion($factura_original);
-            if(is_dir($dirname)){
+            if($this->rd_plugin){
                 $ncf = new ncf_ventas();
                 $ncf_factura = $ncf->get_ncf($this->empresa->id, $fact->idfactura, $fact->codcliente);
                 $factura_elegida->ncf = $ncf_factura->ncf;
@@ -188,6 +202,18 @@ class distrib_facturas extends fs_controller {
             }
             $this->resultados = ($lineas_devolucion)?$lineas_devolucion:NULL;
             $this->devolucion = ($lineas_devolucion)?TRUE:FALSE;
+            
+            if($this->tesoreria_plugin){
+                $recibos = $this->recibo->all_from_factura($factura_original);
+                $recibo0 = new recibo_cliente();
+                $recibo = $recibo0->get($recibos[0]->idrecibo);
+                if($recibo){
+                    $recibo->fecha = $fact->fecha;
+                    $recibo->importe = $recibo->importe - ($fact->neto + $fact->totaliva + $fact->totalirpf + $fact->totalrecargo);
+                    $recibo->importeeuros = $recibo->importe;
+                    $recibo->save();
+                }
+            }
         } else {
             $this->new_error_msg("¡Imposible agregar la devolución a esta factura!");
             
@@ -207,14 +233,14 @@ class distrib_facturas extends fs_controller {
             $ncf_factura->cifnif = $factura->cifnif;
             $ncf_factura->documento = $factura->idfactura;
             $ncf_factura->documento_modifica = $factura->idfacturarect;
-            $ncf_factura->NCF_modifica = $val_ncf->ncf;
+            $ncf_factura->ncf_modifica = $val_ncf->ncf;
             $ncf_factura->fecha = $factura->fecha;
             $ncf_factura->tipo_comprobante = $tipo_comprobante;
             $ncf_factura->ncf = $numero_ncf['NCF'];
             $ncf_factura->usuario_creacion = $this->user->nick;
             $ncf_factura->fecha_creacion = Date('d-m-Y H:i:s');
             if(!$ncf_factura->save()){
-                return $this->new_error_msg('Ocurrió un error al grabar la factura '. $factura->idfactura .' con el NCF: '.$numero_ncf['NCF'].' Anule la factura e intentelo nuevamente. '.$factura->codalmacen);
+                return $this->new_error_msg('Ocurrió un error al grabar la nota de credito '. $factura->idfactura .' con el NCF: '.$numero_ncf['NCF'].' Anule la factura e intentelo nuevamente. '.$factura->codalmacen);
             }else{
                 $this->ncf_rango->update($ncf_factura->idempresa, $ncf_factura->codalmacen, $numero_ncf['SOLICITUD'], $numero_ncf['NCF'], $this->user->nick);
             }

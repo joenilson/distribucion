@@ -19,12 +19,106 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
 <script type="text/javascript">
    function fs_marcar_todo()
    {
-      $("#f_agrupar_cli input[name='idfactura[]']").prop('checked', true);
+      $("#f_liquidar_transporte input[name='idfactura']").prop('checked', true);
    }
    function fs_marcar_nada()
    {
-      $("#f_agrupar_cli input[name='idfactura[]']").prop('checked', false);
+      $("#f_liquidar_transporte input[name='idfactura']").prop('checked', false);
    }
+   
+   function generarFaltante(){
+       bootbox.dialog({
+                title: "<b>Generar faltante al Transporte {$fsc->transporte[0]->idtransporte}</b>",
+                message: '<div class="row">  ' +
+                    '<div class="col-md-12"> ' +
+                    '<form class="form-horizontal"> ' +
+                    '<div class="form-group"> ' +
+                    '<label class="col-md-4 control-label" for="monto">Monto</label> ' +
+                    '<div class="col-md-6"> ' +
+                    '<input id="monto" name="monto" type="number" placeholder="Monto" class="form-control input-sm"> ' +
+                    '<span class="help-block">Ingrese la cantidad del faltante</span> </div> ' +
+                    '</div> ' +
+                    '<div class="form-group"> ' +
+                    '<label class="col-md-4 control-label" for="tipo_faltante">Tipo de Faltante</label> ' +
+                    '<div class="col-md-4"> <div class="radio"> <label for="tipo_faltante-0"> ' +
+                    '<input type="radio" name="tipo_faltante" id="tipo_faltante-0" value="perdida" checked="checked">' +
+                    'Perdida </label> ' +
+                    '</div><div class="radio"> <label for="tipo_faltante-1"> ' +
+                    '<input type="radio" name="tipo_faltante" id="tipo_faltante-1" value="gasto">Gasto</label> ' +
+                    '</div> ' +
+                    '</div> </div>' +
+                    '</form> </div>  </div>',
+                buttons: {
+                    success: {
+                        label: "Gardar Faltante",
+                        className: "btn-success",
+                        callback: function () {
+                            bootbox.alert("Faltante Generado!");
+                        }
+                    },
+                    danger: {
+                      label: "Cancelar",
+                      className: "btn-danger",
+                      callback: function() {
+                        this.hide();
+                      }
+                    }
+                }
+            }
+        );
+   }
+   
+   function ingresarPago(factura,almacen){
+        var checkboxValues = [];
+        var seguir = true;
+        $('input[name=idfactura]:checked').map(function() {
+            checkboxValues.push($(this).val());
+        });
+        console.log(checkboxValues);
+        if(checkboxValues.length === 0 && factura !== undefined && almacen !== undefined){
+           checkboxValues.push(factura+'-'+almacen); 
+        }else if(checkboxValues.length === 0 && factura === undefined && almacen === undefined){
+            seguir = false;
+            alert('Error de informacion enviada a procesar, no hay datos seleccionados!');
+        }
+        if(seguir){
+            bootbox.dialog({
+                message: "Esta seguro que quiere generar el pago a la factura "+factura+"?",
+                title: "Marcar como pagada Factura",
+                buttons: {
+                  success: {
+                    label: "Pagar",
+                    className: "btn-success",
+                    callback: function() {
+                        $.ajax({
+                           type: 'GET',
+                           url: '{$fsc->url()}',
+                           async: false,
+                           data: 'type=pagar-factura&factura='+checkboxValues,
+                           success : function(datos) {
+                             bootbox.alert('Se han pagado '+datos.facturas_procesadas+' facturas.', function() {
+                                window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte[0]->idtransporte}-{$fsc->transporte[0]->codalmacen}");
+                             });
+                           },
+                           error: function(datos) {
+                               bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                           }
+                       });
+
+                    }
+                  },
+                  danger: {
+                    label: "Cancelar",
+                    className: "btn-danger",
+                    callback: function() {
+                      this.hide();
+                    }
+                  }
+                }
+            });
+        }
+   }
+   
    $(document).ready(function() {
       $("#ac_cliente").autocomplete({
          serviceUrl: '{$fsc->url()}',
@@ -62,7 +156,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         </div>
     </div>
     <div class="row">
-        <form action="{$fsc->url()}&type=giardar-liqudiacion&idtransporte={$fsc->transporte[0]->idtransporte}" name='f_liquidar_transporte' method="POST" class="form">
+        <form action="{$fsc->url()}&type=guardar-liquidacion&idtransporte={$fsc->transporte[0]->idtransporte}" id='f_liquidar_transporte' name='f_liquidar_transporte' method="POST" class="form">
             <div class="container">
                 <div class="row">
                     <div class="col-sm-2">
@@ -96,41 +190,50 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <th>Factura</th>
                                     <th>NCF</th>
                                     <th>Fecha</th>
-                                    <th>Cantidad</th>
-                                    <th>Monto</th>
-                                    <th>Abono</th>
-                                    <th>Saldo</th>
-                                    <th>Estado</th>
+                                    <th class="text-right">Cantidad</th>
+                                    <th class="text-right">Monto</th>
+                                    <th class="text-right">Abono</th>
+                                    <th class="text-right">Saldo</th>
+                                    <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
+                            {$sumSaldo=0}
                             {loop="$fsc->facturastransporte"}
                             <tr>
                                 <td class="text-center">
                                    {if condition="$value->pagada"}
                                    <span class="glyphicon glyphicon-ok" title="La factura está pagada"></span>
                                    {else}
-                                   <input type="checkbox" name="idfactura[]" value="{$value->idfactura}" checked="checked"/>
+                                   <input type="checkbox" name="idfactura" value="{$value->idfactura}" checked="checked"/>
                                    <!--{$total+=$value->total}-->
                                    {/if}
                                 </td>
-                                <td>{$value->idfactura}</td>
+                                <td><a href="{$value->enlace}">{$value->idfactura}</a></td>
                                 <td>{$value->ncf}</td>
                                 <td>{$value->fecha_factura}</td>
-                                <td>{$value->cantidad}</td>
-                                <td>{$fsc->show_numero($value->monto)}</td>
-                                <td></td>
-                                <td>{$fsc->show_numero($value->monto)}</td>
-                                <td>
-                                    {if="$value->pagada"}
-
-                                    {else}
-                                    <button class="btn btn-sm btn-primary" type="button" onclick="this.disabled=true;this.form.submit();">
-                                       <span class="glyphicon glyphicon-ok"></span> &nbsp; Pagar
-                                    </button>                                    
-                                    {/if}
+                                <td class="text-right">{$value->cantidad}</td>
+                                <td class="text-right">{$fsc->show_numero($value->monto)}</td>
+                                <td class="text-right">{$fsc->show_numero($value->abono)}</td>
+                                <td class="text-right">{$fsc->show_numero($value->saldo)}</td>
+                                <td class="text-right">
+                                {if="$value->pagada"}
+                                    <button class="btn btn-sm btn-danger" type="button" onclick="quitarPago('{$value->idfactura}','{$fsc->transporte[0]->codalmacen}');">
+                                       <span class="glyphicon glyphicon-edit"></span> &nbsp; Quitar Pago
+                                    </button>
+                                {else}
+                                    <a href="{$value->enlace}" class="btn btn-sm btn-primary">
+                                       <span class="glyphicon glyphicon-ok"></span> &nbsp; Pagar / Devolucionar
+                                    </a>
+                                {/if}
                                 </td>
                             </tr>
+                            {$sumSaldo=$sumSaldo+$value->saldo}
                             {/loop}
+                            <tr>
+                                <td colspan="7" class="text-right"><b>Total</b></td>
+                                <td class="text-right"><b>{$fsc->show_numero($sumSaldo)}</b></td>
+                                <td></td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -146,12 +249,12 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                        </div>
                     </div>
                     <div class="col-sm-3 text-left">
-                       <button class="btn btn-sm btn-danger" type="button" onclick="this.disabled=true;this.form.submit();">
+                       <button class="btn btn-sm btn-danger" type="button" onclick="generarFaltante();">
                           <span class="glyphicon glyphicon-exclamation-sign"></span> &nbsp; Generar faltante
                        </button>
                     </div>
                     <div class="col-sm-3 text-right">
-                       <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+                        <button class="btn btn-sm btn-primary" type="button" disabled="true" onclick="ingresarPago()">
                           <span class="glyphicon glyphicon-ok"></span> &nbsp; Marcar como pagadas
                        </button>
                     </div>

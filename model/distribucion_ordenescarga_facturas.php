@@ -153,8 +153,17 @@ class distribucion_ordenescarga_facturas extends fs_model {
     }
     
     public function info_factura($factura){
-        
         $info_adicional = $this->factura_cliente->get($factura->idfactura);
+        $facturasrect = $this->db->select("SELECT * FROM facturascli WHERE deabono = TRUE AND idfacturarect = ".$this->intval($factura->idfactura)." ORDER BY idfactura ASC;");
+        $factura->abono = 0;
+        $factura->saldo = $info_adicional->total;
+        if($facturasrect){
+            foreach($facturasrect as $rectificativa){
+                $factura->abono += $rectificativa['total'];
+                $factura->saldo -= $rectificativa['total'];
+            }
+        }
+        
         $lineas_fact = $info_adicional->get_lineas();
         $totalCantidad = 0;
         foreach ($lineas_fact as $linea){
@@ -169,6 +178,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
         $factura->fecha_factura = $info_adicional->fecha;
         $factura->pagada = $info_adicional->pagada;
         $factura->monto = $info_adicional->total;
+        $factura->enlace = $info_adicional->url();
         return $factura;
     }
     
