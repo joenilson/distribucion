@@ -114,13 +114,21 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                    {/if}
                                 </td>
                                 <td>{$value->idfactura}</td>
-                                <td></td>
+                                <td>{$value->ncf}</td>
                                 <td>{$value->fecha_factura}</td>
-                                <td></td>
+                                <td>{$value->cantidad}</td>
                                 <td>{$fsc->show_numero($value->monto)}</td>
                                 <td></td>
                                 <td>{$fsc->show_numero($value->monto)}</td>
-                                <td>{$value->pagada}</td>
+                                <td>
+                                    {if="$value->pagada"}
+
+                                    {else}
+                                    <button class="btn btn-sm btn-primary" type="button" onclick="this.disabled=true;this.form.submit();">
+                                       <span class="glyphicon glyphicon-ok"></span> &nbsp; Pagar
+                                    </button>                                    
+                                    {/if}
+                                </td>
                             </tr>
                             {/loop}
                         </table>
@@ -137,7 +145,12 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                           </button>
                        </div>
                     </div>
-                    <div class="col-sm-6 text-right">
+                    <div class="col-sm-3 text-left">
+                       <button class="btn btn-sm btn-danger" type="button" onclick="this.disabled=true;this.form.submit();">
+                          <span class="glyphicon glyphicon-exclamation-sign"></span> &nbsp; Generar faltante
+                       </button>
+                    </div>
+                    <div class="col-sm-3 text-right">
                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
                           <span class="glyphicon glyphicon-ok"></span> &nbsp; Marcar como pagadas
                        </button>

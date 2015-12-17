@@ -15,7 +15,6 @@
  *  * 
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
  */
 require_model('factura_cliente');
 require_model('cliente');
@@ -153,6 +152,26 @@ class distribucion_ordenescarga_facturas extends fs_model {
         }
     }
     
+    public function info_factura($factura){
+        
+        $info_adicional = $this->factura_cliente->get($factura->idfactura);
+        $lineas_fact = $info_adicional->get_lineas();
+        $totalCantidad = 0;
+        foreach ($lineas_fact as $linea){
+            $totalCantidad += $linea->cantidad;
+        }
+        $factura->cantidad = $totalCantidad;
+        $dirname = 'plugins/republica_dominicana/';
+        if(is_dir($dirname)){
+            $ncf_info = $this->ncf_ventas->get_ncf($factura->idempresa, $factura->idfactura, $info_adicional->codcliente);
+            $factura->ncf = $ncf_info->ncf;
+        }
+        $factura->fecha_factura = $info_adicional->fecha;
+        $factura->pagada = $info_adicional->pagada;
+        $factura->monto = $info_adicional->total;
+        return $factura;
+    }
+    
     public function all($idempresa)
     {
         $lista = array();
@@ -162,11 +181,8 @@ class distribucion_ordenescarga_facturas extends fs_model {
         {
             foreach($data as $d)
             {
-                $valor_lista = new distribucion_ordenescarga_facturas($d);
-                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
-                $valor_lista->fecha_factura = $info_factura->fecha;
-                $valor_lista->pagada = $info_factura->pagada;
-                $valor_lista->monto = $info_factura->total;
+                $info_factura = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = $this->info_factura($info_factura);
                 $lista[] = $valor_lista;
             }
         }
@@ -182,11 +198,8 @@ class distribucion_ordenescarga_facturas extends fs_model {
         {
             foreach($data as $d)
             {
-                $valor_lista = new distribucion_ordenescarga_facturas($d);
-                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
-                $valor_lista->fecha_factura = $info_factura->fecha;
-                $valor_lista->pagada = $info_factura->pagada;
-                $valor_lista->monto = $info_factura->total;
+                $info_factura = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = $this->info_factura($info_factura);
                 $lista[] = $valor_lista;
             }
         }
@@ -202,11 +215,8 @@ class distribucion_ordenescarga_facturas extends fs_model {
         {
             foreach($data as $d)
             {
-                $valor_lista = new distribucion_ordenescarga_facturas($d);
-                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
-                $valor_lista->fecha_factura = $info_factura->fecha;
-                $valor_lista->pagada = $info_factura->pagada;
-                $valor_lista->monto = $info_factura->total;
+                $info_factura = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = $this->info_factura($info_factura);
                 $lista[] = $valor_lista;
             }
         }
@@ -222,11 +232,8 @@ class distribucion_ordenescarga_facturas extends fs_model {
         {
             foreach($data as $d)
             {
-                $valor_lista = new distribucion_ordenescarga_facturas($d);
-                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
-                $valor_lista->fecha_factura = $info_factura->fecha;
-                $valor_lista->pagada = $info_factura->pagada;
-                $valor_lista->monto = $info_factura->total;
+                $info_factura = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = $this->info_factura($info_factura);
                 $lista[] = $valor_lista;
             }
         }
@@ -241,11 +248,8 @@ class distribucion_ordenescarga_facturas extends fs_model {
         {
             foreach($data as $d)
             {
-                $valor_lista = new distribucion_ordenescarga_facturas($d);
-                $info_factura = $this->factura_cliente->get($valor_lista->idfactura);
-                $valor_lista->fecha_factura = $info_factura->fecha;
-                $valor_lista->pagada = $info_factura->pagada;
-                $valor_lista->monto = $info_factura->total;
+                $info_factura = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = $this->info_factura($info_factura);
                 $lista[] = $valor_lista;
             }
         }
