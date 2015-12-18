@@ -17,7 +17,7 @@
     </columna>
     <columna>
         <nombre>codcuenta</nombre>
-        <tipo>character varying(6)</tipo>
+        <tipo>character varying(10)</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
@@ -27,12 +27,12 @@
     </columna>
     <columna>
         <nombre>conductor</nombre>
-        <tipo>character varying(4)</tipo>
+        <tipo>character varying(32)</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
-        <nombre>cuenta</nombre>
-        <tipo>character varying(10)</tipo>
+        <nombre>idsubcuenta</nombre>
+        <tipo>integer</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
@@ -84,6 +84,16 @@
         <nombre>idrecibo</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>idreciboref</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>idasiento</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
     </columna>
     <columna>
         <nombre>idtransporte</nombre>

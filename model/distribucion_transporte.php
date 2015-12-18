@@ -129,7 +129,7 @@ class distribucion_transporte extends fs_model {
             return $this->db->select("SELECT * FROM distribucion_transporte WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
-                    "idtransporte = ".$this->intval($this->idordencarga).";");
+                    "idtransporte = ".$this->intval($this->idtransporte).";");
         }
     }
     

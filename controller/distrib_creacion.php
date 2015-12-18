@@ -26,6 +26,7 @@ require_model('distribucion_ordenescarga_facturas.php');
 require_model('distribucion_lineasordenescarga.php');
 require_model('distribucion_transporte.php');
 require_model('distribucion_lineastransporte.php');
+require_model('distribucion_faltantes.php');
 require_model('cliente.php');
 require_model('articulo.php');
 require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
@@ -52,6 +53,7 @@ class distrib_creacion extends fs_controller {
     public $lineastransporte;
     public $facturastransporte;
     public $factura_cliente;
+    public $faltantes;
     public function __construct() {
         parent::__construct(__CLASS__, '5 - Transportes', 'distribucion');
     }
@@ -63,6 +65,7 @@ class distrib_creacion extends fs_controller {
         $this->distrib_lineastransporte = new distribucion_lineastransporte();
         $this->distrib_facturas = new distribucion_ordenescarga_facturas();
         $this->factura_cliente = new factura_cliente();
+        $this->faltante = new distribucion_faltantes();
         
         $type = \filter_input(INPUT_GET, 'type');
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
@@ -141,6 +144,36 @@ class distrib_creacion extends fs_controller {
             }
             $data['success']=TRUE;
             $data['facturas_procesadas']=$num;
+            $this->template = false;
+            header('Content-Type: application/json');
+            echo json_encode($data);
+        }elseif($type=='crear-faltante'){
+            $idtransporte = \filter_input(INPUT_GET, 'idtransporte');
+            $codalmacen = \filter_input(INPUT_GET, 'codalmacen');
+            $codtrans = \filter_input(INPUT_GET, 'codtrans');
+            $conductor = \filter_input(INPUT_GET, 'conductor');
+            $importe = \filter_input(INPUT_GET, 'monto');
+            $tipo = \filter_input(INPUT_GET, 'tipo_faltante');
+            $this->transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $faltante = new distribucion_faltantes();
+            $faltante->idempresa = $this->empresa->id;
+            $faltante->idtransporte = $idtransporte;
+            $faltante->codalmacen = $codalmacen;
+            $faltante->coddivisa = $this->empresa->coddivisa;
+            $faltante->idreciboref = NULL;
+            $faltante->codtrans = $codtrans;
+            $faltante->conductor = $conductor;
+            $faltante->nombreconductor = $this->transporte->conductor_nombre;
+            $faltante->fecha = Date('d-m-Y');
+            $faltante->fechav = Date('d-m-Y', strtotime($faltante->fecha.' +1month'));
+            $faltante->fecha_creacion = Date('d-m-Y H:i');
+            $faltante->usuario_creacion = $this->user->nick;
+            $faltante->importe = $importe;
+            $faltante->tipo = $tipo;
+            $faltante->estado = "pendiente";
+            $faltante->save();
+            $data['success']=TRUE;
+            $data['recibo']=$faltante->idrecibo;
             $this->template = false;
             header('Content-Type: application/json');
             echo json_encode($data);

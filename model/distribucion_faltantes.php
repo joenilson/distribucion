@@ -30,6 +30,7 @@ class distribucion_faltantes extends fs_model {
     public $codalmacen;
     public $idtransporte;
     public $idrecibo;
+    public $idreciboref;
     public $codtrans;
     public $conductor;
     public $nombreconductor;
@@ -42,7 +43,8 @@ class distribucion_faltantes extends fs_model {
     public $estado;
     public $coddivisa;
     public $codcuenta;
-    public $cuenta;
+    public $idsubcuenta;
+    public $idasiento;
     public $dc;
     public $usuario_creacion;
     public $fecha_creacion;
@@ -54,13 +56,14 @@ class distribucion_faltantes extends fs_model {
     public $distribucion_transporte;
     
     public function __construct($t = false) {
-        parent::__construct('distribucion_transporte','plugins/distribucion/');
+        parent::__construct('distribucion_faltantes','plugins/distribucion/');
         if($t)
         {
             $this->idempresa = $t['idempresa'];
             $this->codalmacen = $t['codalmacen'];
             $this->idtransporte = $t['idtransporte'];
             $this->idrecibo = $t['idrecibo'];
+            $this->idreciboref = $t['idreciboref'];
             $this->codtrans = $t['codtrans'];
             $this->conductor = $t['conductor'];
             $this->nombreconductor = $t['nombreconductor'];
@@ -73,7 +76,8 @@ class distribucion_faltantes extends fs_model {
             $this->estado = $t['estado'];
             $this->coddivisa = $t['coddivisa'];
             $this->codcuenta = $t['codcuenta'];
-            $this->cuenta = $t['cuenta'];
+            $this->idsubcuenta = $t['idsubcuenta'];
+            $this->idasiento = $t['idasiento'];
             $this->dc = $t['dc'];
             $this->usuario_creacion = $t['usuario_creacion'];
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
@@ -86,6 +90,7 @@ class distribucion_faltantes extends fs_model {
             $this->codalmacen = null;
             $this->idtransporte = null;
             $this->idrecibo = null;
+            $this->idreciboref = null;
             $this->codtrans = null;
             $this->conductor = null;
             $this->nombreconductor = null;
@@ -98,7 +103,8 @@ class distribucion_faltantes extends fs_model {
             $this->estado = null;
             $this->coddivisa = null;
             $this->codcuenta = null;
-            $this->cuenta = null;
+            $this->idsubcuenta = null;
+            $this->idasiento = null;
             $this->dc = null;
             $this->usuario_creacion = null;
             $this->fecha_creacion = Date('d-m-Y H:i');
@@ -124,7 +130,7 @@ class distribucion_faltantes extends fs_model {
     }
     
     public function getNextId(){
-        $data = $this->db->select("SELECT max(idtransporte) FROM distribucion_faltantes WHERE ".
+        $data = $this->db->select("SELECT max(idrecibo) FROM distribucion_faltantes WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen).";");
         $id = $data[0]['max'];
@@ -133,7 +139,7 @@ class distribucion_faltantes extends fs_model {
     }
     
     public function exists() {
-        if(is_null($this->idtransporte))
+        if(is_null($this->idrecibo))
         {
             return false;
         }
@@ -142,7 +148,8 @@ class distribucion_faltantes extends fs_model {
             return $this->db->select("SELECT * FROM distribucion_faltantes WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
-                    "idtransporte = ".$this->intval($this->idordencarga).";");
+                    "idtransporte = ".$this->intval($this->idtransporte)." AND ".
+                    "idrecibo = ".$this->intval($this->idrecibo).";");
         }
     }
     
@@ -151,48 +158,50 @@ class distribucion_faltantes extends fs_model {
         {
             $sql = "UPDATE distribucion_faltantes SET ".
                     "codalmacen = ".$this->var2str($this->codalmacen).", ".
-                    "idordencarga = ".$this->intval($this->idordencarga).", ".
-                    "codalmacen_dest = ".$this->var2str($this->codalmacen_dest).", ".
                     "codtrans = ".$this->var2str($this->codtrans).", ".
-                    "unidad = ".$this->var2str($this->unidad).", ".
-                    "tipounidad = ".$this->intval($this->tipounidad).", ".
                     "conductor = ".$this->var2str($this->conductor).", ".
-                    "tipolicencia = ".$this->var2str($this->tipolicencia).", ".
-                    "fecha = ".$this->var2str($this->fecha).", ".
+                    "nombreconductor = ".$this->var2str($this->nombreconductor).", ".
+                    "idsubcuenta = ".$this->intval($this->idsubcuenta).", ".
+                    "codcuenta = ".$this->var2str($this->codcuenta).", ".
+                    "tipo = ".$this->var2str($this->tipo).", ".
+                    "dc = ".$this->var2str($this->dc).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
                     "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
                     "WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                    "idrecibo = ".$this->intval($this->idrecibo)." AND ".
                     "idtransporte = ".$this->intval($this->idtransporte).";";
-            
             return $this->db->exec($sql);
         }
         else
         {
-            $this->idtransporte = $this->getNextId();
-            $sql = "INSERT INTO distribucion_faltantes ( idempresa, codalmacen, idtransporte, idordencarga, codalmacen_dest, fecha, codtrans, unidad, tipounidad, conductor, tipolicencia, totalcantidad, totalpeso, estado, despachado, liquidado, usuario_creacion, fecha_creacion ) VALUES (".
+            $this->idrecibo = $this->getNextId();
+            $sql = "INSERT INTO distribucion_faltantes ( idempresa, codalmacen, idtransporte, idrecibo, codtrans, conductor, nombreconductor, descripcion, tipo, importe, coddivisa, dc, fecha, fechav, fechap, estado, idsubcuenta, idasiento, codcuenta, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
                     $this->var2str($this->codalmacen).", ".
                     $this->intval($this->idtransporte).", ".
-                    $this->intval($this->idordencarga).", ".
-                    $this->var2str($this->codalmacen_dest).", ".
-                    $this->var2str($this->fecha).", ".
+                    $this->intval($this->idrecibo).", ".
                     $this->var2str($this->codtrans).", ".
-                    $this->var2str($this->unidad).", ".
-                    $this->intval($this->tipounidad).", ".
                     $this->var2str($this->conductor).", ".
-                    $this->var2str($this->tipolicencia).", ".
-                    $this->intval($this->totalcantidad).", ".
-                    $this->intval($this->totalpeso).", ".
+                    $this->var2str($this->nombreconductor).", ".
+                    $this->var2str($this->descripcion).", ".
+                    $this->var2str($this->tipo).", ".
+                    $this->intval($this->importe).", ".
+                    $this->var2str($this->coddivisa).", ".
+                    $this->var2str($this->dc).", ".
+                    $this->var2str($this->fecha).", ".
+                    $this->var2str($this->fechav).", ".
+                    $this->var2str($this->fechap).", ".
                     $this->var2str($this->estado).", ".
-                    $this->var2str($this->despachado).", ".
-                    $this->var2str($this->cargado).", ".
+                    $this->var2str($this->idsubcuenta).", ".
+                    $this->var2str($this->idasiento).", ".
+                    $this->var2str($this->codcuenta).", ".
                     $this->var2str($this->usuario_creacion).", ".
                     $this->var2str($this->fecha_creacion).");";
             if($this->db->exec($sql))
             {
-                return $this->idtransporte;
+                return $this->idrecibo;
             }
             else
             {
@@ -204,50 +213,21 @@ class distribucion_faltantes extends fs_model {
     public function delete() {
         $sql = "DELETE FROM distribucion_faltantes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
+                "idrecibo = ".$this->intval($this->idrecibo)." AND ".
                 "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "idtransporte = ".$this->intval($this->idtransporte).";";
         return $this->db->exec($sql);
     }
     
-    public function asignar_transporte(){
+    public function confirmar_pago(){
         $sql = "UPDATE distribucion_faltantes SET ".
-                    "idordencarga = ".$this->var2str($this->idordencarga).", ".
+                    "estado = ".$this->var2str($this->estado).", ".
+                    "fechap = ".$this->var2str($this->fechap).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
                     "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
                     "WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
-                    "idtransporte = ".$this->intval($this->idtransporte).";";
-        if($this->db->exec($sql)){
-            return true;
-        }else{
-            return false;
-        }
-    }
-    
-    public function confirmar_despacho(){
-        $sql = "UPDATE distribucion_faltantes SET ".
-                    "despachado = ".$this->var2str($this->despachado).", ".
-                    "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
-                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
-                    "WHERE ".
-                    "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
-                    "idtransporte = ".$this->intval($this->idtransporte).";";
-        if($this->db->exec($sql)){
-            return true;
-        }else{
-            return false;
-        }
-    }
-    
-    public function confirmar_liquidada(){
-        $sql = "UPDATE distribucion_faltantes SET ".
-                    "liquidado = ".$this->var2str($this->liquidado).", ".
-                    "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
-                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
-                    "WHERE ".
-                    "idempresa = ".$this->intval($this->idempresa)." AND ".
+                    "idrecibo = ".$this->intval($this->idrecibo)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                     "idtransporte = ".$this->intval($this->idtransporte).";";
         if($this->db->exec($sql)){
@@ -317,10 +297,25 @@ class distribucion_faltantes extends fs_model {
         return $lista;
     }
     
-    public function activos($idempresa)
+    public function all_conductor($idempresa,$conductor)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND conductor = ".$this->var2str($conductor)." ORDER BY codalmacen, fecha, conductor;");
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $lista[] = new distribucion_faltantes($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function all_conductor_almacen($idempresa,$conductor,$codalmacen)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND conductor = ".$this->var2str($conductor)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, conductor;");
         
         if($data)
         {
@@ -332,10 +327,10 @@ class distribucion_faltantes extends fs_model {
         return $lista;
     }
     
-    public function activos_almacen($idempresa,$codalmacen)
+    public function all_estado($idempresa,$estado)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -347,10 +342,10 @@ class distribucion_faltantes extends fs_model {
         return $lista;
     }
     
-    public function activos_agencia($idempresa,$codtrans)
+    public function all_estado_almacen($idempresa,$codalmacen,$estado)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, codtrans;");
         
         if($data)
         {
@@ -362,10 +357,55 @@ class distribucion_faltantes extends fs_model {
         return $lista;
     }
     
-    public function activos_agencia_almacen($idempresa,$codtrans,$codalmacen)
+    public function all_estado_agencia($idempresa,$codtrans,$estado)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, codtrans;");
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $lista[] = new distribucion_faltantes($d);
+            }
+        }
+        return $lista;
+    }
+    
+    public function all_estado_agencia_almacen($idempresa,$codtrans,$codalmacen,$estado)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, codtrans;");
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $lista[] = new distribucion_faltantes($d);
+            }
+        }
+        return $lista;
+    }
+    
+    public function all_estado_conductor($idempresa,$conductor,$estado)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND conductor = ".$this->var2str($conductor)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, conductor;");
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $lista[] = new distribucion_faltantes($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function all_estado_conductor_almacen($idempresa,$conductor,$codalmacen,$estado)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND conductor = ".$this->var2str($conductor)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, conductor;");
         
         if($data)
         {

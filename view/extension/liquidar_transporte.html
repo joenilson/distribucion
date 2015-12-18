@@ -31,14 +31,22 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         title: "<b>Generar faltante al Transporte {$fsc->transporte[0]->idtransporte} <br />Conductor:  {$fsc->transporte[0]->conductor_nombre}</b>",
         message: '<div class="row">  ' +
             '<div class="col-md-12"> ' +
-            '<form class="form-horizontal"> ' +
-            '<input id="codtrans" name="codtrans" type="hidden" value=""{$fsc->transporte[0]->codtrans}> ' +
-            '<input id="conductor" name="conductor" type="hidden" value=""{$fsc->transporte[0]->conductor}> ' +
+            '<form id="f_faltante" class="form-horizontal"> ' +
+            '<input id="codtrans" name="idtransporte" type="hidden" value="{$fsc->transporte[0]->idtransporte}"> ' +
+            '<input id="codtrans" name="codalmacen" type="hidden" value="{$fsc->transporte[0]->codalmacen}"> ' +
+            '<input id="codtrans" name="codtrans" type="hidden" value="{$fsc->transporte[0]->codtrans}"> ' +
+            '<input id="conductor" name="conductor" type="hidden" value="{$fsc->transporte[0]->conductor}"> ' +
             '<div class="form-group"> ' +
             '<label class="col-md-4 control-label" for="monto">Monto</label> ' +
             '<div class="col-md-6"> ' +
             '<input id="monto" name="monto" type="number" placeholder="Monto" class="form-control input-sm"> ' +
             '<span class="help-block">Ingrese la cantidad del faltante</span> </div> ' +
+            '</div> ' +
+            '<div class="form-group"> ' +
+            '<label class="col-md-4 control-label" for="descripcion">Descripcion (opcional)</label> ' +
+            '<div class="col-md-6"> ' +
+            '<input id="descripcion" name="descripcion" type="text" class="form-control input-sm"> ' +
+            '<span class="help-block">Ingrese una descripción relevante al faltante</span> </div> ' +
             '</div> ' +
             '<div class="form-group"> ' +
             '<label class="col-md-4 control-label" for="tipo_faltante">Tipo de Faltante</label> ' +
@@ -55,7 +63,21 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 label: "Gardar Faltante",
                 className: "btn-success",
                 callback: function () {
-                    bootbox.alert("Faltante Generado!");
+                    console.log($('#f_faltante').serialize());
+                    $.ajax({
+                        type: 'GET',
+                        url: '{$fsc->url()}',
+                        async: false,
+                        data: 'type=crear-faltante&'+$('#f_faltante').serialize(),
+                        success : function(datos) {
+                          bootbox.alert("Faltante Generado!", function() {
+                             window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte[0]->idtransporte}-{$fsc->transporte[0]->codalmacen}");
+                         });
+                        },
+                        error: function(datos) {
+                            bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                        }
+                    }); 
                 }
             },
             danger: {
@@ -134,7 +156,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
       $('#modal_liquidar_factura').on('hidden.bs.modal', function () {
           window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte[0]->idtransporte}-{$fsc->transporte[0]->codalmacen}");
       }); 
-      
+            
       $("#ac_cliente").autocomplete({
          serviceUrl: '{$fsc->url()}',
          paramName: 'buscar_cliente',
