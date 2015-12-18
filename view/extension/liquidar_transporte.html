@@ -28,44 +28,55 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
    
    function generarFaltante(){
        bootbox.dialog({
-                title: "<b>Generar faltante al Transporte {$fsc->transporte[0]->idtransporte}</b>",
-                message: '<div class="row">  ' +
-                    '<div class="col-md-12"> ' +
-                    '<form class="form-horizontal"> ' +
-                    '<div class="form-group"> ' +
-                    '<label class="col-md-4 control-label" for="monto">Monto</label> ' +
-                    '<div class="col-md-6"> ' +
-                    '<input id="monto" name="monto" type="number" placeholder="Monto" class="form-control input-sm"> ' +
-                    '<span class="help-block">Ingrese la cantidad del faltante</span> </div> ' +
-                    '</div> ' +
-                    '<div class="form-group"> ' +
-                    '<label class="col-md-4 control-label" for="tipo_faltante">Tipo de Faltante</label> ' +
-                    '<div class="col-md-4"> <div class="radio"> <label for="tipo_faltante-0"> ' +
-                    '<input type="radio" name="tipo_faltante" id="tipo_faltante-0" value="perdida" checked="checked">' +
-                    'Perdida </label> ' +
-                    '</div><div class="radio"> <label for="tipo_faltante-1"> ' +
-                    '<input type="radio" name="tipo_faltante" id="tipo_faltante-1" value="gasto">Gasto</label> ' +
-                    '</div> ' +
-                    '</div> </div>' +
-                    '</form> </div>  </div>',
-                buttons: {
-                    success: {
-                        label: "Gardar Faltante",
-                        className: "btn-success",
-                        callback: function () {
-                            bootbox.alert("Faltante Generado!");
-                        }
-                    },
-                    danger: {
-                      label: "Cancelar",
-                      className: "btn-danger",
-                      callback: function() {
-                        this.hide();
-                      }
-                    }
+        title: "<b>Generar faltante al Transporte {$fsc->transporte[0]->idtransporte} <br />Conductor:  {$fsc->transporte[0]->conductor_nombre}</b>",
+        message: '<div class="row">  ' +
+            '<div class="col-md-12"> ' +
+            '<form class="form-horizontal"> ' +
+            '<input id="codtrans" name="codtrans" type="hidden" value=""{$fsc->transporte[0]->codtrans}> ' +
+            '<input id="conductor" name="conductor" type="hidden" value=""{$fsc->transporte[0]->conductor}> ' +
+            '<div class="form-group"> ' +
+            '<label class="col-md-4 control-label" for="monto">Monto</label> ' +
+            '<div class="col-md-6"> ' +
+            '<input id="monto" name="monto" type="number" placeholder="Monto" class="form-control input-sm"> ' +
+            '<span class="help-block">Ingrese la cantidad del faltante</span> </div> ' +
+            '</div> ' +
+            '<div class="form-group"> ' +
+            '<label class="col-md-4 control-label" for="tipo_faltante">Tipo de Faltante</label> ' +
+            '<div class="col-md-4"> <div class="radio"> <label for="tipo_faltante-0"> ' +
+            '<input type="radio" name="tipo_faltante" id="tipo_faltante-0" value="perdida" checked="checked">' +
+            'Perdida </label> ' +
+            '</div><div class="radio"> <label for="tipo_faltante-1"> ' +
+            '<input type="radio" name="tipo_faltante" id="tipo_faltante-1" value="gasto">Gasto</label> ' +
+            '</div> ' +
+            '</div> </div>' +
+            '</form> </div>  </div>',
+        buttons: {
+            success: {
+                label: "Gardar Faltante",
+                className: "btn-success",
+                callback: function () {
+                    bootbox.alert("Faltante Generado!");
                 }
+            },
+            danger: {
+              label: "Cancelar",
+              className: "btn-danger",
+              callback: function() {
+                this.hide();
+              }
             }
-        );
+        }
+    });
+   }
+   
+   function liquidarFactura(url){
+        $('#modal_liquidar_factura').modal('show');
+        $("#liquidar_factura").detach();
+        $("<iframe id='liquidar_factura' />")
+          .attr('src', url)
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_body_liquidar_factura');
    }
    
    function ingresarPago(factura,almacen){
@@ -120,6 +131,10 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
    }
    
    $(document).ready(function() {
+      $('#modal_liquidar_factura').on('hidden.bs.modal', function () {
+          window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte[0]->idtransporte}-{$fsc->transporte[0]->codalmacen}");
+      }); 
+      
       $("#ac_cliente").autocomplete({
          serviceUrl: '{$fsc->url()}',
          paramName: 'buscar_cliente',
@@ -221,7 +236,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                        <span class="glyphicon glyphicon-edit"></span> &nbsp; Quitar Pago
                                     </button>
                                 {else}
-                                    <a href="{$value->enlace}" class="btn btn-sm btn-primary">
+                                <a href="#" class="btn btn-sm btn-primary" onclick="liquidarFactura('{$value->enlace}')">
                                        <span class="glyphicon glyphicon-ok"></span> &nbsp; Pagar / Devolucionar
                                     </a>
                                 {/if}
@@ -261,6 +276,19 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                  </div>
             </div>
         </form>
+    </div>
+</div>
+<div class="modal" id="modal_liquidar_factura">
+    <div class="modal-dialog" style="width: 99%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Liquidar Factura</h4>
+            </div>
+            <div class="modal-body" id='modal_body_liquidar_factura'>
+                
+            </div>
+        </div>
     </div>
 </div>
 {include="footer"}
