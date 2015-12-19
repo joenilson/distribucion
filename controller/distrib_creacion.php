@@ -29,10 +29,12 @@ require_model('distribucion_lineastransporte.php');
 require_model('distribucion_faltantes.php');
 require_model('cliente.php');
 require_model('articulo.php');
+require_model('asiento');
+require_model('ejercicio');
+
 require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
 require_once 'helper_ordencarga.php';
 require_once 'helper_transportes.php';
-
 /**
  * Description of distribucion_creacion
  *
@@ -54,6 +56,9 @@ class distrib_creacion extends fs_controller {
     public $facturastransporte;
     public $factura_cliente;
     public $faltantes;
+    public $asiento;
+    public $ejercicio;
+    
     public function __construct() {
         parent::__construct(__CLASS__, '5 - Transportes', 'distribucion');
     }
@@ -66,6 +71,8 @@ class distrib_creacion extends fs_controller {
         $this->distrib_facturas = new distribucion_ordenescarga_facturas();
         $this->factura_cliente = new factura_cliente();
         $this->faltante = new distribucion_faltantes();
+        $this->asiento = new asiento();
+        $this->ejercicio = new ejercicio();
         
         $type = \filter_input(INPUT_GET, 'type');
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
@@ -171,9 +178,24 @@ class distrib_creacion extends fs_controller {
             $faltante->importe = $importe;
             $faltante->tipo = $tipo;
             $faltante->estado = "pendiente";
-            $faltante->save();
-            $data['success']=TRUE;
-            $data['recibo']=$faltante->idrecibo;
+            if($faltante->save()){
+                $data['success']=TRUE;
+                $data['recibo']=$faltante->idrecibo;
+                $ejercicio0 = $this->ejercicio->get_by_fecha($faltante->fecha);
+                $asiento = $this->asiento;
+                $asiento->codejercicio = $ejercicio0->codejercicio;
+                $asiento->codplanasiento = $ejercicio0->plancontable;
+                $asiento->concepto = "Faltante del Transporte ".$faltante->idtransporte;
+                $asiento->documento = $faltante->idtransporte;
+                $asiento->fecha = $faltante->fecha;
+                $asiento->importe = $faltante->importe;
+                $asiento->tipodocumento = 'Transporte de Ventas';
+                $asiento->editable = false;
+                
+            }else{
+                $data['success']=FALSE;
+                $data['recibo']=NULL;
+            }
             $this->template = false;
             header('Content-Type: application/json');
             echo json_encode($data);

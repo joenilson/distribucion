@@ -17,9 +17,13 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
+require_model('cuenta');
+require_model('subcuenta');
 require_model('distribucion_conductores');
 require_model('distribucion_unidades');
 require_model('distribucion_transporte');
+require_model('distribucion_subcuentas_faltantes');
+require_model('ejercicio');
 /**
  * Description of distribucion_faltantes
  *
@@ -433,5 +437,73 @@ class distribucion_faltantes extends fs_model {
             }
         }
         return $lista;
+    }
+    
+    public function get_subcuentas()
+   {
+      $subclist = array();
+      $subc = new distribucion_subcuentas_faltantes();
+      foreach($subc->all_subcuentas_conductor($this->conductor) as $s)
+      {
+         $s2 = $s->get_subcuenta();
+         if($s2){
+            $subclist[] = $s2;
+         }else{
+            $s->delete();
+         }
+      }
+      
+      return $subclist;
+   }
+    
+    public function get_subcuenta($ejercicio){
+        
+      $subcuenta = FALSE;
+      foreach($this->get_subcuentas() as $s)
+      {
+         if($s->codejercicio == $ejercicio)
+         {
+            $subcuenta = $s;
+            break;
+         }
+      }
+      if(!$subcuenta)
+      {
+         /// intentamos crear la subcuenta y asociarla
+         $continuar = TRUE;
+         $cuentaesp = ($this->codtrans == 'LOCAL')?'CXCPRO':'CXCTER';
+         $cuenta = new cuenta();
+         $ctafaltante = $cuenta->get_cuentaesp($cuentaesp, $ejercicio);
+         if($ctafaltante)
+         {
+            $subc0 = $ctafaltante->new_subcuenta($this->conductor);
+            $subc0->descripcion = $this->nombreconductor;
+            if( !$subc0->save() )
+            {
+               $this->new_error_msg('Imposible crear la subcuenta para el conductor '.$this->nombreconductor);
+               $continuar = FALSE;
+            }
+            
+            if($continuar)
+            {
+               $scconductor = new distribucion_subcuentas_faltantes();
+               $scconductor->idempresa = $this->idempresa;
+               $scconductor->conductor = $this->conductor;
+               $scconductor->codejercicio = $ejercicio;
+               $scconductor->codsubcuenta = $subc0->codsubcuenta;
+               $scconductor->idsubcuenta = $subc0->idsubcuenta;
+               if( $scconductor->save() )
+               {
+                  $subcuenta = $subc0;
+               }
+               else
+                  $this->new_error_msg('Imposible asociar la subcuenta para el conductor '.$this->nombreconductor);
+            }
+         }
+         else
+            $this->new_error_msg('No se encuentra ninguna cuenta especial para Faltantes Propios (CXCPRO) o de Terceros (CXCTER).');
+      }
+      
+      return $subcuenta;
     }
 }
