@@ -172,8 +172,8 @@ class distribucion_ordenescarga extends fs_model {
                     $this->intval($this->tipounidad).", ".
                     $this->var2str($this->conductor).", ".
                     $this->var2str($this->tipolicencia).", ".
-                    $this->intval($this->totalcantidad).", ".
-                    $this->intval($this->totalpeso).", ".
+                    $this->var2str($this->totalcantidad).", ".
+                    $this->var2str($this->totalpeso).", ".
                     $this->var2str($this->observaciones).", ".
                     $this->var2str($this->estado).", ".
                     $this->var2str($this->despachado).", ".

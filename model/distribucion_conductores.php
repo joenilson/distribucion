@@ -31,6 +31,8 @@ class distribucion_conductores extends fs_model {
     public $licencia;
     public $tipolicencia;
     public $estado;
+    public $idsubcuenta;
+    public $codsubcuenta;
     public $usuario_creacion;
     public $fecha_creacion;
     public $usuario_modificacion;
@@ -46,6 +48,8 @@ class distribucion_conductores extends fs_model {
             $this->nombre = $t['nombre'];
             $this->licencia = $t['licencia'];
             $this->tipolicencia = $t['tipolicencia'];
+            $this->idsubcuenta = $t['idsubcuenta'];
+            $this->codsubcuenta = $t['codsubcuenta'];
             $this->estado = $this->str2bool($t['estado']);
             $this->usuario_creacion = $t['usuario_creacion'];
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
@@ -60,6 +64,8 @@ class distribucion_conductores extends fs_model {
             $this->nombre = null;
             $this->licencia = null;
             $this->tipolicencia = null;
+            $this->idsubcuenta = null;
+            $this->codsubcuenta = null;
             $this->estado = false;
             $this->usuario_creacion = null;
             $this->fecha_creacion = Date('d-m-Y H:i');
@@ -97,6 +103,8 @@ class distribucion_conductores extends fs_model {
                     "codtrans = ".$this->var2str($this->codtrans).", ".
                     "nombre = ".$this->var2str($this->nombre).", ".
                     "tipolicencia = ".$this->var2str($this->tipolicencia).", ".
+                    "idsubcuenta = ".$this->var2str($this->idsubcuenta).", ".
+                    "codsubcuenta = ".$this->var2str($this->codsubcuenta).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
                     "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).", ".
                     "estado = ".$this->var2str($this->estado).

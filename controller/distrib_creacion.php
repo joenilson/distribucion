@@ -27,6 +27,9 @@ require_model('distribucion_lineasordenescarga.php');
 require_model('distribucion_transporte.php');
 require_model('distribucion_lineastransporte.php');
 require_model('distribucion_faltantes.php');
+
+require_model('distribucion_subcuentas_faltantes.php');
+
 require_model('cliente.php');
 require_model('articulo.php');
 require_model('asiento');
@@ -56,6 +59,7 @@ class distrib_creacion extends fs_controller {
     public $facturastransporte;
     public $factura_cliente;
     public $faltantes;
+    public $subcuentas_faltantes;
     public $asiento;
     public $ejercicio;
     
@@ -71,6 +75,7 @@ class distrib_creacion extends fs_controller {
         $this->distrib_facturas = new distribucion_ordenescarga_facturas();
         $this->factura_cliente = new factura_cliente();
         $this->faltante = new distribucion_faltantes();
+        $this->subcuentas_faltantes = new distribucion_subcuentas_faltantes();
         $this->asiento = new asiento();
         $this->ejercicio = new ejercicio();
         
@@ -170,7 +175,7 @@ class distrib_creacion extends fs_controller {
             $faltante->idreciboref = NULL;
             $faltante->codtrans = $codtrans;
             $faltante->conductor = $conductor;
-            $faltante->nombreconductor = $this->transporte->conductor_nombre;
+            $faltante->nombreconductor = $this->transporte[0]->conductor_nombre;
             $faltante->fecha = Date('d-m-Y');
             $faltante->fechav = Date('d-m-Y', strtotime($faltante->fecha.' +1month'));
             $faltante->fecha_creacion = Date('d-m-Y H:i');
@@ -179,19 +184,15 @@ class distrib_creacion extends fs_controller {
             $faltante->tipo = $tipo;
             $faltante->estado = "pendiente";
             if($faltante->save()){
-                $data['success']=TRUE;
-                $data['recibo']=$faltante->idrecibo;
                 $ejercicio0 = $this->ejercicio->get_by_fecha($faltante->fecha);
-                $asiento = $this->asiento;
-                $asiento->codejercicio = $ejercicio0->codejercicio;
-                $asiento->codplanasiento = $ejercicio0->plancontable;
-                $asiento->concepto = "Faltante del Transporte ".$faltante->idtransporte;
-                $asiento->documento = $faltante->idtransporte;
-                $asiento->fecha = $faltante->fecha;
-                $asiento->importe = $faltante->importe;
-                $asiento->tipodocumento = 'Transporte de Ventas';
-                $asiento->editable = false;
-                
+                if($faltante->generar_asiento_faltante($faltante, $ejercicio0->codejercicio)){
+                    $data['success']=TRUE;
+                    $data['ejercicio'] = $ejercicio0->codejercicio;
+                    $data['recibo']=$faltante->idrecibo;
+                }
+                $data['success']=FALSE;
+                $data['ejercicio'] = $ejercicio0->codejercicio;
+                $data['recibo']=$faltante->idrecibo;
             }else{
                 $data['success']=FALSE;
                 $data['recibo']=NULL;

@@ -58,7 +58,7 @@ class distribucion_faltantes extends fs_model {
     public $distribucion_conductores;
     public $distribucion_unidades;
     public $distribucion_transporte;
-    
+    public $ejercicio;
     public function __construct($t = false) {
         parent::__construct('distribucion_faltantes','plugins/distribucion/');
         if($t)
@@ -76,7 +76,7 @@ class distribucion_faltantes extends fs_model {
             $this->fechav = $t['fechav'];
             $this->fechap = $t['fechap'];
             $this->tipo = $t['tipo'];
-            $this->importe = $t['importe'];
+            $this->importe = floatval($t['importe']);
             $this->estado = $t['estado'];
             $this->coddivisa = $t['coddivisa'];
             $this->codcuenta = $t['codcuenta'];
@@ -119,6 +119,7 @@ class distribucion_faltantes extends fs_model {
         $this->distribucion_conductores = new distribucion_conductores();
         $this->distribucion_unidades = new distribucion_unidades();
         $this->distribucion_transporte = new distribucion_transporte();
+        $this->ejercicio = new ejercicio();
     }
     
     public function url(){
@@ -130,6 +131,7 @@ class distribucion_faltantes extends fs_model {
     }
     
     protected function install() {
+        new distribucion_subcuentas_faltantes();
         return "";
     }
     
@@ -191,7 +193,7 @@ class distribucion_faltantes extends fs_model {
                     $this->var2str($this->nombreconductor).", ".
                     $this->var2str($this->descripcion).", ".
                     $this->var2str($this->tipo).", ".
-                    $this->intval($this->importe).", ".
+                    $this->var2str($this->importe).", ".
                     $this->var2str($this->coddivisa).", ".
                     $this->var2str($this->dc).", ".
                     $this->var2str($this->fecha).", ".
@@ -439,11 +441,11 @@ class distribucion_faltantes extends fs_model {
         return $lista;
     }
     
-    public function get_subcuentas()
+   public function get_subcuentas()
    {
       $subclist = array();
       $subc = new distribucion_subcuentas_faltantes();
-      foreach($subc->all_subcuentas_conductor($this->conductor) as $s)
+      foreach($subc->all_from_conductor($this->conductor) as $s)
       {
          $s2 = $s->get_subcuenta();
          if($s2){
@@ -506,4 +508,95 @@ class distribucion_faltantes extends fs_model {
       
       return $subcuenta;
     }
+    
+    public function generar_asiento_faltante(&$faltante, $ejercicio)
+    {
+      $ok = FALSE;
+      $this->asiento = FALSE;
+      $tipo = $faltante->estado;
+      $conductor0 = new distribucion_conductores();
+      $subcuenta_conductor = FALSE;
+      $concepto = ($tipo == 'pendiente') ? "Faltante " : "Pago Faltante ";
+      $conductor = $conductor0->get($faltante->idempresa, $faltante->conductor);
+      if($conductor)
+      {
+         $subcuenta_conductor = $this->get_subcuenta($ejercicio);
+      }
+      
+      if( !$subcuenta_conductor )
+      {
+         $eje0 = $this->ejercicio->get( $ejercicio );
+         $this->new_message("No se ha podido generar una subcuenta para el conductor
+            <a href='".$eje0->url()."'>¿Has importado los datos del ejercicio?</a>");
+         
+         if(!$this->soloasiento)
+         {
+            $this->new_message("Aun así el <a href='".$faltante->url()."'>faltante</a> se ha generado correctamente,
+            pero sin asiento contable.");
+         }
+      }
+      else
+      {
+         $asiento = new asiento();
+         $asiento->codejercicio = $ejercicio;
+         $asiento->concepto = $concepto . $faltante->idrecibo . " - " . $faltante->nombreconductor;
+         $asiento->documento = $faltante->idrecibo;
+         $asiento->editable = FALSE;
+         $asiento->fecha = $faltante->fecha;
+         $asiento->importe = $faltante->importe;
+         $asiento->tipodocumento = $concepto. ' Liquidacion';
+         if( $asiento->save() )
+         {
+            $asiento_correcto = TRUE;
+            $subcuenta = new subcuenta();
+            $partida0 = new partida();
+            $partida0->idasiento = $asiento->idasiento;
+            $partida0->concepto = $asiento->concepto;
+            $partida0->idsubcuenta = $subcuenta_conductor->idsubcuenta;
+            $partida0->codsubcuenta = $subcuenta_conductor->codsubcuenta;
+            if ($tipo == 'pendiente') {
+                $partida0->debe = $faltante->importe;
+            } elseif ($tipo == 'pagado') {
+                $partida0->haber = $faltante->importe;
+            }
+            $partida0->coddivisa = $faltante->coddivisa;
+            $partida0->tasaconv = 1;
+            $partida0->codserie = NULL;
+            if( !$partida0->save() )
+            {
+               $asiento_correcto = FALSE;
+               $this->new_error_msg("¡Imposible generar la partida para la subcuenta ".$partida0->codsubcuenta."!");
+            }
+            
+            if($asiento_correcto)
+            {
+               $faltante->idasiento = $asiento->idasiento;
+               $faltante->idsubcuenta = $partida0->idsubcuenta;
+               $faltante->codcuenta = $partida0->codsubcuenta;
+               if( $faltante->save() )
+               {
+                  $ok = TRUE;
+                  $this->asiento = $asiento;
+               }
+               else
+                  $this->new_error_msg("¡Imposible añadir el asiento al faltante!");
+            }
+            else
+            {
+               if( $asiento->delete() )
+               {
+                  $this->new_message("El asiento se ha borrado.");
+               }
+               else
+                  $this->new_error_msg("¡Imposible borrar el asiento!");
+            }
+         }
+         else
+         {
+            $this->new_error_msg("¡Imposible guardar el asiento!");
+         }
+      }
+      
+      return $ok;
+   }
 }
