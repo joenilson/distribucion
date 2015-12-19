@@ -526,13 +526,11 @@ class distribucion_faltantes extends fs_model {
       if( !$subcuenta_conductor )
       {
          $eje0 = $this->ejercicio->get( $ejercicio );
-         $this->new_message("No se ha podido generar una subcuenta para el conductor
-            <a href='".$eje0->url()."'>¿Has importado los datos del ejercicio?</a>");
+         return "No se ha podido generar una subcuenta para el conductor <a href='".$eje0->url()."'>¿Has importado los datos del ejercicio?</a>";
          
          if(!$this->soloasiento)
          {
-            $this->new_message("Aun así el <a href='".$faltante->url()."'>faltante</a> se ha generado correctamente,
-            pero sin asiento contable.");
+            return "Aun así el <a href='".$faltante->url()."'>faltante</a> se ha generado correctamente, pero sin asiento contable.";
          }
       }
       else
@@ -565,7 +563,6 @@ class distribucion_faltantes extends fs_model {
             if( !$partida0->save() )
             {
                $asiento_correcto = FALSE;
-               $this->new_error_msg("¡Imposible generar la partida para la subcuenta ".$partida0->codsubcuenta."!");
             }
             
             if($asiento_correcto)
@@ -579,21 +576,21 @@ class distribucion_faltantes extends fs_model {
                   $this->asiento = $asiento;
                }
                else
-                  $this->new_error_msg("¡Imposible añadir el asiento al faltante!");
+                  return "¡Imposible añadir el asiento al faltante!";
             }
             else
             {
                if( $asiento->delete() )
                {
-                  $this->new_message("El asiento se ha borrado.");
+                return "El asiento se ha borrado.";
                }
                else
-                  $this->new_error_msg("¡Imposible borrar el asiento!");
+                  return "¡Imposible borrar el asiento!";
             }
          }
          else
          {
-            $this->new_error_msg("¡Imposible guardar el asiento!");
+            return "¡Imposible guardar el asiento!";
          }
       }
       

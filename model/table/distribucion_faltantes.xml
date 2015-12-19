@@ -17,7 +17,7 @@
     </columna>
     <columna>
         <nombre>codcuenta</nombre>
-        <tipo>character varying(10)</tipo>
+        <tipo>character varying(15)</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
