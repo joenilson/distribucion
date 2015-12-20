@@ -31,6 +31,8 @@ class distribucion_transporte extends fs_model {
     public $idtransporte;
     public $codalmacen_dest;
     public $fecha;
+    public $fechad;
+    public $fechal;
     public $codtrans;
     public $unidad;
     public $tipounidad;
@@ -59,6 +61,8 @@ class distribucion_transporte extends fs_model {
             $this->idtransporte = $t['idtransporte'];
             $this->codalmacen_dest = $t['codalmacen_dest'];
             $this->fecha = $t['fecha'];
+            $this->fechad = $t['fechad'];
+            $this->fechal = $t['fechal'];
             $this->codtrans = $t['codtrans'];
             $this->unidad = $t['unidad'];
             $this->tipounidad = $t['tipounidad'];
@@ -82,6 +86,8 @@ class distribucion_transporte extends fs_model {
             $this->idtransporte = null;
             $this->codalmacen_dest = null;
             $this->fecha = null;
+            $this->fechad = null;
+            $this->fechal = null;
             $this->codtrans = null;
             $this->unidad = null;
             $this->tipounidad = null;
@@ -146,6 +152,8 @@ class distribucion_transporte extends fs_model {
                     "conductor = ".$this->var2str($this->conductor).", ".
                     "tipolicencia = ".$this->var2str($this->tipolicencia).", ".
                     "fecha = ".$this->var2str($this->fecha).", ".
+                    "fechad = ".$this->var2str($this->fechad).", ".
+                    "fechal = ".$this->var2str($this->fechal).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
                     "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
                     "WHERE ".
@@ -215,6 +223,7 @@ class distribucion_transporte extends fs_model {
     public function confirmar_despacho(){
         $sql = "UPDATE distribucion_transporte SET ".
                     "despachado = ".$this->var2str($this->despachado).", ".
+                    "fechad = ".$this->var2str($this->fechad).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
                     "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
                     "WHERE ".
@@ -231,6 +240,7 @@ class distribucion_transporte extends fs_model {
     public function confirmar_liquidada(){
         $sql = "UPDATE distribucion_transporte SET ".
                     "liquidado = ".$this->var2str($this->liquidado).", ".
+                    "fechal = ".$this->var2str($this->fechal).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
                     "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
                     "WHERE ".
@@ -366,7 +376,7 @@ class distribucion_transporte extends fs_model {
     
     public function get($idempresa,$idtransporte,$codalmacen)
     {
-        $lista = array();
+        $lista = FALSE;
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen).";");
         
         if($data)
@@ -376,7 +386,7 @@ class distribucion_transporte extends fs_model {
                 $valor_lista = new distribucion_transporte($d);
                 $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
                 $valor_lista->conductor_nombre = $datos_conductor[0]->nombre;
-                $lista[] = $valor_lista;
+                $lista = $valor_lista;
             }
         }
         return $lista;

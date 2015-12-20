@@ -55,56 +55,7 @@
    function nuevoTransporte(){
        $('#modal_nuevo_transporte').modal('show');
    }
-   
-   function generarTransporte(){
-       var checkboxValues = [];
-       var seguir = true;
-       $('input[name=imprimir]:checked').map(function() {
-           checkboxValues.push($(this).val());
-       });
-       if(checkboxValues.length === 0){
-           seguir = false;
-           alert('Error de informacion enviada a procesar, no ha seleccionado nada!');
-       }
-       
-       if(seguir){
-        var frase = (checkboxValues.length===1)?"el transporte seleccionado":"los transportes seleccionados";
-        bootbox.dialog({
-             message: "Esta seguro que quiere generar el transporte para "+frase+"?",
-             title: "Generar Transporte",
-             buttons: {
-               success: {
-                 label: "Confirmar",
-                 className: "btn-success",
-                 callback: function() {
-                     $.ajax({
-                       type: 'GET',
-                       url: '{$fsc->url()}',
-                       async: false,
-                       data: 'type=generar-transporte&ordencarga='+checkboxValues,
-                       success : function(datos) {
-                         bootbox.alert(datos.mensaje, function() {
-                            location.reload();
-                         });
-                       },
-                       error: function() {
-                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
-                       }
-                   });
-                 }
-               },
-               danger: {
-                 label: "Cancelar",
-                 className: "btn-danger",
-                 callback: function() {
-                   this.hide();
-                 }
-               }
-             }
-         });
-     }
-   }
-   
+
    function confirmarTransporte(id,almacen){
        var checkboxValues = [];
        var seguir = true;
@@ -118,10 +69,10 @@
            alert('Error de informacion enviada a procesar!');
        }
        if(seguir){
-        var frase = (checkboxValues.length===1)?"la orden de carga seleccionada":"las ordenes de carga seleccionadas";
+        var frase = (checkboxValues.length===1)?"del transporte seleccionado":"de los transportes seleccionados";
         bootbox.dialog({
-             message: "Esta seguro que quiere confirmar "+frase+"?",
-             title: "Confirmar Ordenes de Carga",
+             message: "Esta seguro que quiere confirmar el despacho "+frase+"?",
+             title: "Confirmar despacho de Transportes",
              buttons: {
                success: {
                  label: "Confirmar",
@@ -134,7 +85,7 @@
                        data: 'type=confirmar-transporte&transporte='+checkboxValues,
                        success : function(datos) {
                          bootbox.alert(datos.mensaje, function() {
-                            this.hide();
+                            window.location.assign("{$fsc->url}");
                          });
                        },
                        error: function() {

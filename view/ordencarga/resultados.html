@@ -32,7 +32,7 @@
             <th class="text-right">Fecha Reparto</th>
             <th class="text-center hidden-sm">Generada</th>
             <th class="text-center hidden-sm">Cargada</th>
-            <th class="text-center hidden-sm">Despachada</th>
+            <th class="text-center hidden-sm">Confirmada</th>
             <th></th>
          </tr>
       </thead>
@@ -72,7 +72,9 @@
          <td class="text-center hidden-sm">{if="$value->cargado"}<span class="glyphicon glyphicon-star"></span>{else}<span class="glyphicon glyphicon-star-empty"></span>{/if}</td>
          <td class="text-center hidden-sm">{if="$value->despachado"}<span class="glyphicon glyphicon-star"></span>{else}<span class="glyphicon glyphicon-star-empty"></span>{/if}</td>
          <td>
-            <button class="btn btn-sm btn-danger" title="Eliminar Orden de Carga"><span class="glyphicon glyphicon-trash"></span></button>
+            {if="!$value->cargado"}
+            <button type="button" class="btn btn-sm btn-danger" id="b_eliminar_ordencarga" onclick="eliminarOrdenCarga('{$value->idordencarga}','{$value->codalmacen}')" title="Eliminar Orden de Carga"><span class="glyphicon glyphicon-trash"></span></button>
+            {/if}
          </td>         
       </tr>
       {else}

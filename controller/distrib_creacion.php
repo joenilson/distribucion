@@ -79,6 +79,7 @@ class distrib_creacion extends fs_controller {
         $this->subcuentas_faltantes = new distribucion_subcuentas_faltantes();
         $this->asiento = new asiento();
         $this->ejercicio = new ejercicio();
+        $this->helper_transportes = new helper_transportes();
         
         $type = \filter_input(INPUT_GET, 'type');
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
@@ -112,8 +113,32 @@ class distrib_creacion extends fs_controller {
                 }
             }
             $pdfFile->pdf_mostrar();            
+        }elseif($type=='confirmar-transporte'){
+            $value_transporte = \filter_input(INPUT_GET, 'transporte');
+            $lista_transporte = explode(',', $value_transporte);
+            foreach($lista_transporte as $linea){
+                if($linea){
+                    $datos_transporte = explode('-', $linea);
+                    $idtransporte = $datos_transporte[0];
+                    $codalmacen = $datos_transporte[1];
+                    $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+                    $trans0->fechad = Date('d-m-Y');
+                    $trans0->despachado = TRUE;
+                    $trans0->fecha_modificacion = Date('d-m-Y H:i');
+                    $trans0->usuario_modificacion = $this->user->nick;
+                    if($trans0->confirmar_despacho()){
+                        $data['success']=TRUE;
+                        $data['mensaje']='Transporte '.$idtransporte.' confirmado!';
+                    }else{
+                        $data['success']=FALSE;
+                        $data['mensaje']='Transporte '.$idtransporte.' <b>NO</b> confirmado!';
+                    }         
+                }
+            }
+            $this->template = false;
+            header('Content-Type: application/json');
+            echo json_encode($data);
         }elseif($type=='liquidar-transporte'){
-            $this->helper_transportes = new helper_transportes();
             $value_transporte = \filter_input(INPUT_GET, 'transporte');
             $datos_transporte = explode('-', $value_transporte);
             $idtransporte = $datos_transporte[0];
@@ -124,6 +149,45 @@ class distrib_creacion extends fs_controller {
             $this->lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
             $this->facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
             $this->template = 'extension/liquidar_transporte';
+        }elseif($type=='guardar-liquidacion'){
+            $value_transporte = \filter_input(INPUT_GET, 'transporte');
+            $datos_transporte = explode('-', $value_transporte);
+            $idtransporte = $datos_transporte[0];
+            $codalmacen = $datos_transporte[1];
+            $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $trans0->fechal = Date('d-m-Y');
+            $trans0->liquidado = TRUE;
+            $trans0->fecha_modificacion = Date('d-m-Y H:i');
+            $trans0->usuario_modificacion = $this->user->nick;
+            if($trans0->confirmar_liquidada()){
+                $data['success']=TRUE;
+                $data['mensaje']='Transporte '.$idtransporte.' liquidado!';
+            }else{
+                $data['success']=FALSE;
+                $data['mensaje']='Transporte '.$idtransporte.' <b>NO</b> liquidado!';
+            }
+            $this->template = false;
+            header('Content-Type: application/json');
+            echo json_encode($data);
+        }elseif($type=='imprimir-liquidacion'){
+            $this->template = false;
+            $value_transporte = \filter_input(INPUT_GET, 'transporte');
+            $lista_transporte = explode(',', $value_transporte);
+            $contador_transporte=0;
+            $pdfFile = new asgard_PDFHandler();
+            $pdfFile->pdf_create();
+            foreach($lista_transporte as $linea){
+                if(!empty($linea)){
+                    $datos_transporte = explode('-', $linea);
+                    $idtransporte = $datos_transporte[0];
+                    $codalmacen = $datos_transporte[1];
+                    $contador_transporte++;
+                    $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+                    $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
+                    $pdfFile->pdf_pagina($this->helper_transportes->cabecera_liquidacion($transporte), $this->helper_transportes->contenido_transporte($lineastransporte), $this->helper_transportes->pie_transporte($transporte));
+                }
+            }
+            $pdfFile->pdf_mostrar();
         }elseif($type=='pagar-factura'){
             $value_factura = \filter_input(INPUT_GET, 'factura');
             $lista_facturas = explode(',', $value_factura);
@@ -178,7 +242,7 @@ class distrib_creacion extends fs_controller {
             $faltante->idreciboref = NULL;
             $faltante->codtrans = $codtrans;
             $faltante->conductor = $conductor;
-            $faltante->nombreconductor = $this->transporte[0]->conductor_nombre;
+            $faltante->nombreconductor = $this->transporte->conductor_nombre;
             $faltante->fecha = Date('d-m-Y');
             $faltante->fechav = Date('d-m-Y', strtotime($faltante->fecha.' +1month'));
             $faltante->fecha_creacion = Date('d-m-Y H:i');

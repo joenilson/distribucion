@@ -192,6 +192,20 @@ class distribucion_ordenescarga extends fs_model {
     }
     
     public function delete() {
+        //Liberamos las facturas asociadas a la orden de carga
+        $ford0 = new distribucion_ordenescarga_facturas();
+        $ford0->idempresa = $this->idempresa;
+        $ford0->idordencarga = $this->idordencarga;
+        $ford0->codalmacen = $this->codalmacen;
+        $ford0->delete();
+        //Eliminamos las lineas de la orden de carga
+        $lord0 = new distribucion_lineasordenescarga();
+        $lord0->idempresa = $this->idempresa;
+        $lord0->idordencarga = $this->idordencarga;
+        $lord0->codalmacen = $this->codalmacen;
+        $lord0->delete();
+        //Por ultimo borramos la Orden de Carga
+        // @to-do Cascade delete 
         $sql = "DELETE FROM distribucion_ordenescarga WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "codalmacen = ".$this->var2str($this->codalmacen)." AND ".

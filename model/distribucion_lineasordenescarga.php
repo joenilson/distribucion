@@ -141,7 +141,6 @@ class distribucion_lineasordenescarga extends fs_model {
         $sql = "DELETE FROM distribucion_lineasordenescarga WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
-                "referencia = ".$this->var2str($this->referencia)." AND ".
                 "idordencarga = ".$this->intval($this->idordencarga).";";
         return $this->db->exec($sql);
     }

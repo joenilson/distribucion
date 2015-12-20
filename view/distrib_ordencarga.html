@@ -56,6 +56,42 @@
        $('#modal_nueva_ordencarga').modal('show');
    }
    
+   function eliminarOrdenCarga(id,almacen){
+       bootbox.dialog({
+             message: "Esta seguro que quiere esta la Orden de Carga "+id+"?",
+             title: "Eliminar Orden de Carga",
+             buttons: {
+               success: {
+                 label: "Eliminar",
+                 className: "btn-success",
+                 callback: function() {
+                     $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=eliminar-carga&ordencarga='+id+'-'+almacen,
+                       success : function(datos) {
+                            bootbox.alert(datos.mensaje, function() {
+                               window.location.assign("{$fsc->url}");
+                            });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                 }
+               },
+               danger: {
+                 label: "Cancelar",
+                 className: "btn-danger",
+                 callback: function() {
+                   this.hide();
+                 }
+               }
+             }
+         });
+   }
+   
    function generarTransporte(){
        var checkboxValues = [];
        var seguir = true;

@@ -183,6 +183,32 @@ class distrib_ordencarga extends fs_controller {
                 }
             }
             $pdfFile->pdf_mostrar();            
+        }elseif($type === 'eliminar-carga'){
+            $this->template = false;
+            $this->helper_ordencarga = new helper_ordencarga();
+            $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+            $lista_ordenescargar = explode(',', $value_ordencarga);
+            foreach($lista_ordenescargar as $ordencarga){
+                if($ordencarga){
+                    $datos_ordencarga = explode('-', $ordencarga);
+                    $idordencarga = $datos_ordencarga[0];
+                    $codalmacen = $datos_ordencarga[1];
+                    $ord0 = new distribucion_ordenescarga();
+                    $ord0->idempresa = $this->empresa->id;
+                    $ord0->idordencarga = $idordencarga;
+                    $ord0->codalmacen = $codalmacen;
+                    if($ord0->delete()){
+                       $data['success']=TRUE;
+                       $data['mensaje']="Orden de Carga ".$idordencarga." eliminada correctamente.";
+                    }else{
+                       $data['success']=TRUE;
+                       $data['mensaje']="No se pudieron procesar todas las ordenes de carga, por favor contacte a su administrador de sistemas..";
+                    }
+                }
+            }
+            $this->template = false;
+            header('Content-Type: application/json');
+            echo json_encode($data);
         }elseif($type === 'imprimir-transporte'){
             $this->template = false;
             $this->helper_transportes = new helper_transportes();

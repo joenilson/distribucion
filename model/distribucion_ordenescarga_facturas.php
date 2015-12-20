@@ -131,8 +131,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
         $sql = "DELETE FROM distribucion_ordenescarga_facturas WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
-                "idordencarga = ".$this->intval($this->idordencarga)." AND ";
-                "idfactura = ".$this->intval($this->idfactura).";";
+                "idordencarga = ".$this->intval($this->idordencarga).";";
         return $this->db->exec($sql);
     }
     

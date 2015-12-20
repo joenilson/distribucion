@@ -425,7 +425,7 @@ class distribucion_faltantes extends fs_model {
     
     public function get($idempresa,$idtransporte,$codalmacen)
     {
-        $lista = array();
+        $lista = FALSE;
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen).";");
         
         if($data)
@@ -435,7 +435,7 @@ class distribucion_faltantes extends fs_model {
                 $valor_lista = new distribucion_faltantes($d);
                 $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
                 $valor_lista->conductor_nombre = $datos_conductor[0]->nombre;
-                $lista[] = $valor_lista;
+                $lista = $valor_lista;
             }
         }
         return $lista;
