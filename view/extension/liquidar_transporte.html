@@ -63,7 +63,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 label: "Gardar Faltante",
                 className: "btn-success",
                 callback: function () {
-                    console.log($('#f_faltante').serialize());
                     $.ajax({
                         type: 'GET',
                         url: '{$fsc->url()}',
@@ -286,9 +285,11 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                        </div>
                     </div>
                     <div class="col-sm-3 text-left">
+                        {if="!$fsc->faltante_transporte"}
                        <button class="btn btn-sm btn-danger" type="button" onclick="generarFaltante();">
                           <span class="glyphicon glyphicon-exclamation-sign"></span> &nbsp; Generar faltante
                        </button>
+                        {/if}
                     </div>
                     <div class="col-sm-3 text-right">
                         <button class="btn btn-sm btn-primary" type="button" disabled="true" onclick="ingresarPago()">
@@ -296,6 +297,28 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                        </button>
                     </div>
                  </div>
+                <div class="row">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th>Recibo Nro</th>
+                                <th>Fecha Generado</th>
+                                <th>Fecha Vencimiento</th>
+                                <th>Fecha Pagado</th>
+                                <th>Estado Actual</th>
+                                <th class="text-right">Monto Faltante</th>
+                            </tr>
+                        </thead>
+                        <tr class="{if="$fsc->faltante_transporte[0]->estado=='pendiente'"}danger{else}info{/if}">
+                            <td>{$fsc->faltante_transporte[0]->idrecibo}</td>
+                            <td>{$fsc->faltante_transporte[0]->fecha}</td>
+                            <td>{$fsc->faltante_transporte[0]->fechav}</td>
+                            <td>{$fsc->faltante_transporte[0]->fechap}</td>
+                            <td>{$fsc->faltante_transporte[0]->estado}</td>
+                            <td class="text-right">{$fsc->show_numero($fsc->faltante_transporte[0]->importe)}</td>
+                        </tr>
+                    </table>   
+                </div>
             </div>
         </form>
     </div>

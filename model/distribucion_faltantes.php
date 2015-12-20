@@ -474,11 +474,13 @@ class distribucion_faltantes extends fs_model {
          /// intentamos crear la subcuenta y asociarla
          $continuar = TRUE;
          $cuentaesp = ($this->codtrans == 'LOCAL')?'CXCPRO':'CXCTER';
+         $cond0 = new distribucion_conductores();
+         $conductor = $cond0->get($this->idempresa, $this->conductor);
          $cuenta = new cuenta();
          $ctafaltante = $cuenta->get_cuentaesp($cuentaesp, $ejercicio);
          if($ctafaltante)
          {
-            $subc0 = $ctafaltante->new_subcuenta($this->conductor);
+            $subc0 = $ctafaltante->new_subcuenta($conductor[0]->id);
             $subc0->descripcion = $this->nombreconductor;
             if( !$subc0->save() )
             {

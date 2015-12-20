@@ -62,6 +62,7 @@ class distrib_creacion extends fs_controller {
     public $subcuentas_faltantes;
     public $asiento;
     public $ejercicio;
+    public $faltante_transporte;
     
     public function __construct() {
         parent::__construct(__CLASS__, '5 - Transportes', 'distribucion');
@@ -117,6 +118,8 @@ class distrib_creacion extends fs_controller {
             $datos_transporte = explode('-', $value_transporte);
             $idtransporte = $datos_transporte[0];
             $codalmacen = $datos_transporte[1];
+            $faltante_transporte = new distribucion_faltantes();
+            $this->faltante_transporte = $faltante_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
             $this->transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
             $this->lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
             $this->facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);

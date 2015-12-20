@@ -1,10 +1,10 @@
 {include="header"}
 
 <script type="text/javascript">
-   function delete_unidad(codigo, nombre)
+   function delete_unidad(codigo, nombre, id)
    {
       if( confirm("¿Realmente desea eliminar al conductor "+nombre+"?") )
-         window.location.href = '{$fsc->url()}&delete='+codigo;
+         window.location.href = '{$fsc->url()}&delete='+codigo+'&id='+id;
    }
 </script>
 
@@ -46,6 +46,7 @@
                </thead>
                {loop="$fsc->listado"}
                <form action="{$fsc->url()}" method="post" class="form">
+                   <input type="hidden" name="id" value="{$value1->id}"/>
                   <tr{if="!$value1->estado"} class="danger"{/if}>
                       <td>
                         <select name="codalmacen" class="form-control">
@@ -92,7 +93,7 @@
                      <td class="text-right">
                         <div class="btn-group">
                            {if="$fsc->allow_delete"}
-                           <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_unidad('{$value1->licencia}','{$value1->nombre}')">
+                           <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_unidad('{$value1->licencia}','{$value1->nombre}','{$value1->id}')">
                               <span class="glyphicon glyphicon-trash"></span>
                            </button>
                            {/if}

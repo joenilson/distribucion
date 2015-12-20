@@ -44,6 +44,7 @@ class distrib_conductores extends fs_controller {
         $this->agencia_transporte = new agencia_transporte();
         $this->distribucion_conductores = new distribucion_conductores();
         $delete = \filter_input(INPUT_GET, 'delete');
+        $id = \filter_input(INPUT_POST, 'id');
         $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
         $codtrans = \filter_input(INPUT_POST, 'codtrans');
         $nombre = \filter_input(INPUT_POST, 'nombre');
@@ -54,6 +55,7 @@ class distrib_conductores extends fs_controller {
         $licencia = (!empty($delete))?$delete:$licencia_val;
         
         $conductor = new distribucion_conductores();
+        $conductor->id = $id;
         $conductor->idempresa = $this->empresa->id;
         $conductor->codalmacen = $codalmacen;
         $conductor->codtrans = (string) $codtrans;
@@ -68,7 +70,6 @@ class distrib_conductores extends fs_controller {
         if($valor){
             $this->tratar_conductor($valor,$condicion, $conductor);
         }
-        
         $this->listado = $this->distribucion_conductores->all($this->empresa->id);
     }
     
@@ -76,6 +77,7 @@ class distrib_conductores extends fs_controller {
         $conductor->usuario_modificacion = $this->user->nick;
         $conductor->fecha_modificacion = \Date('d-m-Y H:i:s');
         if($condicion == 'delete'){
+            $conductor->id = \filter_input(INPUT_GET, 'id');
             $conductor->licencia = $valor;
             if($conductor->delete()){
                 $this->new_message("Conductor ".$conductor->nombre." con licencia ".$conductor->licencia." eliminado correctamente.");

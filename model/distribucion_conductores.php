@@ -24,6 +24,8 @@
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class distribucion_conductores extends fs_model {
+
+    public $id;
     public $idempresa;
     public $codalmacen;
     public $codtrans;
@@ -37,11 +39,11 @@ class distribucion_conductores extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
-    
+
     public function __construct($t = false) {
-        parent::__construct('distribucion_conductores','plugins/distribucion/');
-        if($t)
-        {
+        parent::__construct('distribucion_conductores', 'plugins/distribucion/');
+        if ($t) {
+            $this->id = $t['id'];
             $this->idempresa = $t['idempresa'];
             $this->codalmacen = $t['codalmacen'];
             $this->codtrans = $t['codtrans'];
@@ -55,9 +57,8 @@ class distribucion_conductores extends fs_model {
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
             $this->usuario_modificacion = $t['usuario_modificacion'];
             $this->fecha_modificacion = Date('d-m-Y H:i');
-        }
-        else
-        {
+        } else {
+            $this->id = null;
             $this->idempresa = null;
             $this->codalmacen = null;
             $this->codtrans = null;
@@ -73,209 +74,188 @@ class distribucion_conductores extends fs_model {
             $this->fecha_modificacion = null;
         }
     }
-    
-    public function url(){
+
+    public function url() {
         return "index.php?page=distrib_conductores";
     }
-    
+
     protected function install() {
         return "";
     }
-    
+
     public function exists() {
-        if(is_null($this->licencia))
-        {
+        if (is_null($this->id)) {
             return false;
-        }
-        else
-        {
-            return $this->db->select("SELECT * FROM distribucion_conductores WHERE ".
-                    "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "licencia = ".$this->var2str($this->licencia).";");
+        } else {
+            return $this->db->select("SELECT * FROM distribucion_conductores WHERE " .
+                            "idempresa = " . $this->intval($this->idempresa) . " AND " .
+                            "licencia = " . $this->var2str($this->licencia) . ";");
         }
     }
-    
+
     public function save() {
-        if ($this->exists())
-        {
-            $sql = "UPDATE distribucion_conductores SET ".
-                    "codalmacen = ".$this->var2str($this->codalmacen).", ".
-                    "codtrans = ".$this->var2str($this->codtrans).", ".
-                    "nombre = ".$this->var2str($this->nombre).", ".
-                    "tipolicencia = ".$this->var2str($this->tipolicencia).", ".
-                    "idsubcuenta = ".$this->var2str($this->idsubcuenta).", ".
-                    "codsubcuenta = ".$this->var2str($this->codsubcuenta).", ".
-                    "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
-                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).", ".
-                    "estado = ".$this->var2str($this->estado).
-                    " WHERE ".
-                    "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "licencia = ".$this->var2str($this->licencia).";";
-            
+        if ($this->exists()) {
+            $sql = "UPDATE distribucion_conductores SET " .
+                    "codalmacen = " . $this->var2str($this->codalmacen) . ", " .
+                    "codtrans = " . $this->var2str($this->codtrans) . ", " .
+                    "nombre = " . $this->var2str($this->nombre) . ", " .
+                    "tipolicencia = " . $this->var2str($this->tipolicencia) . ", " .
+                    "idsubcuenta = " . $this->var2str($this->idsubcuenta) . ", " .
+                    "codsubcuenta = " . $this->var2str($this->codsubcuenta) . ", " .
+                    "usuario_modificacion = " . $this->var2str($this->usuario_modificacion) . ", " .
+                    "fecha_modificacion = " . $this->var2str($this->fecha_modificacion) . ", " .
+                    "estado = " . $this->var2str($this->estado) .
+                    " WHERE " .
+                    "id = " . $this->intval($this->id) . " AND " .
+                    "idempresa = " . $this->intval($this->idempresa) . " AND " .
+                    "licencia = " . $this->var2str($this->licencia) . ";";
+
             return $this->db->exec($sql);
-        }
-        else
-        {
-            $sql = "INSERT INTO distribucion_conductores ( idempresa, codalmacen, codtrans, nombre, licencia, tipolicencia, estado, usuario_creacion, fecha_creacion ) VALUES (".
-                    $this->intval($this->idempresa).", ".
-                    $this->var2str($this->codalmacen).", ".
-                    $this->var2str($this->codtrans).", ".
-                    $this->var2str($this->nombre).", ".
-                    $this->var2str($this->licencia).", ".
-                    $this->var2str($this->tipolicencia).", ".
-                    $this->var2str($this->estado).", ".
-                    $this->var2str($this->usuario_creacion).", ".
-                    $this->var2str($this->fecha_creacion).");";
-            if($this->db->exec($sql))
-            {
-                return true;
-            }
-            else
-            {
+        } else {
+            $sql = "INSERT INTO distribucion_conductores ( idempresa, codalmacen, codtrans, nombre, licencia, tipolicencia, estado, usuario_creacion, fecha_creacion ) VALUES (" .
+                    $this->intval($this->idempresa) . ", " .
+                    $this->var2str($this->codalmacen) . ", " .
+                    $this->var2str($this->codtrans) . ", " .
+                    $this->var2str($this->nombre) . ", " .
+                    $this->var2str($this->licencia) . ", " .
+                    $this->var2str($this->tipolicencia) . ", " .
+                    $this->var2str($this->estado) . ", " .
+                    $this->var2str($this->usuario_creacion) . ", " .
+                    $this->var2str($this->fecha_creacion) . ");";
+            if ($this->db->exec($sql)) {
+                return $this->db->lastval();
+            } else {
                 return false;
             }
         }
     }
-    
+
     public function delete() {
-        $sql = "DELETE FROM distribucion_conductores WHERE ".
-                "idempresa = ".$this->intval($this->idempresa)." AND ".
-                "licencia = ".$this->var2str($this->licencia).";";
+        $sql = "DELETE FROM distribucion_conductores WHERE " .
+                "id = " . $this->intval($this->id) . " AND " .
+                "idempresa = " . $this->intval($this->idempresa) . " AND " .
+                "licencia = " . $this->var2str($this->licencia) . ";";
         return $this->db->exec($sql);
     }
-    
-    public function all($idempresa)
-    {
+
+    public function all($idempresa) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, codtrans, nombre;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " ORDER BY codalmacen, codtrans, nombre;");
+
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new distribucion_conductores($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function all_agencia($idempresa, $codtrans) {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " AND codtrans = " . $this->var2str($codtrans) . " ORDER BY codalmacen, codtrans, nombre;");
+
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new distribucion_conductores($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function all_almacen($idempresa, $codalmacen) {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " AND codalmacen = " . $this->var2str($codalmacen) . " ORDER BY codalmacen, codtrans, nombre;");
+
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new distribucion_conductores($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function all_agencia_almacen($idempresa, $codtrans, $codalmacen) {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " AND codtrans = " . $this->var2str($codtrans) . " AND codalmacen = " . $this->var2str($codalmacen) . " ORDER BY codalmacen, codtrans, nombre;");
+
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new distribucion_conductores($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function activos($idempresa) {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " AND estado = true ORDER BY codalmacen, codtrans, nombre;");
+
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new distribucion_conductores($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function activos_agencia($idempresa, $codtrans) {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " AND codtrans = " . $this->var2str($codtrans) . " AND estado = true ORDER BY codalmacen, codtrans, nombre;");
+
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new distribucion_conductores($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function activos_almacen($idempresa, $codalmacen) {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " AND codalmacen = " . $this->var2str($codalmacen) . " AND estado = true ORDER BY codalmacen, codtrans, nombre;");
+
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new distribucion_conductores($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function activos_agencia_almacen($idempresa, $codtrans, $codalmacen) {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " AND codtrans = " . $this->var2str($codtrans) . " AND codalmacen = " . $this->var2str($codalmacen) . " AND estado = true ORDER BY codalmacen, codtrans, nombre;");
+
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new distribucion_conductores($d);
+            }
+        }
+        return $lista;
+    }
+
+    public function get($idempresa, $licencia) {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " AND licencia = " . $this->var2str($licencia) . ";");
+
+        if ($data) {
+            foreach ($data as $d) {
                 $lista[] = new distribucion_conductores($d);
             }
         }
         return $lista;
     }
     
-    public function all_agencia($idempresa,$codtrans)
-    {
+    public function get_by_id($id) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, codtrans, nombre;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
+            $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE id = " . $this->intval($id).";");
+
+        if ($data) {
+            foreach ($data as $d) {
                 $lista[] = new distribucion_conductores($d);
             }
         }
         return $lista;
     }
-    
-    public function all_almacen($idempresa,$codalmacen)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, codtrans, nombre;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $lista[] = new distribucion_conductores($d);
-            }
-        }
-        return $lista;
-    }
-    
-    public function all_agencia_almacen($idempresa,$codtrans,$codalmacen)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, codtrans, nombre;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $lista[] = new distribucion_conductores($d);
-            }
-        }
-        return $lista;
-    }
-    
-    public function activos($idempresa)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, codtrans, nombre;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $lista[] = new distribucion_conductores($d);
-            }
-        }
-        return $lista;
-    }
-    
-    public function activos_agencia($idempresa,$codtrans)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = true ORDER BY codalmacen, codtrans, nombre;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $lista[] = new distribucion_conductores($d);
-            }
-        }
-        return $lista;
-    }
-    
-    public function activos_almacen($idempresa,$codalmacen)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, codtrans, nombre;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $lista[] = new distribucion_conductores($d);
-            }
-        }
-        return $lista;
-    }
-    
-    public function activos_agencia_almacen($idempresa,$codtrans,$codalmacen)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, codtrans, nombre;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $lista[] = new distribucion_conductores($d);
-            }
-        }
-        return $lista;
-    }
-    
-    public function get($idempresa,$licencia)
-    {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = ".$this->intval($idempresa)." AND licencia = ".$this->var2str($licencia).";");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
-                $lista[] = new distribucion_conductores($d);
-            }
-        }
-        return $lista;
-    }
+
 }
