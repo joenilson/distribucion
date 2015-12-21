@@ -47,11 +47,6 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
-        <nombre>codsubcuenta</nombre>
-        <tipo>character varying(15)</tipo>
-        <nulo>YES</nulo>
-    </columna>
-    <columna>
         <nombre>licencia</nombre>
         <tipo>character varying(32)</tipo>
         <nulo>NO</nulo>
@@ -76,6 +71,11 @@
         <tipo>character varying(12)</tipo>
         <nulo>YES</nulo>
     </columna>
+    <columna>
+        <nombre>codsubcuenta</nombre>
+        <tipo>character varying(15)</tipo>
+        <nulo>YES</nulo>
+    </columna>    
     <restriccion>
         <nombre>distribucion_conductores_pkey</nombre>
         <consulta>PRIMARY KEY (id)</consulta>
