@@ -30,6 +30,7 @@ class distribucion_lineastransporte extends fs_model {
     public $fecha;
     public $referencia;
     public $cantidad;
+    public $importe;
     public $peso;
     public $estado;
     public $usuario_creacion;
@@ -49,6 +50,7 @@ class distribucion_lineastransporte extends fs_model {
             $this->fecha = $t['fecha'];
             $this->referencia = $t['referencia'];
             $this->cantidad = $t['cantidad'];
+            $this->importe = $t['importe'];
             $this->peso = $t['peso'];
             $this->estado = $this->str2bool($t['estado']);
             $this->usuario_creacion = $t['usuario_creacion'];
@@ -64,6 +66,7 @@ class distribucion_lineastransporte extends fs_model {
             $this->fecha = null;
             $this->referencia = null;
             $this->cantidad = null;
+            $this->importe = null;
             $this->peso = null;
             $this->estado = false;
             $this->usuario_creacion = null;
@@ -102,6 +105,7 @@ class distribucion_lineastransporte extends fs_model {
             $sql = "UPDATE distribucion_lineastransporte SET ".
                     "codalmacen = ".$this->var2str($this->codalmacen).", ".
                     "cantidad = ".$this->var2str($this->cantidad).", ".
+                    "importe = ".$this->var2str($this->importe).", ".
                     "peso = ".$this->intval($this->peso).", ".
                     "referencia = ".$this->var2str($this->referencia).", ".
                     "fecha = ".$this->var2str($this->fecha).", ".
@@ -115,13 +119,14 @@ class distribucion_lineastransporte extends fs_model {
         }
         else
         {
-            $sql = "INSERT INTO distribucion_lineastransporte ( idempresa, codalmacen, idtransporte, fecha, referencia, cantidad, peso, estado, usuario_creacion, fecha_creacion ) VALUES (".
+            $sql = "INSERT INTO distribucion_lineastransporte ( idempresa, codalmacen, idtransporte, fecha, referencia, cantidad, importe, peso, estado, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
                     $this->var2str($this->codalmacen).", ".
                     $this->intval($this->idtransporte).", ".
                     $this->var2str($this->fecha).", ".
                     $this->var2str($this->referencia).", ".
                     $this->var2str($this->cantidad).", ".
+                    $this->var2str($this->importe).", ".
                     $this->var2str($this->peso).", ".
                     $this->var2str($this->estado).", ".
                     $this->var2str($this->usuario_creacion).", ".

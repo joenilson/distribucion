@@ -111,6 +111,11 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
+        <nombre>totalimporte</nombre>
+        <tipo>numeric</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>unidad</nombre>
         <tipo>character varying(32)</tipo>
         <nulo>NO</nulo>

@@ -291,7 +291,27 @@ class distrib_ordencarga extends fs_controller {
                 $contador_transportes++;
                 $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
                 $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                if(($ordencarga[0]->cargado) AND (!$ordencarga[0]->despachado)){
+                if(($ordencarga[0]->cargado) AND (!$ordencarga[0]->despachado)){                    
+                    $array_facturas = $this->distrib_ordenescarga_facturas->all_almacen_ordencarga($this->empresa->id, $codalmacen, $idordencarga);
+                    foreach($array_facturas as $linea){
+                        if($linea){
+                            $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($linea->idfactura);
+                        }
+                    }
+                    foreach($lineas_factura as $linea_factura){
+                        foreach($linea_factura as $key=>$values){
+                            if(!isset($importe_resumen[$values->referencia])){
+                                $importe_resumen[$values->referencia]=0;
+                            }
+                            if(!isset($data_resumen[$values->referencia])){
+                                $data_resumen[$values->referencia]=array();
+                            }
+                            $valor_venta = $values->pvptotal + ($values->pvptotal * ($values->iva/100));
+                            $importe_resumen[$values->referencia] += $valor_venta;
+                            $data_resumen[$values->referencia] = array('referencia'=>$values->referencia ,'producto'=>$values->descripcion, 'importe'=>$importe_resumen[$values->referencia]);
+                            $suma_importe += $valor_venta;
+                        }
+                    }
                     $trans0 = new distribucion_transporte();
                     $trans0->idempresa = $ordencarga[0]->idempresa;
                     $trans0->idordencarga = $ordencarga[0]->idordencarga;
@@ -303,6 +323,7 @@ class distrib_ordencarga extends fs_controller {
                     $trans0->tipolicencia = $ordencarga[0]->tipolicencia;
                     $trans0->tipounidad = $ordencarga[0]->tipounidad;
                     $trans0->totalcantidad = $ordencarga[0]->totalcantidad;
+                    $trans0->totalimporte = $suma_importe;
                     $trans0->totalpeso = $ordencarga[0]->totalpeso;
                     $trans0->unidad = $ordencarga[0]->unidad;
                     $trans0->estado = TRUE;
@@ -336,12 +357,14 @@ class distrib_ordencarga extends fs_controller {
                             $ltrans0->referencia = $linea->referencia;
                             $ltrans0->estado = $linea->estado;
                             $ltrans0->cantidad = $linea->cantidad;
+                            $ltrans0->importe = $importe_resumen[$linea->referencia];
                             $ltrans0->fecha = $linea->fecha;
                             $ltrans0->peso = $linea->peso;
                             $ltrans0->fecha_creacion = Date('d-m-Y H:i');
                             $ltrans0->usuario_creacion = $this->user->nick;
                             $ltrans0->save();
                         }
+                        
                     }
                 }
             }
@@ -441,9 +464,26 @@ class distrib_ordencarga extends fs_controller {
         $this->template = FALSE;
         $this->resultados = array();
         $data_search = $this->facturas_cliente->all_desde($buscar_fecha, $buscar_fecha);
+        
+        //Buscar NCF valido
+        $dirname = 'plugins/republica_dominicana/';
+        if(is_dir($dirname)){
+            require_model('ncf_ventas');
+            $search_ncf_status = new ncf_ventas();
+            foreach($data_search as $key=>$fact){
+                $search_value = $search_ncf_status->get_ncf($this->empresa->id, $fact->idfactura, $fact->codcliente);
+                if($search_value->estado == 'f' OR $search_value->tipo_comprobante == '04'){
+                    unset($data_search[$key]);
+                }
+            }
+        }
+        sort($data_search);
+        //Termino de busqueda de NCF
         foreach ($data_search as $values){
             if($values->codalmacen == $codalmacen AND (!$this->distrib_ordenescarga_facturas->get($this->empresa->id, $values->idfactura, $codalmacen))){
-                $this->resultados[]=$values;    
+                if(!$values->deabono){
+                    $this->resultados[]=$values;
+                }
             }
         }
         header('Content-Type: application/json');

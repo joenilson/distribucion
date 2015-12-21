@@ -122,28 +122,34 @@ class helper_transportes extends fs_controller {
     public function contenido_transporte($lineastransporte){
         $table= '<table width: 100%;>';
         $table.= '<tr style="font-size: 10px;">';
-        $table.= '<td width="30%">';
+        $table.= '<td width="20%">';
         $table.= '<b>Referencia</b>';
         $table.= '</td>';
         $table.= '<td width="40%">';
         $table.= '<b>Producto</b>';
         $table.= '</td>';
-        $table.= '<td width="30%" align="right">';
+        $table.= '<td width="20%" align="right">';
         $table.= '<b>Cantidad</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%" align="right">';
+        $table.= '<b>Monto</b>';
         $table.= '</td>';
         $table.= '</tr>';
         $maxLineas = 34;
         
         foreach($lineastransporte as $key=>$linea){
             $table.= '<tr style="font-size: 10px;">';
-            $table.= '<td width="30%">';
+            $table.= '<td width="20%">';
             $table.= $linea->referencia;
             $table.= '</td>';
             $table.= '<td width="40%">';
             $table.= $linea->descripcion;
             $table.= '</td>';
-            $table.= '<td width="30%" align="right">';
+            $table.= '<td width="20%" align="right">';
             $table.= number_format($linea->cantidad,2,".",",");
+            $table.= '</td>';
+            $table.= '<td width="20%" align="right">';
+            $table.= number_format($linea->importe,2,".",",");
             $table.= '</td>';
             $table.= '</tr>';
             $maxLineas--;
@@ -152,7 +158,7 @@ class helper_transportes extends fs_controller {
         for($x=0; $x<$maxLineas; $x++){
             $table.="<br />";
         }
-        $table.= '<hr /><br />';
+        $table.= '<hr />';
         
         return $table;
     }
@@ -162,6 +168,11 @@ class helper_transportes extends fs_controller {
         $table.= '<tr>';
         $table.= '<td align="right" style="font-size: 10px;" colspan="5">';
         $table.= '<b>Total Cantidad:</b> &nbsp;'.number_format($transporte->totalcantidad,2,".",",");
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td align="right" style="font-size: 10px;" colspan="5">';
+        $table.= '<b>Total Monto:</b> &nbsp;'.number_format($transporte->totalimporte,2,".",",");
         $table.= '<br /><br /><br />';
         $table.= '</td>';
         $table.= '</tr>';

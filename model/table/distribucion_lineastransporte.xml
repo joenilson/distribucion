@@ -46,6 +46,11 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
+        <nombre>importe</nombre>
+        <tipo>double precision</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>peso</nombre>
         <tipo>numeric</tipo>
         <nulo>YES</nulo>

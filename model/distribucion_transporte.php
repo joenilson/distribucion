@@ -39,6 +39,7 @@ class distribucion_transporte extends fs_model {
     public $conductor;
     public $tipolicencia;
     public $totalcantidad;
+    public $totalimporte;
     public $totalpeso;
     public $estado;
     public $despachado;
@@ -47,6 +48,8 @@ class distribucion_transporte extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
+    public $liquidacion_importe;
+    public $liquidacion_faltante;
     
     public $distribucion_conductores;
     public $distribucion_unidades;
@@ -69,6 +72,9 @@ class distribucion_transporte extends fs_model {
             $this->conductor = $t['conductor'];
             $this->tipolicencia = $t['tipolicencia'];
             $this->totalcantidad = $t['totalcantidad'];
+            $this->totalimporte = $t['totalimporte'];
+            $this->liquidacion_importe = $t['liquidacion_importe'];
+            $this->liquidacion_faltante = $t['liquidacion_faltante'];
             $this->totalpeso = $t['totalpeso'];
             $this->estado = $this->str2bool($t['estado']);
             $this->despachado = $this->str2bool($t['despachado']);
@@ -94,6 +100,9 @@ class distribucion_transporte extends fs_model {
             $this->conductor = null;
             $this->tipolicencia = null;
             $this->totalcantidad = null;
+            $this->totalimporte = null;
+            $this->liquidacion_importe = null;
+            $this->liquidacion_faltante = null;
             $this->totalpeso = null;
             $this->estado = false;
             $this->liquidado = false;
@@ -151,6 +160,8 @@ class distribucion_transporte extends fs_model {
                     "tipounidad = ".$this->intval($this->tipounidad).", ".
                     "conductor = ".$this->var2str($this->conductor).", ".
                     "tipolicencia = ".$this->var2str($this->tipolicencia).", ".
+                    "totalimporte = ".$this->var2str($this->totalimporte).", ".
+                    "totalpeso = ".$this->var2str($this->totalpeso).", ".
                     "fecha = ".$this->var2str($this->fecha).", ".
                     "fechad = ".$this->var2str($this->fechad).", ".
                     "fechal = ".$this->var2str($this->fechal).", ".
@@ -166,7 +177,7 @@ class distribucion_transporte extends fs_model {
         else
         {
             $this->idtransporte = $this->getNextId();
-            $sql = "INSERT INTO distribucion_transporte ( idempresa, codalmacen, idtransporte, idordencarga, codalmacen_dest, fecha, codtrans, unidad, tipounidad, conductor, tipolicencia, totalcantidad, totalpeso, estado, despachado, liquidado, usuario_creacion, fecha_creacion ) VALUES (".
+            $sql = "INSERT INTO distribucion_transporte ( idempresa, codalmacen, idtransporte, idordencarga, codalmacen_dest, fecha, codtrans, unidad, tipounidad, conductor, tipolicencia, totalcantidad, totalimporte, totalpeso, estado, despachado, liquidado, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
                     $this->var2str($this->codalmacen).", ".
                     $this->intval($this->idtransporte).", ".
@@ -178,8 +189,9 @@ class distribucion_transporte extends fs_model {
                     $this->intval($this->tipounidad).", ".
                     $this->var2str($this->conductor).", ".
                     $this->var2str($this->tipolicencia).", ".
-                    $this->intval($this->totalcantidad).", ".
-                    $this->intval($this->totalpeso).", ".
+                    $this->var2str($this->totalcantidad).", ".
+                    $this->var2str($this->totalimporte).", ".
+                    $this->var2str($this->totalpeso).", ".
                     $this->var2str($this->estado).", ".
                     $this->var2str($this->despachado).", ".
                     $this->var2str($this->cargado).", ".
@@ -239,6 +251,8 @@ class distribucion_transporte extends fs_model {
     
     public function confirmar_liquidada(){
         $sql = "UPDATE distribucion_transporte SET ".
+                    "liquidacion_importe = ".$this->var2str($this->liquidacion_importe).", ".
+                    "liquidacion_faltante = ".$this->var2str($this->liquidacion_faltante).", ".
                     "liquidado = ".$this->var2str($this->liquidado).", ".
                     "fechal = ".$this->var2str($this->fechal).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
