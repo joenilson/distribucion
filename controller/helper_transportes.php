@@ -291,7 +291,7 @@ class helper_transportes extends fs_controller {
         $table.= '<b>Cantidad</b>';
         $table.= '</td>';
         $table.= '</tr>';
-        $maxLineas = 34;
+        $maxLineas = 30;
         
         foreach($lineastransporte as $key=>$linea){
             $table.= '<tr style="font-size: 10px;">';
@@ -316,7 +316,7 @@ class helper_transportes extends fs_controller {
         return $table;
     }
     
-    public function pie_liquidacion($transporte){
+    public function pie_liquidacion($transporte,$faltante){
         $table= '<table style="width: 100%;">';
         $table.= '<tr>';
         $table.= '<td align="right" style="font-size: 10px;" colspan="5">';

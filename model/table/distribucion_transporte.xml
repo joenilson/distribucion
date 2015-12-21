@@ -81,6 +81,16 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
+        <nombre>liquidacion_importe</nombre>
+        <tipo>double precision</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>liquidacion_faltante</nombre>
+        <tipo>double precision</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>tipolicencia</nombre>
         <tipo>character varying(32)</tipo>
         <nulo>YES</nulo>

@@ -340,11 +340,11 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                        </div>
                     </div>
                     <div class="col-sm-3 text-left">
-                        {if="!$fsc->faltante_transporte"}
-                       <button class="btn btn-sm btn-danger" type="button" onclick="generarFaltante();">
+                       {if="!$fsc->faltante_transporte"}
+                       <button class="btn btn-sm btn-danger" {if="$fsc->transporte->liquidado"}disabled{/if} type="button" onclick="generarFaltante();">
                           <span class="glyphicon glyphicon-exclamation-sign"></span> &nbsp; Generar faltante
                        </button>
-                        {/if}
+                       {/if}
                     </div>
                     {if="$sumPagadas==$sumFacturas"}
                     <div class="col-sm-3 text-right">
@@ -362,6 +362,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     </div>
                     {/if}
                  </div>
+                {if="$fsc->faltante_transporte"}
                 <div class="row">
                     <table class="table table-responsive">
                         <thead>
@@ -384,6 +385,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         </tr>
                     </table>   
                 </div>
+                {/if}
             </div>
         </form>
     </div>
