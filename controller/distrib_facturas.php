@@ -32,13 +32,11 @@ require_model('partida.php');
 require_model('subcuenta.php');
 require_model('distribucion_devoluciones.php');
 
-$dirname = 'plugins/republica_dominicana/';
-if(is_dir($dirname)){
+if(class_exists ('ncf_rango')){
     require_model('ncf_ventas.php');
     require_model('ncf_rango.php');
 }
-$tesoreria = 'plugins/tesoreria/';
-if(is_dir($tesoreria)){
+if(class_exists ('recibo_cliente')){
     require_model('recibo_cliente.php');
 }
 /**
@@ -70,10 +68,8 @@ class distrib_facturas extends fs_controller {
     }
 
     public function private_core() {
-        $rd = 'plugins/republica_dominicana/';
-        $tesoreria = 'plugins/tesoreria/';
-        $this->rd_plugin = (is_dir($rd))?true:false;
-        $this->tesoreria_plugin = (is_dir($tesoreria))?true:false;
+        $this->rd_plugin = (class_exists ('ncf_rango'))?true:false;
+        $this->tesoreria_plugin = (class_exists ('recibo_cliente'))?true:false;
         if($this->tesoreria_plugin){
             $this->recibo = new recibo_cliente();
             $this->pago_recibo = new pago_recibo_cliente();

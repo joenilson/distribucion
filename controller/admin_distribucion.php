@@ -21,7 +21,6 @@ require_model('almacen.php');
 require_model('pais.php');
 require_model('agencia_transporte.php');
 require_model('distribucion_tipounidad.php');
-
 /**
  * Description of admin_distribucion
  *
@@ -31,6 +30,7 @@ class admin_distribucion extends fs_controller {
 
     public $distribucion_tipounidad;
     public $listado;
+    public $familia;
 
     public function __construct() {
         parent::__construct(__CLASS__, '1 - Configuración', 'distribucion');

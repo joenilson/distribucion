@@ -173,7 +173,7 @@ class helper_transportes extends fs_controller {
         $table.= '<tr>';
         $table.= '<td align="right" style="font-size: 10px;" colspan="5">';
         $table.= '<b>Total Monto:</b> &nbsp;'.number_format($transporte->totalimporte,2,".",",");
-        $table.= '<br /><br /><br />';
+        $table.= '<br /><br />';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr>';
@@ -292,28 +292,34 @@ class helper_transportes extends fs_controller {
     public function contenido_liquidacion($lineastransporte){
         $table= '<table width: 100%;>';
         $table.= '<tr style="font-size: 10px;">';
-        $table.= '<td width="30%">';
+        $table.= '<td width="20%">';
         $table.= '<b>Referencia</b>';
         $table.= '</td>';
         $table.= '<td width="40%">';
         $table.= '<b>Producto</b>';
         $table.= '</td>';
-        $table.= '<td width="30%" align="right">';
+        $table.= '<td width="20%" align="right">';
         $table.= '<b>Cantidad</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%" align="right">';
+        $table.= '<b>Monto</b>';
         $table.= '</td>';
         $table.= '</tr>';
         $maxLineas = 30;
         
         foreach($lineastransporte as $key=>$linea){
             $table.= '<tr style="font-size: 10px;">';
-            $table.= '<td width="30%">';
+            $table.= '<td width="20%">';
             $table.= $linea->referencia;
             $table.= '</td>';
             $table.= '<td width="40%">';
             $table.= $linea->descripcion;
             $table.= '</td>';
-            $table.= '<td width="30%" align="right">';
+            $table.= '<td width="20%" align="right">';
             $table.= number_format($linea->cantidad,2,".",",");
+            $table.= '</td>';
+            $table.= '<td width="20%" align="right">';
+            $table.= number_format($linea->importe,2,".",",");
             $table.= '</td>';
             $table.= '</tr>';
             $maxLineas--;
@@ -322,7 +328,7 @@ class helper_transportes extends fs_controller {
         for($x=0; $x<$maxLineas; $x++){
             $table.="<br />";
         }
-        $table.= '<hr /><br />';
+        $table.= '<hr />';
         
         return $table;
     }
@@ -332,33 +338,53 @@ class helper_transportes extends fs_controller {
         $table.= '<tr>';
         $table.= '<td align="right" style="font-size: 10px;" colspan="5">';
         $table.= '<b>Total Cantidad:</b> &nbsp;'.number_format($transporte->totalcantidad,2,".",",");
-        $table.= '<br /><br /><br />';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr>';
-        $table.= '<td style="font-size: 10px;">';
-        $table.= '<br /><hr />';
+        $table.= '<td align="right" style="font-size: 10px;" colspan="5">';
+        $table.= '<b>Total Monto:</b> &nbsp;'.number_format($transporte->totalimporte,2,".",",");
+        $table.= '<br /><br />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        if($faltante){
+            $table.= '<tr style="color: white; background-color: #000; font-size: 9px;">';
+            $table.= '<td align="center">';
+            $table.= '<b>Faltante generado por:</b>';
+            $table.= '</td>';
+            $table.= '<td align="right" colspan="5">';
+            $table.= $this->show_precio($faltante->importe, $faltante->coddivisa);
+            $table.= '</td>';
+            $table.= '</tr>';
+            $table.= '<tr style="color: white; background-color: #000; font-size: 10px;">';
+            $table.= '<td align="center" colspan="6">';
+            $table.= '<br />Al firmar este documento acepto la responsabilidad de pagar este importe faltante de la liquidaci&oacute;n';
+            $table.= '</td>';
+            $table.= '</tr>';
+        }
+        $table.= '<tr style="margin-top: 30px;">';
+        $table.= '<td width="25%" style="font-size: 10px;">';
+        $table.= '<br /><br /><br /><hr />';
         $table.= '</td>';
         $table.= '<td width="15%">&nbsp;</td>';
-        $table.= '<td style="font-size: 10px;">';
-        $table.= '<br /><hr />';
+        $table.= '<td width="20%" style="font-size: 10px;">';
+        $table.= '<br /><br /><br /><hr />';
         $table.= '</td>';
         $table.= '<td width="15%">&nbsp;</td>';
-        $table.= '<td style="font-size: 10px;">';
-        $table.= '<br /><hr />';
+        $table.= '<td width="25%" style="font-size: 10px;">';
+        $table.= '<br /><br /><br /><hr />';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr>';
-        $table.= '<td align="center" style="font-size: 10px;">';
-        $table.= '<b>Firma Distribuci&oacute;n</b><br />';
+        $table.= '<td align="center" width="25%" style="font-size: 8px;">';
+        $table.= '<b>'.$transporte->conductor_nombre.'<br />'.$transporte->conductor.'</b>';
         $table.= '</td>';
         $table.= '<td width="15%">&nbsp;</td>';
-        $table.= '<td align="center" style="font-size: 10px;">';
-        $table.= '<b>Firma Seguridad</b><br />';
+        $table.= '<td align="center" width="20%" style="font-size: 10px;">';
+        $table.= '<b>Firma Liquidador</b><br />';
         $table.= '</td>';
         $table.= '<td width="15%">&nbsp;</td>';
-        $table.= '<td align="center" style="font-size: 10px;">';
-        $table.= '<b>Firma Almac&eacute;n</b><br />';
+        $table.= '<td width="25%" align="center" style="font-size: 10px;">';
+        $table.= '<b>Firma Contabilidad</b><br />';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '</table>';
