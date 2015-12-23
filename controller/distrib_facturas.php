@@ -110,7 +110,7 @@ class distrib_facturas extends fs_controller {
              */
             $tipo_comprobante = '04';
             $this->ncf_rango = new ncf_rango();
-            $numero_ncf = $this->ncf_rango->generate($this->empresa->id, $fact->codalmacen, $tipo_comprobante);
+            $numero_ncf = $this->ncf_rango->generate($this->empresa->id, $fact->codalmacen, $tipo_comprobante, $fact->codpago);
             if ($numero_ncf['NCF'] == 'NO_DISPONIBLE') {
                 return $this->new_error_msg('No hay números NCF disponibles del tipo ' . $tipo_comprobante . ', no se podrá generar la Nota de Crédito.');
             }

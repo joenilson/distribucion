@@ -465,9 +465,8 @@ class distrib_ordencarga extends fs_controller {
         $this->resultados = array();
         $data_search = $this->facturas_cliente->all_desde($buscar_fecha, $buscar_fecha);
         
-        //Buscar NCF valido
-        $dirname = 'plugins/republica_dominicana/';
-        if(is_dir($dirname)){
+        //Buscar NCF valido si esta activo el plugin de RD
+        if(class_exists('ncf_rango')){
             require_model('ncf_ventas');
             $search_ncf_status = new ncf_ventas();
             foreach($data_search as $key=>$fact){

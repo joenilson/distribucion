@@ -18,8 +18,7 @@
  */
 require_model('factura_cliente');
 require_model('cliente');
-$dirname = 'plugins/republica_dominicana/';
-if(is_dir($dirname)){
+if(class_exists('ncf_rango')){
     require_model('ncf_ventas.php');
     require_model('ncf_rango.php');
 }
@@ -76,8 +75,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
         
         $this->factura_cliente = new factura_cliente();
         $this->cliente = new cliente();
-        $dirname = 'plugins/republica_dominicana/';
-        if(is_dir($dirname)){
+        if(class_exists('ncf_rango')){
             $this->ncf_ventas = new ncf_ventas();
         }
     }
@@ -169,8 +167,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
             $totalCantidad += $linea->cantidad;
         }
         $factura->cantidad = $totalCantidad;
-        $dirname = 'plugins/republica_dominicana/';
-        if(is_dir($dirname)){
+        if(class_exists('ncf_rango')){
             $ncf_info = $this->ncf_ventas->get_ncf($factura->idempresa, $factura->idfactura, $info_adicional->codcliente);
             $factura->ncf = $ncf_info->ncf;
         }
