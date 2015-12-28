@@ -104,7 +104,7 @@ class helper_ordencarga extends fs_controller {
         $table.= '<b>Cantidad</b>';
         $table.= '</td>';
         $table.= '</tr>';
-        $maxLineas = 34;
+        $maxLineas = 33;
         
         foreach($lineasordencarga as $key=>$linea){
             $table.= '<tr style="font-size: 10px;">';
@@ -138,7 +138,7 @@ class helper_ordencarga extends fs_controller {
         $table.= '</tr>';
         $table.= '<tr>';
         $table.= '<td align="left" style="font-size: 10px;" colspan="3">';
-        $table.= $ordencarga[0]->observaciones.'<br /><br /><br />';
+        $table.= trim($ordencarga[0]->observaciones).'<br /><br /><br />';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr>';
