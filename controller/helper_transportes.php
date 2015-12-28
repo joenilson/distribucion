@@ -309,6 +309,7 @@ class helper_transportes extends fs_controller {
         
         foreach($lineastransporte as $key=>$linea){
             $table.= '<tr style="font-size: 10px;">';
+            /*
             $table.= '<td width="20%">';
             $table.= $linea->referencia;
             $table.= '</td>';
@@ -321,8 +322,17 @@ class helper_transportes extends fs_controller {
             $table.= '<td width="20%" align="right">';
             $table.= number_format($linea->importe,2,".",",");
             $table.= '</td>';
-            $table.= '</tr>';
+            */
             $maxLineas--;
+            $table.= '<td><a href="'.$linea->idfactura.'</a></td>';
+            $table.= '<td>'.$linea->ncf.'</td>';
+            $table.= '<td>'.$linea->fecha_factura.'</td>';
+            $table.= '<td class="text-right">'.$linea->cantidad.'</td>';
+            $table.= '<td class="text-right">'.$this->show_numero($linea->monto).'</td>';
+            $table.= '<td class="text-right">'.$this->show_numero($linea->abono).'</td>';
+            $table.= '<td class="text-right">'.$this->show_numero($linea->saldo).'</td>';
+            $table.= '<td class="text-right"></td>';
+            $table.= '</tr>';
         }
         $table.= '</table>';
         for($x=0; $x<$maxLineas; $x++){

@@ -185,7 +185,8 @@ class distrib_creacion extends fs_controller {
                     $faltante = $this->faltante->get($this->empresa->id, $idtransporte, $codalmacen);
                     $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
                     $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                    $pdfFile->pdf_pagina($this->helper_transportes->cabecera_liquidacion($transporte), $this->helper_transportes->contenido_liquidacion($lineastransporte), $this->helper_transportes->pie_liquidacion($transporte, $faltante));
+                    $facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
+                    $pdfFile->pdf_pagina($this->helper_transportes->cabecera_liquidacion($transporte), $this->helper_transportes->contenido_liquidacion($facturastransporte), $this->helper_transportes->pie_liquidacion($transporte, $faltante));
                 }
             }
             $pdfFile->pdf_mostrar();
