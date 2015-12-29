@@ -32,13 +32,11 @@ require_model('partida.php');
 require_model('subcuenta.php');
 require_model('distribucion_devoluciones.php');
 
-if(class_exists ('ncf_rango')){
-    require_model('ncf_ventas.php');
-    require_model('ncf_rango.php');
-}
-if(class_exists ('recibo_cliente')){
-    require_model('recibo_cliente.php');
-}
+require_model('ncf_ventas.php');
+require_model('ncf_rango.php');
+require_once 'plugins/republica_dominicana/controller/helper_ncf.php';
+
+require_model('recibo_cliente.php');
 /**
  * Description of distrib_facturas
  *
@@ -68,6 +66,7 @@ class distrib_facturas extends fs_controller {
     }
 
     public function private_core() {
+        $this->recibo = new recibo_cliente();
         $this->rd_plugin = (class_exists ('ncf_rango'))?true:false;
         $this->tesoreria_plugin = (class_exists ('recibo_cliente'))?true:false;
         if($this->tesoreria_plugin){
@@ -116,9 +115,9 @@ class distrib_facturas extends fs_controller {
             }
         }
         $fact_lineas = $fact->get_lineas();
-        $fact->deabono = TRUE;
         $fact->idfacturarect = $fact->idfactura;
         $fact->codigorect = $fact->codigo;
+        $fact->numero2 = $numero_ncf['NCF'];
         $fact->neto = 0;
         $fact->totaliva = 0;
         $fact->totalirpf = 0;
@@ -134,13 +133,13 @@ class distrib_facturas extends fs_controller {
                 $valor = $dev * $linea->pvpunitario;
                 $articulo->sum_stock($fact->codalmacen, $dev);
                 //Guardamos los valores de cantidad ingresados
-                $linea->cantidad = $dev;
-                $linea->pvpsindto = $valor;
-                $linea->pvptotal = ($valor * (100 - $linea->dtopor) / 100);
+                $linea->cantidad = ($dev * -1);
+                $linea->pvpsindto = ($valor * -1);
+                $linea->pvptotal = (($valor * (100 - $linea->dtopor) / 100) * -1);
                 $fact->neto += $linea->pvptotal;
-                $fact->totaliva += $linea->pvptotal * $linea->iva / 100;
-                $fact->totalirpf += $linea->pvptotal * $linea->irpf / 100;
-                $fact->totalrecargo += $linea->pvptotal * $linea->recargo / 100;
+                $fact->totaliva += ($linea->pvptotal * $linea->iva / 100);
+                $fact->totalirpf += ($linea->pvptotal * $linea->irpf / 100);
+                $fact->totalrecargo += ($linea->pvptotal * $linea->recargo / 100);
                 $cantidad_devolucion[$linea->referencia] = $dev;
                 $monto_devolucion[$linea->referencia] = $valor;
             }elseif(empty($dev)){
@@ -173,7 +172,7 @@ class distrib_facturas extends fs_controller {
              */
             $asiento_factura = new asiento_factura();
             $asiento_factura->soloasiento = TRUE;
-            if ($asiento_factura->generar_asiento_venta($fact, 'inverso')) {
+            if ($asiento_factura->generar_asiento_venta($fact)) {
                 $this->new_message("<a href='" . $asiento_factura->asiento->url() . "'>Asiento</a> generado correctamente.");
                 $this->new_change('Nota de Crédito ' . $fact->codigo, $fact->url());
             }
@@ -182,8 +181,7 @@ class distrib_facturas extends fs_controller {
                  * Luego de que todo este correcto generamos el NCF la Nota de Credito
                  */
                 //Con el codigo del almacen desde donde facturaremos generamos el número de NCF
-                $numero_ncf = $this->ncf_rango->generate($this->empresa->id, $fact->codalmacen, $tipo_comprobante);
-                $ncf_controller = new ncf();
+                $ncf_controller = new helper_ncf();
                 $ncf_controller->guardar_ncf($this->empresa->id, $fact, $tipo_comprobante, $numero_ncf);
                 $this->new_message("Devolución ingresada correctamente, se generó la nota de crédito: " . $numero_ncf['NCF']);
             }else{
@@ -206,7 +204,7 @@ class distrib_facturas extends fs_controller {
                 $recibo = $recibo0->get($recibos[0]->idrecibo);
                 if($recibo){
                     $recibo->fecha = $fact->fecha;
-                    $recibo->importe = $recibo->importe - ($fact->neto + $fact->totaliva + $fact->totalirpf + $fact->totalrecargo);
+                    $recibo->importe = $recibo->importe + ($fact->neto + $fact->totaliva + $fact->totalirpf + $fact->totalrecargo);
                     $recibo->importeeuros = $recibo->importe;
                     $recibo->save();
                 }

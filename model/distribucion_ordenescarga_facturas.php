@@ -18,10 +18,9 @@
  */
 require_model('factura_cliente');
 require_model('cliente');
-if(class_exists('ncf_rango')){
-    require_model('ncf_ventas.php');
-    require_model('ncf_rango.php');
-}
+require_model('ncf_rango.php');
+require_model('ncf_ventas.php');
+require_model('ncf_rango.php');
 /**
  * Description of distribucion_ordenescarga
  *
@@ -151,13 +150,15 @@ class distribucion_ordenescarga_facturas extends fs_model {
     
     public function info_factura($factura){
         $info_adicional = $this->factura_cliente->get($factura->idfactura);
-        $facturasrect = $this->db->select("SELECT * FROM facturascli WHERE deabono = TRUE AND idfacturarect = ".$this->intval($factura->idfactura)." ORDER BY idfactura ASC;");
+        $facturasrect = $this->db->select("SELECT * FROM facturascli WHERE idfacturarect = ".$this->intval($factura->idfactura)." ORDER BY idfactura ASC;");
+        $cliente_factura = $this->cliente->get($info_adicional->codcliente);
+        $factura->nombrecliente = $cliente_factura->razonsocial;
         $factura->abono = 0;
         $factura->saldo = $info_adicional->total;
         if($facturasrect){
             foreach($facturasrect as $rectificativa){
-                $factura->abono += $rectificativa['total'];
-                $factura->saldo -= $rectificativa['total'];
+                $factura->abono += ($rectificativa['total'] * -1);
+                $factura->saldo -= ($rectificativa['total'] * -1);
             }
         }
         

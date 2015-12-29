@@ -273,6 +273,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <th></th>
                                     <th>Factura</th>
                                     <th>NCF</th>
+                                    <th>Cliente</th>
                                     <th>Fecha</th>
                                     <th class="text-right">Cantidad</th>
                                     <th class="text-right">Monto</th>
@@ -281,6 +282,8 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
+                            {$sumMonto=0}
+                            {$sumAbono=0}
                             {$sumSaldo=0}
                             {$sumFaturas=0}
                             {$sumPagadas=0}
@@ -297,6 +300,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 </td>
                                 <td><a href="{$value->enlace}">{$value->idfactura}</a></td>
                                 <td>{$value->ncf}</td>
+                                <td>{$value->nombrecliente}</td>
                                 <td>{$value->fecha_factura}</td>
                                 <td class="text-right">{$value->cantidad}</td>
                                 <td class="text-right">{$fsc->show_numero($value->monto)}</td>
@@ -314,11 +318,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 {/if}
                                 </td>
                             </tr>
+                            {$sumMonto=$sumMonto+$value->monto}
+                            {$sumAbono=$sumAbono+$value->abono}
                             {$sumSaldo=$sumSaldo+$value->saldo}
                             {$sumFacturas=$sumFacturas+1}
                             {/loop}
                             <tr>
-                                <td colspan="7" class="text-right"><b>Total</b></td>
+                                <td colspan="6" class="text-right"><b>Total</b></td>
+                                <td class="text-right"><b>{$fsc->show_numero($sumMonto)}</b></td>
+                                <td class="text-right"><b>{$fsc->show_numero($sumAbono)}</b></td>
                                 <td class="text-right"><b>{$fsc->show_numero($sumSaldo)}</b></td>
                                 <td></td>
                             </tr>
