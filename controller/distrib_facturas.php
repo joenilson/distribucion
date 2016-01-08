@@ -164,6 +164,7 @@ class distrib_facturas extends fs_controller {
             foreach ($fact_lineas as $linea) {
                 $linea->idfactura = $fact->idfactura;
                 $linea->idlinea = NULL;
+                $linea->idalbaran = NULL;
                 $linea_factura = $linea;
                 $linea_factura->save();
             }
