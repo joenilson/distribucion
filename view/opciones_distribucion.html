@@ -1,0 +1,130 @@
+{include="header"}
+<!--
+Copyright (C) 2016 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Traducciones Distribucion</h3>
+    </div>
+    <div class="panel-body">
+        <form action="{$fsc->url}" method="POST" role="form" class="form">
+            <input type="hidden" name="distribucion_setup" value="TRUE"/>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Orden de Carga:</span>
+                        <input type="text" name="distrib_ordencarga" value="{$fsc->distribucion_setup['distrib_ordencarga']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+               
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Transporte</span>
+                        <input type="text" name="distrib_transporte" value="{$fsc->distribucion_setup['distrib_transporte']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Liquidacion</span>
+                        <input type="text" name="distrib_liquidacion" value="{$fsc->distribucion_setup['distrib_liquidacion']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Faltante</span>
+                        <input type="text" name="distrib_faltante" value="{$fsc->distribucion_setup['distrib_faltante']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                 <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Ordenes de Carga:</span>
+                        <input type="text" name="distrib_ordenescarga" value="{$fsc->distribucion_setup['distrib_ordenescarga']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Transportes</span>
+                        <input type="text" name="distrib_transportes" value="{$fsc->distribucion_setup['distrib_transportes']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Liquidaciones</span>
+                        <input type="text" name="distrib_liquidaciones" value="{$fsc->distribucion_setup['distrib_liquidaciones']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Faltantes</span>
+                        <input type="text" name="distrib_faltantes" value="{$fsc->distribucion_setup['distrib_faltantes']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Agencia</span>
+                        <input type="text" name="distrib_agencia" value="{$fsc->distribucion_setup['distrib_agencia']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Unidad de Transporte</span>
+                        <input type="text" name="distrib_unidad" value="{$fsc->distribucion_setup['distrib_unidad']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Conductor</span>
+                        <input type="text" name="distrib_conductor" value="{$fsc->distribucion_setup['distrib_conductor']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3 text-right">
+                    &nbsp;
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Agencias</span>
+                        <input type="text" name="distrib_agencias" value="{$fsc->distribucion_setup['distrib_agencias']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Unidades de Transporte</span>
+                        <input type="text" name="distrib_unidades" value="{$fsc->distribucion_setup['distrib_unidades']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <span class="text-uppercase">Conductores</span>
+                        <input type="text" name="distrib_conductores" value="{$fsc->distribucion_setup['distrib_conductores']}" class="form-control" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="col-sm-3 text-right">
+                    <br/>
+                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true; this.form.submit();">
+                        <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{include="footer"}

@@ -63,7 +63,7 @@ class distrib_ordencarga extends fs_controller {
     public $helper_ordencarga;
     public $helper_transportes;
     public function __construct() {
-        parent::__construct(__CLASS__, '4 - Crear Orden de Carga', 'distribucion');
+        parent::__construct(__CLASS__, '4 - Crear Ordenes de Carga', 'distribucion');
     }
 
     public function private_core() {

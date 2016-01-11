@@ -27,69 +27,72 @@ require_model('distribucion_conductores.php');
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class distrib_conductores extends fs_controller {
-    
-    public $almacen;
-    public $pais;
-    public $agencia_transporte;
-    public $distribucion_conductores;
-    public $listado;
-    
-    public function __construct() {
-        parent::__construct(__CLASS__, '3 - Conductores', 'distribucion');
-    }
-    
-    public function private_core(){
-        $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
-        $this->almacen = new almacen();
-        $this->agencia_transporte = new agencia_transporte();
-        $this->distribucion_conductores = new distribucion_conductores();
-        $delete = \filter_input(INPUT_GET, 'delete');
-        $id = \filter_input(INPUT_POST, 'id');
-        $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
-        $codtrans = \filter_input(INPUT_POST, 'codtrans');
-        $nombre = \filter_input(INPUT_POST, 'nombre');
-        $licencia_val = \filter_input(INPUT_POST, 'licencia');
-        $tipolicencia = \filter_input(INPUT_POST, 'tipolicencia');
-        $estado_val = \filter_input(INPUT_POST, 'estado');
-        $estado = (isset($estado_val))?true:false;
-        $licencia = (!empty($delete))?$delete:$licencia_val;
-        
-        $conductor = new distribucion_conductores();
-        $conductor->id = $id;
-        $conductor->idempresa = $this->empresa->id;
-        $conductor->codalmacen = $codalmacen;
-        $conductor->codtrans = (string) $codtrans;
-        $conductor->nombre = (string) trim(strtoupper($nombre));
-        $conductor->licencia = (string) trim(strtoupper($licencia));
-        $conductor->tipolicencia = (string) trim(strtoupper($tipolicencia));
-        $conductor->estado = $estado;
-        $conductor->usuario_creacion = $this->user->nick;
-        $conductor->fecha_creacion = \Date('d-m-Y H:i:s');
-        $condicion = (!empty($delete))?'delete':'update';
-        $valor = (!empty($delete))?$delete:$licencia;
-        if($valor){
-            $this->tratar_conductor($valor,$condicion, $conductor);
-        }
-        $this->listado = $this->distribucion_conductores->all($this->empresa->id);
-    }
-    
-    private function tratar_conductor($valor, $condicion, $conductor){
-        $conductor->usuario_modificacion = $this->user->nick;
-        $conductor->fecha_modificacion = \Date('d-m-Y H:i:s');
-        if($condicion == 'delete'){
-            $conductor->id = \filter_input(INPUT_GET, 'id');
-            $conductor->licencia = $valor;
-            if($conductor->delete()){
-                $this->new_message("Conductor ".$conductor->nombre." con licencia ".$conductor->licencia." eliminado correctamente.");
-            } else {
-                $this->new_error_msg("¡Imposible eliminar los datos del conductor!");
-            }
-        }elseif($condicion == 'update'){
-            if($conductor->save()){
-                $this->new_message("Conductor ".$conductor->nombre." tratado correctamente.");
-            } else {
-                $this->new_error_msg("¡Imposible tratar los datos del conductor ".$conductor->nombre." - ".$conductor->licencia."!");
-            }
-        }
-    }
+
+   public $almacen;
+   public $pais;
+   public $agencia_transporte;
+   public $distribucion_conductores;
+   public $listado;
+   public $fsvar;
+   
+   public function __construct() {
+      parent::__construct(__CLASS__, '3 - Conductores ', 'distribucion');
+   }
+
+   public function private_core() {
+      $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
+      $this->fsvar = new fs_var();
+      $this->almacen = new almacen();
+      $this->agencia_transporte = new agencia_transporte();
+      $this->distribucion_conductores = new distribucion_conductores();
+      $delete = \filter_input(INPUT_GET, 'delete');
+      $id = \filter_input(INPUT_POST, 'id');
+      $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
+      $codtrans = \filter_input(INPUT_POST, 'codtrans');
+      $nombre = \filter_input(INPUT_POST, 'nombre');
+      $licencia_val = \filter_input(INPUT_POST, 'licencia');
+      $tipolicencia = \filter_input(INPUT_POST, 'tipolicencia');
+      $estado_val = \filter_input(INPUT_POST, 'estado');
+      $estado = (isset($estado_val)) ? true : false;
+      $licencia = (!empty($delete)) ? $delete : $licencia_val;
+
+      $conductor = new distribucion_conductores();
+      $conductor->id = $id;
+      $conductor->idempresa = $this->empresa->id;
+      $conductor->codalmacen = $codalmacen;
+      $conductor->codtrans = (string) $codtrans;
+      $conductor->nombre = (string) trim(strtoupper($nombre));
+      $conductor->licencia = (string) trim(strtoupper($licencia));
+      $conductor->tipolicencia = (string) trim(strtoupper($tipolicencia));
+      $conductor->estado = $estado;
+      $conductor->usuario_creacion = $this->user->nick;
+      $conductor->fecha_creacion = \Date('d-m-Y H:i:s');
+      $condicion = (!empty($delete)) ? 'delete' : 'update';
+      $valor = (!empty($delete)) ? $delete : $licencia;
+      if ($valor) {
+         $this->tratar_conductor($valor, $condicion, $conductor);
+      }
+      $this->listado = $this->distribucion_conductores->all($this->empresa->id);
+   }
+
+   private function tratar_conductor($valor, $condicion, $conductor) {
+      $conductor->usuario_modificacion = $this->user->nick;
+      $conductor->fecha_modificacion = \Date('d-m-Y H:i:s');
+      if ($condicion == 'delete') {
+         $conductor->id = \filter_input(INPUT_GET, 'id');
+         $conductor->licencia = $valor;
+         if ($conductor->delete()) {
+            $this->new_message("Conductor " . $conductor->nombre . " con licencia " . $conductor->licencia . " eliminado correctamente.");
+         } else {
+            $this->new_error_msg("¡Imposible eliminar los datos del conductor!");
+         }
+      } elseif ($condicion == 'update') {
+         if ($conductor->save()) {
+            $this->new_message("Conductor " . $conductor->nombre . " tratado correctamente.");
+         } else {
+            $this->new_error_msg("¡Imposible tratar los datos del conductor " . $conductor->nombre . " - " . $conductor->licencia . "!");
+         }
+      }
+   }
+
 }
