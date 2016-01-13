@@ -12,7 +12,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -31,7 +31,6 @@ require_model('forma_pago.php');
 require_model('partida.php');
 require_model('subcuenta.php');
 require_model('distribucion_devoluciones.php');
-
 require_model('ncf_ventas.php');
 require_model('ncf_rango.php');
 require_once 'plugins/republica_dominicana/controller/helper_ncf.php';
@@ -58,7 +57,6 @@ class distrib_facturas extends fs_controller {
     public $devolucion;
     public $recibo;
     public $pago_recibo;
-    public $tesoreria_plugin;
     public $rd_plugin;
 
     public function __construct() {
@@ -66,13 +64,7 @@ class distrib_facturas extends fs_controller {
     }
 
     public function private_core() {
-        $this->recibo = new recibo_cliente();
         $this->rd_plugin = (class_exists ('ncf_rango'))?true:false;
-        $this->tesoreria_plugin = (class_exists ('recibo_cliente'))?true:false;
-        if($this->tesoreria_plugin){
-            $this->recibo = new recibo_cliente();
-            $this->pago_recibo = new pago_recibo_cliente();
-        }
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->share_extension();
         $this->factura_cliente = new factura_cliente();
@@ -147,7 +139,7 @@ class distrib_facturas extends fs_controller {
                 unset($fact_lineas[$key]);
             }
         }
-        
+
         /*
          * Mantenemos los valores de la factura menos su id para no repetir toda la data
          */
@@ -190,32 +182,14 @@ class distrib_facturas extends fs_controller {
             }
             $devolucion = new distribucion_devoluciones();
             $lineas_devolucion = $devolucion->get_devolucion($factura_original);
-            if($this->rd_plugin){
-                $ncf = new ncf_ventas();
-                $ncf_factura = $ncf->get_ncf($this->empresa->id, $fact->idfactura, $fact->codcliente);
-                $factura_elegida->ncf = $ncf_factura->ncf;
-                $factura_elegida->ncf_modifica = $ncf_factura->ncf_modifica;
-            }
             $this->resultados = ($lineas_devolucion)?$lineas_devolucion:NULL;
             $this->devolucion = ($lineas_devolucion)?TRUE:FALSE;
-            
-            if($this->tesoreria_plugin){
-                $recibos = $this->recibo->all_from_factura($factura_original);
-                $recibo0 = new recibo_cliente();
-                $recibo = $recibo0->get($recibos[0]->idrecibo);
-                if($recibo){
-                    $recibo->fecha = $fact->fecha;
-                    $recibo->importe = $recibo->importe + ($fact->neto + $fact->totaliva + $fact->totalirpf + $fact->totalrecargo);
-                    $recibo->importeeuros = $recibo->importe;
-                    $recibo->save();
-                }
-            }
         } else {
             $this->new_error_msg("¡Imposible agregar la devolución a esta factura!");
-            
+
         }
     }
-    
+
     private function share_extension() {
         $extensiones = array(
             array(

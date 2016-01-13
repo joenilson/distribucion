@@ -6,7 +6,7 @@
       if( confirm("¿Realmente desea eliminar la devolución?") )
          window.location.href = '{$fsc->url()}&delete='+id;
    }
-   
+
     $(document).ready(function() {
       $('#f_devolucion').validator().on('submit', function (e) {
         if (e.isDefaultPrevented()) {
@@ -22,7 +22,7 @@
     <form action="{$fsc->url()}" method="post" data-toggle="validator" role="form" class="form" name="f_devolucion" id="f_devolucion">
         {if="$fsc->devolucion"}
         <div class="row panel-info">
-            <span class="col-sm-2">Nota de Crédito de deVolución:</span><span><b>{if="$fsc->resultados->ncf"}{$fsc->resultados->ncf}{else}{$fsc->resultados->idfactura}{/if}</b></span>
+            <span class="col-sm-2">Nota de Crédito de deVolución:</span><span><b>{if="$fsc->resultados->numero2!=''"}{$fsc->resultados->numero2}{else}{$fsc->resultados->idfactura}{/if}</b></span>
         </div>
         {/if}
         <input type="hidden" name="id" value="{$fsc->factura}">
@@ -57,7 +57,7 @@
                     {else}
                         <td>&nbsp;</td>
                     {/if}
-                    
+
                 </tr>
             {/loop}
             <tr>
