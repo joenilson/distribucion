@@ -34,8 +34,6 @@ require_model('distribucion_devoluciones.php');
 require_model('ncf_ventas.php');
 require_model('ncf_rango.php');
 require_once 'plugins/republica_dominicana/controller/helper_ncf.php';
-
-require_model('recibo_cliente.php');
 /**
  * Description of distrib_facturas
  *
@@ -55,8 +53,6 @@ class distrib_facturas extends fs_controller {
     public $listado;
     public $resultados;
     public $devolucion;
-    public $recibo;
-    public $pago_recibo;
     public $rd_plugin;
 
     public function __construct() {
