@@ -638,14 +638,14 @@ class distrib_ordencarga extends fs_controller {
       $fsext5->save();
 
       $fsext6 = new fs_extension(
-              array(
+        array(
          'name' => 'distribucion_css5',
          'page_from' => __CLASS__,
          'page_to' => 'distrib_ordencarga',
          'type' => 'head',
          'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
          'params' => ''
-              )
+        )
       );
       $fsext6->save();
 
