@@ -53,11 +53,10 @@
                     <td class='text-right'>{$fsc->show_precio($value1->pvptotal)}</td>
                     <td class='text-center'>{$value1->cantidad}</td>
                     {if="!$fsc->devolucion"}
-                        <td class='text-center'><input name="id_{$value1->referencia}" type="number" min="0" max="{$value1->cantidad}" required></td>
+                        <td class='text-center'><input name="id_{$value1->referencia}" type="number" step="0.0001" min="0" max="{$value1->cantidad}" required></td>
                     {else}
                         <td>&nbsp;</td>
                     {/if}
-
                 </tr>
             {/loop}
             <tr>
