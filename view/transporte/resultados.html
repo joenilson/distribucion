@@ -112,7 +112,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 <td>
                     {if="$fsc->allow_delete"}
                     {if="!$value->despachado"}
-                    <button class="btn btn-sm btn-danger" title="Eliminar Transporte"><span class="glyphicon glyphicon-trash"></span></button>
+                    <button type="button" id="b_eliminar_transporte" onclick="eliminarTransporte('{$value->idtransporte}','{$value->codalmacen}')" class="btn btn-sm btn-danger" title="Eliminar Transporte"><span class="glyphicon glyphicon-trash"></span></button>
                     {/if}
                     {/if}
                 </td>

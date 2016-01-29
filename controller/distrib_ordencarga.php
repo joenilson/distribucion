@@ -470,7 +470,7 @@ class distrib_ordencarga extends fs_controller {
          $search_ncf_status = new ncf_ventas();
          foreach ($data_search as $key => $fact) {
             $search_value = $search_ncf_status->get_ncf($this->empresa->id, $fact->idfactura, $fact->codcliente);
-            if ($search_value->estado == 'f' OR $search_value->tipo_comprobante == '04') {
+            if ((!$search_value->estado) OR $search_value->tipo_comprobante == '04') {
                unset($data_search[$key]);
             }
          }
@@ -479,7 +479,7 @@ class distrib_ordencarga extends fs_controller {
       //Termino de busqueda de NCF
       foreach ($data_search as $values) {
          if ($values->codalmacen == $codalmacen AND ( !$this->distrib_ordenescarga_facturas->get($this->empresa->id, $values->idfactura, $codalmacen))) {
-            if (!$values->deabono) {
+            if (!$values->idfacturarect) {
                $this->resultados[] = $values;
             }
          }

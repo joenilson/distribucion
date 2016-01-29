@@ -141,6 +141,27 @@ class distrib_creacion extends fs_controller {
          $this->template = false;
          header('Content-Type: application/json');
          echo json_encode($data);
+      } elseif ($type == 'eliminar-transporte') {
+         $value_transporte = \filter_input(INPUT_GET, 'transporte');
+         $lista_transporte = explode(',', $value_transporte);
+         foreach ($lista_transporte as $linea) {
+            if ($linea) {
+               $datos_transporte = explode('-', $linea);
+               $idtransporte = $datos_transporte[0];
+               $codalmacen = $datos_transporte[1];
+               $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+               if ($trans0->delete()) {
+                  $data['success'] = TRUE;
+                  $data['mensaje'] = 'Transporte ' . $idtransporte . ' eliminado!';
+               } else {
+                  $data['success'] = FALSE;
+                  $data['mensaje'] = 'Transporte ' . $idtransporte . ' <b>NO</b> eliminado!';
+               }
+            }
+         }
+         $this->template = false;
+         header('Content-Type: application/json');
+         echo json_encode($data);
       } elseif ($type == 'liquidar-transporte') {
          $value_transporte = \filter_input(INPUT_GET, 'transporte');
          $datos_transporte = explode('-', $value_transporte);

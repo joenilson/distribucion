@@ -139,6 +139,42 @@
           .appendTo('#modal_body_impresion_transporte');
    }
    
+   function eliminarTransporte(idtransporte,almacen){
+        bootbox.dialog({
+            message: "¿Esta seguro que quiere eliminar el transporte <b>"+idtransporte+"</b> seleccionado?",
+            title: "Eliminar Transporte de Mercancías",
+            buttons: {
+              success: {
+                label: "Eliminar",
+                className: "btn-warning",
+                callback: function() {
+                    $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=eliminar-transporte&transporte='+idtransporte+'-'+almacen,
+                       success : function(datos) {
+                            bootbox.alert(datos.mensaje, function() {
+                               window.location.assign("{$fsc->url}");
+                            });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                }
+              },
+              danger: {
+                label: "Cancelar",
+                className: "btn-danger",
+                callback: function() {
+                  this.hide();
+                }
+              }
+            }
+        });
+   }
+   
    $(document).ready(function() {
         $('#b_imprimir_seleccion').click(function (event) {
             var checkboxValues = [];

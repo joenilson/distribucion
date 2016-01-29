@@ -209,11 +209,26 @@ class distribucion_transporte extends fs_model {
     }
     
     public function delete() {
-        $sql = "DELETE FROM distribucion_transporte WHERE ".
+        //Primero eliminamos la asignación del id de transporte a la orden de carga
+        $sql1 = "UPDATE distribucion_ordenescarga_facturas SET idtransporte = NULL WHERE ".
+                "idempresa = ".$this->intval($this->idempresa)." AND ".
+                "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                "idordencarga = ".$this->intval($this->idordencarga)." AND ".
+                "idtransporte = ".$this->intval($this->idtransporte).";";
+        $this->db->exec($sql1);
+        //Quitamos el estado de despachado y el idtransporte a distrib_ordenescarga
+        $sql2 = "UPDATE distribucion_ordenescarga SET idtransporte = NULL, despachado = FALSE  WHERE ".
+                "idempresa = ".$this->intval($this->idempresa)." AND ".
+                "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                "idordencarga = ".$this->intval($this->idordencarga)." AND ".
+                "idtransporte = ".$this->intval($this->idtransporte).";";
+        $this->db->exec($sql2);
+        //Luego de esto procedemos a borrar el transporte
+        $sql3 = "DELETE FROM distribucion_transporte WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "idtransporte = ".$this->intval($this->idtransporte).";";
-        return $this->db->exec($sql);
+        return $this->db->exec($sql3);
     }
     
     public function asignar_transporte(){
