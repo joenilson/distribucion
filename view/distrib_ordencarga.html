@@ -4,12 +4,12 @@
     {
        $('#f_resultados input:checkbox').prop('checked', true);
     }
-    
+
     function fs_marcar_nada()
     {
        $('#f_resultados input:checkbox').prop('checked', false);
     }
-    
+
    function buscar_lineas()
    {
       if(document.f_buscar_lineas.buscar_lineas.value == '')
@@ -37,12 +37,12 @@
    function mas_resultados(num)
    {
       document.f_buscar_lineas.offset.value = parseInt(document.f_buscar_lineas.offset.value) + parseInt(num);
-      
+
       if(document.f_buscar_lineas.offset.value < 0)
       {
          document.f_buscar_lineas.offset.value = 0;
       }
-      
+
       buscar_lineas();
    }
    function clean_cliente()
@@ -51,47 +51,83 @@
       document.f_custom_search.codcliente.value='';
       document.f_custom_search.ac_cliente.focus();
    }
-   
+
    function nuevaOrdenCarga(){
        $('#modal_nueva_ordencarga').modal('show');
    }
-   
-   function eliminarOrdenCarga(id,almacen){
-       bootbox.dialog({
-             message: "Esta seguro que quiere esta la Orden de Carga "+id+"?",
-             title: "Eliminar Orden de Carga",
-             buttons: {
-               success: {
-                 label: "Eliminar",
-                 className: "btn-success",
-                 callback: function() {
-                     $.ajax({
-                       type: 'GET',
-                       url: '{$fsc->url()}',
-                       async: false,
-                       data: 'type=eliminar-carga&ordencarga='+id+'-'+almacen,
-                       success : function(datos) {
-                            bootbox.alert(datos.mensaje, function() {
-                               window.location.assign("{$fsc->url}");
-                            });
-                       },
-                       error: function() {
-                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
-                       }
-                   });
-                 }
-               },
-               danger: {
-                 label: "Cancelar",
-                 className: "btn-danger",
-                 callback: function() {
-                   this.hide();
-                 }
-               }
-             }
-         });
+
+    function eliminarOrdenCarga(id,almacen){
+        bootbox.dialog({
+            message: "Esta seguro que quiere eliminar la Orden de Carga "+id+"?",
+            title: "Eliminar Orden de Carga",
+            buttons: {
+                success: {
+                    label: "Eliminar",
+                    className: "btn-success",
+                    callback: function() {
+                        $.ajax({
+                            type: 'GET',
+                            url: '{$fsc->url()}',
+                            async: false,
+                            data: 'type=eliminar-carga&ordencarga='+id+'-'+almacen,
+                            success : function(datos) {
+                                 bootbox.alert(datos.mensaje, function() {
+                                    window.location.assign("{$fsc->url}");
+                                 });
+                            },
+                            error: function() {
+                                bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                            }
+                        });
+                    }
+                },
+                danger: {
+                    label: "Cancelar",
+                    className: "btn-danger",
+                    callback: function() {
+                        this.hide();
+                    }
+                }
+            }
+        });
+    }
+
+    function reversarOrdenCarga(id,almacen,movimiento){
+        bootbox.dialog({
+            message: "Esta seguro que quiere reversar la Orden de Carga "+id+"?",
+            title: "Reversar Orden de Carga",
+            buttons: {
+                success: {
+                    label: "Reversar",
+                    className: "btn-success",
+                    callback: function() {
+                        $.ajax({
+                            type: 'GET',
+                            url: '{$fsc->url()}',
+                            async: false,
+                            data: 'type=reversar-carga&ordencarga='+id+'-'+almacen+'&movimiento='+movimiento,
+                            success : function(datos) {
+                                 bootbox.alert(datos.mensaje, function() {
+                                    window.location.assign("{$fsc->url}");
+                                 });
+                            },
+                            error: function() {
+                                bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                            }
+                        });
+                    }
+                },
+                danger: {
+                    label: "Cancelar",
+                    className: "btn-danger",
+                    callback: function() {
+                        this.hide();
+                    }
+                }
+            }
+        });
    }
-   
+
    function generarTransporte(){
        var checkboxValues = [];
        var seguir = true;
@@ -102,7 +138,7 @@
            seguir = false;
            alert('Error de informacion enviada a procesar!');
        }
-       
+
        if(seguir){
         var frase = (checkboxValues.length===1)?"la orden de carga seleccionada":"las ordenes de carga seleccionadas";
         bootbox.dialog({
@@ -140,7 +176,7 @@
          });
      }
    }
-   
+
    function confirmarOrdenCarga(id,almacen){
        var checkboxValues = [];
        var seguir = true;
@@ -148,7 +184,7 @@
            checkboxValues.push($(this).val());
        });
        if(checkboxValues.length === 0 && id !== undefined && almacen !== undefined){
-          checkboxValues.push(id+'-'+almacen); 
+          checkboxValues.push(id+'-'+almacen);
        }else if(checkboxValues.length === 0 && id === undefined && almacen === undefined){
            seguir = false;
            alert('Error de informacion enviada a procesar!');
@@ -172,7 +208,7 @@
                          bootbox.alert(datos.mensaje, function() {
                             this.hide();
                             window.location.assign("{$fsc->url}");
-                            
+
                          });
                        },
                        error: function() {
@@ -192,7 +228,7 @@
          });
        }
    }
-   
+
    function mostrarOrdenCarga(id,almacen){
        $('#modal_resumen_ordencarga').modal('show');
        $.ajax({
@@ -210,7 +246,7 @@
                     colModel: [
                         {label: 'Ref.', name: 'referencia', width: 30, key: true},
                         {label: 'Producto', name: 'producto', width: 60},
-                        {label: 'Cantidad', name: 'cantidad', width: 20, sorttype: 'number', 
+                        {label: 'Cantidad', name: 'cantidad', width: 20, sorttype: 'number',
                             formatter: 'number', align: 'right', summaryType: 'sum',
                             formatoptions : { decimalSeparator: ".", decimalPlaces:2, thousandsSeparator:"," }
                         }
@@ -242,7 +278,7 @@
             }
          });
    }
-   
+
    function mostrarTransporte(idtransporte,id,almacen){
        $('#modal_impresion_ordencarga').modal('show');
         $("#imprimir_ordencarga").detach();
@@ -252,11 +288,11 @@
           .attr('height', '500')
           .appendTo('#modal_body_impresion_ordencarga');
    }
-   
+
    $(document).ready(function() {
       $('#f_imprimir_carga_btn').click(function(event) {
          event.preventDefault();
-         
+
         $('#modal_impresion_ordencarga').modal('show');
         $("#imprimir_ordencarga").detach();
         $("<iframe id='imprimir_ordencarga' />")
@@ -265,23 +301,23 @@
           .attr('height', '500')
           .appendTo('#modal_body_impresion_ordencarga');
       });
-   
+
       $('#b_imprimir_ordencarga').click(function(event) {
          event.preventDefault();
          $('#modal_nueva_ordencarga').modal('show');
          document.f_buscar_lineas.buscar_lineas.focus();
       });
-   
+
       $('#b_nueva_ordencarga').click(function(event) {
          event.preventDefault();
          $('#modal_nueva_ordencarga').modal('show');
          document.f_buscar_lineas.buscar_lineas.focus();
       });
-      
+
       {if="$fsc->mostrar=='buscar'"}
       document.f_custom_search.query.focus();
       {/if}
-      
+
       $('#b_buscar_lineas').click(function(event) {
          event.preventDefault();
          $('#modal_buscar_lineas').modal('show');
@@ -307,7 +343,7 @@
                }
             }
          }
-      });      
+      });
    });
 </script>
 <div class="container-fluid" style="margin-top: 10px; margin-bottom: 10px;">

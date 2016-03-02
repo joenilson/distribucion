@@ -272,6 +272,32 @@ class distrib_ordencarga extends fs_controller {
          $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
          $lista_ordenescargar = explode(',', $value_ordencarga);
          $this->crear_transporte($lista_ordenescargar);
+      } elseif ($type === 'reversar-carga') {
+         $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+         $value_movimiento = \filter_input(INPUT_GET, 'movimiento');
+         $datos_ordencarga = explode('-', $value_ordencarga);
+         $idordencarga = $datos_ordencarga[0];
+         $codalmacen = $datos_ordencarga[1];
+         $oc0 = new distribucion_ordenescarga();
+         $oc0->idempresa = $this->empresa->id;
+         $oc0->idordencarga = $idordencarga;
+         $oc0->codalmacen = $codalmacen;
+         $oc0->usuario_modificacion = $this->user->nick;
+         $oc0->fecha_modificacion = Date("d-m-Y H:i");
+         if($value_movimiento == 'cargada'){
+            $oc0->cargado = FALSE;
+            $estado = $oc0->confirmar_cargada();
+         }
+         if ($estado) {
+            $data['success'] = TRUE;
+            $data['mensaje'] = "Orden de Carga ".$oc0->idordencarga." reversada correctamente.";
+         } else {
+            $data['success'] = TRUE;
+            $data['mensaje'] = "No se pudo reversar la Orden de Carga, por favor verifique que otro usuario no la este utilizando..";
+         }
+         $this->template = false;
+         header('Content-Type: application/json');
+         echo json_encode($data);
       } else {
          $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id);
       }
