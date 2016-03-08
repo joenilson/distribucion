@@ -12,7 +12,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -37,12 +37,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
-    
+
     public $factura_cliente;
     public $cliente;
     public $ncf_ventas;
     public $ncf_rango;
-    
+
     public function __construct($t = false) {
         parent::__construct('distribucion_ordenescarga_facturas','plugins/distribucion/');
         if($t)
@@ -71,22 +71,22 @@ class distribucion_ordenescarga_facturas extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-        
+
         $this->factura_cliente = new factura_cliente();
         $this->cliente = new cliente();
         if(class_exists('ncf_rango')){
             $this->ncf_ventas = new ncf_ventas();
         }
     }
-    
+
     public function url(){
         return "index.php?page=distrib_ordencarga";
     }
-    
+
     protected function install() {
         return "";
     }
-    
+
     public function exists() {
         $datos = $this->db->select("SELECT * FROM distribucion_ordenescarga_facturas WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -97,7 +97,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
             return false;
         }
     }
-    
+
     public function save() {
         if ($this->exists())
         {
@@ -123,7 +123,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
             }
         }
     }
-    
+
     public function delete() {
         $sql = "DELETE FROM distribucion_ordenescarga_facturas WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -131,7 +131,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
                 "idordencarga = ".$this->intval($this->idordencarga).";";
         return $this->db->exec($sql);
     }
-    
+
     public function asignar_transporte(){
         $sql = "UPDATE distribucion_ordenescarga_facturas SET ".
                     "idtransporte = ".$this->var2str($this->idtransporte).", ".
@@ -147,7 +147,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
             return false;
         }
     }
-    
+
     public function info_factura($factura){
         $info_adicional = $this->factura_cliente->get($factura->idfactura);
         $facturasrect = $this->db->select("SELECT * FROM facturascli WHERE idfacturarect = ".$this->intval($factura->idfactura)." ORDER BY idfactura ASC;");
@@ -158,10 +158,10 @@ class distribucion_ordenescarga_facturas extends fs_model {
         if($facturasrect){
             foreach($facturasrect as $rectificativa){
                 $factura->abono += ($rectificativa['total'] * -1);
-                $factura->saldo -= ($rectificativa['total'] * -1);
+                $factura->saldo += ($rectificativa['total'] * -1);
             }
         }
-        
+
         $lineas_fact = $info_adicional->get_lineas();
         $totalCantidad = 0;
         foreach ($lineas_fact as $linea){
@@ -178,12 +178,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
         $factura->enlace = $info_adicional->url();
         return $factura;
     }
-    
+
     public function all($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_ordenescarga_facturas WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -195,12 +195,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_almacen($idempresa,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_ordenescarga_facturas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, idordencarga, idfactura;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -212,12 +212,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_almacen_ordencarga($idempresa,$codalmacen,$idordencarga)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_ordenescarga_facturas WHERE idempresa = ".$this->intval($idempresa)." AND idordencarga = ".$this->intval($idordencarga)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, idordencarga, idfactura;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -229,12 +229,12 @@ class distribucion_ordenescarga_facturas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_almacen_idtransporte($idempresa,$codalmacen,$idtransporte)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_ordenescarga_facturas WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, idordencarga, idfactura;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -246,7 +246,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get($idempresa,$idfactura,$codalmacen)
     {
         $lista = array();

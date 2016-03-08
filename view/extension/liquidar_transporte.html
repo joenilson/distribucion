@@ -10,7 +10,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -25,7 +25,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
    {
       $("#f_liquidar_transporte input[name='idfactura']").prop('checked', false);
    }
-   
+
    function guardarLiquidacion(){
         bootbox.dialog({
             message: "Esta seguro que quiere Guardar la liquidación de este transporte?",
@@ -62,7 +62,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
             }
         });
    }
-   
+
    function generarFaltante(){
        bootbox.dialog({
         title: "<b>Generar faltante al Transporte {$fsc->transporte->idtransporte} <br />Conductor:  {$fsc->transporte->conductor_nombre}</b>",
@@ -113,7 +113,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         error: function(datos) {
                             bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
                         }
-                    }); 
+                    });
                 }
             },
             danger: {
@@ -126,7 +126,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         }
     });
    }
-   
+
    function liquidarFactura(url){
         $('#modal_liquidar_factura').modal('show');
         $("#liquidar_factura").detach();
@@ -136,7 +136,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
           .attr('height', '500')
           .appendTo('#modal_body_liquidar_factura');
    }
-   
+
    function imprimirLiquidacion(){
         var url = '{$fsc->url()}&type=imprimir-liquidacion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}';
         $('#modal_imprimir_liquidacion').modal('show');
@@ -147,7 +147,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
           .attr('height', '500')
           .appendTo('#modal_body_imprimir_liquidacion');
    }
-   
+
    function ingresarPago(factura,almacen){
         var checkboxValues = [];
         var seguir = true;
@@ -156,14 +156,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         });
         console.log(checkboxValues);
         if(checkboxValues.length === 0 && factura !== undefined && almacen !== undefined){
-           checkboxValues.push(factura+'-'+almacen); 
+           checkboxValues.push(factura+'-'+almacen);
         }else if(checkboxValues.length === 0 && factura === undefined && almacen === undefined){
             seguir = false;
             alert('Error de informacion enviada a procesar, no hay datos seleccionados!');
         }
         if(seguir){
+            var frase = (checkboxValues.length===1)?"la factura "+checkboxValues[0]:"las facturas seleccionadas";
             bootbox.dialog({
-                message: "Esta seguro que quiere generar el pago a la factura "+factura+"?",
+                message: "Esta seguro que quiere generar el pago a "+frase+"?",
                 title: "Marcar como pagada Factura",
                 buttons: {
                   success: {
@@ -198,12 +199,12 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
             });
         }
    }
-   
+
    $(document).ready(function() {
       $('#modal_liquidar_factura').on('hidden.bs.modal', function () {
           window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
-      }); 
-            
+      });
+
       $("#ac_cliente").autocomplete({
          serviceUrl: '{$fsc->url()}',
          paramName: 'buscar_cliente',
@@ -342,7 +343,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                           <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_nada()" title="Desmarcar todo">
                              <span class="glyphicon glyphicon-unchecked"></span>
                           </button>
-                          <button class="btn btn-sm btn-primary" type="button" disabled="true" onclick="ingresarPago()">
+                          <button class="btn btn-sm btn-primary" type="button" onclick="ingresarPago()">
                              <span class="glyphicon glyphicon-ok"></span> &nbsp; Marcar como pagadas
                           </button>
                        </div>
@@ -366,7 +367,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             <span class="hidden-xs">&nbsp; Imprimir Liquidación</span>
                         </button>
                         {/if}
-                        
+
                     </div>
                     {/if}
                  </div>
@@ -391,7 +392,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             <td>{$fsc->faltante_transporte->estado}</td>
                             <td class="text-right">{$fsc->show_numero($fsc->faltante_transporte->importe)}</td>
                         </tr>
-                    </table>   
+                    </table>
                 </div>
                 {/if}
             </div>
@@ -406,7 +407,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 <h4 class="modal-title">Liquidar Factura</h4>
             </div>
             <div class="modal-body" id='modal_body_liquidar_factura'>
-                
+
             </div>
         </div>
     </div>
@@ -419,7 +420,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             </div>
             <div class="modal-body" id='modal_body_imprimir_liquidacion'>
-                
+
             </div>
         </div>
     </div>

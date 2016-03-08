@@ -12,7 +12,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -50,10 +50,10 @@ class distribucion_transporte extends fs_model {
     public $fecha_modificacion;
     public $liquidacion_importe;
     public $liquidacion_faltante;
-    
+
     public $distribucion_conductores;
     public $distribucion_unidades;
-    
+
     public function __construct($t = false) {
         parent::__construct('distribucion_transporte','plugins/distribucion/');
         if($t)
@@ -112,19 +112,19 @@ class distribucion_transporte extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-        
+
         $this->distribucion_conductores = new distribucion_conductores();
         $this->distribucion_unidades = new distribucion_unidades();
     }
-    
+
     public function url(){
         return "index.php?page=distrib_ordencarga";
     }
-    
+
     protected function install() {
         return "";
     }
-    
+
     public function getNextId(){
         $data = $this->db->select("SELECT max(idtransporte) FROM distribucion_transporte WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -133,7 +133,7 @@ class distribucion_transporte extends fs_model {
         $id++;
         return $id;
     }
-    
+
     public function exists() {
         if(is_null($this->idtransporte))
         {
@@ -147,7 +147,7 @@ class distribucion_transporte extends fs_model {
                     "idtransporte = ".$this->intval($this->idtransporte).";");
         }
     }
-    
+
     public function save() {
         if ($this->exists())
         {
@@ -171,7 +171,7 @@ class distribucion_transporte extends fs_model {
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                     "idtransporte = ".$this->intval($this->idtransporte).";";
-            
+
             return $this->db->exec($sql);
         }
         else
@@ -207,7 +207,7 @@ class distribucion_transporte extends fs_model {
             }
         }
     }
-    
+
     public function delete() {
         //Primero eliminamos la asignación del id de transporte a la orden de carga
         $sql1 = "UPDATE distribucion_ordenescarga_facturas SET idtransporte = NULL WHERE ".
@@ -230,7 +230,7 @@ class distribucion_transporte extends fs_model {
                 "idtransporte = ".$this->intval($this->idtransporte).";";
         return $this->db->exec($sql3);
     }
-    
+
     public function asignar_transporte(){
         $sql = "UPDATE distribucion_transporte SET ".
                     "idordencarga = ".$this->var2str($this->idordencarga).", ".
@@ -246,7 +246,7 @@ class distribucion_transporte extends fs_model {
             return false;
         }
     }
-    
+
     public function confirmar_despacho(){
         $sql = "UPDATE distribucion_transporte SET ".
                     "despachado = ".$this->var2str($this->despachado).", ".
@@ -263,7 +263,7 @@ class distribucion_transporte extends fs_model {
             return false;
         }
     }
-    
+
     public function confirmar_liquidada(){
         $sql = "UPDATE distribucion_transporte SET ".
                     "liquidacion_importe = ".$this->var2str($this->liquidacion_importe).", ".
@@ -282,12 +282,40 @@ class distribucion_transporte extends fs_model {
             return false;
         }
     }
-    
+
+    public function search($query, $offset=0)
+    {
+      $translist = array();
+      $query = strtolower( $this->no_html($query) );
+
+      $consulta = "SELECT * FROM ".$this->table_name." WHERE ";
+      if( is_numeric($query) )
+      {
+         $consulta .= "licencia LIKE '%".$query."%' OR nombre LIKE '%".$query."%' OR codtrans LIKE '%".$query."%'";
+      }
+      else
+      {
+         $consulta .= "lower(licencia) LIKE '%".$query."%' OR lower(nombre) LIKE '%".$query."%' "
+                 . "OR lower(codtrans) LIKE '%".str_replace(' ', '%', $query)."%'";
+      }
+      $consulta .= " ORDER BY codtrans DESC, nombre DESC";
+
+      $data = $this->db->select_limit($consulta, FS_ITEM_LIMIT, $offset);
+      if($data)
+      {
+         foreach($data as $f){
+            $translist[] = new distribucion_conductores($f);
+         }
+      }
+
+      return $translist;
+    }
+
     public function all($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -297,12 +325,27 @@ class distribucion_transporte extends fs_model {
         }
         return $lista;
     }
-    
+
+    public function all_pendientes($idempresa, $tipo)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans;");
+
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $lista[] = new distribucion_transporte($d);
+            }
+        }
+        return $lista;
+    }
+
     public function all_almacen($idempresa,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -312,12 +355,12 @@ class distribucion_transporte extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_agencia($idempresa,$codtrans)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -327,12 +370,12 @@ class distribucion_transporte extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -342,12 +385,12 @@ class distribucion_transporte extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -357,12 +400,12 @@ class distribucion_transporte extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_almacen($idempresa,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -372,12 +415,12 @@ class distribucion_transporte extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_agencia($idempresa,$codtrans)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -387,12 +430,12 @@ class distribucion_transporte extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -402,12 +445,12 @@ class distribucion_transporte extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get($idempresa,$idtransporte,$codalmacen)
     {
         $lista = FALSE;
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen).";");
-        
+
         if($data)
         {
             foreach($data as $d)

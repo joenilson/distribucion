@@ -4,12 +4,12 @@
     {
        $('#f_resultados input:checkbox').prop('checked', true);
     }
-    
+
     function fs_marcar_nada()
     {
        $('#f_resultados input:checkbox').prop('checked', false);
     }
-    
+
    function buscar_lineas()
    {
       if(document.f_buscar_lineas.buscar_lineas.value == '')
@@ -37,21 +37,21 @@
    function mas_resultados(num)
    {
       document.f_buscar_lineas.offset.value = parseInt(document.f_buscar_lineas.offset.value) + parseInt(num);
-      
+
       if(document.f_buscar_lineas.offset.value < 0)
       {
          document.f_buscar_lineas.offset.value = 0;
       }
-      
+
       buscar_lineas();
    }
-   function clean_cliente()
+   function clean_conductor()
    {
-      document.f_custom_search.ac_cliente.value='';
-      document.f_custom_search.codcliente.value='';
-      document.f_custom_search.ac_cliente.focus();
+      document.f_custom_search.ac_conductor.value='';
+      document.f_custom_search.licencia.value='';
+      document.f_custom_search.ac_conductor.focus();
    }
-   
+
    function nuevoTransporte(){
        $('#modal_nuevo_transporte').modal('show');
    }
@@ -63,7 +63,7 @@
            checkboxValues.push($(this).val());
        });
        if(checkboxValues.length === 0 && id !== undefined && almacen !== undefined){
-          checkboxValues.push(id+'-'+almacen); 
+          checkboxValues.push(id+'-'+almacen);
        }else if(checkboxValues.length === 0 && id === undefined && almacen === undefined){
            seguir = false;
            alert('Error de informacion enviada a procesar!');
@@ -105,7 +105,7 @@
          });
        }
    }
-   
+
     function liquidarTransporte(id){
         bootbox.dialog({
             message: "Esta seguro que quiere generar la liquidación a este transporte?",
@@ -128,7 +128,7 @@
             }
         });
     }
-   
+
    function mostrarTransporte(idtransporte,almacen){
         $('#modal_impresion_transporte').modal('show');
         $("#imprimir_transporte").detach();
@@ -138,7 +138,7 @@
           .attr('height', '500')
           .appendTo('#modal_body_impresion_transporte');
    }
-   
+
    function eliminarTransporte(idtransporte,almacen){
         bootbox.dialog({
             message: "¿Esta seguro que quiere eliminar el transporte <b>"+idtransporte+"</b> seleccionado?",
@@ -155,7 +155,7 @@
                        data: 'type=eliminar-transporte&transporte='+idtransporte+'-'+almacen,
                        success : function(datos) {
                             bootbox.alert(datos.mensaje, function() {
-                               window.location.assign("{$fsc->url}");
+                               window.location.assign("{$fsc->url()}");
                             });
                        },
                        error: function() {
@@ -174,7 +174,7 @@
             }
         });
    }
-   
+
    $(document).ready(function() {
         $('#b_imprimir_seleccion').click(function (event) {
             var checkboxValues = [];
@@ -212,23 +212,23 @@
                 alert('Debe seleccionar un transporte!');
             }
         });
-   
+
       $('#b_imprimir_ordencarga').click(function(event) {
          event.preventDefault();
          $('#modal_nueva_ordencarga').modal('show');
          document.f_buscar_lineas.buscar_lineas.focus();
       });
-   
+
       $('#b_nueva_ordencarga').click(function(event) {
          event.preventDefault();
          $('#modal_nueva_ordencarga').modal('show');
          document.f_buscar_lineas.buscar_lineas.focus();
       });
-      
+
       {if="$fsc->mostrar=='buscar'"}
       document.f_custom_search.query.focus();
       {/if}
-      
+
       $('#b_buscar_lineas').click(function(event) {
          event.preventDefault();
          $('#modal_buscar_lineas').modal('show');
@@ -241,20 +241,20 @@
          event.preventDefault();
          buscar_lineas();
       });
-      $("#ac_cliente").autocomplete({
+      $("#ac_conductor").autocomplete({
          serviceUrl: '{$fsc->url()}',
-         paramName: 'buscar_cliente',
+         paramName: 'buscar_conductor',
          onSelect: function (suggestion) {
             if(suggestion)
             {
-               if(document.f_custom_search.codcliente.value != suggestion.data && suggestion.data != '')
+               if(document.f_custom_search.licencia.value != suggestion.data && suggestion.data != '')
                {
-                  document.f_custom_search.codcliente.value = suggestion.data;
+                  document.f_custom_search.licencia.value = suggestion.data;
                   document.f_custom_search.submit();
                }
             }
          }
-      });      
+      });
    });
 </script>
 <div class="container-fluid" style="margin-top: 10px; margin-bottom: 10px;">
@@ -338,14 +338,21 @@
 <ul class="nav nav-tabs" role="tablist">
    <li{if="$fsc->mostrar=='todo'"} class="active"{/if}>
       <a href="{$fsc->url()}&mostrar=todo">
-         Todas
+         Todos
       </a>
    </li>
-   <li{if="$fsc->mostrar=='pendientes'"} class="active"{/if}>
-      <a href="{$fsc->url()}&mostrar=pendientes">
+   <li{if="$fsc->mostrar=='por_despachar'"} class="active"{/if}>
+      <a href="{$fsc->url()}&mostrar=por_despachar">
          <span class="glyphicon glyphicon-time"></span>
-         <span class="hidden-xs">&nbsp; Pendientes</span>
-         <span class="hidden-xs badge">{$fsc->total_pendientes()}</span>
+         <span class="hidden-xs">&nbsp; Por Despachar</span>
+         <span class="hidden-xs badge">{$fsc->total_pendientes('despachado')}</span>
+      </a>
+   </li>
+   <li{if="$fsc->mostrar=='por_liquidar'"} class="active"{/if}>
+      <a href="{$fsc->url()}&mostrar=por_liquidar">
+         <span class="glyphicon glyphicon-time"></span>
+         <span class="hidden-xs">&nbsp; Por Liquidar</span>
+         <span class="hidden-xs badge">{$fsc->total_pendientes('liquidado')}</span>
       </a>
    </li>
    <li{if="$fsc->mostrar=='buscar'"} class="active"{/if}>
@@ -361,10 +368,10 @@
 {if="$fsc->mostrar=='buscar'"}
 <br/>
 <form name="f_custom_search" action="{$fsc->url()}" method="post" class="form">
-   {if="$fsc->cliente"}
-   <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+   {if="$fsc->conductor"}
+   <input type="hidden" name="licencia" value="{$fsc->conductor->licencia}"/>
    {else}
-   <input type="hidden" name="codcliente"/>
+   <input type="hidden" name="licencia"/>
    {/if}
    <div class="container-fluid">
       <div class="row">
@@ -383,13 +390,13 @@
          <div class="col-sm-2">
             <div class="form-group">
                <div class="input-group">
-                  {if="$fsc->cliente"}
-                  <input class="form-control" type="text" name="ac_cliente" value="{$fsc->cliente->nombre}" id="ac_cliente" placeholder="Cualquier cliente" autocomplete="off"/>
+                  {if="$fsc->conductor"}
+                  <input class="form-control" type="text" name="ac_conductor" value="{$fsc->conductor->nombre}" id="ac_conductor" placeholder="Cualquier conductor" autocomplete="off"/>
                   {else}
-                  <input class="form-control" type="text" name="ac_cliente" id="ac_cliente" placeholder="Cualquier cliente" autocomplete="off"/>
+                  <input class="form-control" type="text" name="ac_conductor" id="ac_conductor" placeholder="Cualquier conductor" autocomplete="off"/>
                   {/if}
                   <span class="input-group-btn">
-                     <button class="btn btn-default" type="button" onclick="clean_cliente()">
+                     <button class="btn btn-default" type="button" onclick="clean_conductor()">
                         <span class="glyphicon glyphicon-remove"></span>
                      </button>
                   </span>
