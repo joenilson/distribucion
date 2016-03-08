@@ -130,17 +130,16 @@ class distrib_creacion extends fs_controller {
       if($this->mostrar == 'todo'){
          $this->resultados = $this->distrib_transporte->all($this->empresa->id);
       }elseif($this->mostrar == 'por_despacho'){
-         $this->resultados = $this->distrib_transporte->all_pendiente($this->empresa->id,'despachado');
+         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'despachado');
       }elseif($this->mostrar == 'por_liquidar'){
-         $this->resultados = $this->distrib_transporte->all_pendiente($this->empresa->id,'liquidado');
+         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'liquidado');
       }elseif($this->mostrar == 'buscar'){
          setcookie('distrib_transportes_mostrar', $this->mostrar, time()+FS_COOKIES_EXPIRE);
       }
 
       if( isset($_REQUEST['buscar_conductor']) )
       {
-         var_dump($_REQUEST['buscar_conductor']);
-         $this->buscar_conductor();
+        $this->buscar_conductor();
       }
 
       if( isset($_REQUEST['licencia']) )
