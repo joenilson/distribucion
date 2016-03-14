@@ -254,21 +254,19 @@ class distribucion_organizacion extends fs_model {
     
     public function get($idempresa,$codagente)
     {
-        $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codagente = ".$this->var2str($codagente).";");
         
         if($data)
         {
-            foreach($data as $d)
-            {
-                $value = new distribucion_organizacion($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
-            }
+            $value = new distribucion_organizacion($data[0]);
+            $data_agente = $this->agente->get($value->codagente);
+            $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+            $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
+            $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+            return $value;
+        }else{
+            return false;
         }
-        return $lista;
+        
     }
 }

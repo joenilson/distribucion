@@ -72,7 +72,7 @@
                             data: 'type=eliminar-carga&ordencarga='+id+'-'+almacen,
                             success : function(datos) {
                                  bootbox.alert(datos.mensaje, function() {
-                                    window.location.assign("{$fsc->url}");
+                                    window.location.assign("{$fsc->url()}");
                                  });
                             },
                             error: function() {

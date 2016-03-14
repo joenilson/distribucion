@@ -201,6 +201,7 @@ class distribucion_rutas extends fs_model {
                 $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
                 $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
+                
             }
         }
         return $lista;

@@ -57,6 +57,6 @@
     </columna>
     <restriccion>
         <nombre>distribucion_clientes_pkey</nombre>
-        <consulta>PRIMARY KEY (idempresa, codcliente)</consulta>
+        <consulta>PRIMARY KEY (idempresa, codcliente, ruta)</consulta>
     </restriccion>
 </tabla>
