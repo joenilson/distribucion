@@ -20,11 +20,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
     <div class="panel panel-default" id="panel_distrib_cliente">
         <div class="panel-heading">
             <h3 class="panel-title">
-                <span class="glyphicon glyphicon-transfer"></span>
-                Datos de Distribución para {$fsc->codcliente} - {$fsc->info_cliente->nombre}
                 <a class="btn btn-xs btn-default" href="{$fsc->url()}&codcliente={$fsc->codcliente}" title="Recargar la página">
                     <span class="glyphicon glyphicon-refresh"></span>
                 </a>
+                <a href="{$fsc->info_cliente->url()}" class="btn btn-xs btn-default">
+                    <span class="glyphicon glyphicon-arrow-left"></span>
+                    <span class="hidden-xs">&nbsp; Datos del Cliente </span>
+                </a>
+                <span class="glyphicon glyphicon-transfer"></span>
+                Datos de Distribución para {$fsc->codcliente} - {$fsc->info_cliente->nombre}
             </h3>
         </div>
         <div class="panel-body">
