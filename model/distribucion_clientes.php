@@ -15,6 +15,11 @@
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+require_model('agente.php');
+require_model('direccion_cliente.php');
+require_model('distribucion_organizacion.php');
+require_model('distribucion_segmentos.php');
+require_model('distribucion_rutas.php');
 /**
  * Description of distribucion_clientes
  *
@@ -23,14 +28,19 @@
 class distribucion_clientes extends fs_model {
     public $idempresa;
     public $codcliente;
+    public $iddireccion;
     public $ruta;
     public $canal;
     public $subcanal;
-    public $coordenadas;
     public $usuario_creacion;
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
+    public $distrib_organizacion;
+    public $distrib_rutas;
+    public $distrib_segmentos;
+    public $direccion_cliente;
+    public $agente;
     
     public function __construct($t = false) {
         parent::__construct('distribucion_clientes','plugins/distribucion/');
@@ -38,10 +48,10 @@ class distribucion_clientes extends fs_model {
         {
             $this->idempresa = $t['idempresa'];
             $this->codcliente = $t['codcliente'];
+            $this->iddireccion = $t['iddireccion'];
             $this->ruta = $t['ruta'];
             $this->canal = $t['canal'];
             $this->subcanal = $t['subcanal'];
-            $this->coordenadas = $t['coordenadas'];
             $this->usuario_creacion = $t['usuario_creacion'];
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
             $this->usuario_modificacion = $t['usuario_modificacion'];
@@ -51,15 +61,18 @@ class distribucion_clientes extends fs_model {
         {
             $this->idempresa = null;
             $this->codcliente = null;
+            $this->iddireccion = null;
             $this->ruta = null;
             $this->canal = null;
             $this->subcanal = null;
-            $this->coordenadas = null;
             $this->usuario_creacion = null;
             $this->fecha_creacion = Date('d-m-Y H:i');
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
+        $this->distrib_rutas = new distribucion_rutas();
+        $this->distrib_segmentos = new distribucion_segmentos();
+        $this->direccion_cliente = new direccion_cliente();
     }
     
     public function url(){
@@ -70,9 +83,24 @@ class distribucion_clientes extends fs_model {
         return "";
     }
     
+    public function info_adicional($informacion){
+        $datos_ruta = $this->distrib_rutas->get($informacion->idempresa,$informacion->ruta);
+        $datos_canal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->canal, 'CANAL');
+        $datos_subcanal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->subcanal, 'SUBCANAL');
+        $datos_direccion = $this->direccion_cliente->get($informacion->iddireccion);
+        $informacion->direccion = $datos_direccion->direccion;
+        $informacion->ruta_descripcion = $datos_ruta->descripcion;
+        $informacion->codagente = $datos_ruta->codagente;
+        $informacion->nombre = $datos_ruta->nombre;
+        $informacion->canal_descripcion = $datos_canal->descripcion;
+        $informacion->subcanal_descripcion = $datos_subcanal->descripcion;
+        return $informacion;
+    }
+    
     public function exists() {
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
+                "ruta = ".$this->var2str($this->ruta)." AND ".
                 "codcliente = ".$this->var2str($this->codcliente).";");
         if($data){
             return true;
@@ -85,28 +113,29 @@ class distribucion_clientes extends fs_model {
         if ($this->exists())
         {
             $sql = "UPDATE distribucion_clientes SET ".
-                    "canal = ".$this->var2str($this->canal).", ".
-                    "subcanal = ".$this->var2str($this->subcanal).", ".
-                    "ruta = ".$this->var2str($this->ruta).", ".
-                    "coordenadas = ".$this->var2str($this->coordenadas).", ".
-                    "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
-                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).
-                    " WHERE ".
-                    "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "codcliente = ".$this->var2str($this->codcliente).";";
+                "iddireccion = ".$this->intval($this->iddireccion).", ".
+                "canal = ".$this->var2str($this->canal).", ".
+                "subcanal = ".$this->var2str($this->subcanal).", ".
+                "ruta = ".$this->var2str($this->ruta).", ".
+                "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
+                "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).
+                " WHERE ".
+                "idempresa = ".$this->intval($this->idempresa)." AND ".
+                "ruta = ".$this->var2str($this->ruta)." AND ".
+                "codcliente = ".$this->var2str($this->codcliente).";";
             return $this->db->exec($sql);
         }
         else
         {
-            $sql = "INSERT INTO distribucion_clientes ( idempresa, codcliente, ruta, canal, subcanal, coordenadas, usuario_creacion, fecha_creacion ) VALUES (".
-                    $this->intval($this->idempresa).", ".
-                    $this->var2str($this->codcliente).", ".
-                    $this->var2str($this->ruta).", ".
-                    $this->var2str($this->canal).", ".
-                    $this->var2str($this->subcanal).", ".
-                    $this->var2str($this->coordenadas).", ".
-                    $this->var2str($this->usuario_creacion).", ".
-                    $this->var2str($this->fecha_creacion).");";
+            $sql = "INSERT INTO distribucion_clientes ( idempresa, codcliente, iddireccion, ruta, canal, subcanal, usuario_creacion, fecha_creacion ) VALUES (".
+                $this->intval($this->idempresa).", ".
+                $this->var2str($this->codcliente).", ".
+                $this->intval($this->iddireccion).", ".
+                $this->var2str($this->ruta).", ".
+                $this->var2str($this->canal).", ".
+                $this->var2str($this->subcanal).", ".
+                $this->var2str($this->usuario_creacion).", ".
+                $this->var2str($this->fecha_creacion).");";
             if($this->db->exec($sql))
             {
                 return true;
@@ -121,6 +150,7 @@ class distribucion_clientes extends fs_model {
     public function delete() {
         $sql = "DELETE FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
+                "ruta = ".$this->var2str($this->ruta)." AND ".
                 "codcliente = ".$this->var2str($this->codcliente).";";
         return $this->db->exec($sql);
     }
@@ -135,7 +165,9 @@ class distribucion_clientes extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_clientes($d);
-                $lista[] = $value;
+                $info = $this->info_adicional();
+                $resultado = $value.$info;
+                $lista[] = $resultado;
             }
         }
         return $lista;
@@ -191,11 +223,16 @@ class distribucion_clientes extends fs_model {
     
     public function get($idempresa,$codcliente)
     {
+        $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codcliente = ".$this->var2str($codcliente).";");
         if($data)
         {
-            $resultado = new distribucion_clientes($data[0]);
-            return $resultado;
+            foreach ($data as $d){
+                $value = new distribucion_clientes($d);
+                $resultado = $this->info_adicional($value);
+                $lista[] = $resultado;
+            }
+            return $lista;
         }else{
             return false;
         }

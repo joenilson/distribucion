@@ -769,7 +769,7 @@ class distrib_ordencarga extends fs_controller {
          'params' => ''
               )
       );
-      $fsext14->save();
+      $fsext14->delete();
    }
 
 }

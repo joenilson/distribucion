@@ -200,6 +200,7 @@ class distribucion_rutas extends fs_model {
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
                 $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
                 $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
                 $lista[] = $value;
                 
             }
@@ -314,8 +315,25 @@ class distribucion_rutas extends fs_model {
     
     public function get($idempresa,$ruta)
     {
-        $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
+        
+        if($data)
+        {
+            $value = new distribucion_rutas($data[0]);
+            $data_agente = $this->agente->get($value->codagente);
+            $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
+            $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+            $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
+            $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+            return $value;
+        }else{
+            return false;
+        }
+    }
+    
+    public function get_asignados($idempresa,$ruta){
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
         
         if($data)
         {
@@ -331,5 +349,16 @@ class distribucion_rutas extends fs_model {
             }
         }
         return $lista;
+    }
+    
+    public function tiene_asignados($idempresa,$ruta){
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
+        
+        if($data)
+        {
+            return true;
+        }else{
+            return false;    
+        }
     }
 }

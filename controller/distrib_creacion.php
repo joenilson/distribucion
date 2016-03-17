@@ -540,7 +540,17 @@ class distrib_creacion extends fs_controller {
             'type' => 'head',
             'text' => '<script src="plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>',
             'params' => ''
-         ),
+         )
+      );
+      
+      foreach ($extensiones as $ext) {
+         $fsext0 = new fs_extension($ext);
+         if (!$fsext0->save()) {
+            $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
+         }
+      }
+      
+      $fext = new fs_extension(
          array(
             'name' => 'distribucion_css12',
             'page_from' => __CLASS__,
@@ -548,15 +558,8 @@ class distrib_creacion extends fs_controller {
             'type' => 'head',
             'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/font-awesome/css/font-awesome.min.css"/>',
             'params' => ''
-         )
-      );
-
-      foreach ($extensiones as $ext) {
-         $fsext0 = new fs_extension($ext);
-         if (!$fsext0->save()) {
-            $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
-         }
-      }
+         ));
+      $fext->delete();
    }
 
 }

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Document   : distribucion_clientes.xml
+    Document   : distribucion_coordenadas_clientes.xml
     Description:
-        Estructura de la tabla distribucion_clientes.
+        Estructura de la tabla distribucion_coordenadas_clientes.
 -->
 <tabla>
     <columna>
-        <nombre>canal</nombre>
-        <tipo>character varying(10)</tipo>
-        <nulo>YES</nulo>
-    </columna>
-    <columna>
         <nombre>codcliente</nombre>
         <tipo>character varying(6)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>coordenadas</nombre>
+        <tipo>character varying(64)</tipo>
         <nulo>NO</nulo>
     </columna>
     <columna>
@@ -26,24 +26,14 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
-        <nombre>idempresa</nombre>
-        <tipo>integer</tipo>
-        <nulo>NO</nulo>
-    </columna>
-    <columna>
         <nombre>iddireccion</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>
-    </columna>    
-    <columna>
-        <nombre>ruta</nombre>
-        <tipo>character varying(10)</tipo>
-        <nulo>NO</nulo>
     </columna>
     <columna>
-        <nombre>subcanal</nombre>
-        <tipo>character varying(10)</tipo>
-        <nulo>YES</nulo>
+        <nombre>idempresa</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
     </columna>
     <columna>
         <nombre>usuario_creacion</nombre>
@@ -56,7 +46,7 @@
         <nulo>YES</nulo>
     </columna>
     <restriccion>
-        <nombre>distribucion_clientes_pkey</nombre>
-        <consulta>PRIMARY KEY (idempresa, codcliente, ruta)</consulta>
+        <nombre>distribucion_coordenadas_clientes_pkey</nombre>
+        <consulta>PRIMARY KEY (idempresa, codcliente, iddireccion)</consulta>
     </restriccion>
 </tabla>

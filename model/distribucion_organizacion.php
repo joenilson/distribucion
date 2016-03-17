@@ -166,6 +166,8 @@ class distribucion_organizacion extends fs_model {
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
                 $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
                 $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
+                $value->tiene_rutas_asignadas = $this->tiene_rutas_asignadas($value->idempresa, $value->codagente);
                 $lista[] = $value;
             }
         }
@@ -206,6 +208,8 @@ class distribucion_organizacion extends fs_model {
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
                 $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
                 $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
+                $value->tiene_rutas_asignadas = $this->tiene_rutas_asignadas($value->idempresa, $value->codagente);
                 $lista[] = $value;
             }
         }
@@ -226,6 +230,8 @@ class distribucion_organizacion extends fs_model {
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
                 $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
                 $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
+                $value->tiene_rutas_asignadas = $this->tiene_rutas_asignadas($value->idempresa, $value->codagente);
                 $lista[] = $value;
             }
         }
@@ -264,6 +270,50 @@ class distribucion_organizacion extends fs_model {
             $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
             $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
             return $value;
+        }else{
+            return false;
+        }
+        
+    }
+    
+    public function get_asignados($idempresa,$codagente)
+    {
+        $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codsupervisor = ".$this->var2str($codagente).";");
+        
+        if($data)
+        {
+            $value = new distribucion_organizacion($data[0]);
+            $data_agente = $this->agente->get($value->codagente);
+            $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+            $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
+            $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+            return $value;
+        }else{
+            return false;
+        }
+        
+    }
+    
+    public function tiene_asignados($idempresa,$codagente)
+    {
+        $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codsupervisor = ".$this->var2str($codagente).";");
+        
+        if($data)
+        {
+            return true;
+        }else{
+            return false;
+        }
+        
+    }
+    
+    public function tiene_rutas_asignadas($idempresa,$codagente)
+    {
+        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codagente = ".$this->var2str($codagente).";");
+        
+        if($data)
+        {
+            return true;
         }else{
             return false;
         }

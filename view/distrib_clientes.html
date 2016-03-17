@@ -108,12 +108,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                         <input type='hidden' name='codagente' value='{$value1->codagente}'>
                                         <input type='hidden' name='type' value='supervisor'>
                                         {if="$fsc->allow_delete"}
-                                        <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar este Supervisor porque tiene vendedores asignados.')">
-                                            <span class="glyphicon glyphicon-lock"></span>
-                                        </a>
-                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Supervisor','{$value->codagente}','{$value->codalmacen}')">
-                                            <span class="glyphicon glyphicon-trash"></span>
-                                        </button>
+                                            {if="$value->tiene_asignados"}
+                                                <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar este Supervisor porque tiene vendedores asignados.')">
+                                                    <span class="glyphicon glyphicon-lock"></span>
+                                                </a>
+                                            {else}
+                                                <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Supervisor','{$value->codagente}','{$value->codalmacen}')">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </button>
+                                            {/if}
                                         {/if}
                                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
                                                 document.f_supervisores.submit();" title="Guardar">
@@ -210,9 +213,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                         <input type='hidden' name='codagente' value='{$value1->codagente}'>
                                         <input type='hidden' name='type' value='vendedor'>
                                         {if="$fsc->allow_delete"}
-                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Vendedor','{$value->codagente}','{$value->codalmacen}')">
-                                            <span class="glyphicon glyphicon-trash"></span>
-                                        </button>
+                                            {if="$value->tiene_rutas_asignadas"}
+                                                <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar este Vendedor porque tiene rutas asignadas.')">
+                                                    <span class="glyphicon glyphicon-lock"></span>
+                                                </a>
+                                            {else}
+                                                <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Vendedor','{$value->codagente}','{$value->codalmacen}')">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </button>
+                                            {/if}
                                         {/if}
                                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
                                                 document.f_vendedores.submit();" title="Guardar">
@@ -337,9 +346,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <div class="btn-group">
                                         <input type='hidden' name='type' value='ruta'>
                                         {if="$fsc->allow_delete"}
-                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Ruta','{$value->ruta}','{$value->codalmacen}')">
-                                            <span class="glyphicon glyphicon-trash"></span>
-                                        </button>
+                                            {if="$value->tiene_asignados"}
+                                                <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar esta Ruta porque tiene clientes asignados.')">
+                                                    <span class="glyphicon glyphicon-lock"></span>
+                                                </a>
+                                            {else}
+                                                <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Ruta','{$value->ruta}','{$value->codalmacen}')">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </button>
+                                            {/if}
                                         {/if}
                                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
                                                 document.f_rutas{$value1->ruta}.submit();" title="Guardar">
@@ -451,9 +466,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <div class="btn-group">
                                         <input type='hidden' name='type' value='canal'>
                                         {if="$fsc->allow_delete"}
-                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Canal','{$value->codigo}','')">
-                                            <span class="glyphicon glyphicon-trash"></span>
-                                        </button>
+                                            {if="$value->tiene_asignados"}
+                                                <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar este Canal porque tiene clientes asignados.')">
+                                                    <span class="glyphicon glyphicon-lock"></span>
+                                                </a>
+                                            {else}
+                                                <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Canal','{$value->codigo}','')">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </button>
+                                            {/if}
                                         {/if}
                                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
                                                 document.f_canales{$value1->codigo}.submit();" title="Guardar">
@@ -544,9 +565,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <div class="btn-group">
                                         <input type='hidden' name='type' value='subcanal'>
                                         {if="$fsc->allow_delete"}
-                                        <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Subcanal','{$value->codigo}','')">
-                                            <span class="glyphicon glyphicon-trash"></span>
-                                        </button>
+                                            {if="$value->tiene_asignados"}
+                                                <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar este Subcanal porque tiene clientes asignados.')">
+                                                    <span class="glyphicon glyphicon-lock"></span>
+                                                </a>
+                                            {else}
+                                                <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Subcanal','{$value->codigo}','')">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </button>
+                                            {/if}
                                         {/if}
                                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
                                                 document.f_subcanales{$value1->codigo}.submit();" title="Guardar">

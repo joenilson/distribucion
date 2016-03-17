@@ -24,6 +24,7 @@ require_model('distribucion_organizacion.php');
 require_model('distribucion_rutas.php');
 require_model('distribucion_segmentos.php');
 require_model('distribucion_clientes.php');
+require_model('distribucion_coordenadas_clientes.php');
 /**
  * Description of distribucion_creacion
  *
@@ -32,13 +33,16 @@ require_model('distribucion_clientes.php');
 class distrib_clientes extends fs_controller {
     public $codcliente;
     public $cliente;
+    public $info_cliente;
     public $almacen;
     public $supervisor;
     public $vendedor;
     public $agente;
     public $rutas;
     public $type;
-    public $cliente_datos;
+    public $distrib_cliente;
+    public $distrib_coordenadas_cliente;
+    public $distribucion_coordenadas_cliente;
     public $distribucion_agente;
     public $distribucion_organizacion;
     public $distribucion_rutas;
@@ -51,6 +55,7 @@ class distrib_clientes extends fs_controller {
     public $canales;
     public $canales_activos;
     public $subcanales;
+    public $tab_activa;
     
     public function __construct() {
         parent::__construct(__CLASS__, '7 - Distribución Clientes', 'distribucion');
@@ -65,26 +70,13 @@ class distrib_clientes extends fs_controller {
         $this->distribucion_rutas = new distribucion_rutas();
         $this->distribucion_segmentos = new distribucion_segmentos();
         $this->distribucion_clientes = new distribucion_clientes();
+        $this->distribucion_coordenadas_cliente = new distribucion_coordenadas_clientes();
         $this->cliente = new cliente();
-        
+        $this->tab_activa = false;
         $type = \filter_input(INPUT_POST, 'type');
-        $accion = \filter_input(INPUT_GET, 'accion');
-        
-        if($accion){
-            $this->ejecutar($accion);
-        }
         
         $this->type = $type;
-        
-        $codcliente = \filter_input(INPUT_GET, 'codcliente');
-        if(!empty($codcliente)){
-            $this->codcliente = $codcliente;
-            $auxiliar_cliente = $this->cliente->get($codcliente);
-            $datos_cliente = $this->distribucion_clientes->get($this->empresa->id,$this->codcliente);
-            $datos_cliente->nombre = $auxiliar_cliente->nombre;
-            $this->cliente_datos = $datos_cliente;
-            $this->template = 'extension/distrib_cliente';
-        }
+
         if($type=='supervisor'){
             $this->tratar_supervisor();
         }elseif($type=='vendedor'){
@@ -96,7 +88,11 @@ class distrib_clientes extends fs_controller {
         }elseif($type=='subcanal'){
             $this->tratar_subcanal();
         }elseif($type == 'distrib_cliente'){
+            $this->tab_activa = 'p_rutas';
             $this->tratar_cliente();
+        }elseif($type == 'direccion_cliente'){
+            $this->tab_activa = 'p_coordenadas';
+            $this->tratar_direccion_cliente();
         }
 
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');
@@ -110,9 +106,19 @@ class distrib_clientes extends fs_controller {
         $this->canales = $this->distribucion_segmentos->all_tiposegmento($this->empresa->id, 'CANAL');
         $this->canales_activos = $this->distribucion_segmentos->activos_tiposegmento($this->empresa->id, 'CANAL');
         $this->subcanales = $this->distribucion_segmentos->all_tiposegmento($this->empresa->id, 'SUBCANAL');
+        
+        $codcliente = \filter_input(INPUT_GET, 'codcliente');
+        if(!empty($codcliente)){
+            $this->codcliente = $codcliente;
+            $this->info_cliente = $this->cliente->get($codcliente);
+            $this->distrib_cliente = $this->distribucion_clientes->get($this->empresa->id,$this->codcliente);
+            $this->distrib_coordenadas_cliente = $this->distribucion_coordenadas_cliente->all_cliente($this->empresa->id,$this->codcliente);
+            $this->rutas_libres = $this->rutas_libres();
+            $this->template = 'extension/distrib_cliente';
+        }
 
     }
-    
+
     public function tratar_supervisor(){
         $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
         $codagente = \filter_input(INPUT_POST, 'codagente');
@@ -138,6 +144,21 @@ class distrib_clientes extends fs_controller {
                 $this->new_error_msg("¡Imposible tratar los datos del ".$agente0->tipoagente."!");
             }
         }
+    }
+
+    public function rutas_libres(){
+        if($this->distrib_cliente){
+            $ruta_tomada = array();
+            foreach($this->distrib_cliente as $ruta){
+                $ruta_tomada[$ruta->ruta] = "TRUE";
+            }
+            foreach($this->rutas as $id => $valores){
+                if(isset($ruta_tomada[$valores->ruta])){
+                    unset($this->rutas[$id]);
+                }
+            }
+        }
+        return $this->rutas;
     }
     
     public function tratar_vendedor(){
@@ -278,18 +299,18 @@ class distrib_clientes extends fs_controller {
     
     public function tratar_cliente(){
         $codcliente = \filter_input(INPUT_POST, 'codcliente');
+        $iddireccion = \filter_input(INPUT_POST, 'iddireccion');
         $ruta = \filter_input(INPUT_POST, 'ruta');
         $canal = \filter_input(INPUT_POST, 'canal');
         $subcanal = \filter_input(INPUT_POST, 'subcanal');
-        $coordenadas = \filter_input(INPUT_POST, 'coordenadas');
         $borrar = \filter_input(INPUT_POST, 'borrar');
         $distcli0 = new distribucion_clientes();
         $distcli0->idempresa = $this->empresa->id;
         $distcli0->codcliente = $codcliente;
+        $distcli0->iddireccion = $iddireccion;
         $distcli0->ruta = $ruta;
         $distcli0->canal = $canal;
         $distcli0->subcanal = $subcanal;
-        $distcli0->coordenadas = $coordenadas;
         $distcli0->fecha_creacion = \Date('d-m-Y H:i:s');
         $distcli0->usuario_creacion = $this->user->nick;
         if($borrar){
@@ -302,10 +323,43 @@ class distrib_clientes extends fs_controller {
                 $this->new_error_msg("¡Imposible tratar los datos ingresados!");
             }
         }
-        $auxiliar_cliente = $this->cliente->get($codcliente);
-        $datos_cliente = $this->distribucion_clientes->get($this->empresa->id,$this->codcliente);
-        $datos_cliente->nombre = $auxiliar_cliente->nombre;
-        $this->cliente_datos = $datos_cliente;
+        $this->rutas = $this->distribucion_rutas->all($this->empresa->id);
+        $this->codcliente = $codcliente;
+        $this->info_cliente = $this->cliente->get($codcliente);
+        $this->distrib_coordenadas_cliente = $this->distribucion_coordenadas_cliente->all_cliente($this->empresa->id,$this->codcliente);
+        $this->distrib_cliente = $this->distribucion_clientes->get($this->empresa->id,$this->codcliente);
+        $this->rutas_libres = $this->rutas_libres();
+        $this->template = 'extension/distrib_cliente';
+    }
+    
+    public function tratar_direccion_cliente(){
+        $codcliente = \filter_input(INPUT_POST, 'codcliente');
+        $iddireccion = \filter_input(INPUT_POST, 'iddireccion');
+        $coordenadas = \filter_input(INPUT_POST, 'coordenadas');
+        $borrar = \filter_input(INPUT_POST, 'borrar');
+        $distccli0 = new distribucion_coordenadas_clientes();
+        $distccli0->idempresa = $this->empresa->id;
+        $distccli0->codcliente = $codcliente;
+        $distccli0->iddireccion = $iddireccion;
+        $distccli0->coordenadas = $coordenadas;
+        $distccli0->fecha_creacion = \Date('d-m-Y H:i:s');
+        $distccli0->usuario_creacion = $this->user->nick;
+        if($borrar){
+            $distccli0->delete();
+            $this->new_message("Coordenadas de la dirección del cliente $distccli0->codcliente eliminados correctamente.");
+        }else{
+            if($distccli0->save()){
+                $this->new_message("Coordenadas del cliente $distccli0->codcliente tratadas correctamente.");
+            }else{
+                $this->new_error_msg("¡Imposible tratar los datos ingresados!");
+            }
+        }
+        $this->rutas = $this->distribucion_rutas->all($this->empresa->id);
+        $this->codcliente = $codcliente;
+        $this->info_cliente = $this->cliente->get($codcliente);
+        $this->distrib_coordenadas_cliente = $this->distribucion_coordenadas_cliente->all_cliente($this->empresa->id,$this->codcliente);
+        $this->distrib_cliente = $this->distribucion_clientes->get($this->empresa->id,$this->codcliente);
+        $this->rutas_libres = $this->rutas_libres();
         $this->template = 'extension/distrib_cliente';
     }
     

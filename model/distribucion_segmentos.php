@@ -17,7 +17,6 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-
 /**
  * Description of distribucion_segmentos
  *
@@ -166,6 +165,7 @@ class distribucion_segmentos extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_segmentos($d);
+                $value->tiene_asignados = $this->tiene_asignados($idempresa, $tiposegmento, $value->codigo);
                 $lista[] = $value;
             }
         }
@@ -242,17 +242,46 @@ class distribucion_segmentos extends fs_model {
     
     public function get($idempresa,$codigo, $tiposegmento)
     {
-        $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codigo = ".$this->var2str($codigo)." AND tiposegmento = ".$this->var2str($tiposegmento).";");
         
         if($data)
         {
+            $value = new distribucion_segmentos($data[0]);
+            return $value;
+        }else{
+            return false;
+        }
+        
+    }
+    
+    public function get_asignados($idempresa, $tiposegmento, $codigo){
+        $lista = array();
+        $sql = ($tiposegmento == 'CANAL')?" AND canal = ".$this->var2str($codigo):" AND subcanal = ".$this->var2str($codigo);
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).$sql.";");
+        if($data)
+        {
             foreach($data as $d)
             {
-                $value = new distribucion_segmentos($d);
+                $value = new distribucion_rutas($d);
+                $data_agente = $this->agente->get($value->codagente);
+                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
+                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
+                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $lista[] = $value;
             }
         }
         return $lista;
+    }
+    
+    public function tiene_asignados($idempresa,$tiposegmento, $codigo){
+        $sql = ($tiposegmento == 'CANAL')?" AND canal = ".$this->var2str($codigo):" AND subcanal = ".$this->var2str($codigo);
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).$sql.";");
+        if($data)
+        {
+            return true;
+        }else{
+            return false;    
+        }
     }
 }
