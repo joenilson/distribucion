@@ -58,7 +58,7 @@ class distrib_clientes extends fs_controller {
     public $tab_activa;
     
     public function __construct() {
-        parent::__construct(__CLASS__, '7 - Distribución Clientes', 'distribucion');
+        parent::__construct(__CLASS__, '6 - Distribución Clientes', 'distribucion');
     }
     
     public function private_core(){
