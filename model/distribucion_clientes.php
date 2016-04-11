@@ -16,6 +16,7 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 require_model('agente.php');
+require_model('cliente.php');
 require_model('direccion_cliente.php');
 require_model('distribucion_organizacion.php');
 require_model('distribucion_segmentos.php');
@@ -41,6 +42,8 @@ class distribucion_clientes extends fs_model {
     public $distrib_segmentos;
     public $direccion_cliente;
     public $agente;
+    public $nombre_cliente;
+    public $cliente;
     
     public function __construct($t = false) {
         parent::__construct('distribucion_clientes','plugins/distribucion/');
@@ -73,6 +76,7 @@ class distribucion_clientes extends fs_model {
         $this->distrib_rutas = new distribucion_rutas();
         $this->distrib_segmentos = new distribucion_segmentos();
         $this->direccion_cliente = new direccion_cliente();
+        $this->cliente = new cliente();
     }
     
     public function url(){
@@ -88,12 +92,14 @@ class distribucion_clientes extends fs_model {
         $datos_canal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->canal, 'CANAL');
         $datos_subcanal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->subcanal, 'SUBCANAL');
         $datos_direccion = $this->direccion_cliente->get($informacion->iddireccion);
+        $datos_cliente = $this->cliente->get($informacion->codcliente);
         $informacion->direccion = $datos_direccion->direccion;
         $informacion->ruta_descripcion = $datos_ruta->descripcion;
         $informacion->codagente = $datos_ruta->codagente;
         $informacion->nombre = $datos_ruta->nombre;
         $informacion->canal_descripcion = $datos_canal->descripcion;
         $informacion->subcanal_descripcion = $datos_subcanal->descripcion;
+        $informacion->nombre_cliente = $datos_cliente->nombre;
         return $informacion;
     }
     
@@ -147,6 +153,23 @@ class distribucion_clientes extends fs_model {
         }
     }
     
+    public function transferir($ruta_destino){
+        if ($this->exists())
+        {
+            $sql = "UPDATE distribucion_clientes SET ".
+                "ruta = ".$this->var2str($ruta_destino).", ".
+                "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
+                "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).
+                " WHERE ".
+                "idempresa = ".$this->intval($this->idempresa)." AND ".
+                "ruta = ".$this->var2str($this->ruta)." AND ".
+                "codcliente = ".$this->var2str($this->codcliente).";";
+            return $this->db->exec($sql);
+        }else{
+            return false;
+        }
+    }
+    
     public function delete() {
         $sql = "DELETE FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -165,9 +188,8 @@ class distribucion_clientes extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_clientes($d);
-                $info = $this->info_adicional();
-                $resultado = $value.$info;
-                $lista[] = $resultado;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -183,7 +205,8 @@ class distribucion_clientes extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_clientes($d);
-                $lista[] = $value;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -199,7 +222,8 @@ class distribucion_clientes extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_clientes($d);
-                $lista[] = $value;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -215,7 +239,8 @@ class distribucion_clientes extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_clientes($d);
-                $lista[] = $value;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -229,10 +254,23 @@ class distribucion_clientes extends fs_model {
         {
             foreach ($data as $d){
                 $value = new distribucion_clientes($d);
-                $resultado = $this->info_adicional($value);
-                $lista[] = $resultado;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
             return $lista;
+        }else{
+            return false;
+        }
+    }
+    
+    public function ruta_cliente($idempresa,$codcliente,$ruta)
+    {
+        $data = $this->db->select("SELECT * FROM ".$this->table_name." WHERE idempresa = ".$idempresa." AND codcliente = ".$this->var2str($codcliente)." AND ruta = ".$this->var2str($ruta).";");
+        if($data)
+        {
+            $value = new distribucion_clientes($data[0]);
+            $info = $this->info_adicional($value);
+            return $info;
         }else{
             return false;
         }

@@ -24,7 +24,8 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         }
         else
         {
-            formData = $('form[name=f_buscar_facturas]').serialize();
+            var arrayData = $('#rutas').val();
+            formData = $('form[name=f_buscar_facturas]').serialize()+'&rutas='+arrayData;
             document.f_nueva_ordencarga.almacenorig.value = document.f_buscar_facturas.codalmacen.value;
             $("#search_results_facturas").jqGrid('clearGridData');
             $("#search_results_facturas").jqGrid({
@@ -296,15 +297,52 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
 
         $(function () {
             $("#buscar_fecha").datepicker({
-                minDate: '-15d',
-                dateFormat: 'dd-mm-yy'
+                minDate: '-2d',
+                dateFormat: 'yy-mm-dd'
             });
             
             $("#fecha_reparto").datepicker({
-                minDate: '-15d',
-                dateFormat: 'dd-mm-yy'
+                minDate: '-2d',
+                dateFormat: 'yy-mm-dd'
             });
         });
+        //Seleccioamos las rugas del almacen
+        $('#codalmacen').change(function() {
+            var data = "";
+            var almacen = document.f_buscar_facturas.codalmacen.value;
+            //Llenamos el selector de rutas
+            $.ajax({
+                type: 'GET',
+                url : '{$fsc->url()}&type=select-rutas',
+                data : 'codalmacen='+almacen,
+                async: false,
+                success : function(response) {
+                    if(response.length !== 0){
+                        data = response;
+                    }else{
+                        alert('¡No hay Rutas en este Almacén!');
+                    }
+                },
+                error: function() {
+                    alert(response);
+                }
+            });
+            var select = $('#rutas');
+            select.empty();
+            if(data.length !== 0){
+                var array = data.filter(function(e){return e;});
+                select.append(
+                    $('<option></option>').val('').html('--------------')
+                );
+                $.each(array, function(index, value) {
+                    select.append(
+                        $('<option></option>').val(value.ruta).html(value.ruta+' - '+value.descripcion)
+                    );
+                });
+            }
+            $('#rutas').selectpicker('refresh');
+        });
+        
         $('#codtrans').change(function() {
             var data = "";
             var almacen = document.f_nueva_ordencarga.almacenorig.value;
@@ -390,7 +428,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <input type="hidden" name="offset" value="O"/>
                     <input type="hidden" name="type" value="buscar_facturas"/>
                     <div class="input-group col-sm-12">
-                        <div class="col-sm-4"> 
+                        <div class="col-sm-3"> 
                             <div class="input-group">
                                 <input class="form-control" readonly type="text" id="buscar_fecha" name="buscar_fecha" placeholder="Fecha de las Facturas"/>
                                 <div class="input-group-btn">
@@ -400,13 +438,21 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-4"> 
+                        <div class="col-sm-3"> 
                             <div class="input-group">
                                 <select name="codalmacen" id="codalmacen" data-width="auto" class="selectpicker form-control">
                                     <option value="">Almacén Origen</option>
                                     {loop="$fsc->almacen->all()"}
                                     <option value="{$value->codalmacen}">{$value->nombre}</option>
                                     {/loop}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-3"> 
+                            <div class="input-group">
+                                <select name="listarutas" id="rutas" data-width="auto" multiple class="selectpicker form-control">
+                                    <option value="">Rutas</option>
+                                    
                                 </select>
                             </div>
                         </div>
