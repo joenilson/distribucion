@@ -1,15 +1,6 @@
 {include="header"}
+<script src="plugins/distribucion/view/js/plugins/jquery.tablecheckbox.min.js" type="text/javascript"></script>
 <script type="text/javascript">
-    function fs_marcar_todo()
-    {
-       $('#f_resultados input:checkbox').prop('checked', true);
-    }
-
-    function fs_marcar_nada()
-    {
-       $('#f_resultados input:checkbox').prop('checked', false);
-    }
-
    function buscar_lineas()
    {
       if(document.f_buscar_lineas.buscar_lineas.value == '')
@@ -26,7 +17,7 @@
             success: function(datos) {
                var re = /<!--(.*?)-->/g;
                var m = re.exec( datos );
-               if( m[1] == document.f_buscar_lineas.buscar_lineas.value )
+               if( m[1] === document.f_buscar_lineas.buscar_lineas.value )
                {
                   $('#search_results').html(datos);
                }
@@ -255,6 +246,7 @@
             }
          }
       });
+      $('table').tablecheckbox();
    });
 </script>
 <div class="container-fluid" style="margin-top: 10px; margin-bottom: 10px;">

@@ -262,10 +262,62 @@ class distribucion_ordenescarga extends fs_model {
         }
     }
     
-    public function all($idempresa)
-    {
+    public function total_ordenescarga(){
+        $sql = "SELECT count(*) as total FROM ".$this->table_name.";";
+        $data = $this->db->select($sql);
+        if($data){
+            return $data[0]['total'];
+        }else{
+            return 0;
+        }
+    }
+    
+    public function total_pendientes(){
+        $sql = "SELECT count(*) as total FROM ".$this->table_name." WHERE cargado = false;";
+        $data = $this->db->select($sql);
+        if($data){
+            return $data[0]['total'];
+        }else{
+            return 0;
+        }
+    }
+    
+    public function search($idempresa, $datos, $offset){
+        $sql = "SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans";
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans;");
+        $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $lista[] = new distribucion_ordenescarga($d);
+            }
+        }
+        return $lista;
+    }
+    
+    public function all($idempresa, $offset = 0)
+    {
+        $sql = "SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans";
+        $lista = array();
+        $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $lista[] = new distribucion_ordenescarga($d);
+            }
+        }
+        return $lista;
+    }
+    
+    public function all_pendientes($idempresa, $offset = 0)
+    {
+        $sql = "SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND cargado = FALSE ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans";
+        $lista = array();
+        $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
         
         if($data)
         {

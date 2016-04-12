@@ -61,8 +61,12 @@ class distrib_ordencarga extends fs_controller {
     public $distrib_lineastransporte;
     public $mostrar;
     public $order;
-    public $cliente;
+    public $offset;
+    public $desde;
+    public $hasta;
+    public $conductor;
     public $total_resultados;
+    public $total_pendientes;
     public $total_resultados_txt;
     public $num_resultados;
     public $paginas;
@@ -99,22 +103,29 @@ class distrib_ordencarga extends fs_controller {
         $type = \filter_input(INPUT_GET, 'type');
         $type_post = \filter_input(INPUT_POST, 'type');
         $buscar_fecha = \filter_input(INPUT_GET, 'buscar_fecha');
+        $buscar_conductor = \filter_input(INPUT_POST, 'buscar_conductor');
         $codalmacen = \filter_input(INPUT_GET, 'codalmacen');
         $rutas = \filter_input(INPUT_GET, 'rutas');
         $codtrans = \filter_input(INPUT_GET, 'codtrans');
         $offset = \filter_input(INPUT_GET, 'offset');
+        $desde = \filter_input(INPUT_GET, 'desde');
+        $hasta = \filter_input(INPUT_GET, 'hasta');
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
         $order = \filter_input(INPUT_GET, 'order');
-        $cliente = \filter_input(INPUT_GET, 'codcliente');
+        $conductor = \filter_input(INPUT_POST, 'conductor');
 
         $this->mostrar = (isset($mostrar)) ? $mostrar : "todo";
         $this->order = (isset($order)) ? str_replace('_', ' ', $order) : "fecha DESC";
+        $this->offset = (isset($offset))?$offset:0;
+        $this->desde = (isset($desde))?$desde:'';
+        $this->hasta = (isset($hasta))?$hasta:'';
         
-        if (isset($cliente) AND ! empty($cliente)) {
-            $cli0 = new cliente();
-            $codcliente = $cli0->get($cliente);
+        if (isset($conductor) AND ! empty($conductor)) {
+            $conductor0 = new distribucion_conductores();
+            $data_conductor = $conductor0->get($this->empresa->id,$conductor);
         }
-        $this->cliente = (isset($codcliente)) ? $codcliente : FALSE;
+        
+        $this->conductor = (isset($data_conductor)) ? $data_conductor : FALSE;
 
         if ($type === 'buscar_facturas') {
             $this->buscar_facturas($buscar_fecha, $codalmacen, $rutas, $offset);
@@ -156,11 +167,46 @@ class distrib_ordencarga extends fs_controller {
             $this->reversar_carga();
             
         } else {
-            $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id);
+            if($this->mostrar == 'todo'){
+                $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id,$this->offset);
+            }elseif($this->mostrar == 'pendientes'){
+                $this->resultados = $this->distrib_ordenescarga->all_pendientes($this->empresa->id, $this->offset);
+            }elseif($this->mostrar == 'buscar'){
+                $this->buscador();
+            }
         }
-        $this->total_resultados = 0;
+        if(isset($_REQUEST['buscar_conductor'])){
+            $this->buscar_conductor();
+        }
+        $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga();
         $this->total_resultados_txt = 0;
         $this->num_resultados = 0;
+        $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes();
+    }
+    
+    public function buscador(){
+        $conductor = filter_input(INPUT_POST, 'conductor');
+        $datos_busqueda['conductor'] = (isset($conductor))?$conductor:FALSE;
+        $datos_busqueda['desde'] = (isset($this->desde))?$this->desde:FALSE;
+        $datos_busqueda['hasta'] = (isset($this->hasta))?$this->hasta:FALSE;
+        $datos_busqueda['codalmacen'] = (isset($this->codalmacen))?$this->codalmacen:FALSE;
+        $this->resultados = $this->distrib_ordenescarga->search($this->empresa->id, $datos_busqueda, $this->offset);
+    }
+    
+    private function buscar_conductor()
+    {
+        /// desactivamos la plantilla HTML
+        $this->template = FALSE;
+
+        $con0 = new distribucion_conductores();
+        $json = array();
+        foreach($con0->search($_REQUEST['buscar_conductor']) as $con)
+        {
+           $json[] = array('value' => $con->nombre, 'data' => $con->codcliente);
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode( array('query' => $_REQUEST['buscar_conductor'], 'suggestions' => $json) );
     }
 
     public function crear_transporte($lista) {
@@ -398,13 +444,56 @@ class distrib_ordencarga extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($this->resultados);
     }
-
-    public function total_pendientes() {
-        return 0;
-    }
-
+    
     public function paginas() {
-        return array('actual' => 1, 'num' => 1);
+        $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga();
+        
+        $url = $this->url()."&mostrar=".$this->mostrar
+            ."&query=".$this->query
+            ."&desde=".$this->desde
+            ."&hasta=".$this->hasta;
+        
+        $paginas = array();
+        $i = 0;
+        $num = 0;
+        $actual = 1;
+
+        if($this->mostrar == 'pendientes')
+        {
+            $total = $this->total_pendientes();
+        }
+        else if($this->mostrar == 'buscar')
+        {
+            $total = $this->num_resultados;
+        }
+        else
+        {
+            $total = $this->total_resultados;
+        }
+
+        /// añadimos todas la página
+        while($num < $total)
+        {
+            $paginas[$i] = array(
+                'url' => $url."&offset=".($i*FS_ITEM_LIMIT),
+                'num' => $i + 1,
+                'actual' => ($num == $this->offset)
+            );
+
+            if($num == $this->offset)
+            {
+                $actual = $i;
+            }
+
+            $i++;
+            $num += FS_ITEM_LIMIT;
+        }
+        
+        return $paginas;
+    }
+    
+    public function total_pendientes(){
+        return $this->distrib_ordenescarga->total_pendientes();
     }
 
     public function crear_carga($datos, $retorno) {

@@ -216,12 +216,10 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 async: false,
                                 data: 'type=confirmar-carga&ordencarga='+checkboxValues,
                                 success : function(datos) {
-                                    console.log('Exito');
-                                    console.log(datos);
+                                    //Exito
                                 },
                                 error: function() {
-                                    console.log('Error');
-                                    console.log(datos);
+                                    //Error
                                 }
                             });
                         }
@@ -444,8 +442,8 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             </div>
                         </div>
                         <div class="col-sm-3"> 
-                            <div class="input-group">
-                                <select name="codalmacen" id="codalmacen" data-width="auto" class="selectpicker form-control">
+                            <div class="form-group">
+                                <select name="codalmacen" id="codalmacen" data-width="100%" class="selectpicker form-control">
                                     <option value="">Almacén Origen</option>
                                     {loop="$fsc->almacen->all()"}
                                     <option value="{$value->codalmacen}">{$value->nombre}</option>
@@ -454,15 +452,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             </div>
                         </div>
                         <div class="col-sm-3"> 
-                            <div class="input-group">
-                                <select name="listarutas" id="rutas" data-width="auto" multiple class="selectpicker form-control">
+                            <div class="form-group">
+                                <select name="listarutas" id="rutas" data-width="100%" multiple class="selectpicker form-control">
                                     <option value="">Rutas</option>
                                     
                                 </select>
                             </div>
                         </div>
-                        <div class="col-sm-2"> 
-                            <span class="input-group-btn">
+                        <div class="col-sm-3">
+                            <span class="form-group pull-left">
                                 <button class="btn btn-primary" type="submit">
                                     <span class="glyphicon glyphicon-search"></span>
                                 </button>

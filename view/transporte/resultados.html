@@ -18,17 +18,12 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
 -->
 <div class="table-responsive">
     <form name="f_resultados" method="POST" action="{$fsc->url()}" id="f_resultados">
-        <table class="table table-hover">
+        <table id="t_resultados_t" class="table table-hover">
             <thead>
                 <tr>
                     <th colspan="2">
+                        <input type="checkbox">
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_todo()" title="Marcar todo">
-                                <span class="glyphicon glyphicon-check"></span>
-                            </button>
-                            <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_nada()" title="Desmarcar todo">
-                                <span class="glyphicon glyphicon-unchecked"></span>
-                            </button>
                             <button class="btn btn-sm btn-success" type="button" id="b_imprimir_seleccion" title="Imprimir Transportes Seleccionados">
                                 <span class="glyphicon glyphicon-print"></span>
                             </button>

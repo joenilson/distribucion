@@ -1,15 +1,6 @@
 {include="header"}
+<script src="plugins/distribucion/view/js/plugins/jquery.tablecheckbox.min.js" type="text/javascript"></script>
 <script type="text/javascript">
-    function fs_marcar_todo()
-    {
-       $('#f_resultados input:checkbox').prop('checked', true);
-    }
-
-    function fs_marcar_nada()
-    {
-       $('#f_resultados input:checkbox').prop('checked', false);
-    }
-
    function buscar_lineas()
    {
       if(document.f_buscar_lineas.buscar_lineas.value == '')
@@ -45,11 +36,11 @@
 
       buscar_lineas();
    }
-   function clean_cliente()
+   function clean_datos()
    {
-      document.f_custom_search.ac_cliente.value='';
-      document.f_custom_search.codcliente.value='';
-      document.f_custom_search.ac_cliente.focus();
+      document.f_custom_search.ac_conductor.value='';
+      document.f_custom_search.conductor.value='';
+      document.f_custom_search.ac_conductor.focus();
    }
 
    function nuevaOrdenCarga(){
@@ -330,20 +321,21 @@
          event.preventDefault();
          buscar_lineas();
       });
-      $("#ac_cliente").autocomplete({
+      $("#ac_conductor").autocomplete({
          serviceUrl: '{$fsc->url()}',
-         paramName: 'buscar_cliente',
+         paramName: 'buscar_conductor',
          onSelect: function (suggestion) {
             if(suggestion)
             {
-               if(document.f_custom_search.codcliente.value != suggestion.data && suggestion.data != '')
+               if(document.f_custom_search.conductor.value != suggestion.data && suggestion.data != '')
                {
-                  document.f_custom_search.codcliente.value = suggestion.data;
+                  document.f_custom_search.conductor.value = suggestion.data;
                   document.f_custom_search.submit();
                }
             }
          }
       });
+      $('table').tablecheckbox();
    });
 </script>
 <div class="container-fluid" style="margin-top: 10px; margin-bottom: 10px;">
@@ -449,11 +441,11 @@
 
 {if="$fsc->mostrar=='buscar'"}
 <br/>
-<form name="f_custom_search" action="{$fsc->url()}" method="post" class="form">
-   {if="$fsc->cliente"}
-   <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+<form name="f_custom_search" data-validate="true" action="{$fsc->url()}&mostrar=buscar" method="post" class="form">
+   {if="$fsc->conductor"}
+   <input type="hidden" name="conductor" value="{$fsc->conductor->id}"/>
    {else}
-   <input type="hidden" name="codcliente"/>
+   <input type="hidden" name="conductor"/>
    {/if}
    <div class="container-fluid">
       <div class="row">
@@ -472,17 +464,27 @@
          <div class="col-sm-2">
             <div class="form-group">
                <div class="input-group">
-                  {if="$fsc->cliente"}
-                  <input class="form-control" type="text" name="ac_cliente" value="{$fsc->cliente->nombre}" id="ac_cliente" placeholder="Cualquier cliente" autocomplete="off"/>
+                  {if="$fsc->conductor"}
+                  <input class="form-control" type="text" name="ac_conductor" value="{$fsc->conductor->nombre}" id="ac_conductor" placeholder="Cualquier conductor" autocomplete="off"/>
                   {else}
-                  <input class="form-control" type="text" name="ac_cliente" id="ac_cliente" placeholder="Cualquier cliente" autocomplete="off"/>
+                  <input class="form-control" type="text" name="ac_conductor" id="ac_conductor" placeholder="Cualquier conductor" autocomplete="off"/>
                   {/if}
                   <span class="input-group-btn">
-                     <button class="btn btn-default" type="button" onclick="clean_cliente()">
+                     <button class="btn btn-default" type="button" onclick="clean_datos()">
                         <span class="glyphicon glyphicon-remove"></span>
                      </button>
                   </span>
                </div>
+            </div>
+         </div>
+          <div class="col-sm-2">
+            <div class="form-group">
+                <select name="codalmacen" required class="selectpicker form-control" onchange="this.form.submit();">
+                    <option>--------</option>
+                    {loop="$fsc->almacen->all()"}
+                    <option value="{$value->codalmacen}">{$value->nombre}</option>
+                    {/loop}
+                </select>
             </div>
          </div>
          <div class="col-sm-2">
@@ -525,17 +527,17 @@
             <div class="modal-header">
                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                <h4 class="modal-title">Buscar en las líneas</h4>
-               {if="$fsc->cliente"}
+               {if="$fsc->conductor"}
                <p class="help-block">
-                  Estas buscando en las líneas de los {#FS_ALBARANES#} de {$fsc->cliente->nombre}.
+                  Estas buscando en las líneas de las ORDENES DE CARGA de {$fsc->conductor->nombre}.
                </p>
                {else}
-               <p class="help-block">Si quieres, puede <a href="{$fsc->url()}&mostrar=buscar">filtrar por cliente</a>.</p>
+               <p class="help-block">Si quieres, puede <a href="{$fsc->url()}&mostrar=buscar">filtrar por conductor</a>.</p>
                {/if}
             </div>
             <div class="modal-body">
-               {if="$fsc->cliente"}
-               <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+               {if="$fsc->conductor"}
+               <input type="hidden" name="condcutor" value="{$fsc->conductor->id}"/>
                <div class="container-fluid">
                   <div class="row">
                      <div class="col-lg-6 col-md-6 col-sm-6">

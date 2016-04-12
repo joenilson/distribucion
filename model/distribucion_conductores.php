@@ -257,5 +257,17 @@ class distribucion_conductores extends fs_model {
         }
         return $lista;
     }
+    
+    public function search($idempresa, $nombre) {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_conductores WHERE idempresa = " . $this->intval($idempresa) . " AND nombre like " . $this->var2str('%'.strtoupper($nombre).'%') . ";");
+
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new distribucion_conductores($d);
+            }
+        }
+        return $lista;
+    }
 
 }
