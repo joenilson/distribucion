@@ -492,8 +492,8 @@ class distrib_ordencarga extends fs_controller {
     public function buscar_facturas($buscar_fecha, $codalmacen, $rutas, $offset) {
         $this->template = FALSE;
         $this->resultados = array();
-        //$data_search = $this->facturas_cliente->all_desde($buscar_fecha, $buscar_fecha);
-        $data_search = $this->distrib_facturas->buscar_rutas($buscar_fecha, $codalmacen, $rutas);
+        $data_search = $this->facturas_cliente->all_desde($buscar_fecha, $buscar_fecha);
+        //$data_search = $this->distrib_facturas->buscar_rutas($buscar_fecha, $codalmacen, $rutas);
         //Quitamos las facturas anuladas y las que sean rectificativas
         /*
         foreach ($data_search as $key => $fact) {
@@ -502,7 +502,7 @@ class distrib_ordencarga extends fs_controller {
             }
         }
         */
-        /* 
+        /*
         //Buscar NCF valido si esta activo el plugin de RD
         if (class_exists('ncf_rango')) {
            require_model('ncf_ventas');
@@ -515,7 +515,7 @@ class distrib_ordencarga extends fs_controller {
            }
         }
         * */
-        echo count($data_search);
+        //echo count($data_search);
         sort($data_search);
         //Revisamos que las facturas no esten en otros transoprtes y que sean de este almacen
         //Esto es por seguridad y filtro
@@ -528,7 +528,7 @@ class distrib_ordencarga extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($this->resultados);
     }
-   
+
     public function lista_rutas($idempresa, $codalmacen){
         $this->template = FALSE;
         $this->resultados = array();
