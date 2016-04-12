@@ -34,11 +34,12 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 prmNames: {page: "pagegrid"},
                 datatype: "json",
                 colModel: [
-                    {label: 'Id', name: 'idfactura', width: 10, key: true},
+                    {label: 'Id', name: 'idfactura', width: 15, key: true},
                     {label: 'Factura', name: 'codigo', width: 35},
+                    {label: '{#FS_NUMERO2#}', name: 'numero2', width: 50},
                     {label: 'Cliente', name: 'nombrecliente', width: 75},
-                    {label: 'Dirección', name: 'direccion', width: 90},
-                    {label: 'Almacén', name: 'codalmacen', width: 20, sorttype: 'text'}
+                    {label: 'Dirección', name: 'direccion', width: 80},
+                    {label: 'Ruta', name: 'ruta', width: 20, sorttype: 'text'}
                 ],
                 loadonce: false,
                 viewrecords: true,
@@ -52,6 +53,10 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 rownumbers: true,
                 rownumWidth: 25,
                 multiselect: true,
+                defaults: {
+                    emptyrecords: "No se encontraron documentos",
+                    loadtext: "Buscando..."
+                },
                 pager: "#search_results_facturas_pager"
             });
             $('#search_results_facturas').navGrid('#search_results_facturas_pager',

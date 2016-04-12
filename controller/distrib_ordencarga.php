@@ -75,6 +75,7 @@ class distrib_ordencarga extends fs_controller {
     }
 
     public function private_core() {
+        
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->almacen = new almacen();
         $this->facturas_cliente = new factura_cliente();
@@ -108,6 +109,7 @@ class distrib_ordencarga extends fs_controller {
 
         $this->mostrar = (isset($mostrar)) ? $mostrar : "todo";
         $this->order = (isset($order)) ? str_replace('_', ' ', $order) : "fecha DESC";
+        
         if (isset($cliente) AND ! empty($cliente)) {
             $cli0 = new cliente();
             $codcliente = $cli0->get($cliente);
@@ -131,38 +133,7 @@ class distrib_ordencarga extends fs_controller {
             $dataInicialCarga['facturas'] = \filter_input(INPUT_GET, 'facturas');
             $this->crear_carga($dataInicialCarga, 'json');
         } elseif (isset($type_post) AND $type_post == 'guardar-carga') {
-            $almacenorig = \filter_input(INPUT_POST, 'carga_almacenorig');
-            $almacendest = \filter_input(INPUT_POST, 'carga_almacendest');
-            $codtrans = \filter_input(INPUT_POST, 'carga_codtrans');
-            $codunidad = \filter_input(INPUT_POST, 'carga_unidad');
-            $conductor = \filter_input(INPUT_POST, 'carga_conductor');
-            $fecha_reparto = \filter_input(INPUT_POST, 'carga_fechareparto');
-            $carga_facturas = \filter_input(INPUT_POST, 'carga_facturas');
-            $resultados_facturas = $this->crear_carga(['facturas' => $carga_facturas], 'array');
-            $observaciones = \filter_input(INPUT_POST, 'carga_obs');
-            $ordenCarga0 = new distribucion_ordenescarga();
-            $ordenCarga0->idempresa = $this->empresa->id;
-            $ordenCarga0->codalmacen = $almacenorig;
-            $ordenCarga0->codalmacen_dest = $almacendest;
-            $ordenCarga0->codtrans = $codtrans;
-            $ordenCarga0->unidad = $codunidad;
-            $ordenCarga0->tipounidad = $this->distrib_unidades->get($this->empresa->id, $codunidad)[0]->tipounidad;
-            $ordenCarga0->conductor = $conductor;
-            $ordenCarga0->tipolicencia = $this->distrib_conductores->get($this->empresa->id, $conductor)[0]->tipolicencia;
-            $ordenCarga0->fecha = $fecha_reparto;
-            $ordenCarga0->observaciones = $observaciones;
-            $ordenCarga0->totalcantidad = $resultados_facturas['totalCantidad'];
-            $ordenCarga0->totalpeso = $resultados_facturas['totalPeso'];
-            $ordenCarga0->estado = true;
-            $ordenCarga0->despachado = false;
-            $ordenCarga0->cargado = false;
-            $ordenCarga0->usuario_creacion = $this->user->nick;
-            $ordenCarga0->usuario_modificacion = $this->user->nick;
-            $ordenCarga0->fecha_creacion = \Date('d-m-Y H:i:s');
-            if ($ordenCarga0->save()) {
-                $this->guardar_facturas_ordencarga($ordenCarga0, $carga_facturas);
-                $this->guardar_lineas_ordencarga($ordenCarga0, $resultados_facturas['resultados']);
-            }
+            $this->guardar_carga();
         } elseif ($type === 'ver-carga') {
             $ordencarga = \filter_input(INPUT_GET, 'ordencarga');
             $datos_ordencarga = explode('-', $ordencarga);
@@ -170,138 +141,20 @@ class distrib_ordencarga extends fs_controller {
             $codalmacen = $datos_ordencarga[1];
             $this->visualizar_ordencarga($idordencarga, $codalmacen);
         } elseif ($type === 'imprimir-carga') {
-            $this->template = false;
-            $this->helper_ordencarga = new helper_ordencarga();
-            $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-            $lista_ordenescargar = explode(',', $value_ordencarga);
-            $contador_ordenescarga = 0;
-            $pdfFile = new asgard_PDFHandler();
-            $pdfFile->pdf_create();
-            foreach ($lista_ordenescargar as $ordencarga) {
-                if (!empty($ordencarga)) {
-                    $datos_ordencarga = explode('-', $ordencarga);
-                    $idordencarga = $datos_ordencarga[0];
-                    $codalmacen = $datos_ordencarga[1];
-                    $contador_ordenescarga++;
-                    $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                    $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                    $pdfFile->pdf_pagina($this->helper_ordencarga->cabecera($ordencarga), $this->helper_ordencarga->contenido($lineasordencarga), $this->helper_ordencarga->pie($ordencarga));
-                }
-            }
-            $pdfFile->pdf_mostrar();
+            $this->imprimir_carga();
         } elseif ($type === 'eliminar-carga') {
-            $this->template = false;
-            $this->helper_ordencarga = new helper_ordencarga();
-            $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-            $lista_ordenescargar = explode(',', $value_ordencarga);
-            foreach ($lista_ordenescargar as $ordencarga) {
-                if ($ordencarga) {
-                    $datos_ordencarga = explode('-', $ordencarga);
-                    $idordencarga = $datos_ordencarga[0];
-                    $codalmacen = $datos_ordencarga[1];
-                    $ord0 = new distribucion_ordenescarga();
-                    $ord0->idempresa = $this->empresa->id;
-                    $ord0->idordencarga = $idordencarga;
-                    $ord0->codalmacen = $codalmacen;
-                    if ($ord0->delete()) {
-                        $data['success'] = TRUE;
-                        $data['mensaje'] = "Orden de Carga " . $idordencarga . " eliminada correctamente.";
-                    } else {
-                        $data['success'] = TRUE;
-                        $data['mensaje'] = "No se pudieron procesar todas las ordenes de carga, por favor contacte a su administrador de sistemas..";
-                    }
-                }
-            }
-            $this->template = false;
-            header('Content-Type: application/json');
-            echo json_encode($data);
+            $this->eliminar_carga();
         } elseif ($type === 'imprimir-transporte') {
-            $this->template = false;
-            $this->helper_transportes = new helper_transportes();
-            $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-            $lista_ordenescargar = explode(',', $value_ordencarga);
-            $contador_transporte = 0;
-            $pdfFile = new asgard_PDFHandler();
-            $pdfFile->pdf_create();
-            foreach ($lista_ordenescargar as $ordencarga) {
-                if (!empty($ordencarga)) {
-                    $datos_ordencarga = explode('-', $ordencarga);
-                    $idordencarga = $datos_ordencarga[0];
-                    $codalmacen = $datos_ordencarga[1];
-                    $idtransporte = $datos_ordencarga[2];
-                    $contador_transporte++;
-                    $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                    $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                    $pdfFile->pdf_pagina($this->helper_transportes->cabecera_transporte($transporte), $this->helper_transportes->contenido_transporte($lineastransporte), $this->helper_transportes->pie_transporte($transporte));
-                }
-            }
-            $pdfFile->pdf_mostrar();
+            $this->imprimir_transporte();
         } elseif ($type === 'confirmar-carga') {
-            $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-            $lista_ordenescargar = explode(',', $value_ordencarga);
-            $contador_ordenescarga = 0;
-            $contador_ordenescarga_confirmadas = 0;
-            foreach ($lista_ordenescargar as $ordencarga) {
-                if (!empty($ordencarga)) {
-                    $datos_ordencarga = explode('-', $ordencarga);
-                    $idordencarga = $datos_ordencarga[0];
-                    $codalmacen = $datos_ordencarga[1];
-                    $contador_ordenescarga++;
-                    $oc0 = new distribucion_ordenescarga();
-                    $oc0->idempresa = $this->empresa->id;
-                    $oc0->idordencarga = $idordencarga;
-                    $oc0->codalmacen = $codalmacen;
-                    $oc0->usuario_modificacion = $this->user->nick;
-                    $oc0->fecha_modificacion = Date("d-m-Y H:i");
-                    $oc0->cargado = TRUE;
-                    if ($oc0->confirmar_cargada()) {
-                       $contador_ordenescarga_confirmadas++;
-                    }
-                }
-            }
-            if ($contador_ordenescarga_confirmadas == $contador_ordenescarga) {
-                $data['success'] = TRUE;
-                $data['mensaje'] = "Todas las ordenes fueron confirmadas correctamente.";
-            } elseif ($contador_ordenescarga_confirmadas == 0) {
-                $data['success'] = FALSE;
-                $data['mensaje'] = "No se pudieron procesar las ordenes de carga, por favor contacte a su administrador de sistemas..";
-            } elseif ($contador_ordenescarga_confirmadas != 0 AND ( $contador_ordenescarga_confirmadas != $contador_ordenescarga)) {
-                $data['success'] = TRUE;
-                $data['mensaje'] = "No se pudieron procesar todas las ordenes de carga, por favor contacte a su administrador de sistemas..";
-            }
-            $this->template = false;
-            header('Content-Type: application/json');
-            echo json_encode($data);
+            $this->confirmar_carga();
         } elseif ($type == 'generar-transporte') {
             $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
             $lista_ordenescargar = explode(',', $value_ordencarga);
             $this->crear_transporte($lista_ordenescargar);
         } elseif ($type === 'reversar-carga') {
-            $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-            $value_movimiento = \filter_input(INPUT_GET, 'movimiento');
-            $datos_ordencarga = explode('-', $value_ordencarga);
-            $idordencarga = $datos_ordencarga[0];
-            $codalmacen = $datos_ordencarga[1];
-            $oc0 = new distribucion_ordenescarga();
-            $oc0->idempresa = $this->empresa->id;
-            $oc0->idordencarga = $idordencarga;
-            $oc0->codalmacen = $codalmacen;
-            $oc0->usuario_modificacion = $this->user->nick;
-            $oc0->fecha_modificacion = Date("d-m-Y H:i");
-            if($value_movimiento == 'cargada'){
-               $oc0->cargado = FALSE;
-               $estado = $oc0->confirmar_cargada();
-            }
-            if ($estado) {
-               $data['success'] = TRUE;
-               $data['mensaje'] = "Orden de Carga ".$oc0->idordencarga." reversada correctamente.";
-            } else {
-               $data['success'] = TRUE;
-               $data['mensaje'] = "No se pudo reversar la Orden de Carga, por favor verifique que otro usuario no la este utilizando..";
-            }
-            $this->template = false;
-            header('Content-Type: application/json');
-            echo json_encode($data);
+            $this->reversar_carga();
+            
         } else {
             $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id);
         }
@@ -313,6 +166,7 @@ class distrib_ordencarga extends fs_controller {
     public function crear_transporte($lista) {
         $contador_transportes = 0;
         $contador_transportes_confirmados = 0;
+        $suma_importe = 0;
         foreach ($lista as $ordencarga) {
             if (!empty($ordencarga)) {
                 $datos_ordencarga = explode('-', $ordencarga);
@@ -328,6 +182,7 @@ class distrib_ordencarga extends fs_controller {
                             $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($linea->idfactura);
                         }
                     }
+                    
                     foreach ($lineas_factura as $linea_factura) {
                         foreach ($linea_factura as $key => $values) {
                             if (!isset($importe_resumen[$values->referencia])) {
@@ -412,6 +267,29 @@ class distrib_ordencarga extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($data);
     }
+    
+    public function imprimir_transporte(){
+        $this->template = false;
+        $this->helper_transportes = new helper_transportes();
+        $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+        $lista_ordenescargar = explode(',', $value_ordencarga);
+        $contador_transporte = 0;
+        $pdfFile = new asgard_PDFHandler();
+        $pdfFile->pdf_create();
+        foreach ($lista_ordenescargar as $ordencarga) {
+            if (!empty($ordencarga)) {
+                $datos_ordencarga = explode('-', $ordencarga);
+                $idordencarga = $datos_ordencarga[0];
+                $codalmacen = $datos_ordencarga[1];
+                $idtransporte = $datos_ordencarga[2];
+                $contador_transporte++;
+                $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+                $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
+                $pdfFile->pdf_pagina($this->helper_transportes->cabecera_transporte($transporte), $this->helper_transportes->contenido_transporte($lineastransporte), $this->helper_transportes->pie_transporte($transporte));
+            }
+        }
+        $pdfFile->pdf_mostrar();
+    }
 
     public function visualizar_ordencarga($idordencarga, $codalmacen) {
         $datos = array();
@@ -492,39 +370,7 @@ class distrib_ordencarga extends fs_controller {
     public function buscar_facturas($buscar_fecha, $codalmacen, $rutas, $offset) {
         $this->template = FALSE;
         $this->resultados = array();
-        $data_search = $this->facturas_cliente->all_desde($buscar_fecha, $buscar_fecha);
-        //$data_search = $this->distrib_facturas->buscar_rutas($buscar_fecha, $codalmacen, $rutas);
-        //Quitamos las facturas anuladas y las que sean rectificativas
-        /*
-        foreach ($data_search as $key => $fact) {
-            if (($fact->anulada) OR (!empty($fact->idfacturarect))) {
-               unset($data_search[$key]);
-            }
-        }
-        */
-        /*
-        //Buscar NCF valido si esta activo el plugin de RD
-        if (class_exists('ncf_rango')) {
-           require_model('ncf_ventas');
-           $search_ncf_status = new ncf_ventas();
-           foreach ($data_search as $key => $fact) {
-              $search_value = $search_ncf_status->get_ncf($this->empresa->id, $fact->idfactura, $fact->codcliente);
-              if ((!$search_value->estado) OR $search_value->tipo_comprobante == '04') {
-                 unset($data_search[$key]);
-              }
-           }
-        }
-        * */
-        //echo count($data_search);
-        sort($data_search);
-        //Revisamos que las facturas no esten en otros transoprtes y que sean de este almacen
-        //Esto es por seguridad y filtro
-        //@TODO Se debe crear una función para esta busqueda a nivel de model
-        foreach ($data_search as $values) {
-            if ($values->codalmacen == $codalmacen AND ( !$this->distrib_ordenescarga_facturas->get($this->empresa->id, $values->idfactura, $codalmacen))) {
-                $this->resultados[] = $values;
-            }
-        }
+        $this->resultados = $this->distrib_facturas->buscar_rutas($this->empresa->id, $buscar_fecha, $codalmacen, $rutas);
         header('Content-Type: application/json');
         echo json_encode($this->resultados);
     }
@@ -600,16 +446,155 @@ class distrib_ordencarga extends fs_controller {
         }
     }
 
-    public function nueva_carga() {
-        return "Nueva Orden";
+    public function guardar_carga() {
+        $almacenorig = \filter_input(INPUT_POST, 'carga_almacenorig');
+        $almacendest = \filter_input(INPUT_POST, 'carga_almacendest');
+        $codtrans = \filter_input(INPUT_POST, 'carga_codtrans');
+        $codunidad = \filter_input(INPUT_POST, 'carga_unidad');
+        $conductor = \filter_input(INPUT_POST, 'carga_conductor');
+        $fecha_reparto = \filter_input(INPUT_POST, 'carga_fechareparto');
+        $carga_facturas = \filter_input(INPUT_POST, 'carga_facturas');
+        $resultados_facturas = $this->crear_carga(['facturas' => $carga_facturas], 'array');
+        $observaciones = \filter_input(INPUT_POST, 'carga_obs');
+        $ordenCarga0 = new distribucion_ordenescarga();
+        $ordenCarga0->idempresa = $this->empresa->id;
+        $ordenCarga0->codalmacen = $almacenorig;
+        $ordenCarga0->codalmacen_dest = $almacendest;
+        $ordenCarga0->codtrans = $codtrans;
+        $ordenCarga0->unidad = $codunidad;
+        $ordenCarga0->tipounidad = $this->distrib_unidades->get($this->empresa->id, $codunidad)[0]->tipounidad;
+        $ordenCarga0->conductor = $conductor;
+        $ordenCarga0->tipolicencia = $this->distrib_conductores->get($this->empresa->id, $conductor)[0]->tipolicencia;
+        $ordenCarga0->fecha = $fecha_reparto;
+        $ordenCarga0->observaciones = $observaciones;
+        $ordenCarga0->totalcantidad = $resultados_facturas['totalCantidad'];
+        $ordenCarga0->totalpeso = $resultados_facturas['totalPeso'];
+        $ordenCarga0->estado = true;
+        $ordenCarga0->despachado = false;
+        $ordenCarga0->cargado = false;
+        $ordenCarga0->usuario_creacion = $this->user->nick;
+        $ordenCarga0->usuario_modificacion = $this->user->nick;
+        $ordenCarga0->fecha_creacion = \Date('d-m-Y H:i:s');
+        if ($ordenCarga0->save()) {
+            $this->guardar_facturas_ordencarga($ordenCarga0, $carga_facturas);
+            $this->guardar_lineas_ordencarga($ordenCarga0, $resultados_facturas['resultados']);
+        }
     }
 
-    public function imprime_carga($id) {
-        return "Imprime la orden " . $id;
+    public function imprimir_carga() {
+        $this->template = false;
+        $this->helper_ordencarga = new helper_ordencarga();
+        $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+        $lista_ordenescargar = explode(',', $value_ordencarga);
+        $contador_ordenescarga = 0;
+        $pdfFile = new asgard_PDFHandler();
+        $pdfFile->pdf_create();
+        foreach ($lista_ordenescargar as $ordencarga) {
+            if (!empty($ordencarga)) {
+                $datos_ordencarga = explode('-', $ordencarga);
+                $idordencarga = $datos_ordencarga[0];
+                $codalmacen = $datos_ordencarga[1];
+                $contador_ordenescarga++;
+                $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+                $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+                $pdfFile->pdf_pagina($this->helper_ordencarga->cabecera($ordencarga), $this->helper_ordencarga->contenido($lineasordencarga), $this->helper_ordencarga->pie($ordencarga));
+            }
+        }
+        $pdfFile->pdf_mostrar();
+    }
+    
+    public function confirmar_carga(){
+        $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+        $lista_ordenescargar = explode(',', $value_ordencarga);
+        $contador_ordenescarga = 0;
+        $contador_ordenescarga_confirmadas = 0;
+        foreach ($lista_ordenescargar as $ordencarga) {
+            if (!empty($ordencarga)) {
+                $datos_ordencarga = explode('-', $ordencarga);
+                $idordencarga = $datos_ordencarga[0];
+                $codalmacen = $datos_ordencarga[1];
+                $contador_ordenescarga++;
+                $oc0 = new distribucion_ordenescarga();
+                $oc0->idempresa = $this->empresa->id;
+                $oc0->idordencarga = $idordencarga;
+                $oc0->codalmacen = $codalmacen;
+                $oc0->usuario_modificacion = $this->user->nick;
+                $oc0->fecha_modificacion = Date("d-m-Y H:i");
+                $oc0->cargado = TRUE;
+                if ($oc0->confirmar_cargada()) {
+                   $contador_ordenescarga_confirmadas++;
+                }
+            }
+        }
+        if ($contador_ordenescarga_confirmadas == $contador_ordenescarga) {
+            $data['success'] = TRUE;
+            $data['mensaje'] = "Todas las ordenes fueron confirmadas correctamente.";
+        } elseif ($contador_ordenescarga_confirmadas == 0) {
+            $data['success'] = FALSE;
+            $data['mensaje'] = "No se pudieron procesar las ordenes de carga, por favor contacte a su administrador de sistemas..";
+        } elseif ($contador_ordenescarga_confirmadas != 0 AND ( $contador_ordenescarga_confirmadas != $contador_ordenescarga)) {
+            $data['success'] = TRUE;
+            $data['mensaje'] = "No se pudieron procesar todas las ordenes de carga, por favor contacte a su administrador de sistemas..";
+        }
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($data);
     }
 
-    public function delete_carga($id) {
-        return "Elimina la orden " . $id;
+    public function eliminar_carga() {
+        $this->template = false;
+        $this->helper_ordencarga = new helper_ordencarga();
+        $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+        $lista_ordenescargar = explode(',', $value_ordencarga);
+        foreach ($lista_ordenescargar as $ordencarga) {
+            if ($ordencarga) {
+                $datos_ordencarga = explode('-', $ordencarga);
+                $idordencarga = $datos_ordencarga[0];
+                $codalmacen = $datos_ordencarga[1];
+                $ord0 = new distribucion_ordenescarga();
+                $ord0->idempresa = $this->empresa->id;
+                $ord0->idordencarga = $idordencarga;
+                $ord0->codalmacen = $codalmacen;
+                if ($ord0->delete()) {
+                    $data['success'] = TRUE;
+                    $data['mensaje'] = "Orden de Carga " . $idordencarga . " eliminada correctamente.";
+                } else {
+                    $data['success'] = TRUE;
+                    $data['mensaje'] = "No se pudieron procesar todas las ordenes de carga, por favor contacte a su administrador de sistemas..";
+                }
+            }
+        }
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    }
+    
+    public function reversar_carga(){
+        $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+        $value_movimiento = \filter_input(INPUT_GET, 'movimiento');
+        $datos_ordencarga = explode('-', $value_ordencarga);
+        $idordencarga = $datos_ordencarga[0];
+        $codalmacen = $datos_ordencarga[1];
+        $oc0 = new distribucion_ordenescarga();
+        $oc0->idempresa = $this->empresa->id;
+        $oc0->idordencarga = $idordencarga;
+        $oc0->codalmacen = $codalmacen;
+        $oc0->usuario_modificacion = $this->user->nick;
+        $oc0->fecha_modificacion = Date("d-m-Y H:i");
+        if($value_movimiento == 'cargada'){
+           $oc0->cargado = FALSE;
+           $estado = $oc0->confirmar_cargada();
+        }
+        if ($estado) {
+           $data['success'] = TRUE;
+           $data['mensaje'] = "Orden de Carga ".$oc0->idordencarga." reversada correctamente.";
+        } else {
+           $data['success'] = TRUE;
+           $data['mensaje'] = "No se pudo reversar la Orden de Carga, por favor verifique que otro usuario no la este utilizando..";
+        }
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($data);
     }
 
     private function share_extensions() {

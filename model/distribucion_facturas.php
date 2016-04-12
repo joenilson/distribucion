@@ -17,32 +17,38 @@
  */
 require_model('distribucion_rutas.php');
 require_model('distribucion_clientes.php');
+require_model('distribucion_ordenescarga_facturas.php');
 /**
  * Description of distribucion_facturas
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
 class distribucion_facturas extends factura_cliente {
-    
-    public function buscar_rutas($fecha, $codalmacen, $rutas){
+
+    public function buscar_rutas($idempresa, $fecha, $codalmacen, $rutas){
         //Convertimos la lista de rutas en un array y luego en una cadena
         $char_rutas = implode("','", explode(',',$rutas));
-        $sql = "SELECT idfactura,codigo,numero2,".$this->table_name.".codcliente,nombrecliente,direccion,codalmacen, ruta ".
+        $sql = "SELECT ".$this->table_name.".*,nombrecliente,direccion,codalmacen,ruta ".
                 "FROM ".$this->table_name.", distribucion_clientes ".
                 "WHERE ".$this->table_name.".codcliente = distribucion_clientes.codcliente".
                 " AND ".$this->table_name.".codalmacen = ".$this->var2str($codalmacen).
                 " AND fecha = ".$this->var2str($fecha).
                 " AND distribucion_clientes.ruta IN ('".$char_rutas."')".
-                " AND anulada = false AND idfacturarect = NULL".
+                " AND anulada = false AND idfacturarect IS NULL".
                 " ORDER BY ruta, nombrecliente ";
         $data = $this->db->select($sql);
         if($data){
+            $distrib_ordenescarga_facturas = new distribucion_ordenescarga_facturas();
             $lista = array();
             foreach($data as $linea){
                 $value = new factura_cliente($linea);
                 $value->ruta = $linea['ruta'];
-                $lista[] = $value;
+                //Si la factura ya esta en una orden de carga la quitamos del listado
+                if(!$distrib_ordenescarga_facturas->get($idempresa, $value->idfactura, $value->codalmacen)){
+                    $lista[] = $value;
+                }
             }
+            sort($lista);
             return $lista;
         }else{
             return false;
