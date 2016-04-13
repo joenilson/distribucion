@@ -47,6 +47,7 @@ class distribucion_ordenescarga extends fs_model {
     public $usuario_modificacion;
     public $fecha_modificacion;
     
+    public $conductor_nombre;
     public $distribucion_conductores;
     public $distribucion_unidades;
     
@@ -282,8 +283,34 @@ class distribucion_ordenescarga extends fs_model {
         }
     }
     
-    public function search($idempresa, $datos, $offset){
-        $sql = "SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans";
+    public function info_adicional($t){
+        $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
+        $t->conductor_nombre = $con0->nombre;
+        return $t;
+    }
+    
+    public function search($idempresa, $datos, $desde, $hasta, $offset){
+        $resultados = array();
+        $contador = 1;
+        $where = (!empty($datos))?" AND ":"";
+        foreach($datos as $k=>$v){
+            $and = (count($datos) > $contador)?" AND ":"";
+            $value = (is_string($v))?$this->var2str($v):$this->intval($v);
+            $where.=" $k = ".$value.$and;
+            $contador++;
+        }
+        
+        if(!empty($hasta)){
+            $where.=" AND fecha BETWEEN ".$this->var2str($desde)." AND ".$this->var2str($hasta);
+        }else{
+            if(!empty($desde)){
+                $where.=" AND fecha >= ".$this->var2str($desde);
+            }
+        }
+        $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
+        $conteo = $this->db->select($sql_count);
+        $resultados['cantidad'] = $conteo[0]['total'];
+        $sql = "SELECT * FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans";
         $lista = array();
         $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
         
@@ -291,10 +318,13 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
-        return $lista;
+        $resultados['resultados'] = $lista;
+        return $resultados;
     }
     
     public function all($idempresa, $offset = 0)
@@ -307,7 +337,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -323,7 +355,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -338,7 +372,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -353,7 +389,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -368,7 +406,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -383,7 +423,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -398,7 +440,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -413,7 +457,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -428,7 +474,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_ordenescarga($d);
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -445,7 +493,7 @@ class distribucion_ordenescarga extends fs_model {
             {
                 $valor_lista = new distribucion_ordenescarga($d);
                 $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
-                $valor_lista->conductor_nombre = $datos_conductor[0]->nombre;
+                $valor_lista->conductor_nombre = $datos_conductor->nombre;
                 $lista[] = $valor_lista;
             }
         }

@@ -240,7 +240,7 @@ class distribucion_conductores extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_conductores($d);
+                $lista = new distribucion_conductores($d);
             }
         }
         return $lista;
@@ -252,7 +252,7 @@ class distribucion_conductores extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_conductores($d);
+                $lista = new distribucion_conductores($d);
             }
         }
         return $lista;

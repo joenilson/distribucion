@@ -264,7 +264,7 @@ class distribucion_unidades extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_unidades($d);
+                $lista = new distribucion_unidades($d);
             }
         }
         return $lista;

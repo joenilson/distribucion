@@ -65,9 +65,9 @@ class distrib_ordencarga extends fs_controller {
     public $desde;
     public $hasta;
     public $conductor;
+    public $codalmacen;
     public $total_resultados;
     public $total_pendientes;
-    public $total_resultados_txt;
     public $num_resultados;
     public $paginas;
     public $articulo;
@@ -103,29 +103,64 @@ class distrib_ordencarga extends fs_controller {
         $type = \filter_input(INPUT_GET, 'type');
         $type_post = \filter_input(INPUT_POST, 'type');
         $buscar_fecha = \filter_input(INPUT_GET, 'buscar_fecha');
-        $buscar_conductor = \filter_input(INPUT_POST, 'buscar_conductor');
-        $codalmacen = \filter_input(INPUT_GET, 'codalmacen');
+        $buscar_conductor = \filter_input(INPUT_GET, 'buscar_conductor');
+        $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
+        $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
         $rutas = \filter_input(INPUT_GET, 'rutas');
         $codtrans = \filter_input(INPUT_GET, 'codtrans');
         $offset = \filter_input(INPUT_GET, 'offset');
-        $desde = \filter_input(INPUT_GET, 'desde');
-        $hasta = \filter_input(INPUT_GET, 'hasta');
+        $desde_p = \filter_input(INPUT_POST, 'desde');
+        $hasta_p = \filter_input(INPUT_POST, 'hasta');
+        $desde_g = \filter_input(INPUT_GET, 'desde');
+        $hasta_g = \filter_input(INPUT_GET, 'hasta');
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
         $order = \filter_input(INPUT_GET, 'order');
-        $conductor = \filter_input(INPUT_POST, 'conductor');
+        $conductor_p = \filter_input(INPUT_POST, 'conductor');
+        $conductor_g = \filter_input(INPUT_GET, 'conductor');
 
         $this->mostrar = (isset($mostrar)) ? $mostrar : "todo";
         $this->order = (isset($order)) ? str_replace('_', ' ', $order) : "fecha DESC";
         $this->offset = (isset($offset))?$offset:0;
+        
+        if(isset($desde_p)){
+            $desde = $desde_p;
+        }elseif(isset($desde_g)){
+            $desde = $desde_g;
+        }
+        
+        if(isset($hasta_p)){
+            $hasta = $hasta_p;
+        }elseif(isset($hasta_g)){
+            $hasta = $hasta_g;
+        }
+        
+        if(isset($codalmacen_p)){
+            $codalmacen = $codalmacen_p;
+        }elseif(isset($codalmacen_g)){
+            $codalmacen = $codalmacen_g;
+        }
+        
+        if(isset($conductor_p)){
+            $conductor = $conductor_p;
+        }elseif(isset($conductor_g)){
+            $conductor = $conductor_g;
+        }
+
         $this->desde = (isset($desde))?$desde:'';
         $this->hasta = (isset($hasta))?$hasta:'';
         
-        if (isset($conductor) AND ! empty($conductor)) {
-            $conductor0 = new distribucion_conductores();
-            $data_conductor = $conductor0->get($this->empresa->id,$conductor);
+        if(isset($buscar_conductor)){
+            $this->buscar_conductor();
         }
         
-        $this->conductor = (isset($data_conductor)) ? $data_conductor : FALSE;
+        $data_conductor = false;
+        
+        if (isset($conductor) AND ! empty($conductor)) {
+            $data_conductor = $this->distrib_conductores->get_by_id($conductor);
+        }
+        $this->conductor = $data_conductor;
+
+        $this->codalmacen = (isset($codalmacen))?$codalmacen:"";
 
         if ($type === 'buscar_facturas') {
             $this->buscar_facturas($buscar_fecha, $codalmacen, $rutas, $offset);
@@ -172,25 +207,28 @@ class distrib_ordencarga extends fs_controller {
             }elseif($this->mostrar == 'pendientes'){
                 $this->resultados = $this->distrib_ordenescarga->all_pendientes($this->empresa->id, $this->offset);
             }elseif($this->mostrar == 'buscar'){
+                $this->num_resultados = 0;
                 $this->buscador();
             }
         }
-        if(isset($_REQUEST['buscar_conductor'])){
-            $this->buscar_conductor();
-        }
+        
         $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga();
-        $this->total_resultados_txt = 0;
-        $this->num_resultados = 0;
         $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes();
     }
     
     public function buscador(){
-        $conductor = filter_input(INPUT_POST, 'conductor');
-        $datos_busqueda['conductor'] = (isset($conductor))?$conductor:FALSE;
-        $datos_busqueda['desde'] = (isset($this->desde))?$this->desde:FALSE;
-        $datos_busqueda['hasta'] = (isset($this->hasta))?$this->hasta:FALSE;
-        $datos_busqueda['codalmacen'] = (isset($this->codalmacen))?$this->codalmacen:FALSE;
-        $this->resultados = $this->distrib_ordenescarga->search($this->empresa->id, $datos_busqueda, $this->offset);
+        $datos_busqueda = array();
+        if($this->conductor){
+            $datos_busqueda['conductor'] = $this->conductor->licencia;
+        }
+        if($this->codalmacen){
+            $datos_busqueda['codalmacen'] = $this->codalmacen;
+        }
+        if(!empty($datos_busqueda) OR !empty($this->desde)){
+            $busqueda = $this->distrib_ordenescarga->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
+            $this->resultados = $busqueda['resultados'];
+            $this->num_resultados = $busqueda['cantidad'];
+        }
     }
     
     private function buscar_conductor()
@@ -200,9 +238,9 @@ class distrib_ordencarga extends fs_controller {
 
         $con0 = new distribucion_conductores();
         $json = array();
-        foreach($con0->search($_REQUEST['buscar_conductor']) as $con)
+        foreach($con0->search($this->empresa->id, $_REQUEST['buscar_conductor']) as $con)
         {
-           $json[] = array('value' => $con->nombre, 'data' => $con->codcliente);
+           $json[] = array('value' => $con->nombre, 'data' => $con->id);
         }
 
         header('Content-Type: application/json');
@@ -450,6 +488,8 @@ class distrib_ordencarga extends fs_controller {
         
         $url = $this->url()."&mostrar=".$this->mostrar
             ."&query=".$this->query
+            ."&codalmacen=".$this->codalmacen
+            ."&conductor=".$this->conductor
             ."&desde=".$this->desde
             ."&hasta=".$this->hasta;
         
@@ -551,9 +591,9 @@ class distrib_ordencarga extends fs_controller {
         $ordenCarga0->codalmacen_dest = $almacendest;
         $ordenCarga0->codtrans = $codtrans;
         $ordenCarga0->unidad = $codunidad;
-        $ordenCarga0->tipounidad = $this->distrib_unidades->get($this->empresa->id, $codunidad)[0]->tipounidad;
+        $ordenCarga0->tipounidad = $this->distrib_unidades->get($this->empresa->id, $codunidad)->tipounidad;
         $ordenCarga0->conductor = $conductor;
-        $ordenCarga0->tipolicencia = $this->distrib_conductores->get($this->empresa->id, $conductor)[0]->tipolicencia;
+        $ordenCarga0->tipolicencia = $this->distrib_conductores->get($this->empresa->id, $conductor)->tipolicencia;
         $ordenCarga0->fecha = $fecha_reparto;
         $ordenCarga0->observaciones = $observaciones;
         $ordenCarga0->totalcantidad = $resultados_facturas['totalCantidad'];
@@ -689,15 +729,15 @@ class distrib_ordencarga extends fs_controller {
     private function share_extensions() {
         $fsext0 = new fs_extension(
             array(
-            'name' => 'ordencarga_datepicker_es_js',
-            'page_from' => __CLASS__,
-            'page_to' => 'distrib_ordencarga',
-            'type' => 'head',
-            'text' => '<script type="text/javascript" src="plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
-            'params' => ''
+                'name' => 'ordencarga_datepicker_es_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
+                'params' => ''
             )
         );
-        $fsext0->save();
+        $fsext0->delete();
 
         $fsext1 = new fs_extension(
             array(
@@ -795,18 +835,6 @@ class distrib_ordencarga extends fs_controller {
         );
         $fsext8->save();
 
-        $fsext9 = new fs_extension(
-                array(
-           'name' => 'distribucion_js9',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<script src="plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>',
-           'params' => ''
-                )
-        );
-        $fsext9->save();
-
         $fsext10 = new fs_extension(
                 array(
            'name' => 'distribucion_js10',
@@ -819,6 +847,18 @@ class distrib_ordencarga extends fs_controller {
         );
         $fsext10->save();
 
+        $fsext9 = new fs_extension(
+                array(
+           'name' => 'distribucion_js9',
+           'page_from' => __CLASS__,
+           'page_to' => 'distrib_ordencarga',
+           'type' => 'head',
+           'text' => '<script src="plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>',
+           'params' => ''
+                )
+        );
+        $fsext9->save();
+        
         $fsext11 = new fs_extension(
                 array(
            'name' => 'distribucion_css11',
@@ -832,26 +872,26 @@ class distrib_ordencarga extends fs_controller {
         $fsext11->save();
 
         $fsext12 = new fs_extension(
-                array(
-           'name' => 'distribucion_js12',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<script src="plugins/distribucion/view/js/bootbox.min.js" type="text/javascript"></script>',
-           'params' => ''
-                )
+            array(
+                'name' => 'distribucion_js12',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/bootbox.min.js" type="text/javascript"></script>',
+                'params' => ''
+            )
         );
-        $fsext12->save();
+        $fsext12->delete();
 
         $fsext13 = new fs_extension(
-                array(
-           'name' => 'distribucion_js13',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_facturas',
-           'type' => 'head',
-           'text' => '<script src="plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>',
-           'params' => ''
-                )
+            array(
+            'name' => 'distribucion_js13',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_facturas',
+            'type' => 'head',
+            'text' => '<script src="plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>',
+            'params' => ''
+            )
         );
         $fsext13->save();
 
