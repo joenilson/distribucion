@@ -361,4 +361,14 @@ class distribucion_rutas extends fs_model {
             return false;    
         }
     }
+    
+    public function cantidad_asignados($idempresa,$ruta){
+        $data = $this->db->select("SELECT count(*) as total FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
+        
+        if($data){
+            return $data[0]['total'];
+        }else{
+            return false;    
+        }
+    }
 }
