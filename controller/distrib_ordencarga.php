@@ -79,7 +79,7 @@ class distrib_ordencarga extends fs_controller {
     }
 
     public function private_core() {
-        
+
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->almacen = new almacen();
         $this->facturas_cliente = new factura_cliente();
@@ -121,25 +121,25 @@ class distrib_ordencarga extends fs_controller {
         $this->mostrar = (isset($mostrar)) ? $mostrar : "todo";
         $this->order = (isset($order)) ? str_replace('_', ' ', $order) : "fecha DESC";
         $this->offset = (isset($offset))?$offset:0;
-        
+
         if(isset($desde_p)){
             $desde = $desde_p;
         }elseif(isset($desde_g)){
             $desde = $desde_g;
         }
-        
+
         if(isset($hasta_p)){
             $hasta = $hasta_p;
         }elseif(isset($hasta_g)){
             $hasta = $hasta_g;
         }
-        
+
         if(isset($codalmacen_p)){
             $codalmacen = $codalmacen_p;
         }elseif(isset($codalmacen_g)){
             $codalmacen = $codalmacen_g;
         }
-        
+
         if(isset($conductor_p)){
             $conductor = $conductor_p;
         }elseif(isset($conductor_g)){
@@ -148,13 +148,13 @@ class distrib_ordencarga extends fs_controller {
 
         $this->desde = (isset($desde))?$desde:'';
         $this->hasta = (isset($hasta))?$hasta:'';
-        
+
         if(isset($buscar_conductor)){
             $this->buscar_conductor();
         }
-        
+
         $data_conductor = false;
-        
+
         if (isset($conductor) AND ! empty($conductor)) {
             $data_conductor = $this->distrib_conductores->get_by_id($conductor);
         }
@@ -200,7 +200,7 @@ class distrib_ordencarga extends fs_controller {
             $this->crear_transporte($lista_ordenescargar);
         } elseif ($type === 'reversar-carga') {
             $this->reversar_carga();
-            
+
         } else {
             if($this->mostrar == 'todo'){
                 $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id,$this->offset);
@@ -211,11 +211,11 @@ class distrib_ordencarga extends fs_controller {
                 $this->buscador();
             }
         }
-        
+
         $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga();
         $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes();
     }
-    
+
     public function buscador(){
         $datos_busqueda = array();
         if($this->conductor){
@@ -230,7 +230,7 @@ class distrib_ordencarga extends fs_controller {
             $this->num_resultados = $busqueda['cantidad'];
         }
     }
-    
+
     private function buscar_conductor()
     {
         /// desactivamos la plantilla HTML
@@ -266,7 +266,7 @@ class distrib_ordencarga extends fs_controller {
                             $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($linea->idfactura);
                         }
                     }
-                    
+
                     foreach ($lineas_factura as $linea_factura) {
                         foreach ($linea_factura as $key => $values) {
                             if (!isset($importe_resumen[$values->referencia])) {
@@ -351,7 +351,7 @@ class distrib_ordencarga extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($data);
     }
-    
+
     public function imprimir_transporte(){
         $this->template = false;
         $this->helper_transportes = new helper_transportes();
@@ -482,17 +482,17 @@ class distrib_ordencarga extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($this->resultados);
     }
-    
+
     public function paginas() {
         $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga();
-        
+
         $url = $this->url()."&mostrar=".$this->mostrar
             ."&query=".$this->query
             ."&codalmacen=".$this->codalmacen
             ."&conductor=".$this->conductor
             ."&desde=".$this->desde
             ."&hasta=".$this->hasta;
-        
+
         $paginas = array();
         $i = 0;
         $num = 0;
@@ -528,10 +528,10 @@ class distrib_ordencarga extends fs_controller {
             $i++;
             $num += FS_ITEM_LIMIT;
         }
-        
+
         return $paginas;
     }
-    
+
     public function total_pendientes(){
         return $this->distrib_ordenescarga->total_pendientes();
     }
@@ -631,7 +631,7 @@ class distrib_ordencarga extends fs_controller {
         }
         $pdfFile->pdf_mostrar();
     }
-    
+
     public function confirmar_carga(){
         $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
         $lista_ordenescargar = explode(',', $value_ordencarga);
@@ -697,7 +697,7 @@ class distrib_ordencarga extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($data);
     }
-    
+
     public function reversar_carga(){
         $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
         $value_movimiento = \filter_input(INPUT_GET, 'movimiento');
@@ -737,7 +737,7 @@ class distrib_ordencarga extends fs_controller {
                 'params' => ''
             )
         );
-        $fsext0->delete();
+        $fsext0->save();
 
         $fsext1 = new fs_extension(
             array(
@@ -858,7 +858,7 @@ class distrib_ordencarga extends fs_controller {
                 )
         );
         $fsext9->save();
-        
+
         $fsext11 = new fs_extension(
                 array(
            'name' => 'distribucion_css11',

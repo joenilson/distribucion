@@ -41,35 +41,117 @@ class impresion_rutas extends fs_controller{
     public function __construct() {
         parent::__construct(__CLASS__, '8 - Impresión de Rutas', 'distribucion', FALSE, TRUE, TRUE);
     }
-    
+
     protected function private_core() {
+        $this->share_extensions();
+
         $this->almacen = new almacen();
         $this->distribucion_rutas = new distribucion_rutas();
         $this->distribucion_clientes = new distribucion_clientes();
         $this->distribucion_organizacion = new distribucion_organizacion();
-        
+
         $codalmacen = filter_input(INPUT_POST, 'codalmacen');
         $codvendedor = filter_input(INPUT_POST, 'codvendedor');
-        $codruta = filter_input(INPUT_POST, 'codruta');
+        $codruta = filter_input(INPUT_POST, 'rutas');
         $fecha = filter_input(INPUT_POST, 'fecha');
-        
+        $tipo = filter_input(INPUT_POST, 'tipo');
+
         $this->codalmacen = (isset($codalmacen))?$codalmacen:'';
         $this->codvendedor = (isset($codvendedor))?$codvendedor:'';
         $this->ruta = (isset($codruta))?$codruta:'';
         $this->fecha = (isset($fecha))?$fecha:'';
-        
-        
+
         if(!empty($this->codalmacen)){
             $this->vendedores = $this->distribucion_organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'VENDEDOR');
         }else{
             $this->vendedores = $this->distribucion_organizacion->activos_tipoagente($this->empresa->id, 'VENDEDOR');
         }
-        
+
         if(!empty($this->codvendedor)){
             $this->rutas = $this->distribucion_rutas->all_rutasporagente($this->empresa->id, $this->codalmacen, $this->codvendedor);
         }elseif(!empty($this->codalmacen)){
             $this->rutas = $this->distribucion_rutas->all_rutasporalmacen($this->empresa->id, $this->codalmacen);
         }
-        
+
+        if(isset($tipo) and !empty($tipo)){
+            switch($tipo){
+                case "busqueda":
+                    $this->buscar();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    public function buscar(){
+        $lista_clientes = array();
+        $lista_rutas = explode(",",$this->ruta);
+        foreach ($lista_rutas as $r){
+            $lista_clientes[] = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $r);
+        }
+        $this->clientes = $lista_clientes;
+    }
+
+    private function share_extensions(){
+        $fsext0 = new fs_extension(
+            array(
+                'name' => 'impresion_rutas_datepicker_es_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
+                'params' => ''
+            )
+        );
+        $fsext0->save();
+
+        $fsext1 = new fs_extension(
+            array(
+            'name' => 'impresion_rutas_jqueryui_js',
+            'page_from' => __CLASS__,
+            'page_to' => 'impresion_rutas',
+            'type' => 'head',
+            'text' => '<script type="text/javascript" src="plugins/distribucion/view/js/jquery-ui.min.js"></script>',
+            'params' => ''
+            )
+        );
+        $fsext1->save();
+
+        $fsext2 = new fs_extension(
+            array(
+            'name' => 'impresion_rutas_jqueryui_css1',
+            'page_from' => __CLASS__,
+            'page_to' => 'impresion_rutas',
+            'type' => 'head',
+            'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/jquery-ui.min.css"/>',
+            'params' => ''
+            )
+        );
+        $fsext2->save();
+
+        $fsext3 = new fs_extension(
+                array(
+           'name' => 'impresion_rutas_jqueryui_css2',
+           'page_from' => __CLASS__,
+           'page_to' => 'impresion_rutas',
+           'type' => 'head',
+           'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
+           'params' => ''
+                )
+        );
+        $fsext3->save();
+
+        $fsext4 = new fs_extension(
+                array(
+           'name' => 'impresion_rutas_jqueryui_css3',
+           'page_from' => __CLASS__,
+           'page_to' => 'impresion_rutas',
+           'type' => 'head',
+           'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
+           'params' => ''
+                )
+        );
+        $fsext4->save();
     }
 }
