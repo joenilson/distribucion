@@ -229,11 +229,57 @@ class distribucion_rutas extends fs_model {
         return $lista;
     }
     
+    public function all_rutaspordia($idempresa,$codalmacen,$dia)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND $dia = TRUE ORDER BY codalmacen, codagente, ruta;");
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $value = new distribucion_rutas($d);
+                $data_agente = $this->agente->get($value->codagente);
+                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
+                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
+                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+                $lista[] = $value;
+            }
+        }
+        return $lista;
+    }
+    
     public function all_rutasporagente($idempresa,$codalmacen,$codagente)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND codagente = ".$this->var2str($codagente)." ORDER BY codalmacen, codagente, ruta;");
         
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $value = new distribucion_rutas($d);
+                $data_agente = $this->agente->get($value->codagente);
+                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
+                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
+                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+                $lista[] = $value;
+            }
+        }
+        return $lista;
+    }
+    
+    public function all_rutasporagentedias($idempresa,$codalmacen,$codagente, $dias)
+    {
+        $lista = array();
+        $sql = "SELECT * FROM distribucion_rutas ".
+                "WHERE idempresa = ".$this->intval($idempresa).
+                " AND codalmacen = ".$this->var2str($codalmacen).
+                " AND ($dias) AND codagente = ".$this->var2str($codagente).
+                " ORDER BY codalmacen, codagente, ruta;";
+        $data = $this->db->select($sql);
         if($data)
         {
             foreach($data as $d)

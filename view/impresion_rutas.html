@@ -15,11 +15,13 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<link href="plugins/distribucion/view/css/bootstrap-select.min.css" rel="stylesheet" type="text/css"/>
 <script src="plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>
 <script src="plugins/distribucion/view/js/plugins/jquery.tablecheckbox.min.js" type="text/javascript"></script>
 <script>
+    $.jgrid.defaults.styleUI = 'Bootstrap';
+    
     $(document).ready(function(){
+        
         $("#fecha").datepicker({
             dateFormat: 'yy-mm-dd'
         });
@@ -27,8 +29,82 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         $('.selectpicker').selectpicker({
             noneSelectedText: 'Nada Seleccionado'
         });
+        
+        $('#f_imprimir_rutas_btn').click(function(event) {
+            var checkboxValues = [];
+            var almacen = $('#codalmacen').val();
+            var seguir = true;
+            
+            $('input[name=ruta]:checked').map(function() {
+                checkboxValues.push($(this).val());
+            });
+            
+            if(checkboxValues.length === 0 && almacen !== undefined){
+               alert('¡Debe elegir una ruta a Imprimir!');
+            }else if(checkboxValues.length === 0 && almacen === undefined){
+                seguir = false;
+                alert('¡Error de informacion enviada a procesar, no hay un almacen seleccionado ni rutas elegidas!');
+            }
+            
+            if(seguir){
+                $('#modal_impresion_rutas').modal('show');
+                $("#imprimir_rutas").detach();
+                $("<iframe id='imprimir_rutas' />")
+                  .attr('src', '{$fsc->url()}&tipo=imprimir-rutas&rutas='+checkboxValues+'&codalmacen='+almacen)
+                  .attr('width', '100%')
+                  .attr('height', '500')
+                  .appendTo('#modal_body_impresion_rutas');
+            }
+        });
+        
         $('table').tablecheckbox();
     });
+    
+    function mostrarClientes(ruta){
+       $('#modal_detalle_ruta').modal('show');
+       $.ajax({
+            type: 'GET',
+            url: '{$fsc->url()}',
+            async: false,
+            data: 'tipo=ver-clientes&ruta='+ruta,
+            success: function(datos) {
+                var re = /<!--(.*?)-->/g;
+                var m = re.exec( datos );
+                $("#grid_clientes").jqGrid('clearGridData');
+                $('#grid_clientes').jqGrid({
+                    data: datos.rows,
+                    datatype: "local",
+                    colModel: [
+                        {label: 'Codigo', name: 'codcliente', width: 10, key: true},
+                        {label: 'Cliente', name: 'nombre_cliente', width: 40},
+                        {label: 'Direccion', name: 'direccion', width: 40, sorttype: 'text'},
+                        {label: 'Canal', name: 'canal_descripcion', width: 20, sorttype: 'text'},
+                        {label: 'Subcanal', name: 'subcanal_descripcion', width: 20, sorttype: 'text'}
+                    ],
+                    loadonce: false,
+                    viewrecords: true,
+                    autowidth: true,
+                    shrinkToFit: true,
+                    footerrow: false,
+                    rownumbers: true,
+                    height: 350,
+                    rowNum: 100,
+                    pager: "#grid_clientes_pager"
+                });
+                $('#grid_clientes').jqGrid()
+                    .setGridParam({
+                        data: datos.rows
+                    })
+                    .trigger("reloadGrid");
+                $('#almacen_atencion_ruta').html(datos.cabecera.almacen_nombre);
+                $('#supervisor_ruta').html(datos.cabecera.nombre_supervisor);
+                $('#vendedor_ruta').html(datos.cabecera.nombre);
+                $('#dias_visita_ruta').html(datos.cabecera.dias_atencion);
+                $('#datos_ruta').html(datos.cabecera.ruta+' - '+datos.cabecera.descripcion);
+                $('#datos_total_ruta').html(datos.cabecera.cantidad);
+            }
+         });
+   }
 </script>
 <div class="container">
     <div class="row">
@@ -55,6 +131,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <div class="col-sm-12">
         <form class="form" action="{$fsc->url()}" method="POST" id="f_buscar">
             <input type="hidden" name="tipo" value="">
+            <input type="hidden" name="dias" value="{$fsc->dia}">
             <input type="hidden" name="rutas" value="{$fsc->ruta}">
             <input type="hidden" name="vendedores" value="{$fsc->codvendedor}">
             <div class="form-group col-sm-3">
@@ -63,6 +140,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <option value="">----</option>
                     {loop="$fsc->almacen->all()"}
                     <option value="{$value->codalmacen}" {if="$fsc->codalmacen==$value->codalmacen"}selected{/if}>{$value->nombre}</option>
+                    {/loop}
+                </select>
+            </div>
+            <div class="form-group col-sm-2">
+                <label for="dia" class="control-label"><b>Días de Visita</b></label>
+                <select class="input-sm form-control selectpicker" multiple name="dia" id="dia">
+                    {loop="$fsc->dias"}
+                        <option value="{$value->dia}" {if="$value->seleccionado"}selected{/if}>{$value->dia|ucfirst}</option>
                     {/loop}
                 </select>
             </div>
@@ -75,7 +160,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {/loop}
                 </select>
             </div>
-            <div class="form-group col-sm-3">
+            <div class="form-group col-sm-2">
                 <label for="codruta" class="control-label"><b>Ruta</b></label>
                 <select class="input-sm form-control selectpicker" multiple name="codruta" id="codruta">
                     {loop="$fsc->rutas"}
@@ -83,12 +168,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {/loop}
                 </select>
             </div>
-            <div class="form-group col-sm-3">
+            <div class="form-group col-sm-2">
                 <label for="fecha" class="control-label"><b>Fecha de Visita</b></label>
                 <div class="input-group">
                     <input class="form-control input-sm" type="text" required autocomplete="off" name="fecha" id="fecha" value="{$fsc->fecha}" placeholder="Fecha Reparto">
                     <div class="input-group-btn">
-                        <button type="submit" class="btn btn-primary btn-sm" onclick="this.form.tipo.value='busqueda';this.form.rutas.value=$('#codruta').val();"><span class="glyphicon glyphicon-search"></span></button>
+                        <button type="submit" class="btn btn-primary btn-sm" onclick="this.form.tipo.value='busqueda';this.form.dias.value=$('#dia').val();this.form.rutas.value=$('#codruta').val();"><span class="glyphicon glyphicon-search"></span></button>
                     </div>
                 </div>
             </div>
@@ -96,7 +181,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </div>
     <div class="row">
         <div class="col-sm-1">
-            <button class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-print"></span>&nbsp; Imprimir</button>
+            <button id="f_imprimir_rutas_btn" class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-print"></span>&nbsp; Imprimir</button>
         </div>
     </div>
     <div class="row" style="margin-top: 10px">
@@ -109,9 +194,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <th>Codigo</th>
                     <th>Ruta</th>
                     <th>Dias de visita</th>
-                    <th>Clientes</th>
                     <th>Vendedor</th>
                     <th>Almacen</th>
+                    <th class="text-center">Clientes</th>
                 </tr>
             </thead>
             <tbody>
@@ -129,9 +214,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         {if="$value->sabado"}<span class="label label-info">Sabado</span>&nbsp;{/if}
                         {if="$value->domingo"}<span class="label label-info">Domingo</span>{/if}
                     </td>
-                    <td>{$value->cantidad}</td>
                     <td>{$value->nombre}</td>
                     <td>{$value->codalmacen}</td>
+                    <td>{if="$value->cantidad!=0"}<button class="btn btn-xs btn-default col-sm-12" type="button" onclick="mostrarClientes('{$value->ruta}')">Ver &nbsp;<span class="badge">{$value->cantidad}</span></button>{/if}</td>
                 </tr>
                 {/loop}
             </tbody>
@@ -162,7 +247,72 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 {/loop}
             </tbody>
         </table>
-        
+    </div>
+</div>
+<div class="modal" id="modal_impresion_rutas">
+    <div class="modal-dialog" style="width: 99%; max-width: 950px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Impresión de Rutas de clientes</h4>
+            </div>
+            <div class="modal-body" id='modal_body_impresion_rutas'>
+                
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="modal_detalle_ruta">
+    <div class="modal-dialog" style="width: 99%; max-width: 950px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="modal_detalle_ruta_titulo">Clientes de la Ruta</h4>
+            </div>
+            <div class="modal-body">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="col-sm-6">
+                                        <b>Almacén Atención:</b>
+                                        <span id="almacen_atencion_ruta"></span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <b>Supervisor:</b>
+                                        <span id="supervisor_ruta"></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="col-sm-6">
+                                        <b>Vendedor:</b>
+                                        <span id="vendedor_ruta"></span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <b>Dias de Visita:</b>
+                                        <span id="dias_visita_ruta"></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="col-sm-6">
+                                        <b>Ruta:</b>
+                                        <span id="datos_ruta"></span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <b>Total Clientes:</b>
+                                        <span id="datos_total_ruta"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <table id="grid_clientes"></table>
+                        <div id="grid_clientes_pager"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {include="footer"}
