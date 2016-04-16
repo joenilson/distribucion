@@ -47,6 +47,7 @@ class impresion_rutas extends fs_controller{
     public $distribucion_rutas;
     public $distribucion_clientes;
     public $distribucion_organizacion;
+    public $pdf;
     public function __construct() {
         parent::__construct(__CLASS__, '8 - Impresión de Rutas', 'distribucion', FALSE, TRUE, TRUE);
     }
@@ -211,109 +212,170 @@ class impresion_rutas extends fs_controller{
     }
 
     public function buscar_clientes(){
-        $span_activo = "<span class='btn btn-success btn-xs'>";
-        $span_inactivo = "<span class='btn btn-default btn-xs'>";
-        $span_fin = '</span>';
-        $partes = '';
         $this->template = FALSE;
         $r = filter_input(INPUT_GET, 'ruta');        
         $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $r);
         $cabecera = $this->distribucion_rutas->get($this->empresa->id, $r);
         $cabecera->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $r);
         $cabecera->almacen_nombre = $this->almacen->get($cabecera->codalmacen)->nombre;
-        $span_inicio_l = ($cabecera->lunes)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_l.' Lu '.$span_fin;
-        $span_inicio_m = ($cabecera->martes)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_m.' Ma '.$span_fin;
-        $span_inicio_i = ($cabecera->miercoles)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_i.' Mi '.$span_fin;
-        $span_inicio_j = ($cabecera->jueves)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_j.' Ju '.$span_fin;
-        $span_inicio_v = ($cabecera->viernes)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_v.' Vi '.$span_fin;
-        $span_inicio_s = ($cabecera->sabado)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_s.' Sa '.$span_fin;
-        $span_inicio_d = ($cabecera->domingo)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_d.' Do '.$span_fin;
-        $cabecera->dias_atencion = $partes;
+        $cabecera->dias_atencion = $this->dias_atencion($cabecera, "HTML");
         
         header('Content-Type: application/json');
         echo json_encode(array('rows'=>$lista_clientes,'cabecera'=>$cabecera));
     }
+    
+    public function dias_atencion($datos, $formato = "HTML"){
+        $partes = '';
+        if($formato == 'HTML'){
+            $span_activo = "<span class='btn btn-success btn-xs'>";
+            $span_inactivo = "<span class='btn btn-default btn-xs'>";
+            $span_fin = '</span>';
+        }elseif($formato == "PDF"){
+            $span_activo = '<span style="font-weight: bold; text-decoration: underline;">';
+            $span_inactivo = "<span>&nbsp;";
+            $span_fin = '</span>';
+        }
+        $span_inicio_l = ($datos->lunes)?$span_activo:$span_inactivo;
+        $partes.=$span_inicio_l.' Lu '.$span_fin;
+        $span_inicio_m = ($datos->martes)?$span_activo:$span_inactivo;
+        $partes.=$span_inicio_m.' Ma '.$span_fin;
+        $span_inicio_i = ($datos->miercoles)?$span_activo:$span_inactivo;
+        $partes.=$span_inicio_i.' Mi '.$span_fin;
+        $span_inicio_j = ($datos->jueves)?$span_activo:$span_inactivo;
+        $partes.=$span_inicio_j.' Ju '.$span_fin;
+        $span_inicio_v = ($datos->viernes)?$span_activo:$span_inactivo;
+        $partes.=$span_inicio_v.' Vi '.$span_fin;
+        $span_inicio_s = ($datos->sabado)?$span_activo:$span_inactivo;
+        $partes.=$span_inicio_s.' Sa '.$span_fin;
+        $span_inicio_d = ($datos->domingo)?$span_activo:$span_inactivo;
+        $partes.=$span_inicio_d.' Do '.$span_fin;
+        return $partes;
+    }
+    
     
     public function imprimir_rutas(){
         $this->template = FALSE;
         $rutas_imprimir = explode(",",filter_input(INPUT_GET, 'rutas'));
         $almacen_imprimir = filter_input(INPUT_GET, 'codalmacen');
         
-        $pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        $this->pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        $this->pdf->setPageOrientation('P',TRUE,10);
         foreach($rutas_imprimir as $r){
             $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $r);
             $cabecera = $this->distribucion_rutas->get($this->empresa->id, $r);
             $cabecera->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $r);
             $cabecera->almacen_nombre = $this->almacen->get($cabecera->codalmacen)->nombre;
+            $cabecera->dias_atencion = $this->dias_atencion($cabecera, 'PDF');
             $logo_empresa = '../../../../'.'tmp'.DIRECTORY_SEPARATOR.FS_TMP_NAME.'logo.png';
-            $pdf->startPageGroup();
-            $pdf->SetHeaderData(
+            $this->pdf->startPageGroup();
+            $this->pdf->SetHeaderData(
                 $logo_empresa, 
                 15, 
                 $this->empresa->nombre, 
-                'Listado de Clientes: '.$cabecera->ruta.' '.$cabecera->descripcion, 
+                'Listado de Clientes', 
                 array(0,0,0), 
                 array(0,0,0));
-            $pdf->setFooterData(array(0,64,0), array(0,64,128));
+            $this->pdf->setFooterData(array(0,64,0), array(0,64,128));
             // set header and footer fonts
-            $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-            $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+            $this->pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+            $this->pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
             // set default monospaced font
-            $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-            $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-            $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-            $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+            $this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+            $this->pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+            //$this->pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+            $this->pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+            $this->pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+            $this->pdf->SetAutoPageBreak(TRUE, 0);
             
-            $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+            $this->pdf->SetFont('courier', '', 9);
             
-            $pdf->SetFont('courier', '', 9);
-            $pdf->AddPage();
             $header = array('Codigo', 'Cliente', 'Direccion', 'Canal', 'Subcanal');
-            
-            $this->ColoredTable($pdf, $header, $lista_clientes);
+            $this->ColoredTable($header, $lista_clientes, $cabecera);
             
         }
-        $pdf->Output('ruta_impresa.pdf', 'I');
+        $this->pdf->Output('ruta_impresa.pdf', 'I');
+    }
+    
+    public function HeaderPage($header_page){
+        // Colors, line width and bold font
+        $this->pdf->SetFillColor(255, 255, 255);
+        $this->pdf->SetTextColor(0);
+        
+        
+        $this->pdf->SetDrawColor(153, 153, 153);
+        $this->pdf->SetLineWidth(0.3);
+        $this->pdf->SetFont('courier', 'B');
+        //Cabecera 
+        $this->pdf->Cell(20, 4, 'Almacén:', 0, 0, 'L', 0);$this->pdf->SetFont('courier', '', 8);
+        $this->pdf->Cell(50, 4, $header_page->almacen_nombre, 0, 0, 'L', 0);$this->pdf->SetFont('courier', 'B');
+        $this->pdf->Cell(30, 4, 'Supervisor:', 0, 0, 'L', 0);$this->pdf->SetFont('courier', '', 8);
+        $this->pdf->Cell(60, 4, $header_page->nombre_supervisor, 0, 0, 'L', 1);$this->pdf->SetFont('courier', 'B');
+        $this->pdf->Ln();
+        $this->pdf->Cell(20, 4, 'Vendedor:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
+        $this->pdf->Cell(50, 4, $header_page->nombre, 0, 0, 'L', 1);$this->pdf->SetFont('courier', 'B');
+        $this->pdf->Cell(30, 4, 'Días de Visita:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
+        $this->pdf->writeHTMLCell(60, 4, 112, 24,$header_page->dias_atencion, 0, 'L', 0, 0);$this->pdf->SetFont('courier', 'B');
+        $this->pdf->Ln();
+        $this->pdf->Cell(20, 4, 'Ruta:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
+        $this->pdf->Cell(50, 4, $header_page->ruta.' - '.$header_page->descripcion, 0, 0, 'L', 1);$this->pdf->SetFont('courier', 'B');
+        $this->pdf->Cell(30, 4, 'Total Clientes:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
+        $this->pdf->Cell(60, 4, $header_page->cantidad.' - '.$this->pdf->getPageHeight().' - '.$this->pdf->GetY(), 0, 0, 'L', 1);
+        $this->pdf->Cell(100, 6, '', 0, 0, 'C', 0);
+        $this->pdf->Ln();
+        // Color and font restoration
+        $this->pdf->SetFillColor(224, 235, 255);
+        $this->pdf->SetTextColor(0);
+        $this->pdf->SetFont('courier','',8);
+    }
+    
+    function HeaderTable($header, $w){
+        // Colors, line width and bold font
+        $this->pdf->SetFillColor(153, 153, 153);
+        $this->pdf->SetTextColor(255);
+        $this->pdf->SetDrawColor(153, 153, 153);
+        $this->pdf->SetLineWidth(0.3);
+        $this->pdf->SetFont('courier', 'B');
+        // Header
+        $num_headers = count($header);
+        for($i = 0; $i < $num_headers; ++$i) {
+            $this->pdf->Cell($w[$i], 5, $header[$i], 1, 0, 'C', 1);
+        }
+        $this->pdf->Ln();
+        // Color and font restoration
+        $this->pdf->SetFillColor(224, 235, 255);
+        $this->pdf->SetTextColor(0);
+        $this->pdf->SetFont('courier','',8);
     }
     
     // Colored table
-    public function ColoredTable($pdf, $header, $lista_clientes) {
-        // Colors, line width and bold font
-        $pdf->SetFillColor(255, 0, 0);
-        $pdf->SetTextColor(255);
-        $pdf->SetDrawColor(128, 0, 0);
-        $pdf->SetLineWidth(0.3);
-        $pdf->SetFont('courier', 'B');
-        // Header
+    public function ColoredTable($header, $lista_clientes, $header_page) {
+        //Tamaño de cada linea
         $w = array(15, 40, 60, 25, 40);
-        $num_headers = count($header);
-        for($i = 0; $i < $num_headers; ++$i) {
-            $pdf->Cell($w[$i], 5, $header[$i], 1, 0, 'C', 1);
-        }
-        $pdf->Ln();
-        // Color and font restoration
-        $pdf->SetFillColor(224, 235, 255);
-        $pdf->SetTextColor(0);
-        $pdf->SetFont('courier','',8);
-        // Data
+                // Data
         $fill = 0;
+        $line = 0;
         foreach($lista_clientes as $row) {
-            $pdf->Cell($w[0], 5, $row->codcliente, 'LR', 0, 'C', $fill);
-            $pdf->Cell($w[1], 5, $row->nombre_cliente, 'LR', 0, 'L', $fill);
-            $pdf->Cell($w[2], 5, $row->direccion, 'LR', 0, 'L', $fill);
-            $pdf->Cell($w[3], 5, $row->canal_descripcion, 'LR', 0, 'L', $fill);
-            $pdf->Cell($w[4], 5, substr($row->subcanal_descripcion,0,15), 'LR', 0, 'L', $fill);
-            $pdf->Ln();
+            if($line == 0){
+                $this->pdf->AddPage();
+                $this->pdf->setXY(15,20);
+                $this->HeaderPage($header_page);
+                $this->HeaderTable($header, $w);
+            }
+            $this->pdf->Cell($w[0], 5, $row->codcliente, 'LR', 0, 'C', $fill);
+            $this->pdf->Cell($w[1], 5, $row->nombre_cliente, 'LR', 0, 'L', $fill);
+            $this->pdf->Cell($w[2], 5, $row->direccion, 'LR', 0, 'L', $fill);
+            $this->pdf->Cell($w[3], 5, $row->canal_descripcion, 'LR', 0, 'L', $fill);
+            $this->pdf->Cell($w[4], 5, substr($row->subcanal_descripcion,0,15).' - '.$this->pdf->GetY(), 'LR', 0, 'L', $fill);
+            $this->pdf->Ln();
             $fill=!$fill;
+            if($line<=45){
+                $line++;
+            }else{
+                $this->pdf->Cell(array_sum($w), 0, '', 'T');
+                $line = 0;
+            }
         }
-        $pdf->Cell(array_sum($w), 0, '', 'T');
+        $this->pdf->Cell(array_sum($w), 0, '', 'T');
     }
 
     private function share_extensions(){
