@@ -319,7 +319,7 @@ class impresion_rutas extends fs_controller{
         $this->pdf->Cell(20, 4, 'Ruta:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
         $this->pdf->Cell(50, 4, $header_page->ruta.' - '.$header_page->descripcion, 0, 0, 'L', 1);$this->pdf->SetFont('courier', 'B');
         $this->pdf->Cell(30, 4, 'Total Clientes:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
-        $this->pdf->Cell(60, 4, $header_page->cantidad.' - '.$this->pdf->getPageHeight().' - '.$this->pdf->GetY(), 0, 0, 'L', 1);
+        $this->pdf->Cell(60, 4, $header_page->cantidad, 0, 0, 'L', 1);
         $this->pdf->Cell(100, 6, '', 0, 0, 'C', 0);
         $this->pdf->Ln();
         // Color and font restoration
@@ -365,7 +365,7 @@ class impresion_rutas extends fs_controller{
             $this->pdf->Cell($w[1], 5, $row->nombre_cliente, 'LR', 0, 'L', $fill);
             $this->pdf->Cell($w[2], 5, $row->direccion, 'LR', 0, 'L', $fill);
             $this->pdf->Cell($w[3], 5, $row->canal_descripcion, 'LR', 0, 'L', $fill);
-            $this->pdf->Cell($w[4], 5, substr($row->subcanal_descripcion,0,15).' - '.$this->pdf->GetY(), 'LR', 0, 'L', $fill);
+            $this->pdf->Cell($w[4], 5, substr($row->subcanal_descripcion,0,15), 'LR', 0, 'L', $fill);
             $this->pdf->Ln();
             $fill=!$fill;
             if($line<=45){
