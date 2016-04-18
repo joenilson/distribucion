@@ -73,9 +73,10 @@ class distrib_clientes extends fs_controller {
         $this->distribucion_coordenadas_cliente = new distribucion_coordenadas_clientes();
         $this->cliente = new cliente();
         $this->tab_activa = false;
-        $type = \filter_input(INPUT_POST, 'type');
+        $type_p = \filter_input(INPUT_POST, 'type');
+        $type_g = \filter_input(INPUT_GET, 'type');
         
-        $this->type = $type;
+        $type = (isset($type_p))?$type_p:$type_g;
 
         if($type=='supervisor'){
             $this->tratar_supervisor();
@@ -93,6 +94,8 @@ class distrib_clientes extends fs_controller {
         }elseif($type == 'direccion_cliente'){
             $this->tab_activa = 'p_coordenadas';
             $this->tratar_direccion_cliente();
+        }elseif($type == 'select-rutas'){
+            $this->lista_rutas();
         }
 
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');
@@ -179,8 +182,10 @@ class distrib_clientes extends fs_controller {
         $agente0->usuario_creacion = $this->user->nick;
         $agente0->fecha_creacion = \Date('d-m-Y H:i:s');
         if($borrar){
+            $this->template = FALSE;
             $agente0->delete();
-            $this->new_message("$agente0->tipoagente eliminado correctamente.");
+            header('Content-Type: application/json');
+            echo json_encode( array('success' => true, 'mensaje' => "$agente0->tipoagente eliminado correctamente.") );
         }else{
             if($agente0->save()){
                 $this->new_message("$agente0->tipoagente asignado correctamente.");
@@ -298,6 +303,7 @@ class distrib_clientes extends fs_controller {
     }
     
     public function tratar_cliente(){
+        $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
         $codcliente = \filter_input(INPUT_POST, 'codcliente');
         $iddireccion = \filter_input(INPUT_POST, 'iddireccion');
         $ruta = \filter_input(INPUT_POST, 'ruta');
@@ -307,6 +313,7 @@ class distrib_clientes extends fs_controller {
         $distcli0 = new distribucion_clientes();
         $distcli0->idempresa = $this->empresa->id;
         $distcli0->codcliente = $codcliente;
+        $distcli0->codalmacen = $codalmacen;
         $distcli0->iddireccion = $iddireccion;
         $distcli0->ruta = $ruta;
         $distcli0->canal = $canal;
@@ -361,6 +368,14 @@ class distrib_clientes extends fs_controller {
         $this->distrib_cliente = $this->distribucion_clientes->get($this->empresa->id,$this->codcliente);
         $this->rutas_libres = $this->rutas_libres();
         $this->template = 'extension/distrib_cliente';
+    }
+    
+    public function lista_rutas(){
+        $this->template = FALSE;
+        $codalmacen = filter_input(INPUT_GET, 'codalmacen');
+        $resultados = $this->distribucion_rutas->all_rutasporalmacen($this->empresa->id, $codalmacen);
+        header('Content-Type: application/json');
+        echo json_encode($resultados);
     }
     
     private function share_extension() {

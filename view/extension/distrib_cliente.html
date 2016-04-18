@@ -20,6 +20,8 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
     <div class="panel panel-default" id="panel_distrib_cliente">
         <div class="panel-heading">
             <h3 class="panel-title">
+                <span class="glyphicon glyphicon-transfer"></span>
+                Datos de Distribución para {$fsc->codcliente} - {$fsc->info_cliente->nombre}
                 <a class="btn btn-xs btn-default" href="{$fsc->url()}&codcliente={$fsc->codcliente}" title="Recargar la página">
                     <span class="glyphicon glyphicon-refresh"></span>
                 </a>
@@ -27,8 +29,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <span class="glyphicon glyphicon-arrow-left"></span>
                     <span class="hidden-xs">&nbsp; Datos del Cliente </span>
                 </a>
-                <span class="glyphicon glyphicon-transfer"></span>
-                Datos de Distribución para {$fsc->codcliente} - {$fsc->info_cliente->nombre}
             </h3>
         </div>
         <div class="panel-body">
@@ -42,6 +42,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         <thead>
                             <tr>
                                 <th class="text-left">Direcci&oacute;n</th>
+                                <th class="text-left">Almacén Asignado</th>
                                 <th class="text-left">Vendedor</th>
                                 <th class="text-left">Ruta</th>
                                 <th class="text-left">Canal</th>
@@ -57,6 +58,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             <tr>
                                 <td>
                                     <input type="text" name="direccion" readonly value="{$value1->direccion}" class="form-control input-sm"/>
+                                </td>
+                                <td>
+                                    <input type="text" name="almacen" readonly value="{$fsc->almacen->get($value1->codalmacen)->nombre}" class="form-control input-sm"/>
                                 </td>
                                 <td>
                                     <input type="text" name="codagente" readonly value="{$value1->nombre}" class="form-control input-sm"/>
@@ -96,14 +100,19 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     </select>
                                 </td>
                                 <td>
+                                    <select id="codalmacen" required name="codalmacen" class="form-control input-sm">
+                                        <option value="">Elija un almacen</option>
+                                        {loop="$fsc->almacen->all()"}
+                                        <option value="{$value->codalmacen}">{$value->nombre}</option>
+                                        {/loop}
+                                    </select>
+                                </td>
+                                <td>
                                     <input type="hidden" name="type" value="distrib_cliente">
                                     <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
                                 </td>
                                 <td>
-                                    <select name="ruta" class="form-control">
-                                        {loop="$fsc->rutas_libres"}
-                                        <option value="{$value->ruta}">{$value->descripcion}</option>
-                                        {/loop}
+                                    <select id="rutas" required name="ruta" class="form-control">
                                     </select>
                                 </td>
                                 <td>
@@ -175,5 +184,42 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
 {if="$fsc->tab_activa"}
 $('#lista_tabs a[href="#{$fsc->tab_activa}"]').tab('show');
 {/if}
+    $(document).ready(function(){
+        $('#codalmacen').change(function() {
+            var data = "";
+            var almacen = document.n_distrib_cliente.codalmacen.value;
+            //Llenamos el selector de rutas
+            $.ajax({
+                type: 'GET',
+                url : '{$fsc->url()}&type=select-rutas',
+                data : 'codalmacen='+almacen,
+                async: false,
+                success : function(response) {
+                    if(response.length !== 0){
+                        data = response;
+                    }else{
+                        alert('¡No hay Rutas en este Almacén!');
+                    }
+                },
+                error: function() {
+                    alert(response);
+                }
+            });
+            var select = $('#rutas');
+            select.empty();
+            if(data.length !== 0){
+                var array = data.filter(function(e){return e;});
+                //
+                //select.append(
+                //    $('<option></option>').val('').html('--------------')
+                //);
+                $.each(array, function(index, value) {
+                    select.append(
+                        $('<option></option>').val(value.ruta).html(value.ruta+' - '+value.descripcion)
+                    );
+                });
+            }
+        });
+    });
 </script>
 {include="footer"}

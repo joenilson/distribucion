@@ -11,6 +11,11 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
+        <nombre>codalmacen</nombre>
+        <tipo>character varying(4)</tipo>
+        <nulo>NO</nulo>
+    </columna>    
+    <columna>
         <nombre>codcliente</nombre>
         <tipo>character varying(6)</tipo>
         <nulo>NO</nulo>
@@ -57,6 +62,6 @@
     </columna>
     <restriccion>
         <nombre>distribucion_clientes_pkey</nombre>
-        <consulta>PRIMARY KEY (idempresa, codcliente, ruta)</consulta>
+        <consulta>PRIMARY KEY (idempresa, codcliente, codalmacen, ruta, iddireccion)</consulta>
     </restriccion>
 </tabla>

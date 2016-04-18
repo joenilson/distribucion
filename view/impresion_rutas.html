@@ -136,7 +136,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <input type="hidden" name="vendedores" value="{$fsc->codvendedor}">
             <div class="form-group col-sm-3">
                 <label for="almacen" class="control-label"><b>Almacen</b></label>
-                <select class="form-control selectpicker input-sm" name="codalmacen" id="codalmacen" onchange="this.form.tipo.value='';this.form.submit();">
+                <select data-style="btn-sm" class="form-control selectpicker input-sm" name="codalmacen" id="codalmacen" onchange="this.form.tipo.value='';this.form.submit();">
                     <option value="">----</option>
                     {loop="$fsc->almacen->all()"}
                     <option value="{$value->codalmacen}" {if="$fsc->codalmacen==$value->codalmacen"}selected{/if}>{$value->nombre}</option>
@@ -145,7 +145,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
             <div class="form-group col-sm-2">
                 <label for="dia" class="control-label"><b>Días de Visita</b></label>
-                <select class="input-sm form-control selectpicker" multiple name="dia" id="dia">
+                <select data-style="btn-sm" class="input-sm form-control selectpicker" multiple name="dia" id="dia">
                     {loop="$fsc->dias"}
                         <option value="{$value->dia}" {if="$value->seleccionado"}selected{/if}>{$value->dia|ucfirst}</option>
                     {/loop}
@@ -153,7 +153,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
             <div class="form-group col-sm-3">
                 <label for="codvendedor" class="control-label"><b>Vendedor</b></label>
-                <select class="form-control selectpicker input-sm" multiple name="codvendedor" id="codvendedor" onchange="this.form.tipo.value='';this.form.vendedores.value=$('#codvendedor').val();">
+                <select data-style="btn-sm" class="form-control selectpicker input-sm" multiple name="codvendedor" id="codvendedor" onchange="this.form.tipo.value='';this.form.vendedores.value=$('#codvendedor').val();">
                     <option value="">Vendedor</option>
                     {loop="$fsc->vendedores"}
                     <option value="{$value->codagente}" {if="$value->seleccionado"}selected{/if}>{$value->nombre}</option>
@@ -162,7 +162,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
             <div class="form-group col-sm-2">
                 <label for="codruta" class="control-label"><b>Ruta</b></label>
-                <select class="input-sm form-control selectpicker" multiple name="codruta" id="codruta">
+                <select data-style="btn-sm" class="input-sm form-control selectpicker" multiple name="codruta" id="codruta">
                     {loop="$fsc->rutas"}
                     <option value="{$value->ruta}" {if="$value->seleccionada"}selected{/if}>{$value->descripcion}</option>
                     {/loop}
@@ -218,32 +218,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <td>{$value->codalmacen}</td>
                     <td>{if="$value->cantidad!=0"}<button class="btn btn-xs btn-default col-sm-12" type="button" onclick="mostrarClientes('{$value->ruta}')">Ver &nbsp;<span class="badge">{$value->cantidad}</span></button>{/if}</td>
                 </tr>
-                {/loop}
-            </tbody>
-        </table>
-    </div>
-    <div class="row">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Cliente</th>
-                    <th>Direcci&oacute;n</th>
-                    <th>Ruta</th>
-                    <th>Canal</th>
-                    <th>Subcanal</th>
-                </tr>
-            </thead>
-            <tbody>
-                {loop="$fsc->clientes"}
-                    <tr>
-                        <td>{$value->codcliente}</td>
-                        <td>{$value->nombre_cliente}</td>
-                        <td>{$value->direccion}</td>
-                        <td>{$value->ruta} {$value->ruta_descripcion}</td>
-                        <td>{$value->canal} {$value->canal_descripcion}</td>
-                        <td>{$value->subcanal} {$value->subcanal_descripcion}</td>
-                    </tr>
                 {/loop}
             </tbody>
         </table>
