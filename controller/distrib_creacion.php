@@ -52,8 +52,10 @@ class distrib_creacion extends fs_controller {
    public $distrib_facturas;
    public $distrib_cliente;
    public $resultados;
+   public $total_resultados;
    public $num_resultados;
    public $mostrar;
+   public $offset;
    public $order;
    public $desde;
    public $hasta;
@@ -92,7 +94,9 @@ class distrib_creacion extends fs_controller {
       $mostrar = \filter_input(INPUT_GET, 'mostrar');
       $order = \filter_input(INPUT_GET, 'order');
       $cliente = \filter_input(INPUT_GET, 'codcliente');
+      $offset = \filter_input(INPUT_GET, 'offset');
       $this->mostrar = "todo";
+      $this->offset = (isset($offset))?$offset:0;
       if(isset($mostrar)){
          $this->mostrar = $mostrar;
          setcookie('distrib_transporte_mostrar', $this->mostrar, time()+FS_COOKIES_EXPIRE);
@@ -165,6 +169,57 @@ class distrib_creacion extends fs_controller {
          $this->desde = $_REQUEST['desde'];
          $this->hasta = $_REQUEST['hasta'];
       }
+   }
+   
+   public function paginas() {
+      $this->total_resultados = $this->distrib_transporte->total_transportes($this->empresa->id);
+
+      $url = $this->url()."&mostrar=".$this->mostrar
+         ."&query=".$this->query
+         ."&desde=".$this->desde
+         ."&hasta=".$this->hasta;
+
+      $paginas = array();
+      $i = 0;
+      $num = 0;
+      $actual = 1;
+
+      if($this->mostrar == 'por_despachar')
+      {
+         $total = $this->total_pendientes('despachado');
+      }
+      if($this->mostrar == 'por_liquidar')
+      {
+         $total = $this->total_pendientes('liquidado');
+      }
+      else if($this->mostrar == 'buscar')
+      {
+         $total = $this->num_resultados;
+      }
+      else
+      {
+         $total = $this->total_resultados;
+      }
+
+      /// añadimos todas la página
+      while($num < $total)
+      {
+         $paginas[$i] = array(
+             'url' => $url."&offset=".($i*FS_ITEM_LIMIT),
+             'num' => $i + 1,
+             'actual' => ($num == $this->offset)
+         );
+
+         if($num == $this->offset)
+         {
+            $actual = $i;
+         }
+
+         $i++;
+         $num += FS_ITEM_LIMIT;
+      }
+
+      return $paginas;
    }
 
    public function total_pendientes($tipo) {

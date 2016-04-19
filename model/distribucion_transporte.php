@@ -310,6 +310,16 @@ class distribucion_transporte extends fs_model {
 
       return $translist;
     }
+    
+    public function total_transportes($idempresa){
+        $sql = "SELECT count(*) as total FROM ".$this->table_name." where idempresa = ".$this->intval($idempresa).";";
+        $data = $this->db->select($sql);
+        if($data){
+            return $data[0]['total'];
+        }else{
+            return 0;
+        }
+    }
 
     public function all($idempresa)
     {

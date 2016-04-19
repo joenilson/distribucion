@@ -412,7 +412,19 @@
 
 <!-- Resultados de ordenes de compra generadas -->
 {include="transporte/resultados"}
-
+<div class="container-fluid">
+   <div class="row">
+      <div class="col-sm-12 text-center">
+         <ul class="pagination">
+            {loop="$fsc->paginas()"}
+            <li{if="$value['actual']"} class="active"{/if}>
+               <a href="{$value['url']}">{$value['num']}</a>
+            </li>
+            {/loop}
+         </ul>
+      </div>
+   </div>
+</div>
 <form class="form" role="form" id="f_buscar_lineas" name="f_buscar_lineas" action ="{$fsc->url()}" method="post">
    <input type="hidden" name="offset" value="0"/>
    <div class="modal" id="modal_buscar_lineas">
