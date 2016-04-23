@@ -227,7 +227,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 <h3>
                     <span class="glyphicon glyphicon-transfer"></span>
                     Liquidaci&oacute;n de Transporte {$fsc->transporte->idtransporte}
-                    <a class="btn btn-xs btn-default" href="{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}" title="Recargar la página">
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}" title="Recargar la página">
                         <span class="glyphicon glyphicon-refresh"></span>
                     </a>
                     <span class="btn-group">
@@ -248,19 +248,34 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         <label class="text-left" for="idordencarga"><b>Orden de Carga:</b></label>
                     </div>
                     <div class="col-sm-2">
-                        <input class="form-control" type="text" readonly name="idordencarga" value="{$fsc->transporte->idordencarga}">
+                        <input class="form-control input-sm" type="text" readonly name="idordencarga" value="{$fsc->transporte->idordencarga}">
                     </div>
                     <div class="col-sm-2">
                         <label class="text-left" for="fecha"><b>Fecha de Reparto:</b></label>
                     </div>
                     <div class="col-sm-2">
-                        <input class="form-control" type="text" readonly name="fecha" value="{$fsc->transporte->fecha}">
+                        <input class="form-control input-sm" type="text" readonly name="fecha" value="{$fsc->transporte->fecha}">
                     </div>
                     <div class="col-sm-2">
                         <label class="text-left" for="codalmacen"><b>Almacen:</b></label>
                     </div>
                     <div class="col-sm-2">
-                        <input class="form-control" type="text" readonly name="codalmacen" value="{$fsc->transporte->codalmacen}">
+                        <input class="form-control input-sm" type="text" readonly name="codalmacen" value="{$fsc->transporte->codalmacen}">
+                    </div>
+                </div>
+                <span><br /></span>
+                <div class="row">
+                    <div class="col-sm-2">
+                        <label class="text-left" for="idordencarga"><b>Agencia:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input class="form-control input-sm" type="text" readonly name="codagencia" value="{$fsc->transporte->codtrans}">
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="text-left" for="fecha"><b>Conductor:</b></label>
+                    </div>
+                    <div class="col-sm-6">
+                        <input class="form-control input-sm" type="text" readonly name="conductor" value="{$fsc->transporte->conductor_nombre}">
                     </div>
                 </div>
                 <div class="panel panel-default" style="margin-top: 10px;">
@@ -286,7 +301,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             {$sumMonto=0}
                             {$sumAbono=0}
                             {$sumSaldo=0}
-                            {$sumFaturas=0}
+                            {$sumFacturas=0}
                             {$sumPagadas=0}
                             {loop="$fsc->facturastransporte"}
                             <tr>

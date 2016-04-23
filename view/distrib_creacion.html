@@ -39,7 +39,7 @@
    function clean_conductor()
    {
       document.f_custom_search.ac_conductor.value='';
-      document.f_custom_search.licencia.value='';
+      document.f_custom_search.conductor.value='';
       document.f_custom_search.ac_conductor.focus();
    }
 
@@ -238,9 +238,9 @@
          onSelect: function (suggestion) {
             if(suggestion)
             {
-               if(document.f_custom_search.licencia.value != suggestion.data && suggestion.data != '')
+               if(document.f_custom_search.conductor.value != suggestion.data && suggestion.data != '')
                {
-                  document.f_custom_search.licencia.value = suggestion.data;
+                  document.f_custom_search.conductor.value = suggestion.data;
                   document.f_custom_search.submit();
                }
             }
@@ -273,55 +273,11 @@
             {/if}
          </div>
          <div class="btn-group">
-             <a id="b_nueva_ordencarga" class="btn btn-sm btn-success">
-               <span class="glyphicon glyphicon-plus"></span>
-               <span class="hidden-xs">&nbsp; Nuevo Transporte</span>
-            </a>
             {loop="$fsc->extensions"}
                {if="$value->type=='button'"}
                <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
                {/if}
             {/loop}
-         </div>
-      </div>
-      <div class="col-sm-4 col-xs-6 text-right">
-         <a id="b_buscar_lineas" class="btn btn-sm btn-info" title="Buscar en las líneas">
-            <span class="glyphicon glyphicon-search"></span> &nbsp; Líneas
-         </a>
-         <div class="btn-group">
-            <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-               <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-right">
-               <li>
-                  <a href="{$fsc->url()}&mostrar={$fsc->mostrar}&order=fecha_desc">
-                     <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span>
-                     &nbsp; Fecha &nbsp;
-                     {if="$fsc->order=='fecha DESC'"}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{/if}
-                  </a>
-               </li>
-               <li>
-                  <a href="{$fsc->url()}&mostrar={$fsc->mostrar}&order=fecha_asc">
-                     <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
-                     &nbsp; Fecha &nbsp;
-                     {if="$fsc->order=='fecha ASC'"}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{/if}
-                  </a>
-               </li>
-               <li>
-                  <a href="{$fsc->url()}&mostrar={$fsc->mostrar}&order=codigo_desc">
-                     <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span>
-                     &nbsp; Código &nbsp;
-                     {if="$fsc->order=='codigo DESC'"}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{/if}
-                  </a>
-               </li>
-               <li>
-                  <a href="{$fsc->url()}&mostrar={$fsc->mostrar}&order=codigo_asc">
-                     <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span>
-                     &nbsp; Código &nbsp;
-                     {if="$fsc->order=='codigo ASC'"}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{/if}
-                  </a>
-               </li>
-            </ul>
          </div>
       </div>
    </div>
@@ -361,9 +317,9 @@
 <br/>
 <form name="f_custom_search" action="{$fsc->url()}" method="post" class="form">
    {if="$fsc->conductor"}
-   <input type="hidden" name="licencia" value="{$fsc->conductor->licencia}"/>
+   <input type="hidden" name="conductor" value="{$fsc->conductor->licencia}"/>
    {else}
-   <input type="hidden" name="licencia"/>
+   <input type="hidden" name="conductor"/>
    {/if}
    <div class="container-fluid">
       <div class="row">
@@ -393,6 +349,16 @@
                      </button>
                   </span>
                </div>
+            </div>
+         </div>
+          <div class="col-sm-2">
+            <div class="form-group">
+                <select name="codalmacen" required class="selectpicker form-control" onchange="this.form.submit();">
+                    <option value="">--------</option>
+                    {loop="$fsc->almacen->all()"}
+                    <option value="{$value->codalmacen}" {if="$fsc->codalmacen==$value->codalmacen"}selected{/if}>{$value->nombre}</option>
+                    {/loop}
+                </select>
             </div>
          </div>
          <div class="col-sm-2">
