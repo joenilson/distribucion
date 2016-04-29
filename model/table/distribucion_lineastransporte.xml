@@ -76,6 +76,6 @@
     </restriccion>
     <restriccion>
         <nombre></nombre>
-        <consulta>FOREIGN KEY (idempresa, codalmacen, idtransporte) REFERENCES distribucion_transporte (idempresa, idtransporte, codalmacen) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE</consulta>
+        <consulta>FOREIGN KEY (idempresa, codalmacen, idtransporte) REFERENCES distribucion_transporte (idempresa, codalmacen, idtransporte) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE</consulta>
     </restriccion>
 </tabla>
