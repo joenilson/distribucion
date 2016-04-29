@@ -76,12 +76,12 @@
     </restriccion>
     <restriccion>
         <nombre>distribucion_lineastransporte_ikey</nombre>
-        <consulta>KEY (idempresa, codalmacen, idtransporte)</consulta>
+        <consulta>INDEX KEY (idempresa, codalmacen, idtransporte)</consulta>
     </restriccion>
     <restriccion>
         <nombre>ca_linea_transporte</nombre>
         <consulta>FOREIGN KEY (idempresa, idtransporte, codalmacen)
-            REFERENCES distribucion_transporte (idempresa, idtransporte, codalmacen) 
+            REFERENCES distribucion_transporte (idempresa, idtransporte, codalmacen)
             ON UPDATE CASCADE ON DELETE CASCADE
         </consulta>
     </restriccion>
