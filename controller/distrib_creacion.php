@@ -47,14 +47,17 @@ require_once 'helper_transportes.php';
  */
 class distrib_creacion extends fs_controller {
 
+   public $almacen;
+   public $codalmacen;
    public $distrib_transporte;
    public $distrib_lineastransporte;
    public $distrib_facturas;
    public $distrib_cliente;
    public $resultados;
+   public $total_resultados;
    public $num_resultados;
    public $mostrar;
-   public $order;
+   public $offset;
    public $desde;
    public $hasta;
    public $conductor;
@@ -78,6 +81,7 @@ class distrib_creacion extends fs_controller {
    public function private_core() {
       $this->share_extensions();
       $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
+      $this->almacen = new almacen();
       $this->distrib_transporte = new distribucion_transporte();
       $this->distrib_lineastransporte = new distribucion_lineastransporte();
       $this->distrib_facturas = new distribucion_ordenescarga_facturas();
@@ -90,9 +94,11 @@ class distrib_creacion extends fs_controller {
       $this->conductores = new distribucion_conductores();
       $type = \filter_input(INPUT_GET, 'type');
       $mostrar = \filter_input(INPUT_GET, 'mostrar');
-      $order = \filter_input(INPUT_GET, 'order');
       $cliente = \filter_input(INPUT_GET, 'codcliente');
+      $offset = \filter_input(INPUT_GET, 'offset');
       $this->mostrar = "todo";
+      $this->offset = (isset($offset))?$offset:0;
+      
       if(isset($mostrar)){
          $this->mostrar = $mostrar;
          setcookie('distrib_transporte_mostrar', $this->mostrar, time()+FS_COOKIES_EXPIRE);
@@ -100,13 +106,30 @@ class distrib_creacion extends fs_controller {
       {
          $this->mostrar = $_COOKIE['distrib_transporte_mostrar'];
       }
-
-      $this->order = (isset($order)) ? str_replace('_', ' ', $order) : "fecha DESC";
+      
+      if( isset($_REQUEST['codalmacen']) )
+      {
+         if($_REQUEST['codalmacen'] != '')
+         {
+             $this->codalmacen = $_REQUEST['codalmacen'];
+         }
+      }
+      
       if (isset($cliente) AND ! empty($cliente)) {
          $cli0 = new cliente();
          $codcliente = $cli0->get($cliente);
       }
       $this->cliente = (isset($codcliente)) ? $codcliente : FALSE;
+      
+      if( isset($_REQUEST['conductor']) )
+      {
+         if($_REQUEST['conductor'] != '')
+         {
+            $cli0 = new distribucion_conductores();
+            $this->conductor = $cli0->get($this->empresa->id, $_REQUEST['conductor']);
+         }
+      }      
+      
       $this->num_resultados = 0;
       if ($type === 'imprimir-transporte') {
          $this->imprimir_transporte();
@@ -128,36 +151,19 @@ class distrib_creacion extends fs_controller {
          $this->crear_faltante();
       }
       if($this->mostrar == 'todo'){
-         $this->resultados = $this->distrib_transporte->all($this->empresa->id);
-      }elseif($this->mostrar == 'por_despacho'){
-         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'despachado');
+         $this->resultados = $this->distrib_transporte->all($this->empresa->id, $this->offset);
+      }elseif($this->mostrar == 'por_despachar'){
+         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'despachado', $this->offset);
       }elseif($this->mostrar == 'por_liquidar'){
-         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'liquidado');
+         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'liquidado', $this->offset);
       }elseif($this->mostrar == 'buscar'){
          setcookie('distrib_transportes_mostrar', $this->mostrar, time()+FS_COOKIES_EXPIRE);
+         $this->buscador();
       }
 
       if( isset($_REQUEST['buscar_conductor']) )
       {
         $this->buscar_conductor();
-      }
-
-      if( isset($_REQUEST['licencia']) )
-      {
-         if($_REQUEST['licencia'] != '')
-         {
-            $cli0 = new distribucion_conductores();
-            $this->conductor = $cli0->get($this->empresa->id,$_REQUEST['licencia']);
-         }
-      }
-
-      if( isset($_REQUEST['licencia']) )
-      {
-         if($_REQUEST['licencia'] != '')
-         {
-            $cli0 = new distribucion_conductores();
-            $this->conductor = $cli0->get($this->empresa->id,$_REQUEST['licencia']);
-         }
       }
 
       if( isset($_REQUEST['desde']) )
@@ -166,10 +172,76 @@ class distrib_creacion extends fs_controller {
          $this->hasta = $_REQUEST['hasta'];
       }
    }
+   
+   public function buscador(){
+        $datos_busqueda = array();
+        if($this->conductor){
+            $datos_busqueda['conductor'] = $this->conductor->licencia;
+        }
+        if($this->codalmacen){
+            $datos_busqueda['codalmacen'] = $this->codalmacen;
+        }
+        if(!empty($datos_busqueda) OR !empty($this->desde)){
+            $busqueda = $this->distrib_transporte->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
+            $this->resultados = $busqueda['resultados'];
+            $this->num_resultados = $busqueda['cantidad'];
+        }
+    }
+   
+   public function paginas() {
+      $this->total_resultados = $this->distrib_transporte->total_transportes($this->empresa->id);
+
+      $url = $this->url()."&mostrar=".$this->mostrar
+         ."&query=".$this->query
+         ."&desde=".$this->desde
+         ."&hasta=".$this->hasta
+         ."&offset=".$this->offset;
+
+      $paginas = array();
+      $i = 0;
+      $num = 0;
+      $actual = 1;
+
+      if($this->mostrar == 'por_despachar')
+      {
+         $total = $this->total_pendientes('despachado');
+      }
+      elseif($this->mostrar == 'por_liquidar')
+      {
+         $total = $this->total_pendientes('liquidado');
+      }
+      elseif($this->mostrar == 'buscar')
+      {
+         $total = $this->num_resultados;
+      }
+      else
+      {
+         $total = $this->total_resultados;
+      }
+
+      /// añadimos todas la página
+      while($num < $total)
+      {
+         $paginas[$i] = array(
+             'url' => $url."&offset=".($i*FS_ITEM_LIMIT),
+             'num' => $i + 1,
+             'actual' => ($num == $this->offset)
+         );
+
+         if($num == $this->offset)
+         {
+            $actual = $i;
+         }
+
+         $i++;
+         $num += FS_ITEM_LIMIT;
+      }
+
+      return $paginas;
+   }
 
    public function total_pendientes($tipo) {
-      $this->resultados_pendientes = $this->distrib_transporte->all_pendientes($this->empresa->id, $tipo);
-      return count($this->resultados_pendientes);
+      return $this->distrib_transporte->total_pendientes($this->empresa->id, $tipo);
    }
 
    public function url($busqueda = FALSE)
@@ -184,7 +256,7 @@ class distrib_creacion extends fs_controller {
 
          $url = $this->url()."&mostrar=".$this->mostrar
                  ."&query=".$this->query
-                 ."&licencia=".$licencia
+                 ."&conductor=".$licencia
                  ."&desde=".$this->desde
                  ."&hasta=".$this->hasta;
 
@@ -201,11 +273,11 @@ class distrib_creacion extends fs_controller {
       /// desactivamos la plantilla HTML
       $this->template = FALSE;
 
-      $cli0 = new distribucion_conductores();
+      $con0 = new distribucion_conductores();
       $json = array();
-      foreach($cli0->search($_REQUEST['buscar_conductor']) as $cli)
+      foreach($con0->search($this->empresa->id, $_REQUEST['buscar_conductor']) as $con)
       {
-         $json[] = array('value' => $cli->nombre, 'data' => $cli->licencia);
+         $json[] = array('value' => $con->nombre, 'data' => $con->licencia);
       }
 
       header('Content-Type: application/json');

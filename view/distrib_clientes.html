@@ -251,7 +251,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 <td>
                                     <select name="codagente" class="form-control">
                                         {loop="$fsc->vendedores_libres"}
-                                        <option value="{$value->codagente}">{$value->nombre}</option>
+                                        <option value="{$value->codagente}">{$value->nombre} {$value->apellidos}</option>
                                         {/loop}
                                     </select>
                                 </td>

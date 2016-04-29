@@ -458,7 +458,7 @@ class distrib_ordencarga extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($this->resultados);
     }
-
+    
     public function lista_rutas($idempresa, $codalmacen){
         $this->template = FALSE;
         $this->resultados = array();

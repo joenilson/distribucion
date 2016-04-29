@@ -28,6 +28,7 @@ require_model('distribucion_rutas.php');
  */
 class distribucion_clientes extends fs_model {
     public $idempresa;
+    public $codalmacen;
     public $codcliente;
     public $iddireccion;
     public $ruta;
@@ -50,6 +51,7 @@ class distribucion_clientes extends fs_model {
         if($t)
         {
             $this->idempresa = $t['idempresa'];
+            $this->codalmacen = $t['codalmacen'];
             $this->codcliente = $t['codcliente'];
             $this->iddireccion = $t['iddireccion'];
             $this->ruta = $t['ruta'];
@@ -63,6 +65,7 @@ class distribucion_clientes extends fs_model {
         else
         {
             $this->idempresa = null;
+            $this->codalmacen = null;
             $this->codcliente = null;
             $this->iddireccion = null;
             $this->ruta = null;
@@ -107,6 +110,8 @@ class distribucion_clientes extends fs_model {
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "ruta = ".$this->var2str($this->ruta)." AND ".
+                "iddireccion = ".$this->var2str($this->iddireccion)." AND ".
+                "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "codcliente = ".$this->var2str($this->codcliente).";");
         if($data){
             return true;
@@ -128,13 +133,16 @@ class distribucion_clientes extends fs_model {
                 " WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "ruta = ".$this->var2str($this->ruta)." AND ".
+                "iddireccion = ".$this->var2str($this->iddireccion)." AND ".
+                "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "codcliente = ".$this->var2str($this->codcliente).";";
             return $this->db->exec($sql);
         }
         else
         {
-            $sql = "INSERT INTO distribucion_clientes ( idempresa, codcliente, iddireccion, ruta, canal, subcanal, usuario_creacion, fecha_creacion ) VALUES (".
+            $sql = "INSERT INTO distribucion_clientes ( idempresa, codalmacen, codcliente, iddireccion, ruta, canal, subcanal, usuario_creacion, fecha_creacion ) VALUES (".
                 $this->intval($this->idempresa).", ".
+                $this->var2str($this->codalmacen).", ".
                 $this->var2str($this->codcliente).", ".
                 $this->intval($this->iddireccion).", ".
                 $this->var2str($this->ruta).", ".
@@ -163,6 +171,8 @@ class distribucion_clientes extends fs_model {
                 " WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "ruta = ".$this->var2str($this->ruta)." AND ".
+                "iddireccion = ".$this->var2str($this->iddireccion)." AND ".
+                "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "codcliente = ".$this->var2str($this->codcliente).";";
             return $this->db->exec($sql);
         }else{
@@ -174,6 +184,8 @@ class distribucion_clientes extends fs_model {
         $sql = "DELETE FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "ruta = ".$this->var2str($this->ruta)." AND ".
+                "iddireccion = ".$this->var2str($this->iddireccion)." AND ".
+                "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "codcliente = ".$this->var2str($this->codcliente).";";
         return $this->db->exec($sql);
     }
@@ -194,11 +206,41 @@ class distribucion_clientes extends fs_model {
         }
         return $lista;
     }
+    
+    public function clientes_sinruta($idempresa, $almacen){
+        $sql = "SELECT c.codcliente as codcliente, c.nombre as nombre, d.id as iddireccion, d.direccion as direccion FROM  clientes as c, dirclientes as d ".
+                   "WHERE c.codcliente NOT IN (select distinct codcliente from ".$this->table_name.") ".
+                   "AND lower(ciudad) like '%".strtolower($almacen->poblacion)."%' ".
+                   "AND d.id NOT IN (select iddireccion from ".$this->table_name.") and c.codcliente = d.codcliente ORDER BY nombre";
+        $lista = array();
+        $data = $this->db->select($sql);
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $value = new stdClass();
+                $value->idempresa = (int)$idempresa;
+                $value->codalmacen = $almacen->codalmacen;
+                $value->codcliente = $d['codcliente'];
+                $value->nombre_cliente = $d['nombre'];
+                $value->iddireccion = $d['iddireccion'];
+                $value->direccion = $d['direccion'];
+                $value->ruta = 'noruta';
+                $lista[] = $value;
+            }
+        }
+        return $lista;
+    }
        
-    public function clientes_ruta($idempresa,$ruta)
+    public function clientes_ruta($idempresa,$codalmacen, $ruta)
     {
+        $sql = "SELECT * FROM distribucion_clientes ".
+                "WHERE idempresa = ".$this->intval($idempresa).
+                " AND ruta = ".$this->var2str($ruta).
+                " AND codalmacen = ".$this->var2str($codalmacen).
+                " ORDER BY ruta, codcliente;";
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta)." ORDER BY ruta, codcliente;");
+        $data = $this->db->select($sql);
         
         if($data)
         {
@@ -212,10 +254,13 @@ class distribucion_clientes extends fs_model {
         return $lista;
     }
 
-    public function clientes_canal($idempresa,$canal)
+    public function clientes_canal($idempresa,$codalmacen,$canal)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND canal = ".$this->var2str($canal)." ORDER BY canal, ruta, codcliente;");
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).
+                " AND canal = ".$this->var2str($canal).
+                " AND codalmacen = ".$this->var2str($codalmacen).
+                " ORDER BY canal, ruta, codcliente;");
         
         if($data)
         {
@@ -229,10 +274,13 @@ class distribucion_clientes extends fs_model {
         return $lista;
     }
 
-    public function clientes_subcanal($idempresa,$subcanal)
+    public function clientes_subcanal($idempresa,$codalmacen,$subcanal)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND subcanal = ".$this->var2str($subcanal)." ORDER BY subcanal, ruta, codcliente;");
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).
+                " AND subcanal = ".$this->var2str($subcanal).
+                " AND codalmacen = ".$this->var2str($codalmacen).
+                " ORDER BY subcanal, ruta, codcliente;");
         
         if($data)
         {
@@ -249,7 +297,8 @@ class distribucion_clientes extends fs_model {
     public function get($idempresa,$codcliente)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codcliente = ".$this->var2str($codcliente).";");
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).
+                " AND codcliente = ".$this->var2str($codcliente).";");
         if($data)
         {
             foreach ($data as $d){
@@ -263,9 +312,13 @@ class distribucion_clientes extends fs_model {
         }
     }
     
-    public function ruta_cliente($idempresa,$codcliente,$ruta)
+    public function ruta_cliente($idempresa,$codalmacen,$codcliente,$iddireccion,$ruta)
     {
-        $data = $this->db->select("SELECT * FROM ".$this->table_name." WHERE idempresa = ".$idempresa." AND codcliente = ".$this->var2str($codcliente)." AND ruta = ".$this->var2str($ruta).";");
+        $data = $this->db->select("SELECT * FROM ".$this->table_name." WHERE idempresa = ".$idempresa.
+                " AND codcliente = ".$this->var2str($codcliente).
+                " AND codalmacen = ".$this->var2str($codalmacen).
+                " AND iddireccion = ".$this->var2str($iddireccion).
+                " AND ruta = ".$this->var2str($ruta).";");
         if($data)
         {
             $value = new distribucion_clientes($data[0]);

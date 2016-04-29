@@ -105,6 +105,7 @@ class distribucion_transporte extends fs_model {
             $this->liquidacion_faltante = null;
             $this->totalpeso = null;
             $this->estado = false;
+            $this->despachado = false;
             $this->liquidado = false;
             $this->cargado = false;
             $this->usuario_creacion = null;
@@ -207,6 +208,12 @@ class distribucion_transporte extends fs_model {
             }
         }
     }
+    
+    public function info_adicional($t){
+        $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
+        $t->conductor_nombre = $con0->nombre;
+        return $t;
+    }
 
     public function delete() {
         //Primero eliminamos la asignación del id de transporte a la orden de carga
@@ -282,7 +289,45 @@ class distribucion_transporte extends fs_model {
             return false;
         }
     }
-
+    
+    public function search($idempresa, $datos, $desde, $hasta, $offset = 0){
+        $resultados = array();
+        $contador = 1;
+        $where = (!empty($datos))?" AND ":"";
+        foreach($datos as $k=>$v){
+            $and = (count($datos) > $contador)?" AND ":"";
+            $value = (is_string($v))?$this->var2str($v):$this->intval($v);
+            $where.=" $k = ".$value.$and;
+            $contador++;
+        }
+        
+        if(!empty($hasta)){
+            $where.=" AND fecha BETWEEN ".$this->var2str($desde)." AND ".$this->var2str($hasta);
+        }else{
+            if(!empty($desde)){
+                $where.=" AND fecha >= ".$this->var2str($desde);
+            }
+        }
+        $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
+        $conteo = $this->db->select($sql_count);
+        $resultados['cantidad'] = $conteo[0]['total'];
+        $sql = "SELECT * FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans";
+        $lista = array();
+        $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
+        
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
+            }
+        }
+        $resultados['resultados'] = $lista;
+        return $resultados;
+    }
+    /*
     public function search($query, $offset=0)
     {
       $translist = array();
@@ -291,7 +336,7 @@ class distribucion_transporte extends fs_model {
       $consulta = "SELECT * FROM ".$this->table_name." WHERE ";
       if( is_numeric($query) )
       {
-         $consulta .= "licencia LIKE '%".$query."%' OR nombre LIKE '%".$query."%' OR codtrans LIKE '%".$query."%'";
+         $consulta .= "licencia LIKE '%".$query."%' OR codtrans LIKE '%".$query."%'";
       }
       else
       {
@@ -310,62 +355,90 @@ class distribucion_transporte extends fs_model {
 
       return $translist;
     }
+    */
+    public function total_transportes($idempresa){
+        $sql = "SELECT count(*) as total FROM ".$this->table_name." where idempresa = ".$this->intval($idempresa).";";
+        $data = $this->db->select($sql);
+        if($data){
+            return $data[0]['total'];
+        }else{
+            return 0;
+        }
+    }
+    
+    public function total_pendientes($idempresa,$tipo){
+        $sql = "SELECT count(*) as total FROM ".$this->table_name." where idempresa = ".$this->intval($idempresa)." AND ".strip_tags(trim($tipo))." = FALSE;";
+        $data = $this->db->select($sql);
+        if($data){
+            return $data[0]['total'];
+        }else{
+            return 0;
+        }
+    }
 
-    public function all($idempresa)
+    public function all($idempresa, $offset = 0)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans;");
+        $data = $this->db->select_limit("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans ", FS_ITEM_LIMIT, $offset);
 
         if($data)
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_transporte($d);
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
     }
 
-    public function all_pendientes($idempresa, $tipo)
+    public function all_pendientes($idempresa, $tipo, $offset = 0)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans;");
+        $data = $this->db->select_limit("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans ", FS_ITEM_LIMIT, $offset);
 
         if($data)
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_transporte($d);
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
     }
 
-    public function all_almacen($idempresa,$codalmacen)
+    public function all_almacen($idempresa,$codalmacen, $offset = 0)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select_limit("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans ",FS_ITEM_LIMIT, $offset);
 
         if($data)
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_transporte($d);
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
     }
 
-    public function all_agencia($idempresa,$codtrans)
+    public function all_agencia($idempresa,$codtrans, $offset = 0)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select_limit("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, fecha, codtrans ",FS_ITEM_LIMIT, $offset);
 
         if($data)
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_transporte($d);
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -380,7 +453,9 @@ class distribucion_transporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_transporte($d);
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -395,7 +470,9 @@ class distribucion_transporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_transporte($d);
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -410,7 +487,9 @@ class distribucion_transporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_transporte($d);
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -425,7 +504,9 @@ class distribucion_transporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_transporte($d);
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -440,7 +521,9 @@ class distribucion_transporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_transporte($d);
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -453,14 +536,11 @@ class distribucion_transporte extends fs_model {
 
         if($data)
         {
-            foreach($data as $d)
-            {
-                $valor_lista = new distribucion_transporte($d);
-                $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
-                $valor_lista->conductor_nombre = $datos_conductor[0]->nombre;
-                $lista = $valor_lista;
-            }
+                $valor = new distribucion_transporte($data[0]);
+                $linea = $this->info_adicional($valor);
+                return $linea;
+        }else{
+            return true;
         }
-        return $lista;
     }
 }

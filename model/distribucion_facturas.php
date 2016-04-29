@@ -28,10 +28,11 @@ class distribucion_facturas extends factura_cliente {
     public function buscar_rutas($idempresa, $fecha, $codalmacen, $rutas){
         //Convertimos la lista de rutas en un array y luego en una cadena
         $char_rutas = implode("','", explode(',',$rutas));
-        $sql = "SELECT ".$this->table_name.".*,nombrecliente,direccion,codalmacen,ruta ".
+        $sql = "SELECT ".$this->table_name.".*,nombrecliente,direccion,ruta ".
                 "FROM ".$this->table_name.", distribucion_clientes ".
                 "WHERE ".$this->table_name.".codcliente = distribucion_clientes.codcliente".
                 " AND ".$this->table_name.".codalmacen = ".$this->var2str($codalmacen).
+                " AND ".$this->table_name.".codalmacen = distribucion_clientes.codalmacen".
                 " AND fecha = ".$this->var2str($fecha).
                 " AND distribucion_clientes.ruta IN ('".$char_rutas."')".
                 " AND anulada = false AND idfacturarect IS NULL".
