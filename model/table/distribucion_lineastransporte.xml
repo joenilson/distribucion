@@ -81,7 +81,7 @@
     <restriccion>
         <nombre>ca_linea_transporte</nombre>
         <consulta>FOREIGN KEY (idempresa, idtransporte, codalmacen)
-            REFERENCES distribucion_transporte (idempresa, idtransporte, codalmacen) MATCH SIMPLE
+            REFERENCES distribucion_transporte (idempresa, idtransporte, codalmacen) 
             ON UPDATE CASCADE ON DELETE CASCADE
         </consulta>
     </restriccion>
