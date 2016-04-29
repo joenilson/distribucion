@@ -29,7 +29,7 @@ require_model('distribucion_ordenescarga.php');
 require_model('distribucion_transporte.php');
 require_model('distribucion_lineasordenescarga.php');
 require_model('distribucion_ordenescarga_facturas.php');
-require_model('distribucion_lineastransportes.php');
+require_model('distribucion_lineastransporte.php');
 /**
  * Description of opciones_distribucion
  *
@@ -58,7 +58,7 @@ class opciones_distribucion extends fs_controller {
       new distribucion_transporte();
       new distribucion_lineasordenescarga();
       new distribucion_ordenescarga_facturas();
-      new distribucion_lineastransportes();
+      new distribucion_lineastransporte();
 
       $this->share_extensions();
       /// cargamos la configuración
