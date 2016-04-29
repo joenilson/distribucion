@@ -75,10 +75,6 @@
         <consulta>PRIMARY KEY (idempresa, codalmacen, idtransporte, referencia)</consulta>
     </restriccion>
     <restriccion>
-        <nombre>distribucion_lineastransporte_ikey</nombre>
-        <consulta>INDEX KEY (idempresa, codalmacen, idtransporte)</consulta>
-    </restriccion>
-    <restriccion>
         <nombre>ca_linea_transporte</nombre>
         <consulta>FOREIGN KEY (idempresa, idtransporte, codalmacen)
             REFERENCES distribucion_transporte (idempresa, idtransporte, codalmacen)
