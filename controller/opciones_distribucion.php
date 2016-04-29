@@ -16,7 +16,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+require_model('distribucion_clientes.php');
+require_model('distribucion_subcuentas_faltantes.php');
+require_model('distribucion_coordenadas_clientes.php');
+require_model('distribucion_conductores.php');
+require_model('distribucion_tipounidad.php');
+require_model('distribucion_unidades.php');
+require_model('distribucion_organizacion.php');
+require_model('distribucion_segmentos.php');
+require_model('distribucion_rutas.php');
+require_model('distribucion_ordenescarga.php');
+require_model('distribucion_transporte.php');
+require_model('distribucion_lineasordenescarga.php');
+require_model('distribucion_ordenescarga_facturas.php');
+require_model('distribucion_lineastransportes.php');
 /**
  * Description of opciones_distribucion
  *
@@ -24,12 +37,29 @@
  */
 class opciones_distribucion extends fs_controller {
    public $distribucion_setup;
-   
+
    public function __construct() {
       parent::__construct(__CLASS__, 'Opciones Distribucion', 'distribucion', TRUE, FALSE);
    }
-   
+
    protected function private_core() {
+      //Cargamos las tablas en el orden correcto
+
+      new distribucion_subcuentas_faltantes();
+      new distribucion_coordenadas_clientes();
+      new distribucion_conductores();
+      new distribucion_tipounidad();
+      new distribucion_unidades();
+      new distribucion_organizacion();
+      new distribucion_segmentos();
+      new distribucion_rutas();
+      new distribucion_clientes();
+      new distribucion_ordenescarga();
+      new distribucion_transporte();
+      new distribucion_lineasordenescarga();
+      new distribucion_ordenescarga_facturas();
+      new distribucion_lineastransporte();
+
       $this->share_extensions();
       /// cargamos la configuración
       $fsvar = new fs_var();
@@ -73,7 +103,7 @@ class opciones_distribucion extends fs_controller {
          } else
             $this->new_error_msg('Error al guardar los datos.');
       }
-      
+
       $GLOBALS['DISTRIB_ORDENCARGA']=$fsvar->simple_get('distrib_ordencarga');
       $GLOBALS['DISTRIB_ORDENESCARGA']=$fsvar->simple_get('distrib_ordenescarga');
       $GLOBALS['DISTRIB_TRANSPORTE']=$fsvar->simple_get('distrib_transporte');
@@ -90,7 +120,7 @@ class opciones_distribucion extends fs_controller {
       $GLOBALS['DISTRIB_FALTANTES']=$fsvar->simple_get('distrib_faltantes');
 
    }
-   
+
    private function share_extensions()
    {
       $fsext = new fs_extension();
