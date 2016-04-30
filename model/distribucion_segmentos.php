@@ -158,7 +158,8 @@ class distribucion_segmentos extends fs_model {
     public function all_tiposegmento($idempresa,$tiposegmento)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND tiposegmento = ".$this->var2str($tiposegmento)." ORDER BY codigo_padre, codigo;");
+        $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa).
+                " AND tiposegmento = ".$this->var2str($tiposegmento)." ORDER BY codigo_padre, codigo;");
 
         if($data)
         {

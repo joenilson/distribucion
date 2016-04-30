@@ -60,7 +60,7 @@ class distrib_clientes extends fs_controller {
     public function __construct() {
         parent::__construct(__CLASS__, '6 - Distribución Clientes', 'distribucion');
     }
-    
+
     public function private_core(){
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->share_extension();
@@ -77,7 +77,7 @@ class distrib_clientes extends fs_controller {
         $type_g = \filter_input(INPUT_GET, 'type');
 
         $type = (isset($type_p))?$type_p:$type_g;
-
+        $this->type = $type;
         if($type=='supervisor'){
             $this->tratar_supervisor();
         }elseif($type=='vendedor'){
