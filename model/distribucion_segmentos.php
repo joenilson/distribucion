@@ -12,7 +12,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -33,7 +33,7 @@ class distribucion_segmentos extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
-    
+
     public function __construct($t = false) {
         parent::__construct('distribucion_segmentos','plugins/distribucion/');
         if($t)
@@ -63,15 +63,15 @@ class distribucion_segmentos extends fs_model {
             $this->fecha_modificacion = null;
         }
     }
-    
+
     public function url(){
         return "index.php?page=distrib_clientes";
     }
-    
+
     protected function install() {
         return "";
     }
-    
+
     public function exists() {
          if(is_null($this->codigo)){
             return false;
@@ -82,7 +82,7 @@ class distribucion_segmentos extends fs_model {
                 "tiposegmento = ".$this->var2str($this->tiposegmento).";");
         }
     }
-    
+
     public function save() {
         if ($this->exists())
         {
@@ -120,17 +120,17 @@ class distribucion_segmentos extends fs_model {
             }
         }
     }
-    
-    
+
+
     public function getNextId(){
-        $data = $this->db->select("SELECT max(codigo) FROM distribucion_segmentos WHERE ".
+        $data = $this->db->select("SELECT max(codigo) as max FROM distribucion_segmentos WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "tiposegmento = ".$this->var2str($this->tiposegmento).";");
         $id = $data[0]['max'];
         $id++;
         return str_pad($id,3,'0',STR_PAD_LEFT);
     }
-    
+
     public function delete() {
         $sql = "DELETE FROM distribucion_segmentos WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -138,12 +138,12 @@ class distribucion_segmentos extends fs_model {
                 "tiposegmento = ".$this->var2str($this->tiposegmento).";";
         return $this->db->exec($sql);
     }
-    
+
     public function all($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." ORDER BY tiposegmento, codigo_padre, codigo;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -154,12 +154,12 @@ class distribucion_segmentos extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_tiposegmento($idempresa,$tiposegmento)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND tiposegmento = ".$this->var2str($tiposegmento)." ORDER BY codigo_padre, codigo;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -171,12 +171,12 @@ class distribucion_segmentos extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_codigopadre_tipoagente($idempresa,$codigopadre,$tiposegmento)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codigo_padre = ".$this->var2str($codigopadre)." AND tiposegmento = ".$this->var2str($tiposegmento)." ORDER BY codigo;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -191,12 +191,12 @@ class distribucion_segmentos extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY tiposegmento, codigo_padre, codigo;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -207,12 +207,12 @@ class distribucion_segmentos extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_tiposegmento($idempresa,$tiposegmento)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND tiposegmento = ".$this->var2str($tiposegmento)." AND estado = true ORDER BY codigo_padre, codigo;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -223,12 +223,12 @@ class distribucion_segmentos extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_codigopadre_tiposegmento($idempresa,$codigopadre,$tiposegmento)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codigo_padre = ".$this->var2str($codigopadre)." AND tiposegmento = ".$this->var2str($tiposegmento)." AND estado = true ORDER BY codigo_padre, codigo;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -239,11 +239,11 @@ class distribucion_segmentos extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get($idempresa,$codigo, $tiposegmento)
     {
         $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codigo = ".$this->var2str($codigo)." AND tiposegmento = ".$this->var2str($tiposegmento).";");
-        
+
         if($data)
         {
             $value = new distribucion_segmentos($data[0]);
@@ -251,9 +251,9 @@ class distribucion_segmentos extends fs_model {
         }else{
             return false;
         }
-        
+
     }
-    
+
     public function get_asignados($idempresa, $tiposegmento, $codigo){
         $lista = array();
         $sql = ($tiposegmento == 'CANAL')?" AND canal = ".$this->var2str($codigo):" AND subcanal = ".$this->var2str($codigo);
@@ -273,7 +273,7 @@ class distribucion_segmentos extends fs_model {
         }
         return $lista;
     }
-    
+
     public function tiene_asignados($idempresa,$tiposegmento, $codigo){
         $sql = ($tiposegmento == 'CANAL')?" AND canal = ".$this->var2str($codigo):" AND subcanal = ".$this->var2str($codigo);
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).$sql.";");
@@ -281,7 +281,7 @@ class distribucion_segmentos extends fs_model {
         {
             return true;
         }else{
-            return false;    
+            return false;
         }
     }
 }

@@ -12,7 +12,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -42,10 +42,10 @@ class distribucion_rutas extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
-    
+
     public $agente;
     public $organizacion;
-    
+
     public function __construct($t = false) {
         parent::__construct('distribucion_rutas','plugins/distribucion/');
         if($t)
@@ -91,15 +91,15 @@ class distribucion_rutas extends fs_model {
         $this->agente = new agente();
         $this->organizacion = new distribucion_organizacion();
     }
-    
+
     public function url(){
         return "index.php?page=distrib_clientes";
     }
-    
+
     protected function install() {
         return "";
     }
-    
+
     public function exists() {
         if(is_null($this->ruta)){
             return false;
@@ -109,19 +109,19 @@ class distribucion_rutas extends fs_model {
                 "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "codagente = ".$this->var2str($this->codagente)." AND ".
                 "ruta = ".$this->var2str($this->ruta).";");
-            
+
         }
     }
-    
+
     public function getNextId(){
-        $data = $this->db->select("SELECT max(ruta) FROM distribucion_rutas WHERE ".
+        $data = $this->db->select("SELECT max(ruta) AS max FROM distribucion_rutas WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen).";");
         $id = $data[0]['max'];
         $id++;
         return str_pad($id,3,'0',STR_PAD_LEFT);
     }
-    
+
     public function save() {
         if ($this->exists())
         {
@@ -175,7 +175,7 @@ class distribucion_rutas extends fs_model {
             }
         }
     }
-    
+
     public function delete() {
         $sql = "DELETE FROM distribucion_rutas WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -184,12 +184,12 @@ class distribucion_rutas extends fs_model {
                 "ruta = ".$this->var2str($this->ruta).";";
         return $this->db->exec($sql);
     }
-    
+
     public function all($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, codagente, ruta;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -202,17 +202,17 @@ class distribucion_rutas extends fs_model {
                 $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
                 $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
                 $lista[] = $value;
-                
+
             }
         }
         return $lista;
     }
-    
+
     public function all_rutasporalmacen($idempresa,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, codagente, ruta;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -228,12 +228,12 @@ class distribucion_rutas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_rutaspordia($idempresa,$codalmacen,$dia)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND $dia = TRUE ORDER BY codalmacen, codagente, ruta;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -249,12 +249,12 @@ class distribucion_rutas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_rutasporagente($idempresa,$codalmacen,$codagente)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND codagente = ".$this->var2str($codagente)." ORDER BY codalmacen, codagente, ruta;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -270,7 +270,7 @@ class distribucion_rutas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_rutasporagentedias($idempresa,$codalmacen,$codagente, $dias)
     {
         $lista = array();
@@ -295,12 +295,12 @@ class distribucion_rutas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, codagente, ruta;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -316,12 +316,12 @@ class distribucion_rutas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_rutasporalmacen($idempresa,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, codagente, ruta;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -337,12 +337,12 @@ class distribucion_rutas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_rutasporagente($idempresa,$codalmacen,$codagente)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND codagente = ".$this->var2str($codagente)." AND estado = true ORDER BY codalmacen, codagente, ruta;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -358,11 +358,11 @@ class distribucion_rutas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get($idempresa,$ruta)
     {
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
-        
+
         if($data)
         {
             $value = new distribucion_rutas($data[0]);
@@ -376,11 +376,11 @@ class distribucion_rutas extends fs_model {
             return false;
         }
     }
-    
+
     public function get_asignados($idempresa,$ruta){
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -396,25 +396,25 @@ class distribucion_rutas extends fs_model {
         }
         return $lista;
     }
-    
+
     public function tiene_asignados($idempresa,$ruta){
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
-        
+
         if($data)
         {
             return true;
         }else{
-            return false;    
+            return false;
         }
     }
-    
+
     public function cantidad_asignados($idempresa,$ruta){
         $data = $this->db->select("SELECT count(*) as total FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
-        
+
         if($data){
             return $data[0]['total'];
         }else{
-            return false;    
+            return false;
         }
     }
 }

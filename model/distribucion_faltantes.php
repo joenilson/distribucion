@@ -12,7 +12,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -54,7 +54,7 @@ class distribucion_faltantes extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
-    
+
     public $distribucion_conductores;
     public $distribucion_unidades;
     public $distribucion_transporte;
@@ -115,13 +115,13 @@ class distribucion_faltantes extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-        
+
         $this->distribucion_conductores = new distribucion_conductores();
         $this->distribucion_unidades = new distribucion_unidades();
         $this->distribucion_transporte = new distribucion_transporte();
         $this->ejercicio = new ejercicio();
     }
-    
+
     public function url(){
         if($this->idrecibo){
             return "index.php?page=distrib_creacion&type=faltantes";
@@ -129,21 +129,21 @@ class distribucion_faltantes extends fs_model {
             return "index.php?page=distrib_creacion&recibo=".$this->idrecibo."-".$this->codalmacen."-".$this->idtransporte;
         }
     }
-    
+
     protected function install() {
         new distribucion_subcuentas_faltantes();
         return "";
     }
-    
+
     public function getNextId(){
-        $data = $this->db->select("SELECT max(idrecibo) FROM distribucion_faltantes WHERE ".
+        $data = $this->db->select("SELECT max(idrecibo) as max FROM distribucion_faltantes WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen).";");
         $id = $data[0]['max'];
         $id++;
         return $id;
     }
-    
+
     public function exists() {
         if(is_null($this->idrecibo))
         {
@@ -158,7 +158,7 @@ class distribucion_faltantes extends fs_model {
                     "idrecibo = ".$this->intval($this->idrecibo).";");
         }
     }
-    
+
     public function save() {
         if ($this->exists())
         {
@@ -215,7 +215,7 @@ class distribucion_faltantes extends fs_model {
             }
         }
     }
-    
+
     public function delete() {
         $sql = "DELETE FROM distribucion_faltantes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -224,7 +224,7 @@ class distribucion_faltantes extends fs_model {
                 "idtransporte = ".$this->intval($this->idtransporte).";";
         return $this->db->exec($sql);
     }
-    
+
     public function confirmar_pago(){
         $sql = "UPDATE distribucion_faltantes SET ".
                     "estado = ".$this->var2str($this->estado).", ".
@@ -242,12 +242,12 @@ class distribucion_faltantes extends fs_model {
             return false;
         }
     }
-    
+
     public function all($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -257,12 +257,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_almacen($idempresa,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -272,12 +272,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_agencia($idempresa,$codtrans)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -287,12 +287,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -302,12 +302,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_conductor($idempresa,$conductor)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND conductor = ".$this->var2str($conductor)." ORDER BY codalmacen, fecha, conductor;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -322,7 +322,7 @@ class distribucion_faltantes extends fs_model {
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND conductor = ".$this->var2str($conductor)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, conductor;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -332,12 +332,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_estado($idempresa,$estado)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -347,12 +347,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_estado_almacen($idempresa,$codalmacen,$estado)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -362,12 +362,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_estado_agencia($idempresa,$codtrans,$estado)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -377,12 +377,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_estado_agencia_almacen($idempresa,$codtrans,$codalmacen,$estado)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -392,12 +392,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_estado_conductor($idempresa,$conductor,$estado)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND conductor = ".$this->var2str($conductor)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, conductor;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -412,7 +412,7 @@ class distribucion_faltantes extends fs_model {
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND conductor = ".$this->var2str($conductor)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = ".$this->var2str($estado)." ORDER BY codalmacen, fecha, conductor;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -422,12 +422,12 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get($idempresa,$idtransporte,$codalmacen)
     {
         $lista = FALSE;
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen).";");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -440,7 +440,7 @@ class distribucion_faltantes extends fs_model {
         }
         return $lista;
     }
-    
+
    public function get_subcuentas()
    {
       $subclist = array();
@@ -454,12 +454,12 @@ class distribucion_faltantes extends fs_model {
             $s->delete();
          }
       }
-      
+
       return $subclist;
    }
-    
+
     public function get_subcuenta($ejercicio){
-        
+
       $subcuenta = FALSE;
       foreach($this->get_subcuentas() as $s)
       {
@@ -487,7 +487,7 @@ class distribucion_faltantes extends fs_model {
                $this->new_error_msg('Imposible crear la subcuenta para el conductor '.$this->nombreconductor);
                $continuar = FALSE;
             }
-            
+
             if($continuar)
             {
                $scconductor = new distribucion_subcuentas_faltantes();
@@ -507,10 +507,10 @@ class distribucion_faltantes extends fs_model {
          else
             $this->new_error_msg('No se encuentra ninguna cuenta especial para Faltantes Propios (CXCPRO) o de Terceros (CXCTER).');
       }
-      
+
       return $subcuenta;
     }
-    
+
     public function generar_asiento_faltante(&$faltante, $ejercicio)
     {
       $ok = FALSE;
@@ -524,12 +524,12 @@ class distribucion_faltantes extends fs_model {
       {
          $subcuenta_conductor = $this->get_subcuenta($ejercicio);
       }
-      
+
       if( !$subcuenta_conductor )
       {
          $eje0 = $this->ejercicio->get( $ejercicio );
          return "No se ha podido generar una subcuenta para el conductor <a href='".$eje0->url()."'>¿Has importado los datos del ejercicio?</a>";
-         
+
          if(!$this->soloasiento)
          {
             return "Aun así el <a href='".$faltante->url()."'>faltante</a> se ha generado correctamente, pero sin asiento contable.";
@@ -566,7 +566,7 @@ class distribucion_faltantes extends fs_model {
             {
                $asiento_correcto = FALSE;
             }
-            
+
             if($asiento_correcto)
             {
                $faltante->idasiento = $asiento->idasiento;
@@ -595,7 +595,7 @@ class distribucion_faltantes extends fs_model {
             return "¡Imposible guardar el asiento!";
          }
       }
-      
+
       return $ok;
    }
 }

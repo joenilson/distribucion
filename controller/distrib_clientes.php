@@ -12,7 +12,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -56,7 +56,7 @@ class distrib_clientes extends fs_controller {
     public $canales_activos;
     public $subcanales;
     public $tab_activa;
-    
+
     public function __construct() {
         parent::__construct(__CLASS__, '6 - Distribución Clientes', 'distribucion');
     }
@@ -75,7 +75,7 @@ class distrib_clientes extends fs_controller {
         $this->tab_activa = false;
         $type_p = \filter_input(INPUT_POST, 'type');
         $type_g = \filter_input(INPUT_GET, 'type');
-        
+
         $type = (isset($type_p))?$type_p:$type_g;
 
         if($type=='supervisor'){
@@ -100,16 +100,16 @@ class distrib_clientes extends fs_controller {
 
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');
         $this->supervisores_libres = $this->agente->get_activos_por('cargo','SUPERVISOR');
-        
+
         $this->vendedores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'VENDEDOR');
         $this->vendedores_libres = $this->agente->get_activos_por('cargo','VENDEDOR');
-        
+
         $this->rutas = $this->distribucion_rutas->all($this->empresa->id);
-        
+
         $this->canales = $this->distribucion_segmentos->all_tiposegmento($this->empresa->id, 'CANAL');
         $this->canales_activos = $this->distribucion_segmentos->activos_tiposegmento($this->empresa->id, 'CANAL');
         $this->subcanales = $this->distribucion_segmentos->all_tiposegmento($this->empresa->id, 'SUBCANAL');
-        
+
         $codcliente = \filter_input(INPUT_GET, 'codcliente');
         if(!empty($codcliente)){
             $this->codcliente = $codcliente;
@@ -163,7 +163,7 @@ class distrib_clientes extends fs_controller {
         }
         return $this->rutas;
     }
-    
+
     public function tratar_vendedor(){
         $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
         $codsupervisor = \filter_input(INPUT_POST, 'codsupervisor');
@@ -194,7 +194,7 @@ class distrib_clientes extends fs_controller {
             }
         }
     }
-    
+
     public function tratar_ruta(){
         $codagente = \filter_input(INPUT_POST, 'codagente');
         $ruta = \filter_input(INPUT_POST, 'ruta');
@@ -245,7 +245,7 @@ class distrib_clientes extends fs_controller {
             }
         }
     }
-    
+
     public function tratar_canal(){
         $canal = \filter_input(INPUT_POST, 'canal');
         $descripcion = \filter_input(INPUT_POST, 'descripcion');
@@ -272,7 +272,7 @@ class distrib_clientes extends fs_controller {
             }
         }
     }
-    
+
     public function tratar_subcanal(){
         $canal = \filter_input(INPUT_POST, 'canal');
         $subcanal = \filter_input(INPUT_POST, 'subcanal');
@@ -301,7 +301,7 @@ class distrib_clientes extends fs_controller {
             }
         }
     }
-    
+
     public function tratar_cliente(){
         $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
         $codcliente = \filter_input(INPUT_POST, 'codcliente');
@@ -338,7 +338,7 @@ class distrib_clientes extends fs_controller {
         $this->rutas_libres = $this->rutas_libres();
         $this->template = 'extension/distrib_cliente';
     }
-    
+
     public function tratar_direccion_cliente(){
         $codcliente = \filter_input(INPUT_POST, 'codcliente');
         $iddireccion = \filter_input(INPUT_POST, 'iddireccion');
@@ -369,7 +369,7 @@ class distrib_clientes extends fs_controller {
         $this->rutas_libres = $this->rutas_libres();
         $this->template = 'extension/distrib_cliente';
     }
-    
+
     public function lista_rutas(){
         $this->template = FALSE;
         $codalmacen = filter_input(INPUT_GET, 'codalmacen');
@@ -377,7 +377,7 @@ class distrib_clientes extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($resultados);
     }
-    
+
     private function share_extension() {
         $extensiones = array(
             array(

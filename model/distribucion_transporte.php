@@ -127,7 +127,7 @@ class distribucion_transporte extends fs_model {
     }
 
     public function getNextId(){
-        $data = $this->db->select("SELECT max(idtransporte) FROM distribucion_transporte WHERE ".
+        $data = $this->db->select("SELECT max(idtransporte) as max FROM distribucion_transporte WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen).";");
         $id = $data[0]['max'];
@@ -208,7 +208,7 @@ class distribucion_transporte extends fs_model {
             }
         }
     }
-    
+
     public function info_adicional($t){
         $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
         $t->conductor_nombre = $con0->nombre;
@@ -289,7 +289,7 @@ class distribucion_transporte extends fs_model {
             return false;
         }
     }
-    
+
     public function search($idempresa, $datos, $desde, $hasta, $offset = 0){
         $resultados = array();
         $contador = 1;
@@ -300,7 +300,7 @@ class distribucion_transporte extends fs_model {
             $where.=" $k = ".$value.$and;
             $contador++;
         }
-        
+
         if(!empty($hasta)){
             $where.=" AND fecha BETWEEN ".$this->var2str($desde)." AND ".$this->var2str($hasta);
         }else{
@@ -314,7 +314,7 @@ class distribucion_transporte extends fs_model {
         $sql = "SELECT * FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans";
         $lista = array();
         $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -365,7 +365,7 @@ class distribucion_transporte extends fs_model {
             return 0;
         }
     }
-    
+
     public function total_pendientes($idempresa,$tipo){
         $sql = "SELECT count(*) as total FROM ".$this->table_name." where idempresa = ".$this->intval($idempresa)." AND ".strip_tags(trim($tipo))." = FALSE;";
         $data = $this->db->select($sql);
