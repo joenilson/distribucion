@@ -93,7 +93,6 @@ class impresion_rutas extends fs_controller{
         }elseif(!empty($this->codalmacen) and !empty($this->dias_elegidos) and empty($this->vendedores_elegidos)){
             $lista = array();
             foreach($this->dias_elegidos as $d){
-                echo $d;
                 $linea = $this->distribucion_rutas->all_rutaspordia($this->empresa->id, $this->codalmacen, $d);
                 $lista = array_merge($linea, $lista);
             }
