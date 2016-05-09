@@ -75,7 +75,7 @@
         <consulta>PRIMARY KEY (idempresa, codalmacen, idtransporte, referencia)</consulta>
     </restriccion>
     <restriccion>
-        <nombre></nombre>
+        <nombre>distribucion_lineastransporte_fkey</nombre>
         <consulta>FOREIGN KEY (idempresa, codalmacen, idtransporte) REFERENCES distribucion_transporte (idempresa, codalmacen, idtransporte) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE</consulta>
     </restriccion>
 </tabla>
