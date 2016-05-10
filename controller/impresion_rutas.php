@@ -202,8 +202,8 @@ class impresion_rutas extends fs_controller{
         $lista_rutas = (!empty($this->rutas_elegidas))?$this->rutas_elegidas:$this->rutas;
         foreach ($lista_rutas as $r){
             $valor = (is_object($r))?$r->ruta:$r;
-            $info = $this->distribucion_rutas->get($this->empresa->id, $valor);
-            $info->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $valor);
+            $info = $this->distribucion_rutas->get($this->empresa->id, $this->codalmacen, $valor);
+            $info->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $this->codalmacen, $valor);
             $lista[] = $info;
             
         }
@@ -212,11 +212,12 @@ class impresion_rutas extends fs_controller{
 
     public function buscar_clientes(){
         $this->template = FALSE;
+        $a = filter_input(INPUT_GET, 'almacen');
         $r = filter_input(INPUT_GET, 'ruta');        
-        $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $r);
-        $cabecera = $this->distribucion_rutas->get($this->empresa->id, $r);
-        $cabecera->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $r);
-        $cabecera->almacen_nombre = $this->almacen->get($cabecera->codalmacen)->nombre;
+        $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $a, $r);
+        $cabecera = $this->distribucion_rutas->get($this->empresa->id, $a, $r);
+        $cabecera->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $a, $r);
+        $cabecera->almacen_nombre = $this->almacen->get($a)->nombre;
         $cabecera->dias_atencion = $this->dias_atencion($cabecera, "HTML");
         
         header('Content-Type: application/json');
@@ -260,9 +261,10 @@ class impresion_rutas extends fs_controller{
         $this->pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
         $this->pdf->setPageOrientation('P',TRUE,10);
         foreach($rutas_imprimir as $r){
-            $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $r);
-            $cabecera = $this->distribucion_rutas->get($this->empresa->id, $r);
-            $cabecera->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $r);
+            $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $almacen_imprimir, $r);
+            $cabecera = new stdClass();
+            $cabecera = $this->distribucion_rutas->get($this->empresa->id, $almacen_imprimir, $r);
+            $cabecera->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $almacen_imprimir, $r);
             $cabecera->almacen_nombre = $this->almacen->get($cabecera->codalmacen)->nombre;
             $cabecera->dias_atencion = $this->dias_atencion($cabecera, 'PDF');
             $logo_empresa = '../../../../'.'tmp'.DIRECTORY_SEPARATOR.FS_TMP_NAME.'logo.png';

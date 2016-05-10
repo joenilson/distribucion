@@ -200,7 +200,7 @@ class distribucion_rutas extends fs_model {
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
                 $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
                 $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
+                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codalmacen, $value->codagente);
                 $lista[] = $value;
 
             }
@@ -359,10 +359,10 @@ class distribucion_rutas extends fs_model {
         return $lista;
     }
 
-    public function get($idempresa,$ruta)
+    public function get($idempresa,$codalmacen,$ruta)
     {
-        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
-
+        $sql = "SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND ruta = ".$this->var2str($ruta).";";
+        $data = $this->db->select($sql);
         if($data)
         {
             $value = new distribucion_rutas($data[0]);
@@ -377,9 +377,9 @@ class distribucion_rutas extends fs_model {
         }
     }
 
-    public function get_asignados($idempresa,$ruta){
+    public function get_asignados($idempresa,$codalmacen,$ruta){
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND ruta = ".$this->var2str($ruta).";");
 
         if($data)
         {
@@ -397,8 +397,8 @@ class distribucion_rutas extends fs_model {
         return $lista;
     }
 
-    public function tiene_asignados($idempresa,$ruta){
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
+    public function tiene_asignados($idempresa,$codalmacen,$ruta){
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND ruta = ".$this->var2str($ruta).";");
 
         if($data)
         {
@@ -408,8 +408,8 @@ class distribucion_rutas extends fs_model {
         }
     }
 
-    public function cantidad_asignados($idempresa,$ruta){
-        $data = $this->db->select("SELECT count(*) as total FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND ruta = ".$this->var2str($ruta).";");
+    public function cantidad_asignados($idempresa,$codalmacen,$ruta){
+        $data = $this->db->select("SELECT count(*) as total FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND ruta = ".$this->var2str($ruta).";");
 
         if($data){
             return $data[0]['total'];

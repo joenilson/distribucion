@@ -60,13 +60,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         $('table').tablecheckbox();
     });
     
-    function mostrarClientes(ruta){
+    function mostrarClientes(almacen,ruta){
        $('#modal_detalle_ruta').modal('show');
        $.ajax({
             type: 'GET',
             url: '{$fsc->url()}',
             async: false,
-            data: 'tipo=ver-clientes&ruta='+ruta,
+            data: 'tipo=ver-clientes&ruta='+ruta+'&almacen='+almacen,
             success: function(datos) {
                 var re = /<!--(.*?)-->/g;
                 var m = re.exec( datos );
@@ -216,7 +216,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </td>
                     <td>{$value->nombre}</td>
                     <td>{$value->codalmacen}</td>
-                    <td>{if="$value->cantidad!=0"}<button class="btn btn-xs btn-default col-sm-12" type="button" onclick="mostrarClientes('{$value->ruta}')">Ver &nbsp;<span class="badge">{$value->cantidad}</span></button>{/if}</td>
+                    <td>{if="$value->cantidad!=0"}<button class="btn btn-xs btn-default col-sm-12" type="button" onclick="mostrarClientes('{$value->codalmacen}','{$value->ruta}')">Ver &nbsp;<span class="badge">{$value->cantidad}</span></button>{/if}</td>
                 </tr>
                 {/loop}
             </tbody>

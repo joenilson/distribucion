@@ -91,7 +91,7 @@ class distribucion_clientes extends fs_model {
     }
     
     public function info_adicional($informacion){
-        $datos_ruta = $this->distrib_rutas->get($informacion->idempresa,$informacion->ruta);
+        $datos_ruta = $this->distrib_rutas->get($informacion->idempresa,$informacion->codalmacen, $informacion->ruta);
         $datos_canal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->canal, 'CANAL');
         $datos_subcanal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->subcanal, 'SUBCANAL');
         $datos_direccion = $this->direccion_cliente->get($informacion->iddireccion);

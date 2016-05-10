@@ -434,7 +434,7 @@ class distribucion_faltantes extends fs_model {
             {
                 $valor_lista = new distribucion_faltantes($d);
                 $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
-                $valor_lista->conductor_nombre = $datos_conductor[0]->nombre;
+                $valor_lista->conductor_nombre = $datos_conductor->nombre;
                 $lista = $valor_lista;
             }
         }
