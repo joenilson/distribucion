@@ -257,6 +257,7 @@ class impresion_rutas extends fs_controller{
         $this->template = FALSE;
         $rutas_imprimir = explode(",",filter_input(INPUT_GET, 'rutas'));
         $almacen_imprimir = filter_input(INPUT_GET, 'codalmacen');
+        $fecha_imprimir = filter_input(INPUT_GET, 'fecha');
         
         $this->pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
         $this->pdf->setPageOrientation('P',TRUE,10);
@@ -271,9 +272,9 @@ class impresion_rutas extends fs_controller{
             $this->pdf->startPageGroup();
             $this->pdf->SetHeaderData(
                 $logo_empresa, 
-                15, 
+                15,
                 $this->empresa->nombre, 
-                'Listado de Clientes', 
+                'Listado de Clientes al '.$fecha_imprimir, 
                 array(0,0,0), 
                 array(0,0,0));
             $this->pdf->setFooterData(array(0,64,0), array(0,64,128));

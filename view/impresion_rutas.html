@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         $('#f_imprimir_rutas_btn').click(function(event) {
             var checkboxValues = [];
             var almacen = $('#codalmacen').val();
+            var fecha = $('#fecha').val();
             var seguir = true;
             
             $('input[name=ruta]:checked').map(function() {
@@ -50,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 $('#modal_impresion_rutas').modal('show');
                 $("#imprimir_rutas").detach();
                 $("<iframe id='imprimir_rutas' />")
-                  .attr('src', '{$fsc->url()}&tipo=imprimir-rutas&rutas='+checkboxValues+'&codalmacen='+almacen)
+                  .attr('src', '{$fsc->url()}&tipo=imprimir-rutas&rutas='+checkboxValues+'&codalmacen='+almacen+'&fecha='+fecha)
                   .attr('width', '100%')
                   .attr('height', '500')
                   .appendTo('#modal_body_impresion_rutas');

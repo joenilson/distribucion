@@ -158,7 +158,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
         if($facturasrect){
             foreach($facturasrect as $rectificativa){
                 $factura->abono += ($rectificativa['total'] * -1);
-                $factura->saldo += ($rectificativa['total'] * -1);
+                $factura->saldo += ($rectificativa['total']);
             }
         }
 
