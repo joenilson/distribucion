@@ -1,0 +1,71 @@
+<div class="panel panel-info hidden" id="panel_tipo_ruta">
+    <div class="panel-heading">
+        <h3 class="panel-title">Tipo de Ruta</h3>
+    </div>
+    <div class="panel-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="text-left">Codigo</th>
+                    <th class="text-left">Tipo de Ruta</th>
+                    <th class="text-center">Activo</th>
+                    <th width="120"></th>
+                </tr>
+            </thead>
+            {loop="$fsc->listado_tipo_transporte"}
+            <form action="{$fsc->url()}" method="post" class="form">
+                <input type='hidden' name='type' value='tipo_ruta'>
+                <tr{if="!$value->estado"} class="danger"{/if}>
+                    <td>
+                        <input type="hidden" name="id" value="{$value->id}" class="form-control" {if="!$fsc->allow_delete"}readonly=""{/if}/>
+                        <input type="text" name="descripcion" value="{$value->descripcion}" class="form-control" {if="!$fsc->allow_delete"}readonly=""{/if}/>
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                            <label>
+                                {if="$value->estado"}
+                                <input type="checkbox" name="estado" value="TRUE" checked/>
+                                {else}
+                                <input type="checkbox" name="estado" value="TRUE"/>
+                                {/if}
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group">
+                            {if="$fsc->allow_delete"}
+                            <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="delete_objeto({$value->id})">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </button>
+                            {/if}
+                            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();" title="Guardar">
+                                <span class="glyphicon glyphicon-floppy-disk"></span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </form>
+            {/loop}
+            <form action="{$fsc->url()}" method="post" class="form">
+                <input type='hidden' name='type' value='tipo_ruta'>
+                <tr class="info">
+                    <td>
+                        <input type="text" name="descripcion" class="form-control" maxlength="20" autocomplete="off" placeholder="Descripcion"/>
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();" title="Guardar">
+                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                    </td>
+                </tr>
+            </form>
+        </table>
+    </div>
+</div>

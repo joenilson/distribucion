@@ -12,12 +12,12 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-require_once 'model/agente.php';
+require_model('model/agente.php');
 /**
  * Description of distribucion_organizacion
  *
@@ -34,9 +34,9 @@ class distribucion_organizacion extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
-    
+
     public $agente;
-    
+
     public function __construct($t = false) {
         parent::__construct('distribucion_organizacion','plugins/distribucion/');
         if($t)
@@ -67,15 +67,15 @@ class distribucion_organizacion extends fs_model {
         }
         $this->agente = new agente();
     }
-    
+
     public function url(){
         return "index.php?page=distrib_clientes";
     }
-    
+
     protected function install() {
         return "";
     }
-    
+
     public function exists() {
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -87,7 +87,7 @@ class distribucion_organizacion extends fs_model {
             return true;
         }
     }
-    
+
     public function save() {
         if ($this->exists())
         {
@@ -125,7 +125,7 @@ class distribucion_organizacion extends fs_model {
             }
         }
     }
-    
+
     public function delete() {
         $sql = "DELETE FROM distribucion_organizacion WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -133,12 +133,12 @@ class distribucion_organizacion extends fs_model {
                 "tipoagente = ".$this->var2str($this->tipoagente).";";
         return $this->db->exec($sql);
     }
-    
+
     public function all($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, tipoagente, codagente;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -151,12 +151,12 @@ class distribucion_organizacion extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_tipoagente($idempresa,$tipoagente)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND tipoagente = ".$this->var2str($tipoagente)." ORDER BY codalmacen, codagente;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -173,12 +173,12 @@ class distribucion_organizacion extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_almacen_tipoagente($idempresa,$codalmacen,$tipoagente)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND tipoagente = ".$this->var2str($tipoagente)." ORDER BY codagente;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -193,12 +193,12 @@ class distribucion_organizacion extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, codtrans, nombre;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -215,12 +215,12 @@ class distribucion_organizacion extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_tipoagente($idempresa,$tipoagente)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND tipoagente = ".$this->var2str($tipoagente)." AND estado = true ORDER BY codalmacen, codagente;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -237,12 +237,12 @@ class distribucion_organizacion extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_almacen_tipoagente($idempresa,$codalmacen,$tipoagente)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND tipoagente = ".$this->var2str($tipoagente)." AND estado = true ORDER BY codalmacen, codagente;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -257,11 +257,11 @@ class distribucion_organizacion extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get($idempresa,$codagente)
     {
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codagente = ".$this->var2str($codagente).";");
-        
+
         if($data)
         {
             $value = new distribucion_organizacion($data[0]);
@@ -273,13 +273,13 @@ class distribucion_organizacion extends fs_model {
         }else{
             return false;
         }
-        
+
     }
-    
+
     public function get_asignados($idempresa,$codagente)
     {
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codsupervisor = ".$this->var2str($codagente).";");
-        
+
         if($data)
         {
             $value = new distribucion_organizacion($data[0]);
@@ -291,32 +291,32 @@ class distribucion_organizacion extends fs_model {
         }else{
             return false;
         }
-        
+
     }
-    
+
     public function tiene_asignados($idempresa,$codagente)
     {
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codsupervisor = ".$this->var2str($codagente).";");
-        
+
         if($data)
         {
             return true;
         }else{
             return false;
         }
-        
+
     }
-    
+
     public function tiene_rutas_asignadas($idempresa,$codagente)
     {
         $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codagente = ".$this->var2str($codagente).";");
-        
+
         if($data)
         {
             return true;
         }else{
             return false;
         }
-        
+
     }
 }

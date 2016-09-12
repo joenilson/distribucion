@@ -17,11 +17,11 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-require_once 'model/agente.php';
+require_model('model/agente.php');
 require_model('distribucion_organizacion.php');
 /**
  * Description of distribucion_rutas
- *
+ * 
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class distribucion_rutas extends fs_model {
