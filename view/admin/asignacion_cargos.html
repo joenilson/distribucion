@@ -1,0 +1,66 @@
+<div class="panel panel-info hidden" id="panel_asignacion_cargos">
+    <div class="panel-heading">
+        <h3 class="panel-title">Asignaci&oacute;n de Cargos</h3>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="panel panel-default" id="panel_interno_supervisores">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Supervisores</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="form-group form-group-sm">
+                                <select class="input-sm col-sm-10" name="cargos_disponibles_supervisores">
+                                    <option value="">---------</option>
+                                    {loop="$fsc->cargos_disponibles"}
+                                        <option value="{$value->codcargo}">{$value->descripcion}</option>
+                                    {/loop}
+                                </select>
+                                <button class="btn btn-sm btn-warning col-sm-1" type="button"><span class="fa fa-plus"></span></button>
+                            </div>
+                        </div>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Cargo</th>
+                                    <th width="120"></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="panel panel-default" id="panel_interno_vendedores">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Vendedores</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="form-group form-group-sm">
+                                <select class="input-sm col-sm-10" name="cargos_disponibles_vendedores">
+                                    <option value="">---------</option>
+                                    {loop="$fsc->cargos_disponibles"}
+                                    
+                                    {/loop}
+                                </select>
+                                <button class="btn btn-sm btn-warning col-sm-1" type="button"><span class="fa fa-plus"></span></button>
+                            </div>
+                        </div>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Cargo</th>
+                                    <th width="120"></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -12,7 +12,7 @@
             <thead>
                 <tr>
                     <th class="text-left">Tipo de Unidad</th>
-                    <th class="text-center">Activo</th>
+                    <th width="15" class="text-center">Activo</th>
                     <th width="120"></th>
                 </tr>
             </thead>
@@ -25,7 +25,6 @@
                         <input type="text" name="descripcion" value="{$value->descripcion}" class="form-control" {if="!$fsc->allow_delete"}readonly=""{/if}/>
                     </td>
                     <td class="text-center">
-                        <div class="checkbox">
                             <label>
                                 {if="$value->estado"}
                                 <input type="checkbox" name="estado" value="TRUE" checked/>
@@ -33,7 +32,6 @@
                                 <input type="checkbox" name="estado" value="TRUE"/>
                                 {/if}
                             </label>
-                        </div>
                     </td>
                     <td class="text-right">
                         <div class="btn-group">
@@ -58,11 +56,9 @@
                         <input type="text" name="descripcion" class="form-control" maxlength="20" autocomplete="off" placeholder="Descripcion"/>
                     </td>
                     <td class="text-center">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="estado" value="TRUE" checked=""/>
-                            </label>
-                        </div>
+                        <label>
+                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                        </label>
                     </td>
                     <td class="text-right">
                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();" title="Guardar">

@@ -6,12 +6,61 @@
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th class="text-left"><a href="#">Almacén</a></th>
-                    <th class="text-left">Supervisor</th>
-                    <th class="text-center">Activo</th>
+                    <th class="text-left">Tipo de Vendedor</th>
+                    <th width="15" class="text-center">Activo</th>
                     <th width="120"></th>
                 </tr>
             </thead>
+            {loop="$fsc->listado_tipo_vendedor"}
+            <form action="{$fsc->url()}" method="post" class="form">
+                <input type='hidden' name='type' value='tipo_vendedor'>
+                <tr{if="!$value->estado"} class="danger"{/if}>
+                    <td>
+                        <input type="hidden" name="id" value="{$value->id}" class="form-control" {if="!$fsc->allow_delete"}readonly=""{/if}/>
+                        <input type="text" name="descripcion" value="{$value->descripcion}" class="form-control" {if="!$fsc->allow_delete"}readonly=""{/if}/>
+                    </td>
+                    <td class="text-center">
+                        <label>
+                            {if="$value->estado"}
+                            <input type="checkbox" name="estado" value="TRUE" checked/>
+                            {else}
+                            <input type="checkbox" name="estado" value="TRUE"/>
+                            {/if}
+                        </label>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group">
+                            {if="$fsc->allow_delete"}
+                            <button class="btn btn-sm btn-danger" type="submit" name="delete" title="Eliminar" onclick="confirm('Desea Borrar el Tipo de Vendedor: {$value->id} {$value->descripcion}')">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </button>
+                            {/if}
+                            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();" title="Guardar">
+                                <span class="glyphicon glyphicon-floppy-disk"></span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </form>
+            {/loop}
+            <form action="{$fsc->url()}" method="post" class="form">
+                <input type='hidden' name='type' value='tipo_vendedor'>
+                <tr class="info">
+                    <td>
+                        <input type="text" name="descripcion" class="form-control" maxlength="20" autocomplete="off" placeholder="Descripcion"/>
+                    </td>
+                    <td class="text-center">
+                        <label>
+                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                        </label>
+                    </td>
+                    <td class="text-right">
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();" title="Guardar">
+                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                    </td>
+                </tr>
+            </form>
         </table>
     </div>
 </div>
