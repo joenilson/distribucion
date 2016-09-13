@@ -203,26 +203,10 @@ class admin_distribucion extends fs_controller {
     
     public function listado_cargos_disponibles(){
         $listado = array();
-        if(!$this->nomina){
+        if($this->nomina){
             require_model('cargos.php');
             $cargos = new cargos();
             $listado = $cargos->all();
-        }else{
-            require_model('agente.php');
-            $cargos = new agente();
-            $item = array();
-            foreach($cargos->all() as $val){
-                if(!empty($val->cargo)){
-                    $key=str_replace(" ","_",$val->cargo);
-                    $item[$key]=$val->cargo;
-                }
-            }
-            foreach($item as $key=>$val){
-                $linea = new stdClass();
-                $linea->codcargo = $key;
-                $linea->descripcion = $val;
-                $listado[] = $linea;
-            }
         }
         return $listado;
     }

@@ -47,13 +47,13 @@
                     <p align="justify">Para el correcto uso del módulo de distribución para los clientes se debe crear como mínimo un Supervisor, un vendedor, una ruta, un canal y un subcanal, para ser asignado al cliente.</p>
                     <p align="justify">Si adicional a esto se quiere utilizar el plugin de geolocalización de clientes, se debe agregar en la data maestra de los clientes las coordenadas de los mismos.</p>
                     <p align="justify">A continuación seleccione una opción del menú de la izquierda para agregar la información básica.</p>
-                    <div class="alert alert-info">El plugin de <b>nomina</b> está {if="$fsc->nomina"}activo{else}inactivo{/if}.
-                        {if="$fsc->nomina"}
-                        Se debe configurar los cargos que aplican para Supervisor y Vendedor de los cargos de nómina en <b>Asignaci&oacute;n de Cargos</b>.
-                        {else}
-                            Se debe configurar los cargos que aplican para Supervisor y Vendedor de una lista de cargos en <b>Asignaci&oacute;n de Cargos</b>.
-                        {/if}
+                    {if="!$fsc->nomina"}
+                    <div class="alert alert-danger">
+                        El plugin de <b>nomina</b> no está activo.<br />
+                        Se debe configurar los cargos que aplican para Supervisor y Vendedor de los cargos de nómina en <b>Asignaci&oacute;n de Cargos</b>.<br />
+                        <b>Por favor instale o active el plugin nomina antes de seguir utulizando este plugin.</b>
                     </div>
+                    {/if}
                     <div class="alert alert-warning">Es necesario que configure como mínimo un empleado con cargo <b>Supervisor</b> y uno con cargo <b>Vendedor</b></div>
                 </div>
             </div>
