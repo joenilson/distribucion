@@ -80,7 +80,7 @@ class admin_distribucion extends fs_controller {
         new distribucion_lineastransporte();
         
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
-        
+        $this->share_extensions();
         /// cargamos la configuración
         $this->fsvar = new fs_var();
         $this->distribucion_setup = $this->fsvar->array_get(
@@ -275,7 +275,7 @@ class admin_distribucion extends fs_controller {
         $fsext = new fs_extension();
         $fsext->name = 'opciones_distribucion';
         $fsext->from = 'opciones_distribucion';
-        $fsext->to = 'admin_distribucion';
+        $fsext->to = __CLASS__;
         $fsext->type = 'button';
         $fsext->text = '<span class="glyphicon glyphicon-cog" aria-hidden="true">'
                 . '</span><span class="hidden-xs">&nbsp; Opciones</span>';
