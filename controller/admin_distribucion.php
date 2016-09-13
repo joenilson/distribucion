@@ -20,6 +20,20 @@
 require_model('almacen.php');
 require_model('pais.php');
 require_model('agencia_transporte.php');
+require_model('distribucion_clientes.php');
+require_model('distribucion_subcuentas_faltantes.php');
+require_model('distribucion_coordenadas_clientes.php');
+require_model('distribucion_conductores.php');
+require_model('distribucion_tipounidad.php');
+require_model('distribucion_unidades.php');
+require_model('distribucion_organizacion.php');
+require_model('distribucion_segmentos.php');
+require_model('distribucion_rutas.php');
+require_model('distribucion_ordenescarga.php');
+require_model('distribucion_transporte.php');
+require_model('distribucion_lineasordenescarga.php');
+require_model('distribucion_ordenescarga_facturas.php');
+require_model('distribucion_lineastransporte.php');
 require_model('distribucion_tipounidad.php');
 require_model('distribucion_tiporuta.php');
 require_model('distribucion_tipovendedor.php');
@@ -41,12 +55,52 @@ class admin_distribucion extends fs_controller {
     public $familia;
     public $type;
     public $nomina;
+    public $distribucion_setup;
+    public $fsvar;
     public function __construct() {
         parent::__construct(__CLASS__, '1 - Configuración', 'distribucion');
     }
 
     public function private_core() {
+              //Cargamos las tablas en el orden correcto
+
+        new distribucion_subcuentas_faltantes();
+        new distribucion_coordenadas_clientes();
+        new distribucion_conductores();
+        new distribucion_tipounidad();
+        new distribucion_unidades();
+        new distribucion_organizacion();
+        new distribucion_segmentos();
+        new distribucion_rutas();
+        new distribucion_clientes();
+        new distribucion_ordenescarga();
+        new distribucion_transporte();
+        new distribucion_lineasordenescarga();
+        new distribucion_ordenescarga_facturas();
+        new distribucion_lineastransporte();
+        
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
+        
+        /// cargamos la configuración
+        $this->fsvar = new fs_var();
+        $this->distribucion_setup = $this->fsvar->array_get(
+            array(
+            'distrib_ordencarga' => "Orden de Carga",
+            'distrib_ordenescarga' => "Ordenes de Carga",
+            'distrib_transporte' => "Transporte",
+            'distrib_transportes' => "Transportes",
+            'distrib_agencia' => "Agencia",
+            'distrib_agencias' => "Agencias",
+            'distrib_unidad' => "Unidad",
+            'distrib_unidades' => "Unidades",
+            'distrib_conductor' => "Conductor",
+            'distrib_conductores' => "Conductores",
+            'distrib_liquidacion' => "Liquidación",
+            'distrib_liquidaciones' => "Liquidaciones",
+            'distrib_faltante' => "Faltante",
+            'distrib_faltantes' => "Faltantes"
+            ), FALSE
+        );        
         
         /*
          * Buscamos si está el plugin de nomina para la busqueda de los cargos de Supervisor y Vendedor
@@ -66,30 +120,10 @@ class admin_distribucion extends fs_controller {
             $this->tratar_tipovendedor();
         } elseif ($type == 'tipo_ruta') {
             $this->tratar_tiporuta();
+        } elseif($type == 'traducciones'){
+            $this->tratar_traducciones();
         }
-        /*
-        $estado = (isset($estado_val)) ? true : false;
-        $id = (!empty($delete)) ? $delete : $id_val;
-        if (isset($id)) {
-            $condicion = (!empty($delete)) ? 'delete' : 'update';
-            $valor = (!empty($delete)) ? $delete : $id;
-            $this->tratar_tipounidad($valor, $condicion, $descripcion, $estado);
-        } elseif (isset($descripcion) and isset($estado)) {
-            $tipounidad = new distribucion_tipounidad();
-            $tipounidad->id = $id;
-            $tipounidad->idempresa = $this->empresa->id;
-            $tipounidad->descripcion = ucwords(strtolower($descripcion));
-            $tipounidad->estado = $estado;
-            $tipounidad->usuario_creacion = $this->user->nick;
-            $tipounidad->fecha_creacion = \Date('d-m-Y H:i:s');
-            if ($tipounidad->save()) {
-                $this->new_message("Tipo de Unidad " . $tipounidad->descripcion . " con el id " . $tipounidad->id . " guardada correctamente.");
-            } else {
-                $this->new_error_msg("¡Imposible guardar los datos del tipo de unidad!");
-            }
-        }
-        */
-        
+       
         $this->cargos_disponibles = $this->listado_cargos_disponibles();
 
         $this->listado_tipo_transporte = $this->distribucion_tipounidad->all($this->empresa->id);
@@ -201,6 +235,31 @@ class admin_distribucion extends fs_controller {
         }
     }
     
+    public function tratar_traducciones(){
+        if (isset($_POST['distribucion_setup'])) {
+            $this->distribucion_setup['distrib_ordencarga'] = trim(\filter_input(INPUT_POST, 'distrib_ordencarga'));
+            $this->distribucion_setup['distrib_ordenescarga'] = trim(\filter_input(INPUT_POST, 'distrib_ordenescarga'));
+            $this->distribucion_setup['distrib_transporte'] = trim(\filter_input(INPUT_POST, 'distrib_transporte'));
+            $this->distribucion_setup['distrib_transportes'] = trim(\filter_input(INPUT_POST, 'distrib_transportes'));
+            $this->distribucion_setup['distrib_agencia'] = trim(\filter_input(INPUT_POST, 'distrib_agencia'));
+            $this->distribucion_setup['distrib_agencias'] = trim(\filter_input(INPUT_POST, 'distrib_agencias'));
+            $this->distribucion_setup['distrib_unidad'] = trim(\filter_input(INPUT_POST, 'distrib_unidad'));
+            $this->distribucion_setup['distrib_unidades'] = trim(\filter_input(INPUT_POST, 'distrib_unidades'));
+            $this->distribucion_setup['distrib_conductor'] = trim(\filter_input(INPUT_POST, 'distrib_conductor'));
+            $this->distribucion_setup['distrib_conductores'] = trim(\filter_input(INPUT_POST, 'distrib_conductores'));
+            $this->distribucion_setup['distrib_liquidacion'] = trim(\filter_input(INPUT_POST, 'distrib_liquidacion'));
+            $this->distribucion_setup['distrib_liquidaciones'] = trim(\filter_input(INPUT_POST, 'distrib_liquidaciones'));
+            $this->distribucion_setup['distrib_faltante'] = trim(\filter_input(INPUT_POST, 'distrib_faltante'));
+            $this->distribucion_setup['distrib_faltantes'] = trim(\filter_input(INPUT_POST, 'distrib_faltantes'));
+
+            if ($this->fsvar->array_save($this->distribucion_setup)) {
+                $this->new_message('Datos de Traducci&oacute;n guardados correctamente.');
+            } else {
+                $this->new_error_msg('Error al guardar los datos de traduccion.');
+            }
+        }
+    }
+    
     public function listado_cargos_disponibles(){
         $listado = array();
         if($this->nomina){
@@ -210,5 +269,16 @@ class admin_distribucion extends fs_controller {
         }
         return $listado;
     }
-
+    
+    private function share_extensions()
+    {
+        $fsext = new fs_extension();
+        $fsext->name = 'opciones_distribucion';
+        $fsext->from = __CLASS__;
+        $fsext->to = 'admin_distribucion';
+        $fsext->type = 'button';
+        $fsext->text = '<span class="glyphicon glyphicon-cog" aria-hidden="true">'
+                . '</span><span class="hidden-xs">&nbsp; Opciones</span>';
+        $fsext->delete();
+    }
 }

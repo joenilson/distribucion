@@ -60,7 +60,7 @@ class opciones_distribucion extends fs_controller {
       new distribucion_ordenescarga_facturas();
       new distribucion_lineastransporte();
 
-      $this->share_extensions();
+      //$this->share_extensions();
       /// cargamos la configuración
       $fsvar = new fs_var();
       $this->distribucion_setup = $fsvar->array_get(

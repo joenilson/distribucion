@@ -5,7 +5,7 @@
             <div class="page-header">
                 <h1>
                     <span class="glyphicon glyphicon-transfer"></span>
-                   Configuraci&oacute;n Plugin Distribucion
+                    Configuraci&oacute;n Plugin Distribucion
                     <a class="btn btn-xs btn-default" href="{$fsc->url()}" title="Recargar la página">
                         <span class="glyphicon glyphicon-refresh"></span>
                     </a>
@@ -17,12 +17,23 @@
                         {/loop}
                     </span>
                 </h1>
+                {if="!$fsc->nomina"}
+                <div class="alert alert-danger">
+                    El plugin de <b>nomina</b> no está activo.<br />
+                    Se debe configurar los cargos que aplican para Supervisor y Vendedor de los cargos de nómina en <b>Asignaci&oacute;n de Cargos</b>.<br />
+                    <b>Por favor instale o active el plugin nomina antes de seguir utulizando este plugin.</b>
+                </div>
+                {/if}
             </div>
         </div>
     </div>
     <div class="panel-body">
         <div class="col-md-2 col-sm-3">
             <div class="btn-group-vertical" role="group" aria-label="...">
+                <button type="button" id="b_traducciones" value="panel_traducciones" onclick="botonActivo(this)" role="button" class="btn btn-default">
+                    <span class="fa fa-angle-double-right pull-left"></span><span class="pull-left"> &nbsp; Traducciones</span>
+
+                </button>
                 <button type="button" id="b_tipo_transporte" value="panel_tipo_transporte" onclick="botonActivo(this)" role="button" class="btn btn-default">
                     <span class="fa fa-angle-double-right pull-left"></span><span class="pull-left"> &nbsp; Tipo de Transporte</span>
 
@@ -47,16 +58,10 @@
                     <p align="justify">Para el correcto uso del módulo de distribución para los clientes se debe crear como mínimo un Supervisor, un vendedor, una ruta, un canal y un subcanal, para ser asignado al cliente.</p>
                     <p align="justify">Si adicional a esto se quiere utilizar el plugin de geolocalización de clientes, se debe agregar en la data maestra de los clientes las coordenadas de los mismos.</p>
                     <p align="justify">A continuación seleccione una opción del menú de la izquierda para agregar la información básica.</p>
-                    {if="!$fsc->nomina"}
-                    <div class="alert alert-danger">
-                        El plugin de <b>nomina</b> no está activo.<br />
-                        Se debe configurar los cargos que aplican para Supervisor y Vendedor de los cargos de nómina en <b>Asignaci&oacute;n de Cargos</b>.<br />
-                        <b>Por favor instale o active el plugin nomina antes de seguir utulizando este plugin.</b>
-                    </div>
-                    {/if}
                     <div class="alert alert-warning">Es necesario que configure como mínimo un empleado con cargo <b>Supervisor</b> y uno con cargo <b>Vendedor</b></div>
                 </div>
             </div>
+            {include="admin/traducciones"}
             {include="admin/tipo_transporte"}
             {include="admin/tipo_ruta"}
             {include="admin/tipo_vendedor"}
@@ -70,8 +75,8 @@
      * Cambia la clase a boton primario cuando el usuario le da Click y muestra el panel asociado
      */
     function botonActivo(element) {
-        var botones = ['b_tipo_transporte', 'b_tipo_ruta', 'b_tipo_vendedor', 'b_asignacion_cargos'];
-        var paneles = ['panel_tipo_transporte', 'panel_tipo_ruta', 'panel_tipo_vendedor', 'panel_asignacion_cargos'];
+        var botones = ['b_traducciones','b_tipo_transporte', 'b_tipo_ruta', 'b_tipo_vendedor', 'b_asignacion_cargos'];
+        var paneles = ['panel_traducciones','panel_tipo_transporte', 'panel_tipo_ruta', 'panel_tipo_vendedor', 'panel_asignacion_cargos'];
         $('#panel_central').hide();
         for (var i = 0; i < botones.length; i++) {
             var idElement = '#' + element.id;
@@ -162,6 +167,10 @@
             $('#b_asignacion_cargos').removeClass("btn-default");
             $('#b_asignacion_cargos').addClass("btn-primary");
             $('#panel_asignacion_cargos').removeClass('hidden');
+        } else if ($('#menu_activo').val() === 'traducciones') {
+            $('#b_traducciones').removeClass("btn-default");
+            $('#b_traducciones').addClass("btn-primary");
+            $('#panel_traducciones').removeClass('hidden');
         }
     }
 </script>
