@@ -274,7 +274,7 @@ class admin_distribucion extends fs_controller {
     {
         $fsext = new fs_extension();
         $fsext->name = 'opciones_distribucion';
-        $fsext->from = __CLASS__;
+        $fsext->from = 'opciones_distribucion';
         $fsext->to = 'admin_distribucion';
         $fsext->type = 'button';
         $fsext->text = '<span class="glyphicon glyphicon-cog" aria-hidden="true">'
