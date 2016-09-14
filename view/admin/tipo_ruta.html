@@ -8,6 +8,7 @@
                 <tr>
                     <th class="text-left">Tipo de Ruta</th>
                     <th width="15" class="text-center">Activo</th>
+                    <th width="15" class="text-center">Restricciones</th>
                     <th width="120"></th>
                 </tr>
             </thead>
@@ -27,6 +28,11 @@
                             <input type="checkbox" name="estado" value="TRUE"/>
                             {/if}
                         </label>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-default" type="button" onclick="restriciones_articulos('{$value->id}','{$value->descripcion}')" title="Restringir Articulos">
+                            <span class="fa fa-shield"></span>&nbsp; Articulos
+                        </button>
                     </td>
                     <td class="text-right">
                         <div class="btn-group">
@@ -54,6 +60,7 @@
                             <input type="checkbox" name="estado" value="TRUE" checked=""/>
                         </label>
                     </td>
+                    <td></td>
                     <td class="text-right">
                         <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();" title="Guardar">
                             <span class="glyphicon glyphicon-floppy-disk"></span>

@@ -22,6 +22,7 @@ require_model('almacen.php');
 require_model('distribucion_agente.php');
 require_model('distribucion_organizacion.php');
 require_model('distribucion_rutas.php');
+require_model('distribucion_tiporuta.php');
 require_model('distribucion_segmentos.php');
 require_model('distribucion_clientes.php');
 require_model('distribucion_coordenadas_clientes.php');
@@ -46,6 +47,7 @@ class distrib_clientes extends fs_controller {
     public $distribucion_agente;
     public $distribucion_organizacion;
     public $distribucion_rutas;
+    public $tiporuta;
     public $distribucion_segmentos;
     public $distribucion_clientes;
     public $supervisores_asignados;
@@ -71,6 +73,7 @@ class distrib_clientes extends fs_controller {
         $this->distribucion_segmentos = new distribucion_segmentos();
         $this->distribucion_clientes = new distribucion_clientes();
         $this->distribucion_coordenadas_cliente = new distribucion_coordenadas_clientes();
+        $this->tiporuta = new distribucion_tiporuta();
         $this->cliente = new cliente();
         $this->tab_activa = false;
         $type_p = \filter_input(INPUT_POST, 'type');
@@ -197,6 +200,7 @@ class distrib_clientes extends fs_controller {
 
     public function tratar_ruta(){
         $codagente = \filter_input(INPUT_POST, 'codagente');
+        $codruta = \filter_input(INPUT_POST, 'codruta');
         $ruta = \filter_input(INPUT_POST, 'ruta');
         $descripcion = \filter_input(INPUT_POST, 'descripcion');
         $data_agente = $this->distribucion_organizacion->get($this->empresa->id, $codagente);
@@ -222,6 +226,7 @@ class distrib_clientes extends fs_controller {
         $ruta0->idempresa = $this->empresa->id;
         $ruta0->codalmacen = $codalmacen;
         $ruta0->codagente = $codagente;
+        $ruta0->codruta = $codruta;
         $ruta0->ruta = $ruta;
         $ruta0->descripcion = trim($descripcion);
         $ruta0->lunes = trim($lunes);
@@ -386,6 +391,22 @@ class distrib_clientes extends fs_controller {
                 'page_to' => 'ventas_cliente',
                 'type' => 'button',
                 'text' => '<span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> &nbsp; Distribución',
+                'params' => ''
+            ),
+            array(
+                'name' => 'treeview_distribucion_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/bootstrap-treeview.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'treeview_distribucion_css',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/bootstrap-treeview.min.css"/>',
                 'params' => ''
             )
         );

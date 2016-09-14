@@ -161,11 +161,11 @@ class distribucion_tiporuta extends fs_model {
         
         if($data)
         {
-            foreach($data as $d)
-            {
-                $lista[] = new distribucion_tiporuta($d);
-            }
+            $d = new distribucion_tiporuta($data[0]);
+            return $d;
+        }else{
+            return false;
         }
-        return $lista;
+        
     }
 }

@@ -11,15 +11,18 @@
                     </div>
                     <div class="panel-body">
                         <div class="row">
-                            <div class="form-group form-group-sm">
-                                <select class="input-sm col-sm-10" name="cargos_disponibles_supervisores">
-                                    <option value="">---------</option>
-                                    {loop="$fsc->cargos_disponibles"}
-                                        <option value="{$value->codcargo}">{$value->descripcion}</option>
-                                    {/loop}
-                                </select>
-                                <button class="btn btn-sm btn-warning col-sm-1" type="button"><span class="fa fa-plus"></span></button>
-                            </div>
+                            <form method="POST" action="{$fsc->url()}">
+                                <input type="hidden" name="type" value="asignacion_cargos">
+                                <div class="form-group form-group-sm">
+                                    <select class="input-sm col-sm-10" name="cargos_disponibles_supervisores">
+                                        <option value="">---------</option>
+                                        {loop="$fsc->cargos_disponibles"}
+                                            <option value="{$value->codcargo}">{$value->descripcion}</option>
+                                        {/loop}
+                                    </select>
+                                    <button class="btn btn-sm btn-warning col-sm-1" type="submit"><span class="fa fa-plus"></span></button>
+                                </div>
+                            </form>
                         </div>
                         <table class="table table-hover">
                             <thead>
@@ -39,15 +42,18 @@
                     </div>
                     <div class="panel-body">
                         <div class="row">
-                            <div class="form-group form-group-sm">
-                                <select class="input-sm col-sm-10" name="cargos_disponibles_vendedores">
-                                    <option value="">---------</option>
-                                    {loop="$fsc->cargos_disponibles"}
-                                        <option value="{$value->codcargo}">{$value->descripcion}</option>
-                                    {/loop}
-                                </select>
-                                <button class="btn btn-sm btn-warning col-sm-1" type="button"><span class="fa fa-plus"></span></button>
-                            </div>
+                            <form method="POST" action="{$fsc->url()}">
+                                <input type="hidden" name="type" value="asignacion_cargos">
+                                <div class="form-group form-group-sm">
+                                    <select class="input-sm col-sm-10" name="cargos_disponibles_vendedores">
+                                        <option value="">---------</option>
+                                        {loop="$fsc->cargos_disponibles"}
+                                            <option value="{$value->codcargo}">{$value->descripcion}</option>
+                                        {/loop}
+                                    </select>
+                                    <button class="btn btn-sm btn-warning col-sm-1" type="submit"><span class="fa fa-plus"></span></button>
+                                </div>
+                            </form>
                         </div>
                         <table class="table table-hover">
                             <thead>

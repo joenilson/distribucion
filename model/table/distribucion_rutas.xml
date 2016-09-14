@@ -16,6 +16,11 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
+        <nombre>codruta</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>descripcion</nombre>
         <tipo>character varying(100)</tipo>
         <nulo>YES</nulo>

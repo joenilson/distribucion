@@ -19,6 +19,7 @@
  */
 require_model('model/agente.php');
 require_model('distribucion_organizacion.php');
+require_model('distribucion_tiporuta.php');
 /**
  * Description of distribucion_rutas
  * 
@@ -28,6 +29,7 @@ class distribucion_rutas extends fs_model {
     public $idempresa;
     public $codalmacen;
     public $codagente;
+    public $codruta;
     public $ruta;
     public $descripcion;
     public $lunes;
@@ -45,6 +47,7 @@ class distribucion_rutas extends fs_model {
 
     public $agente;
     public $organizacion;
+    public $tiporuta;
 
     public function __construct($t = false) {
         parent::__construct('distribucion_rutas','plugins/distribucion/');
@@ -53,6 +56,7 @@ class distribucion_rutas extends fs_model {
             $this->idempresa = $t['idempresa'];
             $this->codalmacen = $t['codalmacen'];
             $this->codagente = $t['codagente'];
+            $this->codruta = $t['codruta'];
             $this->ruta = $t['ruta'];
             $this->descripcion = $t['descripcion'];
             $this->lunes = $this->str2bool($t['lunes']);
@@ -73,6 +77,7 @@ class distribucion_rutas extends fs_model {
             $this->idempresa = null;
             $this->codalmacen = null;
             $this->codagente = null;
+            $this->codruta = null;
             $this->ruta = null;
             $this->descripcion = null;
             $this->lunes = false;
@@ -90,6 +95,7 @@ class distribucion_rutas extends fs_model {
         }
         $this->agente = new agente();
         $this->organizacion = new distribucion_organizacion();
+        $this->tiporuta = new distribucion_tiporuta();
     }
 
     public function url(){
@@ -121,6 +127,17 @@ class distribucion_rutas extends fs_model {
         $id++;
         return str_pad($id,3,'0',STR_PAD_LEFT);
     }
+    
+    public function info_adicional($res){
+        $data_agente = $this->agente->get($res->codagente);
+        $data_organizacion = $this->organizacion->get($res->idempresa, $res->codagente);
+        $res->nombre = $data_agente->nombre." ".$data_agente->apellidos;
+        $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
+        $res->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+        $res->tiene_asignados = $this->tiene_asignados($res->idempresa, $res->codalmacen, $res->codagente);
+        $res->tipo_ruta = (!empty($res->codruta))?$this->tiporuta->get($res->codruta)->descripcion:"";
+        return $res;
+    }
 
     public function save() {
         if ($this->exists())
@@ -128,6 +145,7 @@ class distribucion_rutas extends fs_model {
             $sql = "UPDATE distribucion_rutas SET ".
                     "codalmacen = ".$this->var2str($this->codalmacen).", ".
                     "codagente = ".$this->var2str($this->codagente).", ".
+                    "codruta = ".$this->intval($this->codruta).", ".
                     "descripcion = ".$this->var2str($this->descripcion).", ".
                     "lunes = ".$this->var2str($this->lunes).", ".
                     "martes = ".$this->var2str($this->martes).", ".
@@ -149,10 +167,11 @@ class distribucion_rutas extends fs_model {
         else
         {
             $this->ruta = $this->getNextId();
-            $sql = "INSERT INTO distribucion_rutas ( idempresa, codalmacen, codagente, ruta, descripcion, lunes, martes, miercoles, jueves, viernes, sabado, domingo, estado, usuario_creacion, fecha_creacion ) VALUES (".
+            $sql = "INSERT INTO distribucion_rutas ( idempresa, codalmacen, codagente, codruta, ruta, descripcion, lunes, martes, miercoles, jueves, viernes, sabado, domingo, estado, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
                     $this->var2str($this->codalmacen).", ".
                     $this->var2str($this->codagente).", ".
+                    $this->intval($this->codruta).", ".
                     $this->var2str($this->ruta).", ".
                     $this->var2str($this->descripcion).", ".
                     $this->var2str($this->lunes).", ".
@@ -195,13 +214,8 @@ class distribucion_rutas extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codalmacen, $value->codagente);
-                $lista[] = $value;
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
 
             }
         }
@@ -218,12 +232,8 @@ class distribucion_rutas extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
             }
         }
         return $lista;
@@ -239,12 +249,8 @@ class distribucion_rutas extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
             }
         }
         return $lista;
@@ -260,12 +266,8 @@ class distribucion_rutas extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
             }
         }
         return $lista;
@@ -285,12 +287,8 @@ class distribucion_rutas extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
             }
         }
         return $lista;
@@ -306,12 +304,8 @@ class distribucion_rutas extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
             }
         }
         return $lista;
@@ -327,12 +321,8 @@ class distribucion_rutas extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
             }
         }
         return $lista;
@@ -348,12 +338,8 @@ class distribucion_rutas extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
             }
         }
         return $lista;
@@ -366,12 +352,8 @@ class distribucion_rutas extends fs_model {
         if($data)
         {
             $value = new distribucion_rutas($data[0]);
-            $data_agente = $this->agente->get($value->codagente);
-            $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-            $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-            $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-            $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-            return $value;
+            $value_final = $this->info_adicional($value);
+            return $value_final;
         }else{
             return false;
         }
@@ -386,12 +368,8 @@ class distribucion_rutas extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $data_organizacion = $this->organizacion->get($value->idempresa, $value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
             }
         }
         return $lista;

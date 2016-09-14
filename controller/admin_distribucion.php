@@ -18,6 +18,7 @@
 
  */
 require_model('almacen.php');
+require_model('articulo.php');
 require_model('pais.php');
 require_model('agencia_transporte.php');
 require_model('distribucion_clientes.php');
@@ -45,6 +46,7 @@ require_model('distribucion_tipovendedor.php');
  */
 class admin_distribucion extends fs_controller {
 
+    public $articulo;
     public $cargos_disponibles;
     public $distribucion_tipounidad;
     public $distribucion_tiporuta;
@@ -55,6 +57,8 @@ class admin_distribucion extends fs_controller {
     public $familia;
     public $type;
     public $nomina;
+    public $idtiporuta;
+    public $descripciontiporuta;
     public $distribucion_setup;
     public $fsvar;
     public function __construct() {
@@ -114,6 +118,7 @@ class admin_distribucion extends fs_controller {
         $type_g = \filter_input(INPUT_GET, 'type');
         $type = (isset($type_p)) ? $type_p : $type_g;
         $this->type = $type;
+        $this->idtiporuta = null;
         if ($type == 'tipo_transporte') {
             $this->tratar_tipounidad();
         } elseif ($type == 'tipo_vendedor') {
@@ -122,14 +127,40 @@ class admin_distribucion extends fs_controller {
             $this->tratar_tiporuta();
         } elseif($type == 'traducciones'){
             $this->tratar_traducciones();
+        } elseif ($type == 'asignacion_cargos'){
+            $this->tratar_asignacion_cargos();
+        } elseif ($type=='restriccion_articulos'){
+            $this->articulo = new articulo();
+            $this->familia = new familia();
+            $this->idtiporuta = \filter_input(INPUT_GET, 'idtiporuta');
+            $this->descripciontiporuta = ucfirst(strtolower($this->distribucion_tiporuta->get($this->idtiporuta)->descripcion));
+            $subtype = \filter_input(INPUT_GET, 'subtype');
+            if($subtype=='arbol_articulos'){
+                $this->get_arbol_articulos();
+            }else{
+                $this->template = 'admin/restriccion_articulos';
+            }
         }
-       
+        
         $this->cargos_disponibles = $this->listado_cargos_disponibles();
-
         $this->listado_tipo_transporte = $this->distribucion_tipounidad->all($this->empresa->id);
         $this->listado_tipo_ruta = $this->distribucion_tiporuta->all();
         $this->listado_tipo_vendedor = $this->distribucion_tipovendedor->all();
 
+    }
+    
+    public function get_hojas($codigo,$typo){
+        
+    }
+    
+    public function get_arbol_articulos(){
+        $estructura = array();
+        foreach($this->familia->all() as $values){
+            $estructura = $this->get_hojas($values->codfamilia,'familia');
+        }
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($estructura);
     }
 
     private function tratar_tipounidad() {
@@ -260,6 +291,17 @@ class admin_distribucion extends fs_controller {
         }
     }
     
+    public function tratar_asignacion_cargos(){
+        $supervisores = \filter_input(INPUT_POST, 'cargos_disponibles_supervisores');
+        $vendedores = \filter_input(INPUT_POST, 'cargos_disponibles_vendedores');
+        $nac0 = array();
+        if(isset($supervisores)){
+            
+        }elseif(isset($vendedores)){
+            
+        }
+    }
+    
     public function listado_cargos_disponibles(){
         $listado = array();
         if($this->nomina){
@@ -280,5 +322,30 @@ class admin_distribucion extends fs_controller {
         $fsext->text = '<span class="glyphicon glyphicon-cog" aria-hidden="true">'
                 . '</span><span class="hidden-xs">&nbsp; Opciones</span>';
         $fsext->delete();
+        
+        $extensiones = array(
+            array(
+                'name' => 'treeview_admin_distribucion_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="plugins/distribucion/view/js/bootstrap-treeview.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'treeview_admin_distribucion_css',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/bootstrap-treeview.min.css"/>',
+                'params' => ''
+            )
+        );
+        foreach ($extensiones as $ext) {
+            $fsext0 = new fs_extension($ext);
+            if (!$fsext0->save()) {
+                $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
+            }
+        }
     }
 }
