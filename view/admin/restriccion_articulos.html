@@ -167,6 +167,14 @@
         $('#btn-uncheck-all-unrestricted').on('click', function (e) {
             $('#arbol_sinrestricciones').treeview('uncheckAll', {silent: $('#chk-check-silent').is(':checked')});
         });
+        
+        $('#btn-expand-all-unrestricted').on('click', function (e) {
+            $('#arbol_sinrestricciones').treeview('expandAll', {levels: 3, silent: true});
+        });
+
+        $('#btn-collapse-all-unrestricted').on('click', function (e) {
+            $('#arbol_sinrestricciones').treeview('collapseAll', {silent: true});
+        });
 
         $('#arbol_connrestricciones').treeview({
             highlightSelected: true,
