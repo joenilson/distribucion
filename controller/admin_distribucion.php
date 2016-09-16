@@ -149,15 +149,43 @@ class admin_distribucion extends fs_controller {
 
     }
     
-    public function get_hojas($codigo,$typo){
-        
+    public function get_hojas($familias){
+        $node = array();   
+        foreach($familias as $values){
+            $linea = new stdClass();
+            if(!isset($linea->nodes)){
+                $linea->nodes = array();
+            }
+            $linea->id = $values->codfamilia;
+            $linea->text = $values->descripcion;
+            $linea->tags = array("Familia");
+            
+            if($values->hijas()){
+                //array_push($linea->nodes, $this->get_hojas($values->hijas()));
+                $linea->nodes = $this->get_hojas($values->hijas());
+            }
+            foreach($values->get_articulos() as $articulo){
+                $linea_art = new stdClass();
+                $linea_art->id = $articulo->referencia;
+                $linea_art->text = $articulo->descripcion;
+                $linea_art->tags = array("Articulo");
+                array_push($linea->nodes, $linea_art);
+            }
+            $node[] = $linea;
+        }
+        return $node;
     }
     
     public function get_arbol_articulos(){
-        $estructura = array();
+        $listaFamilias = array();
         foreach($this->familia->all() as $values){
-            $estructura = $this->get_hojas($values->codfamilia,'familia');
+            if(empty($values->madre)){
+                $listaFamilias[] = $values;
+            }
         }
+        
+        $estructura = $this->get_hojas($listaFamilias);
+
         $this->template = false;
         header('Content-Type: application/json');
         echo json_encode($estructura);

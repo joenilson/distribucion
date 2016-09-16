@@ -33,16 +33,16 @@
         </div>
     </div>
     <div class="page-body">
-        <div class="col-sm-3">
+        <div class="col-sm-4">
             <ul class="list list-group">
                 <li class="list-group-item active">Por Familia</li>
             </ul>
             <input type="hidden" id="node-id-unrestricted" value="">
-            <div class="col-sm-12" id="arbol_sinrestricciones">
+            <div class="col-sm-12" id="arbol_sinrestricciones" style="overflow: auto; height: 450px;">
 
             </div>
         </div>
-        <div class="col-sm-3">
+        <div class="col-sm-2">
             <div class="form-group">
                 <label for="input-search" class="sr-only">Buscar:</label>
                 <input type="text" class="form-control input-sm" id="input-search-unrestricted" placeholder="Escriba su busqueda..." value="">
@@ -71,30 +71,30 @@
                 <!-- </form> -->
             </div>
             <div class="form-group">
+                <button type="button" class="btn btn-sm btn-success" id="btn-check-all-unrestricted">Marcar Todo</button>
+                <button type="button" class="btn btn-sm btn-danger" id="btn-uncheck-all-unrestricted">Desmarcar Todo</button>
+            </div>            
+            <div class="form-group">
                 <button type="button" class="btn btn-sm btn-success" id="btn-expand-all-unrestricted">Expandir Todo</button>
                 <button type="button" class="btn btn-sm btn-warning" id="btn-collapse-all-unrestricted">Contraer Todo</button>
             </div>
             <div class="form-group">
-                <button type="button" class="btn btn-sm btn-info" id="btn-edit-selected-unrestricted">
-                    <span class="fa fa-edit"></span>
-                    Editar Seleccionado
-                </button>
                 <button type="button" id="btn-add-unrestricted" class="btn btn-sm btn-danger">
                     <span class="fa fa-shield"></span>
                     Restringir Seleccionados
                 </button>
             </div>
         </div>
-        <div class="col-sm-3">
+        <div class="col-sm-4">
             <ul class="list list-group">
                 <li class="list-group-item alert-danger">Artículos Restringidos</li>
             </ul>
             <input type="hidden" id="node-id-restricted" value="">
-            <div class="col-sm-12" id="arbol_conrestricciones">
+            <div class="col-sm-12" id="arbol_conrestricciones" style="overflow: auto; height: 450px;">
 
             </div>
         </div>
-        <div class="col-sm-3">
+        <div class="col-sm-2">
             <div class="form-group">
                 <label for="input-search" class="sr-only">Buscar:</label>
                 <input type="text" class="form-control input-sm" id="input-search-restricted" placeholder="Escriba su busqueda..." value="">
@@ -123,15 +123,15 @@
                 <!-- </form> -->
             </div>
             <div class="form-group">
+                <button type="button" class="btn btn-sm btn-success" id="btn-check-all-restricted">Marcar Todo</button>
+                <button type="button" class="btn btn-sm btn-danger" id="btn-uncheck-all-restricted">Desmarcar Todo</button>
+            </div>            
+            <div class="form-group">
                 <button type="button" class="btn btn-sm btn-success" id="btn-expand-all-restricted">Expandir Todo</button>
                 <button type="button" class="btn btn-sm btn-warning" id="btn-collapse-all-restricted">Contraer Todo</button>
             </div>
             <div class="form-group">
-                <button type="button" class="btn btn-sm btn-info" id="btn-edit-selected-restricted">
-                    <span class="fa fa-edit"></span>
-                    Editar Seleccionado
-                </button>
-                <button type="button" id="btn-del-restricted" class="btn btn-sm btn-danger">
+                <button type="button" id="btn-del-restricted" class="btn btn-sm btn-success">
                     <span class="fa fa-shield"></span>
                     Quitar Restriccion
                 </button>
@@ -157,6 +157,15 @@
                 $('#node-id-unrestricted').val('');
                 $('#btn-edit-selected-unrestricted').attr('disabled', true);
             }
+        });
+
+        // Check/uncheck all
+        $('#btn-check-all-unrestricted').on('click', function (e) {
+            $('#arbol_sinrestricciones').treeview('checkAll', {silent: $('#chk-check-silent').is(':checked')});
+        });
+
+        $('#btn-uncheck-all-unrestricted').on('click', function (e) {
+            $('#arbol_sinrestricciones').treeview('uncheckAll', {silent: $('#chk-check-silent').is(':checked')});
         });
 
         $('#arbol_connrestricciones').treeview({
@@ -218,30 +227,30 @@
             f_edit_node.estado.value = (nodo.estado) ? "true" : "false";
             $('#modal-edit-node').modal('show');
         });
-        
-        $('#btn-add-org').on('click', function (e){
+
+        $('#btn-add-org').on('click', function (e) {
             $('#modal-edit-node').modal('show');
         });
-        
+
         $('#modal-edit-node').on('hidden.bs.modal', function () {
             document.f_edit_node.reset();
         });
     });
-    function cargarEstructura(){
+    function cargarEstructura() {
         var listado = '';
         $.ajax({
             type: 'GET',
-            url : url_estructura,
-            data : 'type=restriccion_articulos&idtiporuta={$fsc->idtiporuta}&subtype=arbol_articulos',
+            url: url_estructura,
+            data: 'type=restriccion_articulos&idtiporuta={$fsc->idtiporuta}&subtype=arbol_articulos',
             async: false,
-            success : function(response) {
-                if(response.length !== 0){
+            success: function (response) {
+                if (response.length !== 0) {
                     listado = response;
-                }else{
-                   alert('¡No hay una estructura valida!');
+                } else {
+                    alert('¡No hay una estructura valida!');
                 }
             },
-            error: function(response) {
+            error: function (response) {
                 alert(response);
             }
         });
