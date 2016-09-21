@@ -137,6 +137,10 @@ class admin_distribucion extends fs_controller {
             $subtype = \filter_input(INPUT_GET, 'subtype');
             if($subtype=='arbol_articulos'){
                 $this->get_arbol_articulos();
+            }elseif($subtype=='restringir_articulos'){
+                $this->restriccion_articulos(true);
+            }elseif($subtype=='no_restringir_articulos'){
+                $this->restriccion_articulos(false);
             }else{
                 $this->template = 'admin/restriccion_articulos';
             }
@@ -147,6 +151,16 @@ class admin_distribucion extends fs_controller {
         $this->listado_tipo_ruta = $this->distribucion_tiporuta->all();
         $this->listado_tipo_vendedor = $this->distribucion_tipovendedor->all();
 
+    }
+    
+    public function restriccion_articulos($restringir = true){
+        $respuesta['success']=true;
+        if($restringir){
+            
+        }
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($respuesta);
     }
     
     public function get_hojas($familias){
