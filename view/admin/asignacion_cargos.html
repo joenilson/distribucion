@@ -10,20 +10,23 @@
                         <h3 class="panel-title">Supervisores</h3>
                     </div>
                     <div class="panel-body">
+                        <form method="POST" action="{$fsc->url()}">
                         <div class="row">
-                            <form method="POST" action="{$fsc->url()}">
-                                <input type="hidden" name="type" value="asignacion_cargos">
-                                <div class="form-group form-group-sm">
-                                    <select class="input-sm col-sm-10" name="cargos_disponibles_supervisores">
-                                        <option value="">---------</option>
-                                        {loop="$fsc->cargos_disponibles"}
-                                            <option value="{$value->codcargo}">{$value->descripcion}</option>
-                                        {/loop}
-                                    </select>
-                                    <button class="btn btn-sm btn-warning col-sm-1" type="submit"><span class="fa fa-plus"></span></button>
-                                </div>
-                            </form>
+                            <input type="hidden" name="type" value="asignacion_cargos">
+                            <input type="hidden" name="tipo_cargo" value="SUP">
+                            <div class="col-sm-8">
+                                <select class="input-sm form-control" name="cargos_disponibles_supervisores">
+                                    <option value="">---------</option>
+                                    {loop="$fsc->cargos_disponibles"}
+                                        <option value="{$value->codcargo}">{$value->descripcion}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                            <div class="col-sm-4 pull-left">
+                                <button class="btn btn-sm btn-warning" type="submit" name="accion" value="agregar" onclick="if(this.form.cargos_disponibles_supervisores.value==''){alert('Escoja un cargo!'); return false;}else{return true;}"><span class="fa fa-plus"></span></button>
+                            </div>
                         </div>
+                        </form>
                         <table class="table table-hover">
                             <thead>
                                 <tr>
@@ -31,6 +34,25 @@
                                     <th width="120"></th>
                                 </tr>
                             </thead>
+                            <tbody>
+                                {loop="$fsc->listado_supervisores_asignados"}
+                            <form method="POST" action="{$fsc->url()}">
+                                <tr>
+                                    <td>
+                                        <input type="hidden" name="type" value="asignacion_cargos">
+                                        <input type="hidden" name="codcargo" value="{$value->codcargo}">
+                                        <input type="hidden" name="tipo_cargo" value="{$value->tipo_cargo}">
+                                        {$value->descripcion}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" name="accion" value="eliminar" onclick="return confirm('Esta seguro de querer eliminar este cargo?')" title="Eliminar Asignación">
+                                            <span class="fa fa-trash"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                </form>
+                                {/loop}
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -41,20 +63,23 @@
                         <h3 class="panel-title">Vendedores</h3>
                     </div>
                     <div class="panel-body">
+                        <form method="POST" action="{$fsc->url()}">
                         <div class="row">
-                            <form method="POST" action="{$fsc->url()}">
-                                <input type="hidden" name="type" value="asignacion_cargos">
-                                <div class="form-group form-group-sm">
-                                    <select class="input-sm col-sm-10" name="cargos_disponibles_vendedores">
-                                        <option value="">---------</option>
-                                        {loop="$fsc->cargos_disponibles"}
-                                            <option value="{$value->codcargo}">{$value->descripcion}</option>
-                                        {/loop}
-                                    </select>
-                                    <button class="btn btn-sm btn-warning col-sm-1" type="submit"><span class="fa fa-plus"></span></button>
-                                </div>
-                            </form>
+                            <input type="hidden" name="type" value="asignacion_cargos">
+                            <input type="hidden" name="tipo_cargo" value="VEN">
+                            <div class="col-sm-8">
+                                <select class="input-sm form-control" name="cargos_disponibles_vendedores">
+                                    <option value="">---------</option>
+                                    {loop="$fsc->cargos_disponibles"}
+                                        <option value="{$value->codcargo}">{$value->descripcion}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                            <div class="col-sm-2 pull-left">
+                                <button class="btn btn-sm btn-warning" type="submit" name="accion" value="agregar" onclick="if(this.form.cargos_disponibles_vendedores.value==''){alert('Escoja un cargo!'); return false;}else{return true;}"><span class="fa fa-plus"></span></button>
+                            </div>
                         </div>
+                        </form>
                         <table class="table table-hover">
                             <thead>
                                 <tr>
@@ -62,6 +87,25 @@
                                     <th width="120"></th>
                                 </tr>
                             </thead>
+                            <tbody>
+                                {loop="$fsc->listado_vendedores_asignados"}
+                                <form method="POST" action="{$fsc->url()}">
+                                    <tr>
+                                        <td>
+                                            <input type="hidden" name="type" value="asignacion_cargos">
+                                            <input type="hidden" name="codcargo" value="{$value->codcargo}">
+                                            <input type="hidden" name="tipo_cargo" value="{$value->tipo_cargo}">
+                                            {$value->descripcion}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger" name="accion" value="eliminar" onclick="return confirm('Esta seguro de querer eliminar este cargo?')" title="Eliminar Asignación">
+                                                <span class="fa fa-trash"></span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </form>
+                                {/loop}
+                            </tbody>
                         </table>
                     </div>
                 </div>

@@ -104,7 +104,12 @@
                         </select>
                     </td>
                     <td>
-
+                        <select name="codruta" class="form-control">
+                            <option value="" required>-----------</option>
+                            {loop="$fsc->tiporuta->all()"}
+                            <option value="{$value->id}">{$value->descripcion}</option>
+                            {/loop}
+                        </select>
                     </td>
                     <td>
                         <input type="text" name="descripcion" class="form-control"/>

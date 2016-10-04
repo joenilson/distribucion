@@ -23,6 +23,7 @@ require_model('distribucion_agente.php');
 require_model('distribucion_organizacion.php');
 require_model('distribucion_rutas.php');
 require_model('distribucion_tiporuta.php');
+require_model('distribucion_asignacion_cargos.php');
 require_model('distribucion_segmentos.php');
 require_model('distribucion_clientes.php');
 require_model('distribucion_coordenadas_clientes.php');
@@ -43,6 +44,7 @@ class distrib_clientes extends fs_controller {
     public $type;
     public $distrib_cliente;
     public $distrib_coordenadas_cliente;
+    public $distribucion_asignacion_cargos;
     public $distribucion_coordenadas_cliente;
     public $distribucion_agente;
     public $distribucion_organizacion;
@@ -69,6 +71,7 @@ class distrib_clientes extends fs_controller {
         $this->almacen = new almacen();
         $this->agente = new distribucion_agente();
         $this->distribucion_organizacion = new distribucion_organizacion();
+        $this->distribucion_asignacion_cargos = new distribucion_asignacion_cargos();
         $this->distribucion_rutas = new distribucion_rutas();
         $this->distribucion_segmentos = new distribucion_segmentos();
         $this->distribucion_clientes = new distribucion_clientes();
@@ -101,11 +104,14 @@ class distrib_clientes extends fs_controller {
             $this->lista_rutas();
         }
 
+        $array_cargos_supervisores = $this->listado_cargos('SUP','array');
+        $array_cargos_vendedores = $this->listado_cargos('VEN','array');
+        
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');
-        $this->supervisores_libres = $this->agente->get_activos_por('cargo','SUPERVISOR');
+        $this->supervisores_libres = $this->agente->get_activos_por('codcargo',$array_cargos_supervisores,'SUPERVISOR');
 
         $this->vendedores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'VENDEDOR');
-        $this->vendedores_libres = $this->agente->get_activos_por('cargo','VENDEDOR');
+        $this->vendedores_libres = $this->agente->get_activos_por('codcargo',$array_cargos_vendedores,'VENDEDOR');
 
         $this->rutas = $this->distribucion_rutas->all($this->empresa->id);
 
@@ -124,6 +130,26 @@ class distrib_clientes extends fs_controller {
         }
 
     }
+    
+    public function listado_cargos($tipo, $respuesta = 'objeto'){
+        $listado = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, $tipo);
+        $resultado = array();
+        foreach($listado as $item){
+            if($respuesta == 'array'){
+                $resultado[] = $item->codcargo;
+            }else{
+                $resultado[] = $item;
+            }
+        }
+        
+        if($respuesta == 'json'){
+            $this->template = FALSE;
+            header('Content-Type: application/json');
+            echo json_encode( array('success' => true, 'data' => $resultado) );
+        }else{
+            return $resultado;
+        }
+    }
 
     public function tratar_supervisor(){
         $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
@@ -136,7 +162,7 @@ class distrib_clientes extends fs_controller {
         $agente0->idempresa = $this->empresa->id;
         $agente0->codalmacen = $codalmacen;
         $agente0->codagente = $codagente;
-        $agente0->tipoagente = $tipoagente->cargo;
+        $agente0->tipoagente = 'SUPERVISOR';
         $agente0->estado = $estado;
         $agente0->usuario_creacion = $this->user->nick;
         $agente0->fecha_creacion = \Date('d-m-Y H:i:s');
@@ -180,7 +206,7 @@ class distrib_clientes extends fs_controller {
         $agente0->codalmacen = $codalmacen;
         $agente0->codagente = $codagente;
         $agente0->codsupervisor = $codsupervisor;
-        $agente0->tipoagente = $tipoagente->cargo;
+        $agente0->tipoagente = "VENDEDOR";
         $agente0->estado = $estado;
         $agente0->usuario_creacion = $this->user->nick;
         $agente0->fecha_creacion = \Date('d-m-Y H:i:s');

@@ -35,12 +35,20 @@
     <div class="page-body">
         <div class="col-sm-4">
             <ul class="list list-group">
-                <li class="list-group-item active">Por Familia</li>
+                <li class="list-group-item active">Artículos Disponibles</li>
             </ul>
             <input type="hidden" id="node-id-unrestricted" value="">
             <div class="col-sm-12" id="arbol_sinrestricciones" style="overflow: auto; height: 450px;">
-
+                
             </div>
+            <div class="col-sm-12" style="margin-top: 10px;">
+                <button type="button" class="btn btn-sm btn-default" id="btn-check-all-unrestricted">
+                    <span class="fa fa-check-square-o"></span>
+                </button>
+                <button type="button" class="btn btn-sm btn-default" id="btn-uncheck-all-unrestricted">
+                    <span class="fa fa-square-o"></span>
+                </button>
+            </div> 
         </div>
         <div class="col-sm-2">
             <div class="form-group">
@@ -69,11 +77,7 @@
                 <button type="button" class="btn btn-sm btn-success" id="btn-search-unrestricted">Buscar</button>
                 <button type="button" class="btn btn-sm btn-default" id="btn-clear-search-unrestricted">Limpiar</button>
                 <!-- </form> -->
-            </div>
-            <div class="form-group">
-                <button type="button" class="btn btn-sm btn-success" id="btn-check-all-unrestricted">Marcar Todo</button>
-                <button type="button" class="btn btn-sm btn-danger" id="btn-uncheck-all-unrestricted">Desmarcar Todo</button>
-            </div>            
+            </div>           
             <div class="form-group">
                 <button type="button" class="btn btn-sm btn-success" id="btn-expand-all-unrestricted">Expandir Todo</button>
                 <button type="button" class="btn btn-sm btn-warning" id="btn-collapse-all-unrestricted">Contraer Todo</button>
@@ -92,6 +96,12 @@
             <input type="hidden" id="node-id-restricted" value="">
             <div class="col-sm-12" id="arbol_conrestricciones" style="overflow: auto; height: 450px;">
 
+            </div>
+            <div class="col-sm-12" style="margin-top: 10px;">
+            <button type="button" class="btn btn-sm btn-default" id="btn-check-all-restricted">
+                <span class="fa fa-check-square-o"></span></button>
+            <button type="button" class="btn btn-sm btn-default" id="btn-uncheck-all-restricted">
+                <span class="fa fa-square-o"></span></button>
             </div>
         </div>
         <div class="col-sm-2">
@@ -123,8 +133,7 @@
                 <!-- </form> -->
             </div>
             <div class="form-group">
-                <button type="button" class="btn btn-sm btn-success" id="btn-check-all-restricted">Marcar Todo</button>
-                <button type="button" class="btn btn-sm btn-danger" id="btn-uncheck-all-restricted">Desmarcar Todo</button>
+                
             </div>            
             <div class="form-group">
                 <button type="button" class="btn btn-sm btn-success" id="btn-expand-all-restricted">Expandir Todo</button>
@@ -148,7 +157,7 @@
             highlightSelected: true,
             showTags: true,
             showCheckbox: true,
-            data: cargarEstructura()
+            data: cargarEstructura('arbol_articulos')
         });
         
         var inEvent = 0;
@@ -237,17 +246,15 @@
                                     async: false,
                                     success: function (response) {
                                         if (response.length !== 0) {
-                                            listado = response;
+                                            window.location.assign("{$fsc->url()}&type=restriccion_articulos&idtiporuta={$fsc->idtiporuta}");
                                         } else {
-                                            alert('¡No hay una estructura valida!');
+                                            alert('¡Hubo un error en el proceso!');
                                         }
                                     },
                                     error: function (response) {
                                         alert(response);
                                     }
                                 });
-                                console.log(articulos);
-                                //window.location.assign("{$fsc->url()}&type=restriccion_articulos&idtiporuta="+cod);
                             }
                         },
                         danger: {
@@ -259,16 +266,16 @@
                         }
                     }
                 });
-            }else{
+            } else {
                 bootbox.alert('No has seleccionado ningun artículo!');
             }
         });
 
-        var arbol_conrestricciones = $('#arbol_connrestricciones').treeview({
+        var arbol_conrestricciones = $('#arbol_conrestricciones').treeview({
             highlightSelected: true,
             showTags: true,
             showCheckbox: true,
-            data: cargarEstructura()
+            data: cargarEstructura('arbol_restringidos')
         });
         
         var inEvent = 0;
@@ -314,6 +321,15 @@
             $('#input-search-restricted').val('');
             $('#search-output-restricted').html('');
         });
+        
+                // Check/uncheck all
+        $('#btn-check-all-restricted').on('click', function (e) {
+            arbol_conrestricciones.treeview('checkAll', {silent: $('#chk-check-silent').is(':checked')});
+        });
+
+        $('#btn-uncheck-all-restricted').on('click', function (e) {
+            arbol_conrestricciones.treeview('uncheckAll', {silent: $('#chk-check-silent').is(':checked')});
+        });
 
         $('#btn-expand-all').on('click', function (e) {
             arbol_conrestricciones.treeview('expandAll', {levels: 3, silent: true});
@@ -323,24 +339,67 @@
             arbol_conrestricciones.treeview('collapseAll', {silent: true});
         });
         
-        $('#btn-del-unrestricted').on('click', function (e) {
+        $('#btn-del-restricted').on('click', function (e) {
             var checkableNodes = arbol_conrestricciones.treeview('getChecked');
-            console.log(checkableNodes);
+            if(checkableNodes.length > 0){
+                bootbox.dialog({
+                    message: "Esta seguro que quiere eliminar estos articulos como restricciones al tipo de ruta {$fsc->descripciontiporuta}?",
+                    title: "Restriccion de "+checkableNodes.length+" de Articulos a: {$fsc->descripciontiporuta}",
+                    buttons: {
+                        success: {
+                            label: '<span class="fa fa-shield"></span>&nbsp; Quitar Restricciones',
+                            className: "btn-success",
+                            callback: function() {
+                                var articulos = [];
+                                for(var i=0; i<checkableNodes.length;i++){
+                                    var nodo = checkableNodes[i];
+                                    if(nodo.tags[0]==='Articulo'){
+                                        articulos.push(nodo.id);
+                                    }
+                                }
+                                $.ajax({
+                                    type: 'GET',
+                                    url: url_estructura,
+                                    data: 'type=restriccion_articulos&idtiporuta={$fsc->idtiporuta}&subtype=no_restringir_articulos&articulos='+JSON.stringify(articulos),
+                                    async: false,
+                                    success: function (response) {
+                                        if (response.length !== 0) {
+                                            window.location.assign("{$fsc->url()}&type=restriccion_articulos&idtiporuta={$fsc->idtiporuta}");
+                                        } else {
+                                            alert('¡Hubo un error en el proceso!');
+                                        }
+                                    },
+                                    error: function (response) {
+                                        alert(response);
+                                    }
+                                });
+                            }
+                        },
+                        danger: {
+                            label: "Cerrar",
+                            className: "btn-danger",
+                            callback: function() {
+                                this.hide();
+                            }
+                        }
+                    }
+                });
+            } else {
+                bootbox.alert('No has seleccionado ningun artículo!');
+            }
         });
 
     });
-    function cargarEstructura() {
+    function cargarEstructura(subtipo) {
         var listado = '';
         $.ajax({
             type: 'GET',
             url: url_estructura,
-            data: 'type=restriccion_articulos&idtiporuta={$fsc->idtiporuta}&subtype=arbol_articulos',
+            data: 'type=restriccion_articulos&idtiporuta={$fsc->idtiporuta}&subtype='+subtipo,
             async: false,
             success: function (response) {
                 if (response.length !== 0) {
                     listado = response;
-                } else {
-                    alert('¡No hay una estructura valida!');
                 }
             },
             error: function (response) {

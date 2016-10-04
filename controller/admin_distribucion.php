@@ -37,7 +37,9 @@ require_model('distribucion_ordenescarga_facturas.php');
 require_model('distribucion_lineastransporte.php');
 require_model('distribucion_tipounidad.php');
 require_model('distribucion_tiporuta.php');
+require_model('distribucion_restricciones_tiporuta.php');
 require_model('distribucion_tipovendedor.php');
+require_model('distribucion_asignacion_cargos.php');
 
 /**
  * Description of admin_distribucion
@@ -50,10 +52,15 @@ class admin_distribucion extends fs_controller {
     public $cargos_disponibles;
     public $distribucion_tipounidad;
     public $distribucion_tiporuta;
+    public $distribucion_restricciones_tiporuta;
     public $distribucion_tipovendedor;
+    public $distribucion_asignacion_cargos;
     public $listado_tipo_transporte;
     public $listado_tipo_ruta;
     public $listado_tipo_vendedor;
+    public $listado_articulos_restringidos;
+    public $listado_supervisores_asignados;
+    public $listado_vendedores_asignados;
     public $familia;
     public $type;
     public $nomina;
@@ -82,6 +89,7 @@ class admin_distribucion extends fs_controller {
         new distribucion_lineasordenescarga();
         new distribucion_ordenescarga_facturas();
         new distribucion_lineastransporte();
+        new distribucion_asignacion_cargos();
         
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->share_extensions();
@@ -113,7 +121,9 @@ class admin_distribucion extends fs_controller {
         
         $this->distribucion_tipounidad = new distribucion_tipounidad();
         $this->distribucion_tiporuta = new distribucion_tiporuta();
+        $this->distribucion_restricciones_tiporuta = new distribucion_restricciones_tiporuta();
         $this->distribucion_tipovendedor = new distribucion_tipovendedor();
+        $this->distribucion_asignacion_cargos = new distribucion_asignacion_cargos();
         $type_p = \filter_input(INPUT_POST, 'type');
         $type_g = \filter_input(INPUT_GET, 'type');
         $type = (isset($type_p)) ? $type_p : $type_g;
@@ -137,6 +147,8 @@ class admin_distribucion extends fs_controller {
             $subtype = \filter_input(INPUT_GET, 'subtype');
             if($subtype=='arbol_articulos'){
                 $this->get_arbol_articulos();
+            }elseif($subtype=='arbol_restringidos'){
+                $this->get_arbol_restringidos();
             }elseif($subtype=='restringir_articulos'){
                 $this->restriccion_articulos(true);
             }elseif($subtype=='no_restringir_articulos'){
@@ -150,14 +162,28 @@ class admin_distribucion extends fs_controller {
         $this->listado_tipo_transporte = $this->distribucion_tipounidad->all($this->empresa->id);
         $this->listado_tipo_ruta = $this->distribucion_tiporuta->all();
         $this->listado_tipo_vendedor = $this->distribucion_tipovendedor->all();
+        $this->listado_articulos_restringidos = $this->distribucion_restricciones_tiporuta->all();
+        $this->listado_supervisores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'SUP');
+        $this->listado_vendedores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'VEN');
 
     }
     
     public function restriccion_articulos($restringir = true){
-        $respuesta['success']=true;
-        if($restringir){
-            
+        $articulos = json_decode(\filter_input(INPUT_GET, 'articulos'));
+        
+        $restricciones = new distribucion_restricciones_tiporuta();
+        foreach($articulos as $art){
+            $restricciones->id = $this->idtiporuta;
+            $restricciones->referencia = $art;
+            $restricciones->usuario_creacion = $this->user->nick;
+            $restricciones->fecha_creacion = \Date('d-m-Y H:i:s');
+            if($restringir){
+                $restricciones->save();
+            }else{
+                $restricciones->delete();
+            }
         }
+        $respuesta['success']=true;
         $this->template = false;
         header('Content-Type: application/json');
         echo json_encode($respuesta);
@@ -175,7 +201,58 @@ class admin_distribucion extends fs_controller {
             $linea->tags = array("Familia");
             
             if($values->hijas()){
-                //array_push($linea->nodes, $this->get_hojas($values->hijas()));
+                $linea->nodes = $this->get_hojas($values->hijas());
+            }
+            foreach($values->get_articulos() as $articulo){
+                if(!$this->distribucion_restricciones_tiporuta->get($this->idtiporuta,$articulo->referencia)){
+                    $linea_art = new stdClass();
+                    $linea_art->id = $articulo->referencia;
+                    $linea_art->text = $articulo->descripcion;
+                    $linea_art->tags = array("Articulo");
+                    array_push($linea->nodes, $linea_art);
+                }
+            }
+            $node[] = $linea;
+        }
+        return $node;
+    }
+    
+    public function get_arbol_articulos(){
+        $listaArticulosSinFamilia = array();
+        foreach($this->articulo->all() as $values){
+            if($values->codfamilia == '' and !$this->distribucion_restricciones_tiporuta->get($this->idtiporuta,$values->referencia)){
+                $linea_art = new stdClass();
+                $linea_art->id = $values->referencia;
+                $linea_art->text = $values->descripcion;
+                $linea_art->tags = array("Articulo");
+                $listaArticulosSinFamilia[] = $linea_art;
+            }
+        }
+        $listaFamilias = array();
+        foreach($this->familia->all() as $values){
+            if(empty($values->madre)){
+                $listaFamilias[] = $values;
+            }
+        }
+        $estructura = array_merge($listaArticulosSinFamilia,$this->get_hojas($listaFamilias));
+
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($estructura);
+    }
+
+    public function get_restringidos($familias){
+        $node = array();   
+        foreach($familias as $values){
+            $linea = new stdClass();
+            if(!isset($linea->nodes)){
+                $linea->nodes = array();
+            }
+            $linea->id = $values->codfamilia;
+            $linea->text = $values->descripcion;
+            $linea->tags = array("Familia");
+            
+            if($values->hijas()){
                 $linea->nodes = $this->get_hojas($values->hijas());
             }
             foreach($values->get_articulos() as $articulo){
@@ -190,19 +267,22 @@ class admin_distribucion extends fs_controller {
         return $node;
     }
     
-    public function get_arbol_articulos(){
-        $listaFamilias = array();
-        foreach($this->familia->all() as $values){
-            if(empty($values->madre)){
-                $listaFamilias[] = $values;
+    public function get_arbol_restringidos(){
+        $listaArticulosRestringidos = array();
+        $datos = $this->distribucion_restricciones_tiporuta->get_idruta($this->idtiporuta);
+        if($datos){
+            foreach($datos as $values){
+                $linea_art = new stdClass();
+                $linea_art->id = $values->referencia;
+                $linea_art->text = $values->descripcion;
+                $linea_art->tags = $values->tags;
+                $listaArticulosRestringidos[] = $linea_art;
             }
         }
-        
-        $estructura = $this->get_hojas($listaFamilias);
 
         $this->template = false;
         header('Content-Type: application/json');
-        echo json_encode($estructura);
+        echo json_encode($listaArticulosRestringidos);
     }
 
     private function tratar_tipounidad() {
@@ -334,13 +414,36 @@ class admin_distribucion extends fs_controller {
     }
     
     public function tratar_asignacion_cargos(){
-        $supervisores = \filter_input(INPUT_POST, 'cargos_disponibles_supervisores');
-        $vendedores = \filter_input(INPUT_POST, 'cargos_disponibles_vendedores');
-        $nac0 = array();
-        if(isset($supervisores)){
-            
-        }elseif(isset($vendedores)){
-            
+        $id_cargo = false;
+        $id_supervisor = \filter_input(INPUT_POST, 'cargos_disponibles_supervisores');
+        $tipo_cargo = \filter_input(INPUT_POST, 'tipo_cargo');
+        $id_vendedor = \filter_input(INPUT_POST, 'cargos_disponibles_vendedores');
+        $accion = \filter_input(INPUT_POST, 'accion');
+
+        if($accion == 'agregar'){
+            $id_cargo=($id_supervisor)?$id_supervisor:$id_vendedor;
+        }elseif($accion == 'eliminar'){
+            $id_cargo=\filter_input(INPUT_POST, 'codcargo');
+        }
+        
+        if($accion=='agregar' and !empty($id_cargo)){
+            $ac0 = new distribucion_asignacion_cargos();
+            $ac0->idempresa = $this->empresa->id;
+            $ac0->codcargo = $id_cargo;
+            $ac0->tipo_cargo = $tipo_cargo;
+            $ac0->usuario_creacion = $this->user->nick;
+            $ac0->fecha_creacion = \Date('d-m-Y H:i:s');
+            if($ac0->save()){
+                $this->new_message('Asignación de cargo realizada correctamente.');
+            }
+        }elseif($accion=='eliminar' and !empty($id_cargo)){
+            $ac0 = $this->distribucion_asignacion_cargos->get($this->empresa->id, $id_cargo, $tipo_cargo);
+            if($ac0){
+                $ac0->delete();
+                $this->new_message('Asignación de Supervisor eliminada correctamente.');
+            }else{
+                $this->new_message('Datos incompletos, por favor revise la información enviada');
+            }
         }
     }
     
@@ -350,6 +453,16 @@ class admin_distribucion extends fs_controller {
             require_model('cargos.php');
             $cargos = new cargos();
             $listado = $cargos->all();
+            $cargos_ocupados = array();
+            foreach($this->distribucion_asignacion_cargos->all($this->empresa->id) as $cargo){
+                $cargos_ocupados[]=$cargo->codcargo;
+            }
+            
+            foreach($listado as $id=>$item){
+                if(in_array($item->codcargo, $cargos_ocupados)){
+                    unset($listado[$id]);
+                }
+            }
         }
         return $listado;
     }

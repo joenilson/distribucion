@@ -99,7 +99,6 @@ class distribucion_tiporuta extends fs_model {
                     $this->var2str($this->fecha_creacion).");";
             if($this->db->exec($sql))
             {
-                $this->id = $this->id;
                 return true;
             }
             else
@@ -114,15 +113,6 @@ class distribucion_tiporuta extends fs_model {
                 "id = ".$this->intval($this->id).";";
         return $this->db->exec($sql);
     }
-    
-    /*
-    public function generate_id(){
-        $dataId = $this->db->select("SELECT max(id) AS id FROM distribucion_tiporuta WHERE idempresa = ".$this->intval($this->idempresa).";");
-        $newId = $dataId[0]['id'];
-        $newId++;
-        return $newId;
-    }
-    */
     
     public function all()
     {
@@ -156,8 +146,7 @@ class distribucion_tiporuta extends fs_model {
     
     public function get($id)
     {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_tiporuta WHERE id = ".$this->intval($id)." ORDER BY id;");
+        $data = $this->db->select("SELECT * FROM distribucion_tiporuta WHERE id = ".$this->intval($id).";");
         
         if($data)
         {
