@@ -387,7 +387,7 @@ class impresion_rutas extends fs_controller{
                 'page_from' => __CLASS__,
                 'page_to' => 'impresion_rutas',
                 'type' => 'head',
-                'text' => '<script type="text/javascript" src="plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
+                'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
                 'params' => ''
             )
         );
@@ -399,7 +399,7 @@ class impresion_rutas extends fs_controller{
             'page_from' => __CLASS__,
             'page_to' => 'impresion_rutas',
             'type' => 'head',
-            'text' => '<script type="text/javascript" src="plugins/distribucion/view/js/jquery-ui.min.js"></script>',
+            'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/jquery-ui.min.js"></script>',
             'params' => ''
             )
         );
@@ -411,7 +411,7 @@ class impresion_rutas extends fs_controller{
             'page_from' => __CLASS__,
             'page_to' => 'impresion_rutas',
             'type' => 'head',
-            'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/jquery-ui.min.css"/>',
+            'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.min.css"/>',
             'params' => ''
             )
         );
@@ -423,7 +423,7 @@ class impresion_rutas extends fs_controller{
            'page_from' => __CLASS__,
            'page_to' => 'impresion_rutas',
            'type' => 'head',
-           'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
+           'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
            'params' => ''
                 )
         );
@@ -435,7 +435,7 @@ class impresion_rutas extends fs_controller{
            'page_from' => __CLASS__,
            'page_to' => 'impresion_rutas',
            'type' => 'head',
-           'text' => '<link rel="stylesheet" href="plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
+           'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
            'params' => ''
                 )
         );
@@ -447,7 +447,7 @@ class impresion_rutas extends fs_controller{
            'page_from' => __CLASS__,
            'page_to' => 'impresion_rutas',
            'type' => 'head',
-           'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
+           'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
            'params' => ''
           )
         );
@@ -459,7 +459,7 @@ class impresion_rutas extends fs_controller{
            'page_from' => __CLASS__,
            'page_to' => 'impresion_rutas',
            'type' => 'head',
-           'text' => '<script src="plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
+           'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
            'params' => ''
                 )
         );
@@ -471,7 +471,7 @@ class impresion_rutas extends fs_controller{
            'page_from' => __CLASS__,
            'page_to' => 'impresion_rutas',
            'type' => 'head',
-           'text' => '<script src="plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
+           'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
            'params' => ''
                 )
         );
@@ -483,7 +483,7 @@ class impresion_rutas extends fs_controller{
            'page_from' => __CLASS__,
            'page_to' => 'impresion_rutas',
            'type' => 'head',
-           'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/css/bootstrap-select.min.css"/>',
+           'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
            'params' => ''
                 )
         );
