@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : articulo_unidadmedida.xml
+    Description:
+        Estructura de la tabla articulo_unidadmedida.
+-->
+<tabla>
+    <columna>
+        <nombre>base</nombre>
+        <tipo>boolean</tipo>
+        <nulo>NO</nulo>
+        <defecto>false</defecto>
+    </columna>
+    <columna>
+        <nombre>factor</nombre>
+        <tipo>numeric</tipo>
+        <nulo>NO</nulo>
+        <defecto>1</defecto>
+    </columna>
+    <columna>
+        <nombre>id</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>peso</nombre>
+        <tipo>numeric</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>referencia</nombre>
+        <tipo>character varying(18)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <restriccion>
+        <nombre>articulo_unidadmedida_pkey</nombre>
+        <consulta>PRIMARY KEY (id,referencia)</consulta>
+    </restriccion>
+    <restriccion>
+        <nombre>ca_articulo_unidadmedida_articulos</nombre>
+        <consulta>FOREIGN KEY (referencia) REFERENCES articulos (referencia) MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE</consulta>
+    </restriccion>
+</tabla>
