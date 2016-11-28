@@ -11,6 +11,11 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
+        <nombre>abreviatura</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
         <nombre>id</nombre>
         <tipo>serial</tipo>
         <nulo>NO</nulo>

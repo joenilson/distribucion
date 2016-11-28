@@ -79,7 +79,13 @@ class articulo_unidadmedida extends fs_model {
     }
 
     public function info_adicional($item){
-        $item->nombre_um = $this->unidadmedida->get($item->id)->name;
+        if($this->unidadmedida->get($item->id)){
+            $item->nombre_um = $this->unidadmedida->get($item->id)->name;
+            $item->abrev_um = $this->unidadmedida->get($item->id)->abreviatura;
+        }else{
+            $item->nombre_um = 'NO EXISTE';
+            $item->abrev_um = 'NE';
+        }
         return $item;
     }
 
@@ -155,7 +161,7 @@ class articulo_unidadmedida extends fs_model {
         }
         $data = $this->db->exec($sql);
         if($data){
-            return $this->db->lastval();
+            return true;
         }else{
             return false;
         }

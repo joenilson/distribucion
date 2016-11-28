@@ -34,6 +34,11 @@ class unidadmedida extends fs_model {
      */
     public $name;
     /**
+     * Abreviatura para la unidad de medida
+     * @var type varchar(6)
+     */
+    public $abreviatura;
+    /**
      * Cantidad base de la unidad de medida
      * se usará como referencia a la hora de agregar
      * esta unidad de medida a un artículo
@@ -45,10 +50,12 @@ class unidadmedida extends fs_model {
          if($t){
              $this->id = $t['id'];
              $this->name = $t['name'];
+             $this->abreviatura = $t['abreviatura'];
              $this->cantidad = floatval($t['cantidad']);
          }else{
              $this->id = NULL;
              $this->name = NULL;
+             $this->abreviatura = NULL;
              $this->cantidad = NULL;
          }
     }
@@ -88,22 +95,35 @@ class unidadmedida extends fs_model {
             return $this->get($this->id);
         }
     }
+    
+    public function en_uso(){
+        $sql = "SELECT count(id) as cantidad from articulo_unidadmedida where id = ".$this->id.";";
+        $data = $this->db->select($sql);
+        if($data){
+            return $data[0]['cantidad']+0;
+        }else{
+            return false;
+        }
+        
+    }
 
     public function save() {
         if($this->exists()){
             $sql = "UPDATE ".$this->table_name." SET ".
                     " cantidad = ".floatval($this->cantidad).", ".
+                    " abreviatura = ".$this->var2str($this->abreviatura).", ".
                     " name = ".$this->var2str($this->name).
                     " WHERE ".
                     " id = ".$this->intval($this->id).";";
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (name, cantidad) VALUES (".
+            $sql = "INSERT INTO ".$this->table_name." (name, abreviatura, cantidad) VALUES (".
                     $this->var2str($this->name).", ".
-                    $this->var2str($this->name).");";
+                    $this->var2str($this->abreviatura).", ".
+                    $this->var2str($this->cantidad).");";
         }
         $data = $this->db->exec($sql);
         if($data){
-            return $this->db->lastval();
+            return true;
         }else{
             return false;
         }

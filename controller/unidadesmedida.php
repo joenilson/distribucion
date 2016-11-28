@@ -16,20 +16,58 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+require_model('unidadmedida.php');
 /**
  * Description of unidadesmedida
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
 class unidadesmedida extends fs_controller {
-
+    public $allow_delete;
+    public $unidadmedida;
     public function __construct() {
         parent::__construct(__CLASS__, 'Unidades de Medida', 'ventas', FALSE, FALSE, TRUE);
     }
 
     protected function private_core() {
+        $this->unidadmedida = new unidadmedida();
+        
+        $this->allow_delete = ($this->user->admin)?TRUE:$this->user->allow_delete_on(__CLASS__);
+        
         $this->shared_extensions();
+        $accion = filter_input(INPUT_POST, 'accion');
+        if($accion=='agregar'){
+            $id = filter_input(INPUT_POST, 'id');
+            $name = filter_input(INPUT_POST, 'name');
+            $abreviatura = filter_input(INPUT_POST, 'abreviatura');
+            $cantidad = filter_input(INPUT_POST, 'cantidad');
+            $um0 = new unidadmedida();
+            $um0->id = $id;
+            $um0->name = $this->clearText($name);
+            $um0->abreviatura = $this->clearText($abreviatura);
+            $um0->cantidad = floatval($cantidad);
+            if($um0->save()){
+                $this->new_message('¡Unidad de medida agregada con exito, ya puede utilizarla en los artículos!');
+            }else{
+                $this->new_error_msg('Ocurrio un error al agregar la Unidad de Medida, revise la información que agregó');
+            }
+        }elseif($accion=="eliminar"){
+            $id = filter_input(INPUT_POST, 'id');
+            $item = $this->unidadmedida->get($id);
+            if($item){
+                if($item->delete()){
+                    $this->new_message('¡Unidad de medida eliminada con exito!');
+                }else{
+                    $this->new_error_msg('Ocurrio un error al eliminar la Unidad de Medida.');
+                }
+            }else{
+                $this->new_error_msg('No se encuentra la unidad de medida a eliminar, revise la información enviada.');
+            }
+        }
+    }
+    
+    public function clearText($text){
+        return htmlentities(strtoupper(trim($text)));
     }
 
     public function shared_extensions(){
