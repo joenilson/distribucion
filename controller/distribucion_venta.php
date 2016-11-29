@@ -84,7 +84,7 @@ class distribucion_venta extends fs_controller{
         if($cliente){
             $this->buscar_cliente($cliente);
         }
-        $this->rutas = ($this->codalmacen)?$this->rutas_all->all_rutasporalmacen($this->empresa->id, $this->codalmacen):$this->rutas_all->all($this->empresa->id);
+        $this->rutas = ($this->codalmacen)?$this->rutas_all->all_rutasporalmacen($this->empresa->id, $this->codalmacen):array();
         if($this->ruta and $this->codalmacen){
             $this->clientes_ruta = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $this->codalmacen, $this->ruta);
         }
