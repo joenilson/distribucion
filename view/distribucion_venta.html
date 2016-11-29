@@ -50,53 +50,86 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </h2>
         </div>
     </div>
+    <form class="form-inline" name="f_nueva_venta" action="{$fsc->url()}" method="POST">
     <div class="row">
         <div class="col-sm-12">
-            <form class="form-inline" name="f_nueva_venta" action="{$fsc->url()}" method="POST">
-                <strong>Información Básica:</strong> [ Canal | Documento a Generar ]
-                <div class="form-group">
-                    <label for="fecha_pedido" class="control-label">Fecha Pedido</label>
-                    <input type="text" size="12" name="fecha_pedido" id="fecha_pedido" class="form-control input-sm datepicker" autocomplete="off" value="{$fsc->fecha_pedido}">
+            <div class="panel panel-default panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Información Básica</h3>
                 </div>
-                <div class="form-group">
+                <div class="panel-body">
+                    <div class="col-sm-3">
+                        <label for="fecha_pedido" class="control-label">Fecha Pedido</label>
+                        <div class="form-group">
+                            <input type="text" name="fecha_pedido" id="fecha_pedido" class="form-control input-sm datepicker" autocomplete="off" value="{$fsc->fecha_pedido}">
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
                     <label for="fecha_facturacion" class="control-label">Fecha Facturacion</label>
-                    <input type="text" size="12" name="fecha_facturacion" id="fecha_facturacion" class="form-control input-sm datepicker" autocomplete="off" value="{$fsc->fecha_facturacion}">
+                    <div class="form-group">
+                            <input type="text" name="fecha_facturacion" id="fecha_facturacion" class="form-control input-sm datepicker" autocomplete="off" value="{$fsc->fecha_facturacion}">
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group-sm">
+                            <select name="codalmacen" id="codalmacen" class="selectpicker form-control" required="" onchange="this.form.submit()">
+                                <option value="">Elige un almacén</option>
+                                {loop="$fsc->almacen->all()"}
+                                <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
+                                {/loop}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group-sm">
+                            <select name="documento" class="selectpicker form-control">
+                                <option value="pedido">{#FS_PEDIDO#}</option>
+                                <option value="albaran">{#FS_ALBARAN#}</option>
+                                <option value="factura">Factura</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+
+                    </div>
+                    <div class="col-sm-3 col-sm-offset-1">
+                        <div class="form-group-sm">
+                            <input type="text" id="ac_cliente" name="cliente" autocomplete="off" class="form-control input-sm" placeholder="O busca un cliente">
+                            <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
+                            <input type="hidden" name="cliente_nombre" value="{$fsc->cliente_nombre}">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="codalmacen" class="control-label">Almacén</label>
-                    <select name="codalmacen" id="codalmacen" class="form-control input-sm" required="" onchange="this.form.submit()">
-                        <option value="">Elige un almacén</option>
-                        {loop="$fsc->almacen->all()"}
-                        <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
-                        {/loop}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="ruta" class="control-label">Ruta</label>
-                    <select name="ruta" id="ruta" class="form-control input-sm">
-                        <option value="">Elige una ruta</option>
-                        {loop="$fsc->rutas"}
-                        <option value="{$value->codruta}">{$value->descripcion}</option>
-                        {/loop}
-                    </select> 
-                    <label for="cliente" class="control-label">o un Cliente</label>
-                    <input type="text" id="cliente" name="cliente" autocomplete="off" class="form-control input-sm" maxlength="6" size="6">
-                    <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
-                </div>
-            </form>
+            </div>
         </div>
     </div>
     <div class="clearfix">
-        
+
     </div>
     <div class="row">
         <div class="col-sm-3">
             <div class="panel panel-default panel-info">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Clientes</h3>
+                    <div class="panel-title">Clientes de
+                        <div class="form-group">
+                            <select name="ruta" class="selectpicker form-control" data-style="btn-info" data-width="auto" onchange="this.form.submit();">
+                                <option value="">Elige una ruta</option>
+                                {loop="$fsc->rutas"}
+                                <option value="{$value->ruta}" {if="$fsc->ruta==$value->ruta"}selected{/if}>{$value->ruta} - {$value->descripcion}</option>
+                                {/loop}
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="panel-body">
-                    Lista de Clientes
+                    <div class="list-group">
+                    {loop="$fsc->clientes_ruta"}
+                        <a href="#" class="list-group-item">
+                            <h5 class="list-group-item-heading">{$value->codcliente} - {$value->nombre_cliente}</h5>
+                            <p class="list-group-item-text">{$value->direccion}</p>
+                        </a>
+                    {/loop}
+                    </div>
                 </div>
             </div>
         </div>
@@ -111,5 +144,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
         </div>
     </div>
+    </form>
 </div>
+<script>
+$(document).ready(function () {
+    $("#ac_cliente").autocomplete({
+        serviceUrl: '{$fsc->url()}',
+        paramName: 'buscar_cliente',
+        width: 300,
+        onSelect: function (suggestion) {
+           if(suggestion)
+           {
+              if(document.f_nueva_venta.codcliente.value !== suggestion.codcliente)
+              {
+                 document.f_nueva_venta.codcliente.value = suggestion.codcliente;
+                 document.f_nueva_venta.cliente_nombre.value = suggestion.value;
+              }
+           }
+        }
+    });
+});
+</script>
 {include="footer"}
