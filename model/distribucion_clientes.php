@@ -96,13 +96,13 @@ class distribucion_clientes extends fs_model {
         $datos_subcanal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->subcanal, 'SUBCANAL');
         $datos_direccion = $this->direccion_cliente->get($informacion->iddireccion);
         $datos_cliente = $this->cliente->get($informacion->codcliente);
-        $informacion->direccion = $datos_direccion->direccion;
+        $informacion->direccion = ($datos_direccion)?$datos_direccion->direccion:'Completar Información';
         $informacion->ruta_descripcion = $datos_ruta->descripcion;
         $informacion->codagente = $datos_ruta->codagente;
         $informacion->nombre = $datos_ruta->nombre;
         $informacion->canal_descripcion = $datos_canal->descripcion;
         $informacion->subcanal_descripcion = $datos_subcanal->descripcion;
-        $informacion->nombre_cliente = $datos_cliente->nombre;
+        $informacion->nombre_cliente = ($datos_direccion)?$datos_cliente->nombre:'Error de nombre del cliente';
         return $informacion;
     }
     

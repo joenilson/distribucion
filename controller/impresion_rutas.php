@@ -268,7 +268,8 @@ class impresion_rutas extends fs_controller{
             $cabecera->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $almacen_imprimir, $r);
             $cabecera->almacen_nombre = $this->almacen->get($cabecera->codalmacen)->nombre;
             $cabecera->dias_atencion = $this->dias_atencion($cabecera, 'PDF');
-            $logo_empresa = '../../../../'.'tmp'.DIRECTORY_SEPARATOR.FS_TMP_NAME.'logo.png';
+            $basepath = dirname(dirname(__FILE__));
+            $logo_empresa = '../../../..'.FS_MYDOCS.DIRECTORY_SEPARATOR.'images/logo.png';
             $this->pdf->startPageGroup();
             $this->pdf->SetHeaderData(
                 $logo_empresa, 
