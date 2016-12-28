@@ -28,6 +28,7 @@ class distrib_faltantes extends fs_controller{
     public $agente;
     public $almacenes;
     public $almacen;
+    public $fecha_pago;
     public $distribucion_faltantes;
     public $resultados_faltantes;
     public $total_faltantes;
@@ -47,6 +48,10 @@ class distrib_faltantes extends fs_controller{
         $this->mostrar = 'todo';
         $this->distribucion_faltantes = new distribucion_faltantes();
         $this->almacenes = new almacen();
+        
+        $this->fecha_pago = \date('d-m-Y');
+        $fecha_pago = filter_input(INPUT_POST, 'fecha_pago');
+        $this->fecha_pago = ($fecha_pago)?$fecha_pago:\date('d-m-Y');
 
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
         if($this->user->admin){
@@ -81,6 +86,13 @@ class distrib_faltantes extends fs_controller{
             $this->listado_faltantes = $this->mostrar_informacion($_REQUEST['mostrar']);
         }
         
+        $accion = filter_input(INPUT_POST, 'accion');
+        if($accion){
+            if($accion=='cobrar'){
+                $this->cobrar_faltante();
+            }
+        }
+        
         //Totalizamos por Divisa los faltantes
         if($this->listado_faltantes){
             foreach($this->listado_faltantes as $faltante){
@@ -93,12 +105,33 @@ class distrib_faltantes extends fs_controller{
             $this->total_faltantes[$this->empresa->coddivisa]=0;
         }
         $this->total_resultados = count($this->listado_faltantes);
-        
     }
     
     public function mostrar_informacion($solicitud){
         if($solicitud == 'buscar'){
             return $this->distribucion_faltantes->buscar($this->empresa->id, $this->codalmacen, $this->desde, $this->hasta, $this->conductor);
+        }
+    }
+    
+    public function cobrar_faltante(){
+        $idrecibo = filter_input(INPUT_POST, 'idrecibo');
+        $monto_pago = filter_input(INPUT_POST, 'monto_pago');
+        $tipo_pago = filter_input(INPUT_POST, 'tipo_pago');
+        $fecha_pago = filter_input(INPUT_POST, 'fecha_pago');
+        $nuevo_recibo = $this->distribucion_faltantes->get_by_recibo($this->empresa->id, $this->codalmacen, $idrecibo);
+        if($nuevo_recibo){
+            $recibo_pago = clone $nuevo_recibo;
+            $recibo_pago->idreciboref = $nuevo_recibo->idrecibo;
+            $recibo_pago->idrecibo = null;
+            $recibo_pago->fecha = \date('Y-m-d',strtotime($fecha_pago));
+            $recibo_pago->fechap = \date('Y-m-d',strtotime($fecha_pago));
+            $recibo_pago->estado = 'pagado';
+            $recibo_pago->importe = floatval($monto_pago);
+            if($recibo_pago->save()){
+                $this->new_message('Pago del Faltante: '.$idrecibo.' por '.$monto_pago.' hecho  al '.$tipo_pago.' en fecha '.\date('Y-m-d',strtotime($fecha_pago)).' Correctamente');
+            }
+        }else{
+            $this->new_error_msg('No se encontró un Faltante con la información proporcionada.');
         }
     }
     

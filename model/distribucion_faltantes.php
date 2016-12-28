@@ -133,6 +133,49 @@ class distribucion_faltantes extends fs_model {
         new distribucion_subcuentas_faltantes();
         return "";
     }
+    
+    public function info_adicional($d){
+        $datos_conductor = $this->distribucion_conductores->get($d->idempresa, $d->conductor);
+        $d->conductor_nombre = $datos_conductor->nombre;
+        $d->importe_saldo = $d->importe;
+        $d->pagos = $this->get_pagos_recibo($d->idempresa, $d->codalmacen, $d->idrecibo);
+        if($d->pagos){
+            foreach($d->pagos as $pago){
+                $d->importe_saldo -= $pago->importe;
+                $d->importe_pagos += $pago->importe;
+            }
+        }else{
+            $d->pagos = 0;
+            $d->importe_pagos = 0;
+        }
+        return $d;
+    }
+    
+    public function get_by_recibo($empresa,$almacen,$recibo){
+        $sql = "SELECT * from ".$this->table_name." WHERE idempresa = ".$this->intval($empresa)
+                ." AND codalmacen = ".$this->var2str($almacen)
+                ." AND idrecibo = ".$this->intval($recibo).";";
+        $data = $this->db->select($sql);
+        if($data){
+            $d = new distribucion_faltantes($data[0]);
+            $item = $this->info_adicional($d);
+            return $item; 
+        }else{
+            return false;
+        }
+    }
+
+    public function get_pagos_recibo($empresa,$almacen,$recibo){
+        $sql = "SELECT * from ".$this->table_name." WHERE idempresa = ".$this->intval($empresa)
+                ." AND codalmacen = ".$this->var2str($almacen)
+                ." AND idreciboref = ".$this->intval($recibo).";";
+        $data = $this->db->select($sql);
+        if($data){
+            return new distribucion_faltantes($data[0]);
+        }else{
+            return false;
+        }
+    }
 
     public function getNextId() {
         $data = $this->db->select("SELECT max(idrecibo) as max FROM distribucion_faltantes WHERE " .
@@ -256,7 +299,8 @@ class distribucion_faltantes extends fs_model {
             $lista = array();
             foreach ($data as $d) {
                 $linea = new distribucion_faltantes($d);
-                $lista[] = $linea;
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
             return $lista;
         } else {
@@ -270,7 +314,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -282,7 +328,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -294,7 +342,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -306,7 +356,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -318,7 +370,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -330,7 +384,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -342,7 +398,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -354,7 +412,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -366,7 +426,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -378,7 +440,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -390,7 +454,9 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -402,22 +468,23 @@ class distribucion_faltantes extends fs_model {
 
         if ($data) {
             foreach ($data as $d) {
-                $lista[] = new distribucion_faltantes($d);
+                $linea = new distribucion_faltantes($d);
+                $item = $this->info_adicional($linea);
+                $lista[] = $item;
             }
         }
         return $lista;
     }
 
     public function get($idempresa, $idtransporte, $codalmacen) {
-        $lista = FALSE;
+        $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idtransporte = " . $this->intval($idtransporte) . " AND codalmacen = " . $this->var2str($codalmacen) . ";");
 
         if ($data) {
             foreach ($data as $d) {
                 $valor_lista = new distribucion_faltantes($d);
-                $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
-                $valor_lista->conductor_nombre = $datos_conductor->nombre;
-                $lista = $valor_lista;
+                $item = $this->info_adicional($valor_lista);
+                $lista[] = $item;
             }
         }
         return $lista;

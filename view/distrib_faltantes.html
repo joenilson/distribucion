@@ -68,6 +68,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <th>Transporte</th>
                         <th>Fecha</th>
                         <th>Monto</th>
+                        <th>Pago</th>
+                        <th>Saldo</th>
                         <th>Estado</th>
                         <th></th>
                     </tr>
@@ -80,10 +82,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <td>{$value->idtransporte}</td>
                         <td>{$value->fecha}</td>
                         <td>{$fsc->show_precio($value->importe,$value->coddivisa)}</td>
+                        <td>{$fsc->show_precio($value->importe_pagos,$value->coddivisa)}</td>
+                        <td>{$fsc->show_precio($value->importe_saldo,$value->coddivisa)}</td>
                         <td>{$value->estado}</td>
                         <td>
                             {if="$value->estado=='pendiente'"}
-                            <button class='btn btn-sm btn-danger' type='button' data-toggle="modal" data-target="#procesarPago">
+                            <button class='btn btn-sm btn-danger' type='button' data-toggle="modal" data-target="#procesarPago" onclick="document.f_pago.monto_pago.value='{$value->importe_saldo}';document.f_pago.idrecibo.value='{$value->idrecibo}'">
                                 <span class="fa fa-money"></span>&nbsp; Cobrar
                             </button>
                             {/if}
@@ -124,42 +128,45 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title">Agregar Pago</h4>
             </div>
+            <form class="form form-horizontal" name="f_pago" role="form" action="{$fsc->url()}" method="POST">
             <div class="modal-body">
-                <form class="form form-horizontal" role="form" action="{$fsc->url()}" method="POST">
-                    <div class="form-group">
-                        <label class="control-label col-sm-4" for="tipo_pago">Tipo de Pago</label>
-                        <div class="col-sm-4">
-                        <select name="tipo_pago" id="tipo_pago" class="form-control input-sm">
-                            <option value="contado">Al Contado</option>
-                            <option value="descuento">Descuento</option>
-                            <option value="contable">Contable</option>
-                        </select>
+                <input type="hidden" name="idrecibo" value="">
+                <div class="form-group">
+                    <label class="control-label col-sm-4" for="tipo_pago">Tipo de Pago</label>
+                    <div class="col-sm-4">
+                    <select name="tipo_pago" id="tipo_pago" class="form-control input-sm">
+                        <option value="contado">Al Contado</option>
+                        <option value="descuento">Descuento</option>
+                        <option value="contable">Contable</option>
+                    </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-4" for="fecha_pago">Fecha de Pago</label>
+                    <div class="col-sm-4">
+                        <div class="has-feedback">
+                            <input type="text" name="fecha_pago" value="{$fsc->fecha_pago}" class="form-control datepicker input-sm" id="fecha_pago">
+                            <span class="fa fa-calendar form-control-feedback"></span>                                
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="control-label col-sm-4" for="fecha_pago">Fecha de Pago</label>
-                        <div class="col-sm-4">
-                            <div class="has-feedback">
-                                <input type="text" name="fecha_pago" data-date-format="yyyy-mm-dd" class="form-control datepicker input-sm" id="fecha_pago">
-                                <span class="fa fa-calendar form-control-feedback"></span>                                
-                            </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-4" for="monto_pago">Monto de Pago</label>
+                    <div class="col-sm-4">
+                        <div class="has-feedback">
+                            <input type="number" name="monto_pago" class="form-control input-sm" id="monto_pago">
+                            <span class="fa fa-money form-control-feedback"></span>                                
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="control-label col-sm-4" for="monto_pago">Monto de Pago</label>
-                        <div class="col-sm-4">
-                            <div class="has-feedback">
-                                <input type="number" name="monto_pago" class="form-control input-sm" id="monto_pago">
-                                <span class="fa fa-money form-control-feedback"></span>                                
-                            </div>
-                        </div>
-                    </div>
-                </form>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-remove"></span>&nbsp;Cerrar</button>
-                <button type="button" class="btn btn-primary"><span class="fa fa-save"></span>&nbsp;Guardar</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="document.f_pago.monto_pago.value=''"><span class="fa fa-remove"></span>&nbsp;Cerrar</button>
+                <button type="submit" name="accion" value="cobrar" class="btn btn-primary" name>
+                    <span class="fa fa-save"></span>&nbsp;Guardar
+                </button>
             </div>
+            </form>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
