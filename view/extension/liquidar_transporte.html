@@ -399,7 +399,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 <th class="text-right">Monto Faltante</th>
                             </tr>
                         </thead>
-                        <tr class="{if="$fsc->faltante_transporte->estado=='pendiente'"}danger{else}info{/if}">
+                        <tr class='{if="$fsc->faltante_transporte->estado=='pendiente'"}danger{else}info{/if}'>
                             <td>{$fsc->faltante_transporte->idrecibo}</td>
                             <td>{$fsc->faltante_transporte->fecha}</td>
                             <td>{$fsc->faltante_transporte->fechav}</td>

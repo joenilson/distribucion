@@ -66,12 +66,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <th>Numero</th>
                         <th>Chofer</th>
                         <th>Transporte</th>
-                        <th>Fecha</th>
-                        <th>Monto</th>
-                        <th>Pago</th>
-                        <th>Saldo</th>
-                        <th>Estado</th>
+                        <th class="text-center">Fecha</th>
+                        <th class="text-center">Monto</th>
+                        <th class="text-center">Pagado</th>
+                        <th class="text-center">Saldo</th>
+                        <th class="text-center">Estado</th>
                         <th></th>
+                        <th><span class="fa fa-history"></span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,27 +81,61 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <td>{$value->idrecibo}</td>
                         <td>{$value->nombreconductor}</td>
                         <td>{$value->idtransporte}</td>
-                        <td>{$value->fecha}</td>
-                        <td>{$fsc->show_precio($value->importe,$value->coddivisa)}</td>
-                        <td>{$fsc->show_precio($value->importe_pagos,$value->coddivisa)}</td>
-                        <td>{$fsc->show_precio($value->importe_saldo,$value->coddivisa)}</td>
-                        <td>{$value->estado}</td>
+                        <td class="text-center">{$value->fecha}</td>
+                        <td class="text-right">{$fsc->show_precio($value->importe,$value->coddivisa)}</td>
+                        <td class="text-right">{$fsc->show_precio($value->importe_pagos,$value->coddivisa)}</td>
+                        <td class="text-right">{$fsc->show_precio($value->importe_saldo,$value->coddivisa)}</td>
+                        <td class="text-center">{$value->estado}</td>
                         <td>
                             {if="$value->estado=='pendiente'"}
-                            <button class='btn btn-sm btn-danger' type='button' data-toggle="modal" data-target="#procesarPago" onclick="document.f_pago.monto_pago.value='{$value->importe_saldo}';document.f_pago.idrecibo.value='{$value->idrecibo}'">
+                            <button class='btn btn-sm btn-danger' type='button' data-toggle="modal" data-target="#procesarPago" onclick="document.f_pago.codalmacen.value='{$value->codalmacen}';document.f_pago.monto_pago.value='{$value->importe_saldo}';document.f_pago.idrecibo.value='{$value->idrecibo}'">
                                 <span class="fa fa-money"></span>&nbsp; Cobrar
                             </button>
                             {/if}
                         </td>
+                        <td>
+                            {if="$value->pagos!=0"}
+                            <button class="btn btn-sm btn-info" type="button" data-toggle="collapse" data-target="#pagos_recibo{$value->idrecibo}" aria-expanded="false" aria-controls="pagos_recibo{$value->idrecibo}"><span class="fa fa-history"></span></button>
+                            {/if}
+                        </td>
                     </tr>
+                        {if="$value->pagos!=0"}
+                        <tr>
+                            <td colspan="10" class="hiddenRow">
+                                <div class="accordian-body collapse" id="pagos_recibo{$value->idrecibo}">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center">Recibo</th>
+                                                <th class="text-center">Fecha de Pago</th>
+                                                <th class="text-center">Monto de Pago</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {loop="$value->pagos"}
+                                            <tr>
+                                                <td class="col-sm-2">{$value2->idrecibo}</td>
+                                                <td class="col-sm-3">{$value2->fechap}</td>
+                                                <td class="col-sm-3 text-right">{$fsc->show_precio($value->importe,$value->coddivisa)}</td>
+                                                <td class="col-sm-4"></td>
+                                            </tr>
+                                            {/loop}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        {/if}
                     {/loop}
                 </tbody>
                 <tfoot>
                     {loop="$fsc->total_faltantes"}
                     <tr>
                         <td colspan="4"></td>
-                        <td><b>{$fsc->show_precio($value,$key)}</b></td>
-                        <td colspan="2"></td>
+                        <td class="text-right"><b>{$fsc->show_precio($value->faltante,$value->divisa)}</b></td>
+                        <td class="text-right"><b>{$fsc->show_precio($value->pago,$value->divisa)}</b></td>
+                        <td class="text-right"><b>{$fsc->show_precio($value->saldo,$value->divisa)}</b></td>
+                        <td colspan="3"></td>
                     </tr>
                     {/loop}
                 </tfoot>
@@ -131,6 +166,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <form class="form form-horizontal" name="f_pago" role="form" action="{$fsc->url()}" method="POST">
             <div class="modal-body">
                 <input type="hidden" name="idrecibo" value="">
+                <input type="hidden" name="codalmacen" value="">
                 <div class="form-group">
                     <label class="control-label col-sm-4" for="tipo_pago">Tipo de Pago</label>
                     <div class="col-sm-4">
@@ -161,7 +197,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="document.f_pago.monto_pago.value=''"><span class="fa fa-remove"></span>&nbsp;Cerrar</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="document.f_pago.monto_pago.value='';document.f_pago.codalmacen.value='';document.f_pago.idrecibo.value=''"><span class="fa fa-remove"></span>&nbsp;Cerrar</button>
                 <button type="submit" name="accion" value="cobrar" class="btn btn-primary" name>
                     <span class="fa fa-save"></span>&nbsp;Guardar
                 </button>

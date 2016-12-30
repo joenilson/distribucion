@@ -139,6 +139,7 @@ class distribucion_faltantes extends fs_model {
         $d->conductor_nombre = $datos_conductor->nombre;
         $d->importe_saldo = $d->importe;
         $d->pagos = $this->get_pagos_recibo($d->idempresa, $d->codalmacen, $d->idrecibo);
+        $d->importe_pagos = 0;
         if($d->pagos){
             foreach($d->pagos as $pago){
                 $d->importe_saldo -= $pago->importe;
@@ -146,7 +147,6 @@ class distribucion_faltantes extends fs_model {
             }
         }else{
             $d->pagos = 0;
-            $d->importe_pagos = 0;
         }
         return $d;
     }
@@ -171,7 +171,11 @@ class distribucion_faltantes extends fs_model {
                 ." AND idreciboref = ".$this->intval($recibo).";";
         $data = $this->db->select($sql);
         if($data){
-            return new distribucion_faltantes($data[0]);
+            $lista = array();
+            foreach($data as $d){
+                $lista[] = new distribucion_faltantes($d);
+            }
+            return $lista;
         }else{
             return false;
         }
@@ -205,6 +209,7 @@ class distribucion_faltantes extends fs_model {
                     "codtrans = " . $this->var2str($this->codtrans) . ", " .
                     "conductor = " . $this->var2str($this->conductor) . ", " .
                     "nombreconductor = " . $this->var2str($this->nombreconductor) . ", " .
+                    "idreciboref = " . $this->intval($this->idreciboref) . ", " .
                     "idsubcuenta = " . $this->intval($this->idsubcuenta) . ", " .
                     "codcuenta = " . $this->var2str($this->codcuenta) . ", " .
                     "tipo = " . $this->var2str($this->tipo) . ", " .
@@ -219,11 +224,13 @@ class distribucion_faltantes extends fs_model {
             return $this->db->exec($sql);
         } else {
             $this->idrecibo = $this->getNextId();
-            $sql = "INSERT INTO distribucion_faltantes ( idempresa, codalmacen, idtransporte, idrecibo, codtrans, conductor, nombreconductor, descripcion, tipo, importe, coddivisa, dc, fecha, fechav, fechap, estado, idsubcuenta, idasiento, codcuenta, usuario_creacion, fecha_creacion ) VALUES (" .
+            $this->idreciboref = ($this->idreciboref)?$this->intval($this->idreciboref):"NULL";
+            $sql = "INSERT INTO distribucion_faltantes ( idempresa, codalmacen, idtransporte, idrecibo, idreciboref, codtrans, conductor, nombreconductor, descripcion, tipo, importe, coddivisa, dc, fecha, fechav, fechap, estado, idsubcuenta, idasiento, codcuenta, usuario_creacion, fecha_creacion ) VALUES (" .
                     $this->intval($this->idempresa) . ", " .
                     $this->var2str($this->codalmacen) . ", " .
                     $this->intval($this->idtransporte) . ", " .
                     $this->intval($this->idrecibo) . ", " .
+                    $this->idreciboref . ", " .
                     $this->var2str($this->codtrans) . ", " .
                     $this->var2str($this->conductor) . ", " .
                     $this->var2str($this->nombreconductor) . ", " .
@@ -276,7 +283,17 @@ class distribucion_faltantes extends fs_model {
         }
     }
 
-    public function buscar($idempresa, $almacen, $desde, $hasta, $conductor) {
+    /**
+     * //Funcion para traer el listado de recibos de faltantes, ya sea los pendientes o los pagados
+     * @param type $idempresa integer
+     * @param type $almacen varchar
+     * @param type $desde date
+     * @param type $hasta date
+     * @param type $conductor varchar|null
+     * @param type $pagos boolean
+     * @return array|boolean
+     */
+    public function buscar($idempresa, $almacen, $desde, $hasta, $conductor, $pagos=false) {
         $select = "SELECT * from " . $this->table_name .
                 " WHERE idempresa = " . $this->intval($idempresa);
         $where = " ";
@@ -293,6 +310,12 @@ class distribucion_faltantes extends fs_model {
         if ($conductor) {
             $where.=" AND conductor = " . $this->var2str($conductor);
         }
+        if ($pagos) {
+            $where.=" AND idreciboref IS NOT NULL ";
+        }else{
+            $where.=" AND idreciboref IS NULL ";
+        }
+        
         $sql = $select . $where . $order;
         $data = $this->db->select($sql);
         if ($data) {
@@ -310,7 +333,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all($idempresa) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -324,7 +347,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_almacen($idempresa, $codalmacen) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND codalmacen = " . $this->var2str($codalmacen) . " ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND codalmacen = " . $this->var2str($codalmacen) . " ORDER BY codalmacen, fecha, codtrans;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -338,7 +361,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_agencia($idempresa, $codtrans) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND codtrans = " . $this->var2str($codtrans) . " ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND codtrans = " . $this->var2str($codtrans) . " ORDER BY codalmacen, fecha, codtrans;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -352,7 +375,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_agencia_almacen($idempresa, $codtrans, $codalmacen) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND codtrans = " . $this->var2str($codtrans) . " AND codalmacen = " . $this->var2str($codalmacen) . " ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND codtrans = " . $this->var2str($codtrans) . " AND codalmacen = " . $this->var2str($codalmacen) . " ORDER BY codalmacen, fecha, codtrans;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -366,7 +389,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_conductor($idempresa, $conductor) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND conductor = " . $this->var2str($conductor) . " ORDER BY codalmacen, fecha, conductor;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND conductor = " . $this->var2str($conductor) . " ORDER BY codalmacen, fecha, conductor;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -380,7 +403,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_conductor_almacen($idempresa, $conductor, $codalmacen) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND conductor = " . $this->var2str($conductor) . " AND codalmacen = " . $this->var2str($codalmacen) . " ORDER BY codalmacen, fecha, conductor;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND conductor = " . $this->var2str($conductor) . " AND codalmacen = " . $this->var2str($codalmacen) . " ORDER BY codalmacen, fecha, conductor;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -394,7 +417,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_estado($idempresa, $estado) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, codtrans;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -408,7 +431,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_estado_almacen($idempresa, $codalmacen, $estado) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND codalmacen = " . $this->var2str($codalmacen) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND codalmacen = " . $this->var2str($codalmacen) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, codtrans;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -422,7 +445,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_estado_agencia($idempresa, $codtrans, $estado) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND codtrans = " . $this->var2str($codtrans) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND codtrans = " . $this->var2str($codtrans) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, codtrans;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -436,7 +459,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_estado_agencia_almacen($idempresa, $codtrans, $codalmacen, $estado) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND codtrans = " . $this->var2str($codtrans) . " AND codalmacen = " . $this->var2str($codalmacen) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND codtrans = " . $this->var2str($codtrans) . " AND codalmacen = " . $this->var2str($codalmacen) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, codtrans;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -450,7 +473,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_estado_conductor($idempresa, $conductor, $estado) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND conductor = " . $this->var2str($conductor) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, conductor;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND conductor = " . $this->var2str($conductor) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, conductor;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -464,7 +487,7 @@ class distribucion_faltantes extends fs_model {
 
     public function all_estado_conductor_almacen($idempresa, $conductor, $codalmacen, $estado) {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND conductor = " . $this->var2str($conductor) . " AND codalmacen = " . $this->var2str($codalmacen) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, conductor;");
+        $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idreciboref IS NULL AND conductor = " . $this->var2str($conductor) . " AND codalmacen = " . $this->var2str($codalmacen) . " AND estado = " . $this->var2str($estado) . " ORDER BY codalmacen, fecha, conductor;");
 
         if ($data) {
             foreach ($data as $d) {
@@ -481,11 +504,9 @@ class distribucion_faltantes extends fs_model {
         $data = $this->db->select("SELECT * FROM distribucion_faltantes WHERE idempresa = " . $this->intval($idempresa) . " AND idtransporte = " . $this->intval($idtransporte) . " AND codalmacen = " . $this->var2str($codalmacen) . ";");
 
         if ($data) {
-            foreach ($data as $d) {
-                $valor_lista = new distribucion_faltantes($d);
-                $item = $this->info_adicional($valor_lista);
-                $lista[] = $item;
-            }
+            $d = new distribucion_faltantes($data[0]);
+            $item = $this->info_adicional($d);
+            return $item;
         }
         return $lista;
     }

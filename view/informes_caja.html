@@ -1,0 +1,134 @@
+{include="header"}
+<!--
+Copyright (C) 2016 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-header">
+                <h3>
+                    <span class="fa fa-money"></span>&nbsp;Informes de Caja
+                    <a href="{$fsc->url()}" class="btn btn-sm btn-default" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    <span class="btn-group">
+                        {loop="$fsc->extensions"}
+                        {if="$value->type=='button'"}
+                        <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
+                        {/if}
+                        {/loop}
+                    </span>
+                </h3>
+                <p class="help-block">
+                    <small>
+                    Informe de ingresos y egresos de caja.
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <form class="form-horizontal" role="form" action="{$fsc->url()}" name="f_buscar" method="POST">
+            <div class="form-group">
+                <label for="f_desde" class="col-sm-1 control-label">Desde</label>
+                <div class="col-sm-2">
+                    <input type="text" name="f_desde" class="form-control datepicker" value="{$fsc->f_desde}" id="f_desde" placeholder="Fecha Inicio">
+                </div>
+                <label for="f_hasta" class="col-sm-1 control-label">Hasta</label>
+                <div class="col-sm-2">
+                    <input type="text" name="f_hasta" class="form-control" id="f_hasta" value="{$fsc->f_hasta}" placeholder="Fecha Fin">
+                </div>
+                <label for="codalmacen" class="col-sm-1 control-label">Almacén</label>
+                <div class="col-sm-2">
+                    <select name="codalmacen" class="form-control" required>
+                        <option value="">Elija un Almacen</option>
+                        {if="$fsc->user->admin"}
+                            {loop="$fsc->almacenes->all()"}
+                            <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
+                            {/loop}
+                        {else}
+                        <option value="{$fsc->user->codalmacen}" selected>{$fsc->user->nombrealmacen}</option>
+                        {/if}
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
+                        <span class="fa fa-search"></span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <div class="container">
+            <div class="progress">
+                <div class="progress-bar progress-bar-success" style="width: 35%">
+                    <span>Ingresos</span>
+                </div>
+                <div class="progress-bar progress-bar-info progress-bar" style="width: 20%">
+                    <span>Egresos</span>
+                </div>
+                <div class="progress-bar progress-bar-warning" style="width: 20%">
+                    <span>Cobros</span>
+                </div>
+                <div class="progress-bar progress-bar-danger" style="width: 25%">
+                    <span>Pendientes de Cobro</span>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="col-sm-3">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th colspan="3">Ingresos por Formas de Pago</th>
+                            </tr>
+                            <tr>
+                                <th>Qdad</th>
+                                <th>Pago</th>
+                                <th>Valor</th>
+                                <th class="text-center">Divisa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {if="$fsc->resultados_formas_pago"}
+                                {loop="$fsc->resultados_formas_pago"}
+                                    {loop="$value1"}
+                                    <tr>
+                                        <td>{$value2->cantidad}</td>
+                                        <td>{$value2->descpago}</td>
+                                        <td class="text-right">{$fsc->show_precio($value2->importe,$value2->divisa)}</td>
+                                        <td class="text-center">{$value2->divisa}</td>
+                                    </tr>
+                                    {/loop}
+                                {/loop}
+                            {/if}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{include="footer"}
