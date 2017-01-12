@@ -94,23 +94,74 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
-                            <tr>
-                                <th colspan="3">Ingresos por Formas de Pago</th>
-                            </tr>
+
                             <tr>
                                 <th>Qdad</th>
                                 <th>Pago</th>
                                 <th>Valor</th>
                                 <th class="text-center">Divisa</th>
                             </tr>
+                            <tr>
+                                <th colspan="4">Ingresos</th>
+                            </tr>
                         </thead>
                         <tbody>
                             {if="$fsc->resultados_formas_pago"}
                                 {loop="$fsc->resultados_formas_pago"}
                                     {loop="$value1"}
-                                    <tr>
+                                    <tr class='text-success'>
                                         <td>{$value2->cantidad}</td>
                                         <td>{$value2->descpago}</td>
+                                        <td class="text-right">{$fsc->show_precio($value2->importe,$value2->divisa)}</td>
+                                        <td class="text-center">{$value2->divisa}</td>
+                                    </tr>
+                                    {/loop}
+                                {/loop}
+                            {/if}
+                        </tbody>
+                        <thead>
+                            <tr>
+                                <th colspan="4">Egresos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {if="$fsc->resultados_egresos"}
+                                {loop="$fsc->resultados_egresos"}
+                                    {loop="$value1"}
+                                    <tr class='text-info'>
+                                        <td>{$value2->cantidad}</td>
+                                        <td>{$value2->descpago}</td>
+                                        <td class="text-right">{$fsc->show_precio($value2->importe,$value2->divisa)}</td>
+                                        <td class="text-center">{$value2->divisa}</td>
+                                    </tr>
+                                    {/loop}
+                                {/loop}
+                            {/if}
+                        </tbody>
+                        <thead>
+                            <tr>
+                                <th colspan="4">Faltantes de Liquidacion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {if="$fsc->resultados_faltantes_cobrados"}
+                                {loop="$fsc->resultados_faltantes_cobrados"}
+                                    {loop="$value1"}
+                                    <tr class='text-success'>
+                                        <td>{$value2->cantidad}</td>
+                                        <td>Cobrados</td>
+                                        <td class="text-right">{$fsc->show_precio($value2->importe,$value2->divisa)}</td>
+                                        <td class="text-center">{$value2->divisa}</td>
+                                    </tr>
+                                    {/loop}
+                                {/loop}
+                            {/if}
+                            {if="$fsc->resultados_faltantes_pendientes"}
+                                {loop="$fsc->resultados_faltantes_pendientes"}
+                                    {loop="$value1"}
+                                    <tr class='text-danger'>
+                                        <td>{$value2->cantidad}</td>
+                                        <td>Pendientes</td>
                                         <td class="text-right">{$fsc->show_precio($value2->importe,$value2->divisa)}</td>
                                         <td class="text-center">{$value2->divisa}</td>
                                     </tr>

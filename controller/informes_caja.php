@@ -38,7 +38,10 @@ class informes_caja extends fs_controller {
     public $ingresos;
     public $egresos;
     public $cobros;
+    public $resultados_egresos;
     public $resultados_formas_pago;
+    public $resultados_faltantes_cobrados;
+    public $resultados_faltantes_pendientes;
     public function __construct() {
         parent::__construct(__CLASS__, 'Caja', 'informes', FALSE, TRUE, FALSE);
     }
@@ -70,6 +73,9 @@ class informes_caja extends fs_controller {
                 case "buscar":
                     $resultados = $this->resumen_movimientos();
                     $this->resultados_formas_pago = $resultados['formas_pago'];
+                    $this->resultados_faltantes_cobrados = $resultados['faltantes_cobrados'];
+                    $this->resultados_faltantes_pendientes = $resultados['faltantes_pendientes'];
+                    $this->resultados_egresos = $resultados['egresos'];
                     break;
             }
         }
@@ -98,6 +104,18 @@ class informes_caja extends fs_controller {
                 $pago_faltante['CONT'][$faltante->coddivisa] += $faltante->importe;
                 $pago_faltante_contador['CONT'][$faltante->coddivisa] += 1;
             }
+            $resultados_faltantes_cobrados = array();
+            foreach($pago_faltante['CONT'] as $divisa=>$valor){
+                if($pago_faltante_contador['CONT'][$divisa]){
+                    $item = new stdClass();
+                    $item->codpago = 'CONT';
+                    $item->descpago = $fp->get('CONT')->descripcion;
+                    $item->cantidad = $pago_faltante_contador['CONT'][$divisa];
+                    $item->divisa = $divisa;
+                    $item->importe = $valor;
+                    $resultados_faltantes_cobrados[$divisa][] = $item;
+                }
+            }
         }
         
         //Obtenemos los faltantes pendientes
@@ -113,15 +131,17 @@ class informes_caja extends fs_controller {
                 $recibo_faltante['CONT'][$faltante->coddivisa] += $faltante->importe;
                 $recibo_faltante_contador['CONT'][$faltante->coddivisa] += 1;
             }
-            $resultados_faltantes = array();
+            $resultados_faltantes_pendientes = array();
             foreach($recibo_faltante['CONT'] as $divisa=>$valor){
-                $item = new stdClass();
-                $item->codpago = 'CONT';
-                $item->descpago = $fp->get('CONT')->descripcion;
-                $item->cantidad = $recibo_faltante_contador['CONT'][$divisa];
-                $item->divisa = $divisa;
-                $item->importe = $valor;
-                $resultados_faltantes[$divisa][] = $item;
+                if($recibo_faltante_contador['CONT'][$divisa]){
+                    $item = new stdClass();
+                    $item->codpago = 'CONT';
+                    $item->descpago = $fp->get('CONT')->descripcion;
+                    $item->cantidad = $recibo_faltante_contador['CONT'][$divisa];
+                    $item->divisa = $divisa;
+                    $item->importe = $valor;
+                    $resultados_faltantes_pendientes[$divisa][] = $item;
+                }
             }
         }
         if($lista_ingresos){
@@ -164,7 +184,12 @@ class informes_caja extends fs_controller {
                 }
             }
             $resultados_movimientos = array();
-            return array('formas_pago'=>$resultados_formas_pago, 'resumen_movimientos'=>$resultados_movimientos,'faltantes_cobrados'=>'','faltantes_pendientes'=>'');
+            $resultados_egresos = array();
+            return array('formas_pago'=>$resultados_formas_pago, 
+                'resumen_movimientos'=>$resultados_movimientos,
+                'faltantes_cobrados'=>$resultados_faltantes_cobrados,
+                'faltantes_pendientes'=>$resultados_faltantes_pendientes,
+                'egresos'=>$resultados_egresos);
         }else{
             return false;
         }
