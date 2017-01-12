@@ -92,10 +92,10 @@ class informes_caja extends fs_controller {
             $pago_faltante_contador['CONT'] = array();
             foreach($lista_cobro_faltantes as $faltante){
                 if(!isset($pago_faltante['CONT'][$faltante->coddivisa])){
-                    $pago_faltante['CONT'][$faltante->coddivisa] = array();
+                    $pago_faltante['CONT'][$faltante->coddivisa] = 0;
                     $pago_faltante_contador['CONT'][$faltante->coddivisa] = 0;
                 }
-                $pago_faltante['CONT'][$faltante->coddivisa] +=$faltante->importe;
+                $pago_faltante['CONT'][$faltante->coddivisa] += $faltante->importe;
                 $pago_faltante_contador['CONT'][$faltante->coddivisa] += 1;
             }
         }
@@ -107,10 +107,10 @@ class informes_caja extends fs_controller {
             $recibo_faltante_contador['CONT'] = array();
             foreach($lista_faltantes as $faltante){
                 if(!isset($recibo_faltante['CONT'][$faltante->coddivisa])){
-                    $recibo_faltante['CONT'][$faltante->coddivisa] = array();
+                    $recibo_faltante['CONT'][$faltante->coddivisa] = 0;
                     $recibo_faltante_contador['CONT'][$faltante->coddivisa] = 0;
                 }
-                $recibo_faltante['CONT'][$faltante->coddivisa] +=$faltante->importe;
+                $recibo_faltante['CONT'][$faltante->coddivisa] += $faltante->importe;
                 $recibo_faltante_contador['CONT'][$faltante->coddivisa] += 1;
             }
             $resultados_faltantes = array();
@@ -152,13 +152,15 @@ class informes_caja extends fs_controller {
             $resultados_formas_pago = array();
             foreach($formas_pago as $codpago=>$list){
                 foreach($list as $divisa=>$v){
-                    $item = new stdClass();
-                    $item->codpago = $codpago;
-                    $item->descpago = $fp->get($codpago)->descripcion;
-                    $item->cantidad = $facturas_formas_pago[$codpago][$divisa];
-                    $item->divisa = $divisa;
-                    $item->importe = $v;
-                    $resultados_formas_pago[$divisa][] = $item;
+                    if($facturas_formas_pago[$codpago][$divisa]){
+                        $item = new stdClass();
+                        $item->codpago = $codpago;
+                        $item->descpago = $fp->get($codpago)->descripcion;
+                        $item->cantidad = $facturas_formas_pago[$codpago][$divisa];
+                        $item->divisa = $divisa;
+                        $item->importe = $v;
+                        $resultados_formas_pago[$divisa][] = $item;
+                    }
                 }
             }
             $resultados_movimientos = array();
