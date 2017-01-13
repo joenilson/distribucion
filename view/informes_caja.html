@@ -125,8 +125,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </tr>
                         </thead>
                         <tbody>
-                            {if="$fsc->resultados_egresos"}
-                                {loop="$fsc->resultados_egresos"}
+                            {if="$fsc->resultados_egresos_formas_pago"}
+                                {loop="$fsc->resultados_egresos_formas_pago"}
                                     {loop="$value1"}
                                     <tr class='text-info'>
                                         <td>{$value2->cantidad}</td>
