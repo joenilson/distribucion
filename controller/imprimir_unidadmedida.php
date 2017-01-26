@@ -46,7 +46,7 @@ class imprimir_unidadmedida extends fs_controller {
     public function shared_extensions() {
         $extensiones = array(
             array(
-                'name' => 'imprimir_pedido_proveedor',
+                'name' => 'imprimir_pedido_um_proveedor',
                 'page_from' => __CLASS__,
                 'page_to' => 'compras_pedido',
                 'type' => 'pdf',
@@ -54,7 +54,7 @@ class imprimir_unidadmedida extends fs_controller {
                 'params' => '&pedido_um=TRUE'
             ),
             array(
-                'name' => 'email_pedido_proveedor',
+                'name' => 'email_pedido_um_proveedor',
                 'page_from' => __CLASS__,
                 'page_to' => 'compras_pedido',
                 'type' => 'email',

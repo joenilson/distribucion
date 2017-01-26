@@ -77,7 +77,7 @@ class unidadesmedida extends fs_controller {
                 'page_from' => __CLASS__,
                 'page_to' => 'ventas_articulos',
                 'type' => 'button',
-                            'text' => '<span class="fa fa-cubes"></span>&nbsp; Unidades de Medida',
+                'text' => '<span class="fa fa-cubes"></span>&nbsp; Unidades de Medida',
                 'params' => ''
             )
         );
