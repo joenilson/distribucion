@@ -55,6 +55,12 @@ class articulo_unidadmedida extends fs_model {
      * @var type float
      */
     public $peso;
+    /**
+     * Este es el tipo de unidad de medida configurado, puede ser de venta o de compra
+     * para poder diferenciar al momento de imprimir un documento con unidad de medida
+     * @var type varchar(12)
+     */
+    public $tipo;
     public $unidadmedida;
     public function __construct($t = FALSE) {
         parent::__construct('articulo_unidadmedida', 'plugins/distribucion/');
@@ -64,12 +70,14 @@ class articulo_unidadmedida extends fs_model {
             $this->base = $this->str2bool($t['base']);
             $this->factor = floatval($t['factor']);
             $this->peso = floatval($t['peso']);
+            $this->tipo = $t['tipo'];
         } else {
             $this->id = NULL;
             $this->referencia = NULL;
             $this->base = FALSE;
             $this->factor = NULL;
             $this->peso = NULL;
+            $this->tipo = NULL;
         }
         $this->unidadmedida = new unidadmedida();
     }
@@ -148,16 +156,18 @@ class articulo_unidadmedida extends fs_model {
                     "peso = ".$this->var2str($this->peso).", ".
                     "factor = ".$this->var2str($this->factor).", ".
                     "base = ".$this->var2str($this->base).
+                    "tipo = ".$this->var2str($this->tipo).
                     " WHERE ".
                     "id = ".$this->intval($this->id)." AND ".
                     "referencia = ".$this->var2str($this->referencia).";";
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (id, referencia, base, factor, peso) VALUES (".
+            $sql = "INSERT INTO ".$this->table_name." (id, referencia, base, factor, peso, tipo) VALUES (".
                 $this->intval($this->id).", ".
                 $this->var2str($this->referencia).", ".
                 $this->var2str($this->base).", ".
                 $this->var2str($this->factor).", ".
-                $this->var2str($this->peso).");";
+                $this->var2str($this->peso).", ".
+                $this->var2str($this->tipo).");";
         }
         $data = $this->db->exec($sql);
         if($data){
