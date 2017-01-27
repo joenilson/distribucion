@@ -106,7 +106,7 @@ class distrib_creacion extends fs_controller {
       {
          $this->mostrar = $_COOKIE['distrib_transporte_mostrar'];
       }
-      
+
       if( isset($_REQUEST['codalmacen']) )
       {
          if($_REQUEST['codalmacen'] != '')
@@ -114,13 +114,13 @@ class distrib_creacion extends fs_controller {
              $this->codalmacen = $_REQUEST['codalmacen'];
          }
       }
-      
+
       if (isset($cliente) AND ! empty($cliente)) {
          $cli0 = new cliente();
          $codcliente = $cli0->get($cliente);
       }
       $this->cliente = (isset($codcliente)) ? $codcliente : FALSE;
-      
+
       if( isset($_REQUEST['conductor']) )
       {
          if($_REQUEST['conductor'] != '')
@@ -128,8 +128,8 @@ class distrib_creacion extends fs_controller {
             $cli0 = new distribucion_conductores();
             $this->conductor = $cli0->get($this->empresa->id, $_REQUEST['conductor']);
          }
-      }      
-      
+      }
+
       $this->num_resultados = 0;
       if ($type === 'imprimir-transporte') {
          $this->imprimir_transporte();
@@ -172,7 +172,7 @@ class distrib_creacion extends fs_controller {
          $this->hasta = $_REQUEST['hasta'];
       }
    }
-   
+
    public function buscador(){
         $datos_busqueda = array();
         if($this->conductor){
@@ -187,7 +187,7 @@ class distrib_creacion extends fs_controller {
             $this->num_resultados = $busqueda['cantidad'];
         }
     }
-   
+
    public function paginas() {
       $this->total_resultados = $this->distrib_transporte->total_transportes($this->empresa->id);
 
@@ -614,24 +614,14 @@ class distrib_creacion extends fs_controller {
             'params' => ''
          )
       );
-      
+
       foreach ($extensiones as $ext) {
          $fsext0 = new fs_extension($ext);
          if (!$fsext0->save()) {
             $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
          }
       }
-      
-      $fext = new fs_extension(
-         array(
-            'name' => 'distribucion_css12',
-            'page_from' => __CLASS__,
-            'page_to' => 'distrib_creacion',
-            'type' => 'head',
-            'text' => '<link rel="stylesheet" type="text/css" media="screen" href="plugins/distribucion/view/font-awesome/css/font-awesome.min.css"/>',
-            'params' => ''
-         ));
-      $fext->delete();
+
    }
 
 }
