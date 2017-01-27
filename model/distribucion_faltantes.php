@@ -17,6 +17,7 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
+require_model('asiento.php');
 require_model('cuenta.php');
 require_model('subcuenta.php');
 require_model('distribucion_conductores.php');
@@ -50,7 +51,10 @@ class distribucion_faltantes extends fs_model {
     public $coddivisa;
     public $codcuenta;
     public $idsubcuenta;
+    public $codcuentap;
+    public $idsubcuentap;
     public $idasiento;
+    public $idasientop;
     public $dc;
     public $usuario_creacion;
     public $fecha_creacion;
@@ -82,7 +86,10 @@ class distribucion_faltantes extends fs_model {
             $this->coddivisa = $t['coddivisa'];
             $this->codcuenta = $t['codcuenta'];
             $this->idsubcuenta = $t['idsubcuenta'];
+            $this->codcuentap = $t['codcuentap'];
+            $this->idsubcuentap = $t['idsubcuentap'];
             $this->idasiento = $t['idasiento'];
+            $this->idasientop = $t['idasientop'];
             $this->dc = $t['dc'];
             $this->usuario_creacion = $t['usuario_creacion'];
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
@@ -107,7 +114,10 @@ class distribucion_faltantes extends fs_model {
             $this->coddivisa = null;
             $this->codcuenta = null;
             $this->idsubcuenta = null;
+            $this->codcuentap = null;
+            $this->idsubcuentap = null;
             $this->idasiento = null;
+            $this->idasientop = null;
             $this->dc = null;
             $this->usuario_creacion = null;
             $this->fecha_creacion = Date('d-m-Y H:i');
@@ -210,8 +220,12 @@ class distribucion_faltantes extends fs_model {
                     "conductor = " . $this->var2str($this->conductor) . ", " .
                     "nombreconductor = " . $this->var2str($this->nombreconductor) . ", " .
                     "idreciboref = " . $this->intval($this->idreciboref) . ", " .
+                    "idasiento = " . $this->intval($this->idasiento) . ", " .
+                    "idasientop = " . $this->intval($this->idasientop) . ", " .
                     "idsubcuenta = " . $this->intval($this->idsubcuenta) . ", " .
                     "codcuenta = " . $this->var2str($this->codcuenta) . ", " .
+                    "idsubcuentap = " . $this->intval($this->idsubcuentap) . ", " .
+                    "codcuentap = " . $this->var2str($this->codcuentap) . ", " .
                     "tipo = " . $this->var2str($this->tipo) . ", " .
                     "dc = " . $this->var2str($this->dc) . ", " .
                     "usuario_modificacion = " . $this->var2str($this->usuario_modificacion) . ", " .
@@ -225,7 +239,7 @@ class distribucion_faltantes extends fs_model {
         } else {
             $this->idrecibo = $this->getNextId();
             $this->idreciboref = ($this->idreciboref)?$this->intval($this->idreciboref):"NULL";
-            $sql = "INSERT INTO distribucion_faltantes ( idempresa, codalmacen, idtransporte, idrecibo, idreciboref, codtrans, conductor, nombreconductor, descripcion, tipo, importe, coddivisa, dc, fecha, fechav, fechap, estado, idsubcuenta, idasiento, codcuenta, usuario_creacion, fecha_creacion ) VALUES (" .
+            $sql = "INSERT INTO distribucion_faltantes ( idempresa, codalmacen, idtransporte, idrecibo, idreciboref, codtrans, conductor, nombreconductor, descripcion, tipo, importe, coddivisa, dc, fecha, fechav, fechap, estado, idsubcuenta, idsubcuentap, idasiento, idasientop, codcuenta, codcuentap, usuario_creacion, fecha_creacion ) VALUES (" .
                     $this->intval($this->idempresa) . ", " .
                     $this->var2str($this->codalmacen) . ", " .
                     $this->intval($this->idtransporte) . ", " .
@@ -244,8 +258,11 @@ class distribucion_faltantes extends fs_model {
                     $this->var2str($this->fechap) . ", " .
                     $this->var2str($this->estado) . ", " .
                     $this->var2str($this->idsubcuenta) . ", " .
+                    $this->var2str($this->idsubcuentap) . ", " .
                     $this->var2str($this->idasiento) . ", " .
+                    $this->var2str($this->idasientop) . ", " .
                     $this->var2str($this->codcuenta) . ", " .
+                    $this->var2str($this->codcuentap) . ", " .
                     $this->var2str($this->usuario_creacion) . ", " .
                     $this->var2str($this->fecha_creacion) . ");";
             if ($this->db->exec($sql)) {
@@ -257,6 +274,24 @@ class distribucion_faltantes extends fs_model {
     }
 
     public function delete() {
+        if($this->idasiento)
+         {
+            /**
+             * Delegamos la eliminación de los asientos en la clase correspondiente.
+             */
+            $asiento = new \asiento();
+            $asi0 = $asiento->get($this->idasiento);
+            if($asi0)
+            {
+               $asi0->delete();
+            }
+            
+            $asi1 = $asiento->get($this->idasientop);
+            if($asi1)
+            {
+               $asi1->delete();
+            }
+         }
         $sql = "DELETE FROM distribucion_faltantes WHERE " .
                 "idempresa = " . $this->intval($this->idempresa) . " AND " .
                 "idrecibo = " . $this->intval($this->idrecibo) . " AND " .
@@ -570,6 +605,14 @@ class distribucion_faltantes extends fs_model {
         return $subcuenta;
     }
 
+    
+    /**
+     * @todo Mejorar y aplicar al momento de hacer un $this->save()
+     * //Esta funcion esta para trabajar
+     * @param type $faltante
+     * @param type $ejercicio
+     * @return boolean|string
+     */
     public function generar_asiento_faltante(&$faltante, $ejercicio) {
         $ok = FALSE;
         $this->asiento = FALSE;
@@ -619,9 +662,16 @@ class distribucion_faltantes extends fs_model {
                 }
 
                 if ($asiento_correcto) {
-                    $faltante->idasiento = $asiento->idasiento;
-                    $faltante->idsubcuenta = $partida0->idsubcuenta;
-                    $faltante->codcuenta = $partida0->codsubcuenta;
+                    if ($tipo == 'pendiente') {
+                        $faltante->idasiento = $asiento->idasiento;
+                        $faltante->idsubcuenta = $partida0->idsubcuenta;
+                        $faltante->codcuenta = $partida0->codsubcuenta;
+                    }elseif($tipo == 'pagado'){
+                        $faltante->idasientop = $asiento->idasiento;
+                        $faltante->idsubcuentap = $partida0->idsubcuenta;
+                        $faltante->codcuentap = $partida0->codsubcuenta;
+                    }
+                    
                     if ($faltante->save()) {
                         $ok = TRUE;
                         $this->asiento = $asiento;

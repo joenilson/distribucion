@@ -119,6 +119,78 @@
             }
         });
     }
+    
+    function eliminarLiquidacion(id,almacen){
+        bootbox.dialog({
+            message: "Esta seguro que quiere eliminar la liquidación a este transporte?, esto solo borrará la liquidación realizada y los recibos por faltantes generados, no tocara las facturas de devolucion de productos.",
+            title: "Eliminar Liquidación de Transporte",
+            buttons: {
+              success: {
+                label: "Eliminar Liquidacion",
+                className: "btn-success",
+                callback: function() {
+                    $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=eliminar-liquidacion&transporte='+id+'&almacen='+almacen,
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            window.location.assign("{$fsc->url()}");
+                         });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                }
+              },
+              danger: {
+                label: "Cancelar",
+                className: "btn-danger",
+                callback: function() {
+                  this.hide();
+                }
+              }
+            }
+        });
+    }
+    
+    function quitarDespacho(id,almacen){
+        bootbox.dialog({
+            message: "Esta seguro que quiere quitar el despacho a este transporte?, esto significa que el transporte no salió del almacén y no será liquidado.",
+            title: "Quitar despacho de Transporte",
+            buttons: {
+              success: {
+                label: "Quitar Despacho",
+                className: "btn-success",
+                callback: function() {
+                    $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=eliminar-despacho&transporte='+id+'-'+almacen,
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            window.location.assign("{$fsc->url()}");
+                         });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                }
+              },
+              danger: {
+                label: "Cancelar",
+                className: "btn-danger",
+                callback: function() {
+                  this.hide();
+                }
+              }
+            }
+        });
+    }
 
    function mostrarTransporte(idtransporte,almacen){
         $('#modal_impresion_transporte').modal('show');
@@ -364,7 +436,7 @@
 </form>
 {/if}
 
-<!-- Resultados de transportes generadas -->
+<!-- Resultados de transportes generados -->
 {include="transporte/resultados"}
 <div class="container-fluid">
    <div class="row">

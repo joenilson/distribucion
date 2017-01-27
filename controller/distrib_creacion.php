@@ -68,6 +68,7 @@ class distrib_creacion extends fs_controller {
    public $lineastransporte;
    public $facturastransporte;
    public $factura_cliente;
+   public $faltante;
    public $faltantes;
    public $subcuentas_faltantes;
    public $asiento;
@@ -134,9 +135,13 @@ class distrib_creacion extends fs_controller {
       if ($type === 'imprimir-transporte') {
          $this->imprimir_transporte();
       } elseif ($type == 'confirmar-transporte') {
-         $this->confirmar_transporte();
+         $this->confirmar_transporte(TRUE);
       } elseif ($type == 'eliminar-transporte') {
          $this->eliminar_transporte();
+      } elseif ($type == 'eliminar-liquidacion') {
+         $this->eliminar_liquidacion();
+      } elseif ($type == 'eliminar-despacho') {
+         $this->confirmar_transporte(FALSE);
       } elseif ($type == 'liquidar-transporte') {
          $this->liquidar_transporte();
       } elseif ($type == 'guardar-liquidacion') {
@@ -306,9 +311,11 @@ class distrib_creacion extends fs_controller {
       $pdfFile->pdf_mostrar();
    }
 
-   public function confirmar_transporte(){
+   public function confirmar_transporte($confirmado=TRUE){
       $value_transporte = \filter_input(INPUT_GET, 'transporte');
       $lista_transporte = explode(',', $value_transporte);
+      $tipo_mensaje = ($confirmado)?"despachado":"desconfirmado";
+      $mensaje = (count($lista_transporte)>1)?"Transportes ".$tipo_mensaje:"Transporte ".$tipo_mensaje."s";
       foreach ($lista_transporte as $linea) {
          if ($linea) {
             $datos_transporte = explode('-', $linea);
@@ -316,15 +323,15 @@ class distrib_creacion extends fs_controller {
             $codalmacen = $datos_transporte[1];
             $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
             $trans0->fechad = Date('d-m-Y');
-            $trans0->despachado = TRUE;
+            $trans0->despachado = $confirmado;
             $trans0->fecha_modificacion = Date('d-m-Y H:i');
             $trans0->usuario_modificacion = $this->user->nick;
             if ($trans0->confirmar_despacho()) {
                $data['success'] = TRUE;
-               $data['mensaje'] = 'Transporte ' . $idtransporte . ' confirmado!';
+               $data['mensaje'] = $mensaje;
             } else {
                $data['success'] = FALSE;
-               $data['mensaje'] = 'Transporte ' . $idtransporte . ' <b>NO</b> confirmado!';
+               $data['mensaje'] = 'Transporte <b>NO</b> procesado!';
             }
          }
       }
@@ -390,6 +397,51 @@ class distrib_creacion extends fs_controller {
       header('Content-Type: application/json');
       echo json_encode($data);
    }
+   
+   public function eliminar_liquidacion(){
+       $idtransporte = \filter_input(INPUT_GET, 'transporte');
+       $codalmacen = \filter_input(INPUT_GET, 'almacen');
+       $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+       $trans0->fechal = NULL;
+       $trans0->liquidado = FALSE;
+       $trans0->fecha_modificacion = Date('d-m-Y H:i');
+       $trans0->usuario_modificacion = $this->user->nick;
+       $msg_aux = "";
+       if ($trans0->confirmar_liquidada()) {
+          $faltante = $this->faltante->get($this->empresa->id,$idtransporte,$codalmacen);
+          if($faltante){
+              if($faltante->pagos){
+                  $pagos = $this->faltante = get_pagos_recibo($this->empresa->id,$codalmacen,$faltante->idrecibo);
+                  foreach($pagos as $recibo){
+                      $recibo->delete();
+                  }
+              }
+              $faltante->delete();
+              $msg_aux = " Un Faltante eliminado.";
+          }else{
+              $msg_aux = " No hay faltantes asociados a esta liquidacion.".$msg_aux;
+          }
+          $facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
+          $num = 0;
+          foreach($facturastransporte as $fac){
+             $factura = $this->factura_cliente->get($fac->idfactura);
+             if ($factura) {
+                $factura->pagada = FALSE;
+                $factura->save();
+                $num++;
+             }
+          }
+          $fac_procesadas = ($num)?" Se eliminó el pago a $num Facturas.":" No se desmarcaron pagos a ninguna factura.";
+          $data['success'] = TRUE;
+          $data['mensaje'] = '¡Liquidación del Transporte ' . $idtransporte . ' eliminado!'.$msg_aux.$fac_procesadas;
+       } else {
+          $data['success'] = FALSE;
+          $data['mensaje'] = '¡<b>NO</b>No se pudo eliminar la Liquidación del Transporte ' . $idtransporte . '!';
+       }
+       $this->template = false;
+       header('Content-Type: application/json');
+       echo json_encode($data);
+   }
 
    public function imprimir_liquidacion(){
       $this->template = false;
@@ -406,7 +458,6 @@ class distrib_creacion extends fs_controller {
             $contador_transporte++;
             $faltante = $this->faltante->get($this->empresa->id, $idtransporte, $codalmacen);
             $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-            $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
             $facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
             $pdfFile->pdf_pagina($this->helper_transportes->cabecera_liquidacion($transporte), $this->helper_transportes->contenido_liquidacion($facturastransporte), $this->helper_transportes->pie_liquidacion($transporte, $faltante));
          }

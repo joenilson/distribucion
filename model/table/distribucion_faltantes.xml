@@ -21,6 +21,11 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
+        <nombre>codcuentap</nombre>
+        <tipo>character varying(15)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>coddivisa</nombre>
         <tipo>character varying(3)</tipo>
         <nulo>NO</nulo>
@@ -32,6 +37,11 @@
     </columna>
     <columna>
         <nombre>idsubcuenta</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>idsubcuentap</nombre>
         <tipo>integer</tipo>
         <nulo>YES</nulo>
     </columna>
@@ -92,6 +102,11 @@
     </columna>
     <columna>
         <nombre>idasiento</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>idasientop</nombre>
         <tipo>integer</tipo>
         <nulo>YES</nulo>
     </columna>

@@ -79,12 +79,20 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 <td class="text-right">
                     {if="$value->fecha==$fsc->today()"}<b>{$value->fecha}</b>{else}{$value->fecha}{/if}
                 </td>
-                <td class="text-center hidden-sm">{if="$value->estado"}<span class="glyphicon glyphicon-star"></span>{else}<span class="glyphicon glyphicon-star-empty"></span>{/if}</td>
+                <td class="text-center hidden-sm">
+                    {if="$value->estado"}
+                    <span class="glyphicon glyphicon-star"></span>
+                    {else}
+                    <span class="glyphicon glyphicon-star-empty"></span>
+                    {/if}
+                </td>
                 <td class="text-center hidden-sm">
                     {if="$value->despachado"}
                         {if="!$value->liquidado"}
                             {if="$fsc->allow_delete"}
-                            <button type="button" class="btn btn-sm btn-warning"><i class="fa fa-undo"></i></button>
+                            <button type="button" onclick="quitarDespacho('{$value->idtransporte}','{$value->codalmacen}')" class="btn btn-sm btn-warning"><i class="fa fa-undo"></i></button>
+                            {else}
+                                <span class="glyphicon glyphicon-star-empty"></span>
                             {/if}
                         {else}
                             <span class="glyphicon glyphicon-star"></span>
@@ -95,13 +103,13 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 </td>
                 <td class="text-center hidden-sm">
                     {if="$value->liquidado"}
-                    {if="$fsc->allow_delete"}
-                    <button type="button" class="btn btn-sm btn-warning"><i class="fa fa-undo"></i></button>
+                        {if="$fsc->allow_delete"}
+                            <button type="button" onclick="eliminarLiquidacion('{$value->idtransporte}','{$value->codalmacen}')" class="btn btn-sm btn-warning"><i class="fa fa-undo"></i></button>
+                        {else}
+                            <span class="glyphicon glyphicon-star"></span>
+                        {/if}
                     {else}
-                    <span class="glyphicon glyphicon-star"></span>
-                    {/if}
-                    {else}
-                    <span class="glyphicon glyphicon-star-empty"></span>
+                        <span class="glyphicon glyphicon-star-empty"></span>
                     {/if}
                 </td>
                 <td>
