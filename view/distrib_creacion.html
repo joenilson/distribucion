@@ -174,8 +174,8 @@
             });
             if(checkboxValues.length !== 0){
                 bootbox.dialog({
-                    message: "Esta seguro que quiere imprimir las Ordenes de Carga seleccionadas?",
-                    title: "Imprimir Ordenes de Carga",
+                    message: "Esta seguro que quiere imprimir los transportes seleccionados?",
+                    title: "Imprimir Transportes",
                     buttons: {
                       success: {
                         label: "Imprimir",
@@ -203,18 +203,6 @@
                 alert('Debe seleccionar un transporte!');
             }
         });
-
-      $('#b_imprimir_ordencarga').click(function(event) {
-         event.preventDefault();
-         $('#modal_nueva_ordencarga').modal('show');
-         document.f_buscar_lineas.buscar_lineas.focus();
-      });
-
-      $('#b_nueva_ordencarga').click(function(event) {
-         event.preventDefault();
-         $('#modal_nueva_ordencarga').modal('show');
-         document.f_buscar_lineas.buscar_lineas.focus();
-      });
 
       {if="$fsc->mostrar=='buscar'"}
       document.f_custom_search.query.focus();
@@ -376,7 +364,7 @@
 </form>
 {/if}
 
-<!-- Resultados de ordenes de compra generadas -->
+<!-- Resultados de transportes generadas -->
 {include="transporte/resultados"}
 <div class="container-fluid">
    <div class="row">
