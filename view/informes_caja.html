@@ -75,17 +75,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <div class="row">
         <div class="container">
             <div class="progress" style='height: 30px;'>
-                <div class="progress-bar progress-bar-success" style="width: 35%">
-                    <span>Ingresos</span>
+                <div class="progress-bar progress-bar-success" style="width: 25%">
+                    <span>Ingresos {$fsc->show_precio($fsc->total_ingresos,$fsc->empresa->coddivisa)}</span>
                 </div>
-                <div class="progress-bar progress-bar-info progress-bar" style="width: 20%">
-                    <span>Egresos</span>
+                <div class="progress-bar progress-bar-info progress-bar" style="width: 25%">
+                    <span>Egresos {$fsc->show_precio($fsc->total_egresos,$fsc->empresa->coddivisa)}</span>
                 </div>
-                <div class="progress-bar progress-bar-warning" style="width: 20%">
-                    <span>Cobros</span>
+                <div class="progress-bar progress-bar-warning" style="width: 25%">
+                    <span>Cobros {$fsc->show_precio($fsc->total_cobros,$fsc->empresa->coddivisa)}</span>
                 </div>
                 <div class="progress-bar progress-bar-danger" style="width: 25%">
-                    <span>Pendientes de Cobro</span>
+                    <span>Pendientes de Cobro {$fsc->show_precio($fsc->total_pendientes_cobro,$fsc->empresa->coddivisa)}</span>
                 </div>
             </div>
         </div>
