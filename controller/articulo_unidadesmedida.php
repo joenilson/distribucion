@@ -33,7 +33,7 @@ class articulo_unidadesmedida extends fs_controller {
     public function __construct() {
         parent::__construct(__CLASS__, 'UM del Artículo', 'ventas', FALSE, FALSE, FALSE);
     }
-    
+
     protected function private_core() {
         $this->unidadmedida = new unidadmedida();
         $this->articulo_unidadmedida = new articulo_unidadmedida();
@@ -47,18 +47,20 @@ class articulo_unidadesmedida extends fs_controller {
         {
             $this->articulo = $art0->get($_REQUEST['ref']);
         }
-        
+
         $accion = filter_input(INPUT_POST, 'accion');
         if($accion == 'agregar'){
             $unidadmedida = filter_input(INPUT_POST, 'id');
             $factor = filter_input(INPUT_POST, 'factor');
             $peso = filter_input(INPUT_POST, 'peso');
             $base = filter_input(INPUT_POST, 'base');
+            $tipo = filter_input(INPUT_POST, 'tipo');
             $aum0 = new articulo_unidadmedida();
             $aum0->id = $unidadmedida;
             $aum0->referencia = $this->articulo->referencia;
             $aum0->factor = floatval($factor);
             $aum0->peso = floatval($peso);
+            $aum0->tipo = $tipo;
             $aum0->base = ($base)?TRUE:FALSE;
             if($aum0->save()){
                 $this->new_message('¡Unidad de medida agregada correctamente!');
@@ -76,12 +78,12 @@ class articulo_unidadesmedida extends fs_controller {
                 }
             }
         }
-        
+
         if($this->articulo){
             $this->articulo_um_lista = $this->articulo_unidadmedida->get($this->articulo->referencia);
         }
     }
-    
+
     public function url()
     {
         if($this->articulo){
@@ -90,7 +92,7 @@ class articulo_unidadesmedida extends fs_controller {
             return parent::url();
         }
     }
-    
+
     public function shared_extensions(){
         $extensiones = array(
             array(

@@ -36,7 +36,7 @@
         <nombre>tipo</nombre>
         <tipo>character varying(12)</tipo>
         <nulo>NO</nulo>
-        <defecto>ventas</defecto>
+        <defecto>'ventas'</defecto>
     </columna>
     <restriccion>
         <nombre>articulo_unidadmedida_pkey</nombre>

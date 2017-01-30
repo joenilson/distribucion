@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 function articulo_factor(umedida){
     var arrayUM = [];
     {loop="$fsc->unidadmedida->all()"}
-        arrayUM.push({um: {$value->id}, factor: {$value->cantidad} }); 
+        arrayUM.push({um: {$value->id}, factor: {$value->cantidad} });
     {/loop}
     var result = $.grep(arrayUM, function(e){ return e.um == umedida; });
     if (result.length === 0) {
@@ -33,7 +33,7 @@ function articulo_factor(umedida){
         // Se encontraron muchas coincidencias, se debe revisar la data maestra
         alert('¡No hay información valida por favor revise la información sumistrada!');
     }
-}  
+}
 </script>
 <div class="container-fluid">
     <div class="row">
@@ -49,11 +49,12 @@ function articulo_factor(umedida){
         <table class="table table-condensed">
             <thead>
                 <tr>
-                    <th class="col-sm-3">Unidad Medida</th>
-                    <th class="col-sm-3">Factor</th>
-                    <th class="col-sm-3">Peso</th>
-                    <th class="col-sm-2">UM Base</th>
-                    <th class="col-sm-2"></th>
+                    <th class="col-sm-2">Unidad Medida</th>
+                    <th class="col-sm-2">Factor</th>
+                    <th class="col-sm-2">Peso</th>
+                    <th class="col-sm-1">UM Base</th>
+                    <th class="col-sm-2">Tipo</th>
+                    <th class="col-sm-3"></th>
                 </tr>
             </thead>
             <tbody>
@@ -88,6 +89,15 @@ function articulo_factor(umedida){
                         </div>
                     </td>
                     <td>
+                        <div class="form-group">
+                            <select name="tipo" required="" class="form-control input-sm">
+                                <option value="">Tipo</option>
+                                <option value="ventas">Venta</option>
+                                <option value="compras">Compra</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td>
                         <button type="submit" class="btn btn-sm btn-primary" name="accion" value="agregar">
                             <span class="glyphicon glyphicon-plus"></span>
                             <span class="hidden-xs">&nbsp; Nuevo</span>
@@ -110,6 +120,15 @@ function articulo_factor(umedida){
                     </td>
                     <td>
                         <input type="checkbox" name="base" value="TRUE" {if="$value->base"}checked{/if}>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <select name="tipo" required="" class="form-control input-sm">
+                                <option value="">Tipo</option>
+                                <option value="ventas" {if="$value->tipo=='ventas'"}selected{/if}>Venta</option>
+                                <option value="compras" {if="$value->tipo=='compras'"}selected{/if}>Compra</option>
+                            </select>
+                        </div>
                     </td>
                     <td>
                         {if="$fsc->allow_delete"}
