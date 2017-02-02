@@ -53,7 +53,7 @@ function articulo_factor(umedida){
                     <th class="col-sm-2">Factor</th>
                     <th class="col-sm-2">Peso</th>
                     <th class="col-sm-1">UM Base</th>
-                    <th class="col-sm-2">Tipo</th>
+                    <th class="col-sm-2 text-center" colspan="2">Aplica para:</th>
                     <th class="col-sm-3"></th>
                 </tr>
             </thead>
@@ -90,11 +90,18 @@ function articulo_factor(umedida){
                     </td>
                     <td>
                         <div class="form-group">
-                            <select name="tipo" required="" class="form-control input-sm">
-                                <option value="">Tipo</option>
-                                <option value="ventas">Venta</option>
-                                <option value="compras">Compra</option>
-                            </select>
+                            <label for="se_compra" class="control-label">
+                                <input id="se_compra" type="checkbox" name="se_compra" value="TRUE">
+                                Compra
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <label for="se_vende" class="control-label">
+                                <input id="se_vende" type="checkbox" name="se_vende" value="TRUE" checked>
+                                Vende
+                            </label>
                         </div>
                     </td>
                     <td>
@@ -122,13 +129,10 @@ function articulo_factor(umedida){
                         <input type="checkbox" name="base" value="TRUE" {if="$value->base"}checked{/if}>
                     </td>
                     <td>
-                        <div class="form-group">
-                            <select name="tipo" required="" class="form-control input-sm">
-                                <option value="">Tipo</option>
-                                <option value="ventas" {if="$value->tipo=='ventas'"}selected{/if}>Venta</option>
-                                <option value="compras" {if="$value->tipo=='compras'"}selected{/if}>Compra</option>
-                            </select>
-                        </div>
+                        <input type="checkbox" name="se_compra" value="TRUE" {if="$value->se_compra"}checked{/if}>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="se_vende" value="TRUE" {if="$value->se_vende"}checked{/if}>
                     </td>
                     <td>
                         {if="$fsc->allow_delete"}

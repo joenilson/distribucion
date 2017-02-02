@@ -54,13 +54,15 @@ class articulo_unidadesmedida extends fs_controller {
             $factor = filter_input(INPUT_POST, 'factor');
             $peso = filter_input(INPUT_POST, 'peso');
             $base = filter_input(INPUT_POST, 'base');
-            $tipo = filter_input(INPUT_POST, 'tipo');
+            $se_compra = filter_input(INPUT_POST, 'se_compra');
+            $se_vende = filter_input(INPUT_POST, 'se_vende');
             $aum0 = new articulo_unidadmedida();
             $aum0->id = $unidadmedida;
             $aum0->referencia = $this->articulo->referencia;
             $aum0->factor = floatval($factor);
             $aum0->peso = floatval($peso);
-            $aum0->tipo = $tipo;
+            $aum0->se_vende = ($se_vende)?TRUE:FALSE;
+            $aum0->se_compra = ($se_compra)?TRUE:FALSE;
             $aum0->base = ($base)?TRUE:FALSE;
             if($aum0->save()){
                 $this->new_message('¡Unidad de medida agregada correctamente!');

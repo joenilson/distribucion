@@ -157,7 +157,7 @@ class informes_caja extends fs_controller {
         }
 
         //Obtenemos los cobros de faltantes
-        $recibos_faltantes = $this->faltantes->buscar($this->empresa->id, $this->codalmacen, $this->f_desde, $this->f_hasta, FALSE, TRUE);
+        $recibos_faltantes = $this->faltantes->buscar($this->empresa->id, $this->codalmacen, $this->f_desde, $this->f_hasta, FALSE, FALSE);
         if($recibos_faltantes){
             foreach($recibos_faltantes as $faltante){
                 if(!isset($this->pagadas['faltantes'])){

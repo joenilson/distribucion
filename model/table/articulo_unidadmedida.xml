@@ -33,11 +33,17 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
-        <nombre>tipo</nombre>
-        <tipo>character varying(12)</tipo>
+        <nombre>se_compra</nombre>
+        <tipo>boolean</tipo>
         <nulo>NO</nulo>
-        <defecto>'ventas'</defecto>
-    </columna>
+        <defecto>false</defecto>
+    </columna>    
+    <columna>
+        <nombre>se_vende</nombre>
+        <tipo>boolean</tipo>
+        <nulo>NO</nulo>
+        <defecto>true</defecto>
+    </columna>    
     <restriccion>
         <nombre>articulo_unidadmedida_pkey</nombre>
         <consulta>PRIMARY KEY (id,referencia)</consulta>

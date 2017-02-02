@@ -56,11 +56,17 @@ class articulo_unidadmedida extends fs_model {
      */
     public $peso;
     /**
-     * Este es el tipo de unidad de medida configurado, puede ser de venta o de compra
-     * para poder diferenciar al momento de imprimir un documento con unidad de medida
-     * @var type varchar(12)
+     * Si esta unidad de medida es para compra se configura en true
+     * puede tener en true el campo $se_vende.
+     * @var type boolean
      */
-    public $tipo;
+    public $se_compra;
+    /**
+     * Si esta unidad de medida es para venta se configura en true
+     * puede tener en true el campo $se_compra.
+     * @var type boolean
+     */
+    public $se_vende;
     public $unidadmedida;
     public function __construct($t = FALSE) {
         parent::__construct('articulo_unidadmedida', 'plugins/distribucion/');
@@ -70,14 +76,16 @@ class articulo_unidadmedida extends fs_model {
             $this->base = $this->str2bool($t['base']);
             $this->factor = floatval($t['factor']);
             $this->peso = floatval($t['peso']);
-            $this->tipo = $t['tipo'];
+            $this->se_compra = $this->str2bool($t['se_compra']);
+            $this->se_vende = $this->str2bool($t['se_vende']);
         } else {
             $this->id = NULL;
             $this->referencia = NULL;
             $this->base = FALSE;
             $this->factor = NULL;
             $this->peso = NULL;
-            $this->tipo = NULL;
+            $this->se_compra = FALSE;
+            $this->se_vende = TRUE;
         }
         $this->unidadmedida = new unidadmedida();
     }
@@ -141,6 +149,34 @@ class articulo_unidadmedida extends fs_model {
             return false;
         }
     }
+    
+    public function getBase($referencia){
+        $sql = "SELECT * FROM ".$this->table_name." WHERE referencia = ".$this->var2str($referencia).";";
+        $data = $this->db->select($sql);
+        if($data){
+            $value = new articulo_unidadmedida($data[0]);
+            $item = $this->info_adicional($value);
+            return $item;
+        }else{
+            return false;
+        }
+    }
+    
+    public function getByTipo($referencia,$tipo='se_vende'){
+        $sql = "SELECT * FROM ".$this->table_name." WHERE referencia = ".$this->var2str($referencia)." AND ".$tipo." = TRUE".";";
+        $data = $this->db->select($sql);
+        if($data){
+            $lista = array();
+            foreach($lista as $d){
+                $value = new articulo_unidadmedida($d);
+                $item = $this->info_adicional($value);
+                $lista[] = $item;
+            }
+            return $lista;
+        }else{
+            return false;
+        }
+    }
 
     public function exists() {
         if(is_null($this->id) AND is_null($this->referencia)){
@@ -155,19 +191,21 @@ class articulo_unidadmedida extends fs_model {
             $sql = "UPDATE ".$this->table_name." SET ".
                     "peso = ".$this->var2str($this->peso).", ".
                     "factor = ".$this->var2str($this->factor).", ".
-                    "base = ".$this->var2str($this->base).
-                    "tipo = ".$this->var2str($this->tipo).
+                    "base = ".$this->var2str($this->base).", ".
+                    "se_compra = ".$this->var2str($this->se_compra).", ".
+                    "se_vende = ".$this->var2str($this->se_vende).
                     " WHERE ".
                     "id = ".$this->intval($this->id)." AND ".
                     "referencia = ".$this->var2str($this->referencia).";";
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (id, referencia, base, factor, peso, tipo) VALUES (".
+            $sql = "INSERT INTO ".$this->table_name." (id, referencia, base, factor, peso, se_compra, se_vende) VALUES (".
                 $this->intval($this->id).", ".
                 $this->var2str($this->referencia).", ".
                 $this->var2str($this->base).", ".
                 $this->var2str($this->factor).", ".
                 $this->var2str($this->peso).", ".
-                $this->var2str($this->tipo).");";
+                $this->var2str($this->se_compra).", ".
+                $this->var2str($this->se_vende).");";
         }
         $data = $this->db->exec($sql);
         if($data){
