@@ -1,0 +1,156 @@
+{include="header"}
+<!--
+Copyright (C) 2016 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid hidden-print">
+    <div class="row">
+        <div class="col-sm-6 col-xs-6">
+            <div class="btn-group hidden-xs">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {/if}
+            </div>
+            <div class="btn-group">
+                <a href="index.php?page=ventas_articulos" class="btn btn-sm btn-default">
+                    <span class="fa fa-arrow-left"></span>&nbsp;
+                    <span class="hidden-xs">&nbsp; Regresar a Artículos</span>
+                </a>
+                {loop="$fsc->extensions"}
+                {if="$value->type=='button'"}
+                <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
+                {/if}
+                {/loop}
+            </div>
+            <a class="btn btn-sm btn-default" onclick="window.print();">
+                <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
+            </a>
+        </div>
+        <div class="col-sm-6 col-xs-6 text-right">
+            <h2 style="margin-top: 0px;">
+                <i class="fa fa-cubes" aria-hidden="true"></i> Unidades de medida
+            </h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            <span class="help-block">
+                <span class="fa fa-info-circle"></span>&nbsp; Los nombres de unidad de medida no se pueden repetir
+            </span>
+            <span class="help-block">
+                <span class="fa fa-info-circle"></span>&nbsp; Una vez creada una unidad de medida podrás agregarla en la pestaña <b>UM</b> en cada artículo
+            </span>            
+            <span class="help-block">
+                <span class="fa fa-info-circle"></span>&nbsp; La cantidad es la unidad de medida base que se usará para factorizar las unidades de medida, por ejemplo UNIDAD su cantidad es 1, DOCENA su cantidad será 12
+            </span>            
+        </div>
+        <div class="col-sm-9">
+            <div class="row table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="col-sm-4">Unidad de Medida</th>
+                            <th class="col-sm-2">Abreviatura</th>
+                            <th class="col-sm-4">Cantidad</th>
+                            <th class="col-sm-2">&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <form name="f_nueva_um" action="{$fsc->url()}" method="POST" class="form-inline">
+                        <tr class="info">
+                            <td>
+                                <input type="hidden" name="id" value="">
+                                <div class="form-group">
+                                    <input type="text" id="name" placeholder="Nombre de Unidad de Medida" name="name" maxlength="60" value="" autocomplete="off" class="form-control input-sm">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group">
+                                    <input type="text" id="abreviatura" placeholder="Abreviatura de Unidad de Medida" name="abreviatura" maxlength="6" value="" autocomplete="off" class="form-control input-sm">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group">
+                                    <input type="text" id="cantidad" placeholder="Cantidad" name="cantidad" maxlength="60" value="" autocomplete="off" class="form-control input-sm">
+                                </div>
+                            </td>
+                            <td>
+                                <button type="submit" class="btn btn-sm btn-primary" name="accion" value="agregar">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                    <span class="hidden-xs">&nbsp; Nuevo</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </form>
+                        {if="count($fsc->unidadmedida->all())!==0"}
+                        {loop="$fsc->unidadmedida->all()"}
+                        <form name="f_um_{$counter}" action="{$fsc->url()}" method="POST" class="form-inline">
+                        <tr>
+                            <td>
+                                <input type="hidden" name="id" value="{$value->id}">
+                                <input class="form-control input-sm" type="text" name="name" value="{$value->name}">
+                            </td>
+                            <td>
+                                <input class="form-control input-sm" type="text" name="abreviatura" value="{$value->abreviatura}">
+                            </td>
+                            <td>
+                                <input class="form-control input-sm" type="text" name="cantidad" value="{$value->cantidad}">
+                            </td>
+                            <td>
+                                {if="$value->en_uso()"}
+                                <button type="button" name="accion" value="nada" class="btn btn-sm btn-warning" data-toggle="tooltip" data-placement="top" title="Hay {$value->en_uso()} articulo(s) utilizando esta unidad de medida">
+                                    <span class="fa fa-lock"></span>
+                                </button>
+                                {else}
+                                    {if="$fsc->allow_delete"}
+                                        <button type="submit" name="accion" value="eliminar" class="btn btn-sm btn-danger" onclick="return confirm('¿Esta seguro que quiere eliminar la unidad de medida {$value->name}?')">
+                                            <span class="fa fa-trash"></span>
+                                        </button>
+                                    {/if}
+                                {/if}
+                                <button type="submit" name="accion" value="agregar" class="btn btn-sm btn-primary">
+                                    <span class="fa fa-save"></span>
+                                </button>
+                            </td>
+                        </tr>
+                        </form>
+                        {/loop}
+                        {else}
+                        <tr class="warning">
+                            <td colspan="4" class="text-center">No hay Unidades de medida creadas.</td>
+                        </tr>
+                        {/if}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+</div>
+<script>
+$(document).ready(function() {    
+    $('[data-toggle="tooltip"]').tooltip();
+});
+</script>
+{include="footer"}

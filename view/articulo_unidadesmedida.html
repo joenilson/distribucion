@@ -1,0 +1,155 @@
+{include="header2"}
+<!--
+Copyright (C) 2016 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+{if="$fsc->articulo"}
+<script>
+function articulo_factor(umedida){
+    var arrayUM = [];
+    {loop="$fsc->unidadmedida->all()"}
+        arrayUM.push({um: {$value->id}, factor: {$value->cantidad} });
+    {/loop}
+    var result = $.grep(arrayUM, function(e){ return e.um == umedida; });
+    if (result.length === 0) {
+        // No se encontro nada
+        alert('¡Debes elegir una unidad de medida válida!');
+    } else if (result.length === 1) {
+        // Si encontramos un valor y lo mandamos a Factor como propuesto
+        document.f_nueva_um_articulo.factor.value = result[0].factor;
+    } else {
+        // Se encontraron muchas coincidencias, se debe revisar la data maestra
+        alert('¡No hay información valida por favor revise la información sumistrada!');
+    }
+}
+</script>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <p class="help-block">
+                Puedes agregar las unidades de medida y el peso que se le asignará a este artículo.<br/>
+                Ten en cuenta que todo artículo debe tener una unidad de medida base siempre, no pueden haber multiples unidades de medida base,
+                sino se pueden generar errores de conversión por los factores.
+            </p>
+        </div>
+    </div>
+    <div class="row table-responsive">
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th class="col-sm-2">Unidad Medida</th>
+                    <th class="col-sm-2">Factor</th>
+                    <th class="col-sm-2">Peso</th>
+                    <th class="col-sm-1">UM Base</th>
+                    <th class="col-sm-2 text-center" colspan="2">Aplica para:</th>
+                    <th class="col-sm-3"></th>
+                </tr>
+            </thead>
+            <tbody>
+            <form action="{$fsc->url()}" method="POST" name="f_nueva_um_articulo">
+                <tr class="info">
+                    <td>
+                        <div class="form-group">
+                            <select name="id" required="" class="form-control input-sm" onchange="articulo_factor(this.value)">
+                                <option value="">Elige una unidad de medida</option>
+                                {loop="$fsc->unidadmedida->all()"}
+                                <option value="{$value->id}">{$value->name}</option>
+                                {/loop}
+                            </select>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <input type="text" name="factor" maxlength="10" class="form-control input-sm text-right">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <input type="text" name="peso" maxlength="10" class="form-control input-sm text-right">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <label for="base" class="control-label">
+                                <input id="base" type="checkbox" name="base" value="TRUE">
+                                Es Base
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <label for="se_compra" class="control-label">
+                                <input id="se_compra" type="checkbox" name="se_compra" value="TRUE">
+                                Compra
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <label for="se_vende" class="control-label">
+                                <input id="se_vende" type="checkbox" name="se_vende" value="TRUE" checked>
+                                Vende
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <button type="submit" class="btn btn-sm btn-primary" name="accion" value="agregar">
+                            <span class="glyphicon glyphicon-plus"></span>
+                            <span class="hidden-xs">&nbsp; Nuevo</span>
+                        </button>
+                    </td>
+                </tr>
+            </form>
+            {loop="$fsc->articulo_um_lista"}
+            <form action="{$fsc->url()}" method="POST" name="f_um_articulo_{$counter}">
+                <tr>
+                    <td>
+                        <input type="hidden" name="id" value="{$value->id}">
+                        {$value->abrev_um} - {$value->nombre_um}
+                    </td>
+                    <td>
+                        <input type="text" name="factor" maxlength="10" value="{$value->factor}" autocomplete="off" class="form-control input-sm text-right">
+                    </td>
+                    <td>
+                        <input type="text" name="peso" maxlength="10" value="{$value->peso}" autocomplete="off" class="form-control input-sm text-right">
+                    </td>
+                    <td>
+                        <input type="checkbox" name="base" value="TRUE" {if="$value->base"}checked{/if}>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="se_compra" value="TRUE" {if="$value->se_compra"}checked{/if}>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="se_vende" value="TRUE" {if="$value->se_vende"}checked{/if}>
+                    </td>
+                    <td>
+                        {if="$fsc->allow_delete"}
+                            <button type="submit" name="accion" value="eliminar" class="btn btn-sm btn-danger" onclick="return confirm('¿Esta seguro que quiere eliminar la unidad de medida {$value->nombre_um} de este artículo?')">
+                                <span class="fa fa-trash"></span>
+                            </button>
+                        {/if}
+                        <button type="submit" name="accion" value="agregar" class="btn btn-sm btn-primary">
+                            <span class="fa fa-save"></span>
+                        </button>
+                    </td>
+                </tr>
+            </form>
+            {/loop}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/if}
+{include="footer2"}

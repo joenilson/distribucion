@@ -1,0 +1,8 @@
+Plugin de FacturaScripts para manejo de unidades_medida.
+<ul>
+<li>Agregar unidades de medida a los articulos</li>
+<li>Al momento de crear un pedido, albaran o factura se puede elegir la unidad de medida a usar</li>
+<li>Reportes con agrupación en distintas unidades de medida</a>
+<li></li>
+</ul>
+Requisitos son facturacion_base y presupuestos_y_pedidos

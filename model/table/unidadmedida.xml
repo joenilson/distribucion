@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : unidadmedida.xml
+    Description:
+        Estructura de la tabla unidadmedida.
+-->
+<tabla>
+    <columna>
+        <nombre>cantidad</nombre>
+        <tipo>numeric</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>abreviatura</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>id</nombre>
+        <tipo>serial</tipo>
+        <nulo>NO</nulo>
+        <defecto>nextval('unidadmedida_id_seq'::regclass)</defecto>
+    </columna>
+    <columna>
+        <nombre>name</nombre>
+        <tipo>character varying(60)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <restriccion>
+        <nombre>unidadmedida_pkey</nombre>
+        <consulta>PRIMARY KEY (id)</consulta>
+    </restriccion>
+    <restriccion>
+        <nombre>unidadmedida_ukey</nombre>
+        <consulta>UNIQUE (name)</consulta>
+    </restriccion>
+</tabla>
