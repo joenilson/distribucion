@@ -37,8 +37,10 @@ class informes_caja extends fs_controller {
     public $total;
     public $ingresos;
     public $ingresos_condpago;
+    public $cobros_condpago;
     public $egresos;
     public $egresos_condpago;
+    public $pagos_condpago;
     public $cobros;
     public $resultados_cobros;
     public $resultados_pendientes;
@@ -55,6 +57,12 @@ class informes_caja extends fs_controller {
     public $total_pagos;
     public $total_pendientes_pago;
     public $total_general;
+    public $total_ventas;
+    public $total_faltantes;
+    public $total_compras;
+    public $pagadas;
+    public $pendientes;
+    public $fp;
     public function __construct() {
         parent::__construct(__CLASS__, 'Caja', 'informes', FALSE, TRUE, FALSE);
     }
@@ -64,6 +72,7 @@ class informes_caja extends fs_controller {
         $this->facturascli = new factura_cliente();
         $this->facturaspro = new factura_proveedor();
         $this->faltantes = new distribucion_faltantes();
+        $this->fp = new forma_pago();
         $this->resultados_formas_pago = false;
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
         if(!$this->user->admin){
@@ -84,6 +93,9 @@ class informes_caja extends fs_controller {
         if($accion){
             switch ($accion){
                 case "buscar":
+                    $this->pagadas = array();
+                    $this->pendientes = array();
+                    $this->generar_formas_pago();
                     $resultados = $this->resumen_movimientos();
                     $this->resultados_formas_pago = $resultados['formas_pago'];
                     $this->resultados_faltantes_cobrados = $resultados['faltantes_cobrados'];
@@ -93,7 +105,7 @@ class informes_caja extends fs_controller {
                     $this->total_general = 0;
                     $this->ingresos();
                     $this->egresos();
-                    break;
+                break;
             }
         }
     }
@@ -102,16 +114,28 @@ class informes_caja extends fs_controller {
 
     }
 
+    private function generar_formas_pago(){
+        foreach($this->fp->all() as $fp){
+            $this->ingresos_condpago[$fp->codpago] = 0;
+            $this->cobros_condpago[$fp->codpago] = 0;
+            $this->egresos_condpago[$fp->codpago] = 0;
+            $this->pagos_condpago[$fp->codpago] = 0;
+        }
+    }
+
     /**
      * //Buscamos todos los ingresos, ya seán por ventas o por cobros de faltantes
      */
     private function ingresos(){
-        $listado = array();
-        $this->pagadas = array();
-        $this->ingresos_condpago = array();
         $this->total_ingresos = 0;
         $this->total_cobros = 0;
         $this->total_pendientes_cobro = 0;
+        $this->total_ventas = 0;
+        $this->total_faltantes = 0;
+        $this->pagadas['ventas'] = 0;
+        $this->pagadas['faltantes'] = 0;
+        $this->pendientes['ventas'] = 0;
+        $this->pendientes['faltantes'] = 0;
         //Obtenemos las ventas que no estén anuladas y sacamos las que estén o no pagadas
         $query_ventas = "fecha >= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_desde)))
                 ." AND fecha <= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_hasta)))
@@ -124,35 +148,31 @@ class informes_caja extends fs_controller {
                 $factura = new factura_cliente($d);
                 $factura->total = ($this->empresa->coddivisa == $factura->coddivisa)?$factura->total:$this->euro_convert($this->divisa_convert($factura->total, $factura->coddivisa, 'EUR'));
                 if($factura->pagada){
-                    //Inicializamos las facturas pagadas
-                    if(!isset($this->pagadas['ventas'])){
-                        $this->pagadas['ventas'] = 0;
-
-                    }
-                    //Inicializamos las condiciones de pago
-                    if(!isset($this->ingresos_condpago[$factura->codpago])){
-                        $this->ingresos_condpago[$factura->codpago] = 0;
-                    }
-
                     $pago_venta = $factura->get_asiento_pago();
                     if($pago_venta){
                         if(\date('Y-m-d',strtotime($pago_venta->fecha))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($pago_venta->fecha))<=\date('Y-m-d',strtotime($this->f_hasta))){
                             //Esta pagada a la fecha buscada
                             $this->total_cobros += $factura->total;
                             $this->pagadas['ventas'] += $factura->total;
+                            $this->cobros_condpago[$factura->codpago] += $factura->total;
                         }else{
                             //Esta pendiente a la fecha buscada
                             $this->total_pendientes_cobro += $factura->total;
+                            $this->pendientes['ventas'] += $factura->total;
                         }
                     }else{
                         //Asumimos que va aparecer en esta fecha
                         $this->total_cobros += $factura->total;
                         $this->pagadas['ventas'] += $factura->total;
+                        $this->cobros_condpago[$factura->codpago] += $factura->total;
                     }
                 }else{
                     $this->total_pendientes_cobro += $factura->total;
+                    $this->pendientes['ventas'] += $factura->total;
                 }
+                $this->total_ventas += $factura->total;
                 $this->total_ingresos += $factura->total;
+                $this->ingresos_condpago[$factura->codpago] += $factura->total;
             }
         }
 
@@ -160,26 +180,34 @@ class informes_caja extends fs_controller {
         $recibos_faltantes = $this->faltantes->buscar($this->empresa->id, $this->codalmacen, $this->f_desde, $this->f_hasta, FALSE, FALSE);
         if($recibos_faltantes){
             foreach($recibos_faltantes as $faltante){
-                if(!isset($this->pagadas['faltantes'])){
-                        $this->pagadas['faltantes'] = 0;
-                    }
                 if($faltante->estado == 'pagado' and ($faltante->fechap>=\date('Y-m-d',strtotime($this->f_desde)) AND $faltante->fechap>=\date('Y-m-d',strtotime($this->f_hasta)))){
                     $faltante->importe = ($this->empresa->coddivisa == $faltante->coddivisa)?$faltante->importe:$this->euro_convert($this->divisa_convert($faltante->importe, $faltante->coddivisa, 'EUR'));
                     $this->total_cobros += $faltante->importe;
                     $this->pagadas['faltantes'] += $faltante->importe;
+                    $this->cobros_condpago['CONT'] += $faltante->importe;
                 }else{
                     $this->total_pendientes_cobro += $faltante->importe;
+                    $this->pendientes['faltantes'] += $faltante->importe;
                 }
+                $this->total_faltantes += $faltante->importe;
                 $this->total_ingresos += $faltante->importe;
+                $this->cobros_condpago['CONT'] += $faltante->importe;
             }
+            $this->total_general += $this->total_ingresos;
+            $this->ingresos_condpago['CONT'] += $faltante->importe;
         }
-        $this->total_general += $this->total_ingresos;
     }
 
     private function egresos(){
         $this->total_egresos = 0;
         $this->total_pagos = 0;
         $this->total_pendientes_pago = 0;
+        $this->total_compras = 0;
+        $this->total_faltantes = 0;
+        $this->pagadas['compras'] = 0;
+        $this->pagadas['faltantes_compras'] = 0;
+        $this->pendientes['compras'] = 0;
+        $this->pendientes['faltantes_compras'] = 0;
         //Obtenemos las compras que no estén anuladas y sacamos las que estén o no pagadas
         $query_compras = "fecha >= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_desde)))
                 ." AND fecha <= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_hasta)))
@@ -192,35 +220,35 @@ class informes_caja extends fs_controller {
             foreach($lista_compras as $f){
                 $factura = new factura_proveedor($f);
                 $factura->total = ($this->empresa->coddivisa == $factura->coddivisa)?$factura->total:$this->euro_convert($this->divisa_convert($factura->total, $factura->coddivisa, 'EUR'));
-                $pago_compra = $factura->get_asiento_pago();
                 if($factura->pagada){
+                    $pago_compra = $factura->get_asiento_pago();
                     if($pago_compra){
                         if(\date('Y-m-d',strtotime($pago_compra->fecha))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($pago_compra->fecha))<=\date('Y-m-d',strtotime($this->f_hasta))){
                             //Esta pagada a la fecha buscada
                             $this->total_pagos += $factura->total;
+                            $this->pagadas['compras'] += $factura->total;
+                            $this->pagos_condpago[$factura->codpago] += $factura->total;
                         }else{
                             //Esta pendiente a la fecha buscada
                             $this->total_pendientes_pago += $factura->total;
+                            $this->pendientes['compras'] += $factura->total;
                         }
                     }else{
                         //Asumimos que va aparecer en esta fecha
                         $this->total_pagos += $factura->total;
+                        $this->pagadas['compras'] += $factura->total;
+                        $this->pagos_condpago[$factura->codpago] += $factura->total;
                     }
                 }else{
                     $this->total_pendientes_pago += $factura->total;
+                    $this->pendientes['compras'] += $factura->total;
                 }
                 $this->total_egresos += $factura->total;
+                $this->total_compras += $factura->total;
+                $this->egresos_condpago[$factura->codpago] += $factura->total;
             }
         }
         $this->total_general += $this->total_egresos;
-    }
-
-    private function cobros(){
-
-    }
-
-    private function pendientes_cobro(){
-
     }
 
     private function resumen_movimientos(){

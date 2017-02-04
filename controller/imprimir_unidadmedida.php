@@ -69,7 +69,7 @@ class imprimir_unidadmedida extends fs_controller {
         );
         $fsvar = new fs_var();
         $this->impresion = $fsvar->array_get($this->impresion, FALSE);
-        
+
         $this->shared_extensions();
         $pedido_um_p = \filter_input(INPUT_POST, 'pedido_um');
         $pedido_um_g = \filter_input(INPUT_GET, 'pedido_um');
@@ -255,7 +255,7 @@ class imprimir_unidadmedida extends fs_controller {
         $iva = FALSE;
         $re = FALSE;
         $irpf = FALSE;
-        
+
         // leemos las líneas para ver si hay que mostrar los tipos de iva, re o irpf
         foreach ($lineas as $i => $lin) {
             if ($lin->cantidad != intval($lin->cantidad)) {
@@ -359,15 +359,21 @@ class imprimir_unidadmedida extends fs_controller {
              * Se agrega el convertidor de unidades de medida para mostrar la unidad de medida de compra
              * en la siguiente actualizacion se podrá configurar multiples unidades de medida
              */
-            $umBase = $this->articulo_um->getBase($lineas[$linea_actual]->referencia);
             $umCompra = $this->articulo_um->getByTipo($lineas[$linea_actual]->referencia,'se_compra');
-            $um_linea = $this->articulo_um->get($lineas[$linea_actual]->referencia);
+            //print_r($umCompra);
+            // Ejemplo: tenemos 1000 unidades que vienen en cajas de 100 unidades cada caja
+            // Se divide cantidad/factor de um de compra.
+            // $nuevaCantidad = $lineas[$linea_actual]->cantidad/$umCompra->factor;
+            // Pero el precio no se divide se multiplica para poder mostrar el valor total
+            // $nuevoPrecio = $lineas[$linea_actual]->pvpunitario*$umCompra->factor;
+            $cantidadConvertida = $lineas[$linea_actual]->cantidad/$umCompra[0]->factor;
+            $precioConvertido = $lineas[$linea_actual]->pvpunitario*$umCompra[0]->factor;
             $fila = array(
-                'cantidad' => $this->show_numero($lineas[$linea_actual]->cantidad, $dec_cantidad),
-                'cantidad2' => $this->show_numero($lineas[$linea_actual]->cantidad, $dec_cantidad),
+                'cantidad' => $this->show_numero($cantidadConvertida, $dec_cantidad),
+                'cantidad2' => $this->show_numero($cantidadConvertida, $dec_cantidad),
                 'descripcion' => $descripcion,
-                'pvp' => $this->show_precio($lineas[$linea_actual]->pvpunitario, $this->documento->coddivisa, TRUE, FS_NF0_ART),
-                'unidadmedida' => 'Caja',
+                'pvp' => $this->show_precio($precioConvertido, $this->documento->coddivisa),
+                'unidadmedida' => $umCompra[0]->nombre_um,
                 'dto' => $this->show_numero($lineas[$linea_actual]->dtopor) . " %",
                 'iva' => $this->show_numero($lineas[$linea_actual]->iva) . " %",
                 're' => $this->show_numero($lineas[$linea_actual]->recargo) . " %",
@@ -441,7 +447,7 @@ class imprimir_unidadmedida extends fs_controller {
         } else {
             /*
              * Rellenamos la última tabla de la página:
-             * 
+             *
              * Página            Neto    IVA   Total
              */
             $pdf_doc->new_table();

@@ -149,7 +149,7 @@ class articulo_unidadmedida extends fs_model {
             return false;
         }
     }
-    
+
     public function getBase($referencia){
         $sql = "SELECT * FROM ".$this->table_name." WHERE referencia = ".$this->var2str($referencia).";";
         $data = $this->db->select($sql);
@@ -161,13 +161,13 @@ class articulo_unidadmedida extends fs_model {
             return false;
         }
     }
-    
+
     public function getByTipo($referencia,$tipo='se_vende'){
         $sql = "SELECT * FROM ".$this->table_name." WHERE referencia = ".$this->var2str($referencia)." AND ".$tipo." = TRUE".";";
         $data = $this->db->select($sql);
         if($data){
             $lista = array();
-            foreach($lista as $d){
+            foreach($data as $d){
                 $value = new articulo_unidadmedida($d);
                 $item = $this->info_adicional($value);
                 $lista[] = $item;

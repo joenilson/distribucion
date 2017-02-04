@@ -90,94 +90,115 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
         </div>
         <div class="container-fluid">
-            <div class="col-sm-3">
+            <div class="col-sm-4">
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
-
                             <tr>
-                                <th>Qdad</th>
-                                <th>Pago</th>
-                                <th>Valor</th>
-                                <th class="text-center">Divisa</th>
+                                <th colspan="4">Detalle de Ingresos</th>
                             </tr>
-                            <tr>
-                                <th colspan="4">Ingresos</th>
+                           <tr>
+                                <th class="text-center">Tipo</th>
+                                <th class="text-center">Facturado</th>
+                                <th class="text-center">Cobrado</th>
+                                <th class="text-center">Por Cobrar</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {if="$fsc->resultados_formas_pago"}
-                                {loop="$fsc->resultados_formas_pago"}
-                                    {loop="$value1"}
-                                    <tr class='text-success'>
-                                        <td>{$value2->cantidad}</td>
-                                        <td>{$value2->descpago}</td>
-                                        <td class="text-right">{$fsc->show_precio($value2->importe,$value2->divisa)}</td>
-                                        <td class="text-center">{$value2->divisa}</td>
-                                    </tr>
-                                    {/loop}
-                                {/loop}
-                            {/if}
+                            <tr>
+                                <td><b>Ventas</b></td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_ventas,$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->pagadas['ventas'],$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->pendientes['ventas'],$fsc->empresa->coddivisa)}</td>
+                            </tr>
+                            <tr>
+                                <td><b>Faltantes</b></td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_faltantes,$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->pagadas['faltantes'],$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->pendientes['faltantes'],$fsc->empresa->coddivisa)}</td>
+                            </tr>
+                            <tr class="success">
+                                <td class="text-center"><b>Total</b></td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_ingresos,$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_cobros,$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_pendientes_cobro,$fsc->empresa->coddivisa)}</td>
+                            </tr>
                         </tbody>
+                    </table>
+                    <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th colspan="4">Egresos</th>
+                                <th colspan="4">Detalle de Egresos</th>
+                            </tr>
+                           <tr>
+                                <th class="text-center">Tipo</th>
+                                <th class="text-center">Facturado</th>
+                                <th class="text-center">Pagado</th>
+                                <th class="text-center">Por Pagar</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {if="$fsc->resultados_egresos_formas_pago"}
-                                {loop="$fsc->resultados_egresos_formas_pago"}
-                                    {loop="$value1"}
-                                    <tr class='text-info'>
-                                        <td>{$value2->cantidad}</td>
-                                        <td>{$value2->descpago}</td>
-                                        <td class="text-right">{$fsc->show_precio($value2->importe,$value2->divisa)}</td>
-                                        <td class="text-center">{$value2->divisa}</td>
-                                    </tr>
-                                    {/loop}
-                                {/loop}
-                            {/if}
-                        </tbody>
-                        <thead>
                             <tr>
-                                <th colspan="4">Faltantes de Liquidacion</th>
+                                <td><b>Compras</b></td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_compras,$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->pagadas['compras'],$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->pendientes['compras'],$fsc->empresa->coddivisa)}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {if="$fsc->resultados_faltantes_cobrados"}
-                                {loop="$fsc->resultados_faltantes_cobrados"}
-                                    {loop="$value1"}
-                                    <tr class='text-success'>
-                                        <td>{$value2->cantidad}</td>
-                                        <td>Cobrados</td>
-                                        <td class="text-right">{$fsc->show_precio($value2->importe,$value2->divisa)}</td>
-                                        <td class="text-center">{$value2->divisa}</td>
-                                    </tr>
-                                    {/loop}
-                                {/loop}
-                            {/if}
-                            {if="$fsc->resultados_faltantes_pendientes"}
-                                {loop="$fsc->resultados_faltantes_pendientes"}
-                                    {loop="$value1"}
-                                    <tr class='text-danger'>
-                                        <td>{$value2->cantidad}</td>
-                                        <td>Pendientes</td>
-                                        <td class="text-right">{$fsc->show_precio($value2->importe,$value2->divisa)}</td>
-                                        <td class="text-center">{$value2->divisa}</td>
-                                    </tr>
-                                    {/loop}
-                                {/loop}
-                            {/if}
+                            <tr>
+                                <td><b>Faltantes</b></td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_faltantes,$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->pagadas['faltantes'],$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->pendientes['faltantes'],$fsc->empresa->coddivisa)}</td>
+                            </tr>
+                            <tr class="info">
+                                <td class="text-center"><b>Total</b></td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_egresos,$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_pagos,$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->total_pendientes_pago,$fsc->empresa->coddivisa)}</td>
+                            </tr>
                         </tbody>
                         <tfoot>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                            <tr style="background-color: #010101; color: #fff;">
+                                <th>Total</th>
+                                <th class="text-right">{$fsc->show_precio(($fsc->total_ingresos-$fsc->total_egresos),$fsc->empresa->coddivisa)}</th>
+                                <th class="text-right">{$fsc->show_precio(($fsc->total_cobros-$fsc->total_pagos),$fsc->empresa->coddivisa)}</th>
+                                <th class="text-right">{$fsc->show_precio(($fsc->total_pendientes_cobro-$fsc->total_pendientes_pago),$fsc->empresa->coddivisa)}</th>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
+            </div>
+            <div class="col-sm-5">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th colspan="5" class="text-center">Movimientos por Formas de Pago</th>
+                            </tr>
+                            <tr>
+                                <th>Forma Pago</th>
+                                <th>Ingreso Bruto</th>
+                                <th>Ingreso Neto</th>
+                                <th>Egreso Bruto</th>
+                                <th>Egreso Neto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loop="$fsc->fp->all()"}
+                            <tr>
+                                <td>{$value->descripcion}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->ingresos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->cobros_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->egresos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
+                                <td class="text-right">{$fsc->show_precio($fsc->pagos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
+                            </tr>
+                            {/loop}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                
             </div>
         </div>
     </div>
