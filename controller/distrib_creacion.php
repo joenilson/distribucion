@@ -508,7 +508,7 @@ class distrib_creacion extends fs_controller {
           $ref0 = new recibo_factura();
       }
       $num = 0;
-      $error = '';
+      $error = 0;
       foreach ($lista_facturas as $factura) {
          $datos_factura = explode('-', $factura);
          $factura = $fact0->get($datos_factura[0]);
@@ -531,7 +531,7 @@ class distrib_creacion extends fs_controller {
          }
       }
       $data['success'] = TRUE;
-      $data['facturas_procesadas'] = $num.' - '.$error.' - '.count($recibos);
+      $data['facturas_procesadas'] = $num;
       $this->template = false;
       header('Content-Type: application/json');
       echo json_encode($data);

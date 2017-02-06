@@ -170,9 +170,9 @@ class informes_caja extends fs_controller {
                     $this->total_pendientes_cobro += $factura->total;
                     $this->pendientes['ventas'] += $factura->total;
                 }elseif($factura->idfacturarect !== ''){
-                    $this->total_ventas += $factura->total;
-                    $this->total_ingresos += $factura->total;
-                    //$this->pendientes['ventas'] += $factura->total;
+                    $this->total_cobros += $factura->total;
+                    $this->pagadas['ventas'] += $factura->total;
+                    $this->cobros_condpago[$factura->codpago] += $factura->total;
                 }
                 $this->total_ventas += $factura->total;
                 $this->total_ingresos += $factura->total;
