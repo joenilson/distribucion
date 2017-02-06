@@ -35,6 +35,8 @@ require_model('cliente.php');
 require_model('articulo.php');
 require_model('asiento');
 require_model('ejercicio');
+require_model('cuenta_banco.php');
+require_model('subcuenta.php');
 
 require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
 require_once 'helper_ordencarga.php';
@@ -74,7 +76,10 @@ class distrib_creacion extends fs_controller {
    public $asiento;
    public $ejercicio;
    public $faltante_transporte;
-
+   public $codsubcuenta_pago;
+   public $cuenta_banco;
+   public $fecha_pago;
+   public $tesoreria;
    public function __construct() {
       parent::__construct(__CLASS__, '5 - Transportes', 'distribucion');
    }
@@ -93,12 +98,38 @@ class distrib_creacion extends fs_controller {
       $this->ejercicio = new ejercicio();
       $this->helper_transportes = new helper_transportes();
       $this->conductores = new distribucion_conductores();
+      $this->tesoreria = FALSE;
+      //revisamos si esta el plugin de tesoreria
+      $disabled = array();
+      if( defined('FS_DISABLED_PLUGINS') )
+      {
+         foreach( explode(',', FS_DISABLED_PLUGINS) as $aux )
+         {
+            $disabled[] = $aux;
+         }
+      }
+      if(in_array('tesoreria',$GLOBALS['plugins']) and !in_array('tesoreria',$disabled)){
+          $this->tesoreria = TRUE;
+      }
+      
       $type = \filter_input(INPUT_GET, 'type');
       $mostrar = \filter_input(INPUT_GET, 'mostrar');
       $cliente = \filter_input(INPUT_GET, 'codcliente');
       $offset = \filter_input(INPUT_GET, 'offset');
       $this->mostrar = "todo";
       $this->offset = (isset($offset))?$offset:0;
+      
+      $this->cuenta_banco = new cuenta_banco();
+      $this->codsubcuenta_pago = FALSE;
+      if(\filter_input(INPUT_GET,'codsubcuenta'))
+      {
+         $this->codsubcuenta_pago = \filter_input(INPUT_GET,'codsubcuenta');
+      }  
+      $this->fecha_pago = $this->today();
+      if(\filter_input(INPUT_GET,'fecha_pago'))
+      {
+         $this->fecha_pago = \filter_input(INPUT_GET,'fecha_pago');
+      }
       
       if(isset($mostrar)){
          $this->mostrar = $mostrar;
@@ -469,18 +500,38 @@ class distrib_creacion extends fs_controller {
       $value_factura = \filter_input(INPUT_GET, 'factura');
       $lista_facturas = explode(',', $value_factura);
       $fact0 = new factura_cliente();
+      if($this->tesoreria){
+          require_model('pago_recibo_cliente.php');
+          require_model('recibo_cliente.php');
+          require_model('recibo_factura.php');
+          $rec0 = new recibo_cliente();
+          $ref0 = new recibo_factura();
+      }
       $num = 0;
+      $error = '';
       foreach ($lista_facturas as $factura) {
          $datos_factura = explode('-', $factura);
          $factura = $fact0->get($datos_factura[0]);
          if ($factura) {
+            if($this->tesoreria){
+                $recibos = $rec0->all_from_factura($factura->idfactura);
+                
+                foreach($recibos as $recibo){
+                   if($recibo->estado != 'Pagado'){
+                      if(!$ref0->nuevo_pago_cli($recibo, $this->codsubcuenta_pago, 'Pago', $this->fecha_pago) ){
+                         $error = TRUE;
+                         break;
+                      }
+                   }
+                }
+            }
             $factura->pagada = TRUE;
             $factura->save();
             $num++;
          }
       }
       $data['success'] = TRUE;
-      $data['facturas_procesadas'] = $num;
+      $data['facturas_procesadas'] = $num.' - '.$error.' - '.count($recibos);
       $this->template = false;
       header('Content-Type: application/json');
       echo json_encode($data);
@@ -549,6 +600,31 @@ class distrib_creacion extends fs_controller {
       header('Content-Type: application/json');
       echo json_encode($data);
    }
+   
+   public function get_subcuentas_pago()
+   {
+      $subcuentas_pago = array();
+      
+      $eje0 = new ejercicio();
+      $ejercicio = $eje0->get_by_fecha($this->today());
+      if($ejercicio)
+      {
+         /// añadimos todas las subcuentas de caja
+         $sql = "SELECT * FROM co_subcuentas WHERE idcuenta IN "
+                 . "(SELECT idcuenta FROM co_cuentas WHERE codejercicio = "
+                 . $ejercicio->var2str($ejercicio->codejercicio)." AND idcuentaesp = 'CAJA');";
+         $data = $this->db->select($sql);
+         if($data)
+         {
+            foreach($data as $d)
+            {
+               $subcuentas_pago[] = new subcuenta($d);
+            }
+         }
+      }
+      
+      return $subcuentas_pago;
+   }   
 
    public function share_extensions() {
       $extensiones = array(

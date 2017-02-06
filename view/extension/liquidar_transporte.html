@@ -154,13 +154,19 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         $('input[name=idfactura]:checked').map(function() {
             checkboxValues.push($(this).val());
         });
-        console.log(checkboxValues);
+        var codsubcuenta = $('#codsubcuenta').val();
+        var fecha_pago = $('#fecha_pago').val();
         if(checkboxValues.length === 0 && factura !== undefined && almacen !== undefined){
            checkboxValues.push(factura+'-'+almacen);
         }else if(checkboxValues.length === 0 && factura === undefined && almacen === undefined){
             seguir = false;
             alert('Error de informacion enviada a procesar, no hay datos seleccionados!');
         }
+        
+        if(codsubcuenta === '' && fecha_pago ===''){
+            alert('Debe elegir una cuenta para generar el asiento de pago y una fecha de pago');
+        }
+        
         if(seguir){
             var frase = (checkboxValues.length===1)?"la factura "+checkboxValues[0]:"las facturas seleccionadas";
             bootbox.dialog({
@@ -175,7 +181,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                            type: 'GET',
                            url: '{$fsc->url()}',
                            async: false,
-                           data: 'type=pagar-factura&factura='+checkboxValues,
+                           data: 'type=pagar-factura&factura='+checkboxValues+'&codsubcuenta='+codsubcuenta+'&fecha_pago='+fecha_pago,
                            success : function(datos) {
                              bootbox.alert('Se han pagado '+datos.facturas_procesadas+' facturas.', function() {
                                 window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
@@ -358,7 +364,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                           <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_nada()" title="Desmarcar todo">
                              <span class="glyphicon glyphicon-unchecked"></span>
                           </button>
-                          <button class="btn btn-sm btn-primary" type="button" onclick="ingresarPago()">
+                          <button class="btn btn-sm btn-primary" type="button" data-toggle="modal" data-target="#modal_opciones_pago">
                              <span class="glyphicon glyphicon-ok"></span> &nbsp; Marcar como pagadas
                           </button>
                        </div>
@@ -436,6 +442,59 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
             </div>
             <div class="modal-body" id='modal_body_imprimir_liquidacion'>
 
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="modal_opciones_pago" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Pagar en...</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <select name="codsubcuenta" id="codsubcuenta" class="form-control">
+                        {loop="$fsc->get_subcuentas_pago()"}
+                        {if="$value->codsubcuenta==$fsc->codsubcuenta_pago"}
+                        <option value="{$value->codsubcuenta}" selected="">{$value->descripcion}</option>
+                        {else}
+                        <option value="{$value->codsubcuenta}">{$value->descripcion}</option>
+                        {/if}
+                        {/loop}
+                        <option value="">------</option>
+                        {loop="$fsc->cuenta_banco->all()"}
+                        {if="!$value->codsubcuenta"}
+                        {elseif="$value->codsubcuenta==$fsc->codsubcuenta_pago"}
+                        <option value="{$value->codsubcuenta}" selected="">{$value->descripcion}</option>
+                        {else}
+                        <option value="{$value->codsubcuenta}">{$value->descripcion}</option>
+                        {/if}
+                        {/loop}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                        <input type="text" name="fecha"  id="fecha_pago" value="{$fsc->fecha_pago}" class="form-control datepicker" autocomplete="off"/>
+                    </div>
+                </div>
+                {if="$fsc->cliente"}
+                <p class="help-block">
+                    <span class="glyphicon glyphicon-info-sign"></span>
+                    Se generará un único asiento de pago.
+                </p>
+                {/if}
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-sm btn-primary" onclick="ingresarPago()">
+                    <span class="glyphicon glyphicon-ok"></span>&nbsp; Marcar como pagadas
+                </button>
             </div>
         </div>
     </div>

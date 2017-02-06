@@ -147,7 +147,7 @@ class informes_caja extends fs_controller {
             foreach($lista_ventas as $d){
                 $factura = new factura_cliente($d);
                 $factura->total = ($this->empresa->coddivisa == $factura->coddivisa)?$factura->total:$this->euro_convert($this->divisa_convert($factura->total, $factura->coddivisa, 'EUR'));
-                if($factura->pagada){
+                if($factura->pagada and $factura->idfacturarect == ''){
                     $pago_venta = $factura->get_asiento_pago();
                     if($pago_venta){
                         if(\date('Y-m-d',strtotime($pago_venta->fecha))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($pago_venta->fecha))<=\date('Y-m-d',strtotime($this->f_hasta))){
@@ -166,9 +166,13 @@ class informes_caja extends fs_controller {
                         $this->pagadas['ventas'] += $factura->total;
                         $this->cobros_condpago[$factura->codpago] += $factura->total;
                     }
-                }else{
+                }elseif(!$factura->pagada and $factura->idfacturarect == ''){
                     $this->total_pendientes_cobro += $factura->total;
                     $this->pendientes['ventas'] += $factura->total;
+                }elseif($factura->idfacturarect !== ''){
+                    $this->total_ventas += $factura->total;
+                    $this->total_ingresos += $factura->total;
+                    //$this->pendientes['ventas'] += $factura->total;
                 }
                 $this->total_ventas += $factura->total;
                 $this->total_ingresos += $factura->total;
@@ -220,7 +224,7 @@ class informes_caja extends fs_controller {
             foreach($lista_compras as $f){
                 $factura = new factura_proveedor($f);
                 $factura->total = ($this->empresa->coddivisa == $factura->coddivisa)?$factura->total:$this->euro_convert($this->divisa_convert($factura->total, $factura->coddivisa, 'EUR'));
-                if($factura->pagada){
+                if($factura->pagada and $factura->idfacturarect == ''){
                     $pago_compra = $factura->get_asiento_pago();
                     if($pago_compra){
                         if(\date('Y-m-d',strtotime($pago_compra->fecha))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($pago_compra->fecha))<=\date('Y-m-d',strtotime($this->f_hasta))){
