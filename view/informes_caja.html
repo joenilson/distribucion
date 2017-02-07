@@ -68,6 +68,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
                         <span class="fa fa-search"></span>
                     </button>
+                    <a href="{$fsc->fileNameXLS}" id="b_descargar" class="btn btn-sm btn-success">
+                        <span class="fa fa-file-excel-o"></span>&nbsp;XLS
+                    </a>
+                    <a href="{$fsc->fileNamePDF}" id="b_descargar" download class="btn btn-sm btn-info">
+                        <span class="fa fa-file-pdf-o"></span>&nbsp;PDF
+                    </a>
                 </div>
             </div>
         </form>
@@ -90,115 +96,258 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
         </div>
         <div class="container-fluid">
-            <div class="col-sm-4">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th colspan="4">Detalle de Ingresos</th>
-                            </tr>
-                           <tr>
-                                <th class="text-center">Tipo</th>
-                                <th class="text-center">Facturado</th>
-                                <th class="text-center">Cobrado</th>
-                                <th class="text-center">Por Cobrar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><b>Ventas</b></td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_ventas,$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->pagadas['ventas'],$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->pendientes['ventas'],$fsc->empresa->coddivisa)}</td>
-                            </tr>
-                            <tr>
-                                <td><b>Faltantes</b></td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_faltantes,$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->pagadas['faltantes'],$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->pendientes['faltantes'],$fsc->empresa->coddivisa)}</td>
-                            </tr>
-                            <tr class="success">
-                                <td class="text-center"><b>Total</b></td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_ingresos,$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_cobros,$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_pendientes_cobro,$fsc->empresa->coddivisa)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th colspan="4">Detalle de Egresos</th>
-                            </tr>
-                           <tr>
-                                <th class="text-center">Tipo</th>
-                                <th class="text-center">Facturado</th>
-                                <th class="text-center">Pagado</th>
-                                <th class="text-center">Por Pagar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><b>Compras</b></td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_compras,$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->pagadas['compras'],$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->pendientes['compras'],$fsc->empresa->coddivisa)}</td>
-                            </tr>
-                            <tr>
-                                <td><b>Faltantes</b></td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_faltantes,$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->pagadas['faltantes'],$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->pendientes['faltantes'],$fsc->empresa->coddivisa)}</td>
-                            </tr>
-                            <tr class="info">
-                                <td class="text-center"><b>Total</b></td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_egresos,$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_pagos,$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->total_pendientes_pago,$fsc->empresa->coddivisa)}</td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr style="background-color: #010101; color: #fff;">
-                                <th>Total</th>
-                                <th class="text-right">{$fsc->show_precio(($fsc->total_ingresos-$fsc->total_egresos),$fsc->empresa->coddivisa)}</th>
-                                <th class="text-right">{$fsc->show_precio(($fsc->total_cobros-$fsc->total_pagos),$fsc->empresa->coddivisa)}</th>
-                                <th class="text-right">{$fsc->show_precio(($fsc->total_pendientes_cobro-$fsc->total_pendientes_pago),$fsc->empresa->coddivisa)}</th>
-                            </tr>
-                        </tfoot>
-                    </table>
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active"><a href="#resumen" aria-controls="resumen" role="tab" data-toggle="tab">Resumen</a></li>
+                <li role="presentation"><a href="#detalle_ventas" aria-controls="detalle_ventas" role="tab" data-toggle="tab">Detalle Ventas</a></li>
+                <li role="presentation"><a href="#detalle_compras" aria-controls="detalle_compras" role="tab" data-toggle="tab">Detalle Compras</a></li>
+            </ul>
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="resumen">
+                    <div class="col-sm-4">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th colspan="4">Detalle de Ingresos</th>
+                                    </tr>
+                                   <tr>
+                                        <th class="text-center">Tipo</th>
+                                        <th class="text-center">Facturado</th>
+                                        <th class="text-center">Cobrado</th>
+                                        <th class="text-center">Por Cobrar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><b>Ventas</b></td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_ventas,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pagadas['ventas'],$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pendientes['ventas'],$fsc->empresa->coddivisa)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Faltantes</b></td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_faltantes_ventas,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pagadas['faltantes_ventas'],$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pendientes['faltantes_ventas'],$fsc->empresa->coddivisa)}</td>
+                                    </tr>
+                                    <tr class="success">
+                                        <td class="text-center"><b>Total</b></td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_ingresos,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_cobros,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_pendientes_cobro,$fsc->empresa->coddivisa)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th colspan="4">Detalle de Egresos</th>
+                                    </tr>
+                                   <tr>
+                                        <th class="text-center">Tipo</th>
+                                        <th class="text-center">Facturado</th>
+                                        <th class="text-center">Pagado</th>
+                                        <th class="text-center">Por Pagar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><b>Compras</b></td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_compras,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pagadas['compras'],$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pendientes['compras'],$fsc->empresa->coddivisa)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Faltantes</b></td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_faltantes_compras,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pagadas['faltantes_compras'],$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pendientes['faltantes_compras'],$fsc->empresa->coddivisa)}</td>
+                                    </tr>
+                                    <tr class="info">
+                                        <td class="text-center"><b>Total</b></td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_egresos,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_pagos,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_pendientes_pago,$fsc->empresa->coddivisa)}</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="background-color: #010101; color: #fff;">
+                                        <th>Total</th>
+                                        <th class="text-right">{$fsc->show_precio(($fsc->total_ingresos-$fsc->total_egresos),$fsc->empresa->coddivisa)}</th>
+                                        <th class="text-right">{$fsc->show_precio(($fsc->total_cobros-$fsc->total_pagos),$fsc->empresa->coddivisa)}</th>
+                                        <th class="text-right">{$fsc->show_precio(($fsc->total_pendientes_cobro-$fsc->total_pendientes_pago),$fsc->empresa->coddivisa)}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-sm-5">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th colspan="5" class="text-center">Movimientos por Formas de Pago</th>
+                                    </tr>
+                                    <tr>
+                                        <th>Forma Pago</th>
+                                        <th>Ingreso Bruto</th>
+                                        <th>Ingreso Neto</th>
+                                        <th>Egreso Bruto</th>
+                                        <th>Egreso Neto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loop="$fsc->fp->all()"}
+                                    <tr>
+                                        <td>{$value->descripcion}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->ingresos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->cobros_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->egresos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pagos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
+                                    </tr>
+                                    {/loop}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+
+                    </div>
                 </div>
-            </div>
-            <div class="col-sm-5">
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th colspan="5" class="text-center">Movimientos por Formas de Pago</th>
-                            </tr>
-                            <tr>
-                                <th>Forma Pago</th>
-                                <th>Ingreso Bruto</th>
-                                <th>Ingreso Neto</th>
-                                <th>Egreso Bruto</th>
-                                <th>Egreso Neto</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loop="$fsc->fp->all()"}
-                            <tr>
-                                <td>{$value->descripcion}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->ingresos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->cobros_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->egresos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
-                                <td class="text-right">{$fsc->show_precio($fsc->pagos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
-                            </tr>
-                            {/loop}
-                        </tbody>
-                    </table>
+                <div role="tabpanel" class="tab-pane" id="detalle_ventas">
+                    <div class="table-responsive col-sm-10">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th colspan="87" class="text-center">Detalle de Documentos</th>
+                                </tr>
+                                <tr>
+                                    <th class='text-center'>Factura</th>
+                                    <th class='text-center'>{#FS_NUMERO2#}</th>
+                                    <th class='text-center'>Cliente</th>
+                                    <th class='text-center'>Pagada</th>
+                                    <th class='text-center'>Importe</th>
+                                    <th class='text-center'>Rect.</th>
+                                    <th class='text-center'>Abonos</th>
+                                    <th class='text-center'>Saldo</th>
+                                    <th class='text-center'>Fecha Factura</th>
+                                    <th class='text-center'>Fecha Pago</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 
+                                {$totalImporte=0}
+                                {$totalRectificativas=0}
+                                {$totalAbonos=0}
+                                {$totalSaldo=0}
+                                !-->
+                                {loop="$fsc->detalle['ventas']"}
+                                <tr>
+                                    <td><a href='{$value->url()}'>{$value->idfactura}</a></td>
+                                    <td class="text-center">{$value->numero2}</td>
+                                    <td class="text-left">{$value->nombrecliente}</td>
+                                    <td class="text-center">{if="$value->pagada"}Pagada{else}Pendiente{/if}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->total,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->rectificativa,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio(($value->abonos),$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio((($value->total+$value->rectificativa)-$value->abonos),$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-center">{$value->fecha}</td>
+                                    <td class="text-center {if="$value->fecha!=$value->fecha_pago"}warning{/if}">{if="$value->fecha_pago"}{$value->fecha_pago}{/if}</td>
+                                </tr>
+                                <!-- 
+                                {$totalImporte+=$value->total}
+                                {$totalRectificativas+=$value->rectificativa}
+                                {$totalAbonos+=$value->abonos}
+                                {$totalSaldo+=($value->total+$value->rectificativa)-$value->abonos}
+                                !-->
+                                {/loop}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4">Total</th>
+                                    <th class="text-right">{$fsc->show_precio($totalImporte,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalRectificativas,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalAbonos,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalSaldo,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="6"></th>
+                                    <th colspan="2" class="text-right info">{$fsc->show_precio($totalAbonos+$totalSaldo,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
-            </div>
-            <div class="col-sm-3">
-                
+                <div role="tabpanel" class="tab-pane" id="detalle_compras">
+                    <div class="table-responsive col-sm-10">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th colspan="87" class="text-center">Detalle de Documentos</th>
+                                </tr>
+                                <tr>
+                                    <th class='text-center'>Factura</th>
+                                    <th class='text-center'>{#FS_NUMERO2#}</th>
+                                    <th class='text-center'>Proveedor</th>
+                                    <th class='text-center'>Pagada</th>
+                                    <th class='text-center'>Importe</th>
+                                    <th class='text-center'>Rect.</th>
+                                    <th class='text-center'>Abonos</th>
+                                    <th class='text-center'>Saldo</th>
+                                    <th class='text-center'>Fecha Factura</th>
+                                    <th class='text-center'>Fecha Pago</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 
+                                {$totalImporte=0}
+                                {$totalRectificativas=0}
+                                {$totalAbonos=0}
+                                {$totalSaldo=0}
+                                !-->
+                                {loop="$fsc->detalle['compras']"}
+                                <tr>
+                                    <td><a href='{$value->url()}'>{$value->idfactura}</a></td>
+                                    <td class="text-center">{$value->numproveedor}</td>
+                                    <td class="text-left">{$value->nombre}</td>
+                                    <td class="text-center">{if="$value->pagada"}Pagada{else}Pendiente{/if}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->total,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->rectificativa,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio(($value->abonos),$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio((($value->total+$value->rectificativa)-$value->abonos),$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-center">{$value->fecha}</td>
+                                    <td class="text-center {if="$value->fecha!=$value->fecha_pago"}warning{/if}">{if="$value->fecha_pago"}{$value->fecha_pago}{/if}</td>
+                                </tr>
+                                <!-- 
+                                {$totalImporte+=$value->total}
+                                {$totalRectificativas+=$value->rectificativa}
+                                {$totalAbonos+=$value->abonos}
+                                {$totalSaldo+=($value->total+$value->rectificativa)-$value->abonos}
+                                !-->
+                                {/loop}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4">Total</th>
+                                    <th class="text-right">{$fsc->show_precio($totalImporte,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalRectificativas,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalAbonos,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalSaldo,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="6"></th>
+                                    <th colspan="2" class="text-right info">{$fsc->show_precio($totalAbonos+$totalSaldo,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
