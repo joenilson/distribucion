@@ -319,16 +319,16 @@ class informes_caja extends fs_controller {
         $this->pdf->Ln();
         $this->pdf->Ln();
         $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(150, 4, 'Movimientos por Formas de Pago', 1, 0, 'C', 0);
+        $this->pdf->Cell(180, 4, 'Movimientos por Formas de Pago', 1, 0, 'C', 0);
         $this->pdf->Ln();
-        $headerFormasPago = array('forma Pago'=>30,'Ingreso Bruto'=>30,'Ingreso Neto'=>30,'Egreso Bruto'=>30, 'Egreso Neto'=>30);
+        $headerFormasPago = array('forma Pago'=>60,'Ingreso Bruto'=>30,'Ingreso Neto'=>30,'Egreso Bruto'=>30, 'Egreso Neto'=>30);
         $this->pdfHeader($headerFormasPago);
         $totales_fp['ingresos_brutos'] = 0;
         $totales_fp['ingresos_netos'] = 0;
         $totales_fp['egresos_brutos'] = 0;
         $totales_fp['egresos_netos'] = 0;
         foreach($this->fp->all() as $fp){
-            $this->pdf->Cell(30, 4, $fp->descripcion, 1, 0, 'L', 0);
+            $this->pdf->Cell(60, 4, $fp->descripcion, 1, 0, 'L', 0);
             $this->pdf->Cell(30, 4, $this->show_precio($this->ingresos_condpago[$fp->codpago],$this->empresa->coddivisa), 1, 0, 'R', 0);
             $this->pdf->Cell(30, 4, $this->show_precio($this->cobros_condpago[$fp->codpago],$this->empresa->coddivisa), 1, 0, 'R', 0);
             $this->pdf->Cell(30, 4, $this->show_precio($this->egresos_condpago[$fp->codpago],$this->empresa->coddivisa), 1, 0, 'R', 0);
@@ -341,7 +341,7 @@ class informes_caja extends fs_controller {
         }
         
         $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(30, 4, 'Total', 1, 0, 'L', 0);
+        $this->pdf->Cell(60, 4, 'Total', 1, 0, 'L', 0);
         $this->pdf->Cell(30, 4, $this->show_precio($totales_fp['ingresos_brutos'],$this->empresa->coddivisa), 1, 0, 'R', 0);
         $this->pdf->Cell(30, 4, $this->show_precio($totales_fp['ingresos_netos'],$this->empresa->coddivisa), 1, 0, 'R', 0);
         $this->pdf->Cell(30, 4, $this->show_precio($totales_fp['egresos_brutos'],$this->empresa->coddivisa), 1, 0, 'R', 0);
@@ -392,7 +392,9 @@ class informes_caja extends fs_controller {
         $this->pdf->Cell(25, 4, $this->show_precio($totalRectificativas,$this->empresa->coddivisa), 1, 0, 'R', 0);
         $this->pdf->Cell(25, 4, $this->show_precio($totalAbonos,$this->empresa->coddivisa), 1, 0, 'R', 0);
         $this->pdf->Cell(25, 4, $this->show_precio($totalSaldo,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        
+        $this->pdf->Ln();
+        $this->pdf->Cell(180, 4, '', 1, 0, 'L', 0);
+        $this->pdf->Cell(50, 4, $this->show_precio(($totalAbonos+$totalSaldo),$this->empresa->coddivisa), 1, 0, 'R', 0);
         //Inicio de paginas para Compras
         $this->pdf->AddPage('L');
         $items = 1;
@@ -439,9 +441,11 @@ class informes_caja extends fs_controller {
         $this->pdf->Cell(25, 4, $this->show_precio($totalRectificativasCompras,$this->empresa->coddivisa), 1, 0, 'R', 0);
         $this->pdf->Cell(25, 4, $this->show_precio($totalAbonosCompras,$this->empresa->coddivisa), 1, 0, 'R', 0);
         $this->pdf->Cell(25, 4, $this->show_precio($totalSaldoCompras,$this->empresa->coddivisa), 1, 0, 'R', 0);
+        $this->pdf->Cell(180, 4, '', 1, 0, 'L', 0);
+        $this->pdf->Cell(50, 4, $this->show_precio(($totalAbonosCompras+$totalSaldoCompras),$this->empresa->coddivisa), 1, 0, 'R', 0);        
+        
+        //Guardamos el PDF
         $this->pdf->Output($this->pathNamePDF,'F');
-        
-        
     }
     
     private function pdfHeader($header){
