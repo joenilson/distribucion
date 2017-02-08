@@ -248,8 +248,8 @@ class informes_caja extends fs_controller {
             $logo_empresa, 
             10,
             $this->empresa->nombre, 
-            'Informe de Caja del '.$this->f_desde.' al '.$this->f_hasta, 
-            array(0,0,0), 
+            'Informe de Caja del Almacén: '.$this->almacenes->get($this->codalmacen)->nombre.' del '.$this->f_desde.' al '.$this->f_hasta. 'generado el: '.\date('d-m-Y H:i:s'), 
+            array(0,0,0),
             array(0,0,0)
         );
         $this->pdf->setFooterData(array(0,64,0), array(0,64,128));
@@ -526,7 +526,7 @@ class informes_caja extends fs_controller {
                             $this->total_cobros += $factura->total;
                             $this->pagadas['ventas'] += $factura->total;
                             $this->cobros_condpago[$factura->codpago] += $factura->total;
-                            $factura->fecha_pago = $pago_venta->fechap;
+                            $factura->fecha_pago = ($this->tesoreria)?$pago_venta->fechap:$pago_venta->fecha;
                             $factura->abonos = $factura->total;
                         }else{
                             //Esta pendiente a la fecha buscada
@@ -563,10 +563,15 @@ class informes_caja extends fs_controller {
                                 $factura->abonos += $rectificativa->total;
                             }
                         }else{
+                            //Si no estan en fecha las restamos del total de cobros y las sumamos a los pendientes,
+                            //Como esta en valor negativo en total cobros se suma y en pendientes se resta
                             $factura->abonos += $rectificativa->total;
                             $factura->fecha_pago = '';
-                            $this->total_pendientes_cobro += $rectificativa->total;
-                            $this->pendientes['ventas'] += $rectificativa->total;
+                            $this->pagadas['ventas'] += $rectificativa->total;
+                            $this->total_cobros += $rectificativa->total;
+                            $this->cobros_condpago[$rectificativa->codpago] += $rectificativa->total;
+                            $this->total_pendientes_cobro -= $rectificativa->total;
+                            $this->pendientes['ventas'] -= $rectificativa->total;
                         }
                     }
                     $factura->rectificativa = $total_rectificativas;

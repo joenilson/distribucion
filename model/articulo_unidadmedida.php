@@ -25,10 +25,10 @@ require_model('unidadmedida.php');
 class articulo_unidadmedida extends fs_model {
 
     /**
-     * Id de la unidad de medida
-     * @var type integer
+     * codum de la unidad de medida
+     * @var type varchar(10)
      */
-    public $id;
+    public $codum;
 
     /**
      * Codigo del artículo
@@ -71,7 +71,7 @@ class articulo_unidadmedida extends fs_model {
     public function __construct($t = FALSE) {
         parent::__construct('articulo_unidadmedida', 'plugins/distribucion/');
         if ($t) {
-            $this->id = $t['id'];
+            $this->codum = $t['codum'];
             $this->referencia = $t['referencia'];
             $this->base = $this->str2bool($t['base']);
             $this->factor = floatval($t['factor']);
@@ -79,7 +79,7 @@ class articulo_unidadmedida extends fs_model {
             $this->se_compra = $this->str2bool($t['se_compra']);
             $this->se_vende = $this->str2bool($t['se_vende']);
         } else {
-            $this->id = NULL;
+            $this->codum = NULL;
             $this->referencia = NULL;
             $this->base = FALSE;
             $this->factor = NULL;
@@ -95,19 +95,17 @@ class articulo_unidadmedida extends fs_model {
     }
 
     public function info_adicional($item){
-        if($this->unidadmedida->get($item->id)){
-            $item->nombre_um = $this->unidadmedida->get($item->id)->name;
-            $item->abrev_um = $this->unidadmedida->get($item->id)->abreviatura;
+        if($this->unidadmedida->get($item->codum)){
+            $item->nombre_um = $this->unidadmedida->get($item->codum)->nombre;
         }else{
             $item->nombre_um = 'NO EXISTE';
-            $item->abrev_um = 'NE';
         }
         return $item;
     }
 
 
     public function all() {
-        $sql = "SELECT * FROM ".$this->table_name." ORDER BY referencia,base DESC,id";
+        $sql = "SELECT * FROM ".$this->table_name." ORDER BY referencia,base DESC,codum";
         $data = $this->db->select($sql);
         if($data){
             $lista = array();
@@ -123,7 +121,7 @@ class articulo_unidadmedida extends fs_model {
     }
 
     public function get($referencia){
-        $sql = "SELECT * FROM ".$this->table_name." WHERE referencia = ".$this->var2str($referencia)." ORDER BY base,id";
+        $sql = "SELECT * FROM ".$this->table_name." WHERE referencia = ".$this->var2str($referencia)." ORDER BY base,codum";
         $data = $this->db->select($sql);
         if($data){
             $lista = array();
@@ -138,8 +136,8 @@ class articulo_unidadmedida extends fs_model {
         }
     }
 
-    public function getOne($id,$referencia){
-        $sql = "SELECT * FROM ".$this->table_name." WHERE id = ".$this->intval($id)." AND referencia = ".$this->var2str($referencia)." ORDER BY base,id";
+    public function getOne($codum,$referencia){
+        $sql = "SELECT * FROM ".$this->table_name." WHERE codum = ".$this->var2str($codum)." AND referencia = ".$this->var2str($referencia)." ORDER BY base,codum";
         $data = $this->db->select($sql);
         if($data){
             $value = new articulo_unidadmedida($data[0]);
@@ -179,10 +177,10 @@ class articulo_unidadmedida extends fs_model {
     }
 
     public function exists() {
-        if(is_null($this->id) AND is_null($this->referencia)){
+        if(!$this->getOne($this->codum, $this->referencia)){
             return false;
         }else{
-            return $this->getOne($this->id, $this->referencia);
+            return $this->getOne($this->codum, $this->referencia);
         }
     }
 
@@ -195,11 +193,11 @@ class articulo_unidadmedida extends fs_model {
                     "se_compra = ".$this->var2str($this->se_compra).", ".
                     "se_vende = ".$this->var2str($this->se_vende).
                     " WHERE ".
-                    "id = ".$this->intval($this->id)." AND ".
+                    "codum = ".$this->var2str($this->codum)." AND ".
                     "referencia = ".$this->var2str($this->referencia).";";
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (id, referencia, base, factor, peso, se_compra, se_vende) VALUES (".
-                $this->intval($this->id).", ".
+            $sql = "INSERT INTO ".$this->table_name." (codum, referencia, base, factor, peso, se_compra, se_vende) VALUES (".
+                $this->var2str($this->codum).", ".
                 $this->var2str($this->referencia).", ".
                 $this->var2str($this->base).", ".
                 $this->var2str($this->factor).", ".
@@ -216,7 +214,7 @@ class articulo_unidadmedida extends fs_model {
     }
 
     public function delete() {
-        $sql = "DELETE FROM ".$this->table_name." WHERE id = ".$this->intval($this->id)." AND referencia = ".$this->var2str($this->referencia).";";
+        $sql = "DELETE FROM ".$this->table_name." WHERE codum = ".$this->var2str($this->codum)." AND referencia = ".$this->var2str($this->referencia).";";
         $data = $this->db->exec($sql);
         if($data){
             return true;

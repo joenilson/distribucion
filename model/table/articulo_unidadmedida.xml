@@ -18,8 +18,8 @@
         <defecto>1</defecto>
     </columna>
     <columna>
-        <nombre>id</nombre>
-        <tipo>integer</tipo>
+        <nombre>codum</nombre>
+        <tipo>character varying(10)</tipo>
         <nulo>NO</nulo>
     </columna>
     <columna>
@@ -46,7 +46,7 @@
     </columna>    
     <restriccion>
         <nombre>articulo_unidadmedida_pkey</nombre>
-        <consulta>PRIMARY KEY (id,referencia)</consulta>
+        <consulta>PRIMARY KEY (codum,referencia)</consulta>
     </restriccion>
     <restriccion>
         <nombre>ca_articulo_unidadmedida_articulos</nombre>

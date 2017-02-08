@@ -70,8 +70,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <table class="table table-bordered">
                     <thead>
                         <tr>
+                            <th class="col-sm-2">Codigo</th>
                             <th class="col-sm-4">Unidad de Medida</th>
-                            <th class="col-sm-2">Abreviatura</th>
                             <th class="col-sm-4">Cantidad</th>
                             <th class="col-sm-2">&nbsp;</th>
                         </tr>
@@ -80,14 +80,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <form name="f_nueva_um" action="{$fsc->url()}" method="POST" class="form-inline">
                         <tr class="info">
                             <td>
-                                <input type="hidden" name="id" value="">
                                 <div class="form-group">
-                                    <input type="text" id="name" placeholder="Nombre de Unidad de Medida" name="name" maxlength="60" value="" autocomplete="off" class="form-control input-sm">
+                                    <input type="text" id="codum" placeholder="Código de Unidad de Medida" name="codum" maxlength="10" value="" autocomplete="off" class="form-control input-sm">
                                 </div>
-                            </td>
+                            </td>                            
                             <td>
                                 <div class="form-group">
-                                    <input type="text" id="abreviatura" placeholder="Abreviatura de Unidad de Medida" name="abreviatura" maxlength="6" value="" autocomplete="off" class="form-control input-sm">
+                                    <input type="text" id="nombre" placeholder="Nombre de Unidad de Medida" name="nombre" maxlength="60" value="" autocomplete="off" class="form-control input-sm">
                                 </div>
                             </td>
                             <td>
@@ -108,11 +107,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <form name="f_um_{$counter}" action="{$fsc->url()}" method="POST" class="form-inline">
                         <tr>
                             <td>
-                                <input type="hidden" name="id" value="{$value->id}">
-                                <input class="form-control input-sm" type="text" name="name" value="{$value->name}">
+                                <input class="form-control input-sm" type="text" name="codum" value="{$value->codum}" readonly>
                             </td>
                             <td>
-                                <input class="form-control input-sm" type="text" name="abreviatura" value="{$value->abreviatura}">
+                                <input class="form-control input-sm" type="text" name="nombre" value="{$value->nombre}">
                             </td>
                             <td>
                                 <input class="form-control input-sm" type="text" name="cantidad" value="{$value->cantidad}">
@@ -124,7 +122,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 </button>
                                 {else}
                                     {if="$fsc->allow_delete"}
-                                        <button type="submit" name="accion" value="eliminar" class="btn btn-sm btn-danger" onclick="return confirm('¿Esta seguro que quiere eliminar la unidad de medida {$value->name}?')">
+                                        <button type="submit" name="accion" value="eliminar" class="btn btn-sm btn-danger" onclick="return confirm('¿Esta seguro que quiere eliminar la unidad de medida {$value->nombre}?')">
                                             <span class="fa fa-trash"></span>
                                         </button>
                                     {/if}

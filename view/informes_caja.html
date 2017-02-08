@@ -66,41 +66,51 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 <div class="col-sm-3">
                     <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
-                        <span class="fa fa-search"></span>
+                        <span class="fa fa-search"></span>&nbsp;Generar
                     </button>
                     <a href="{$fsc->fileNameXLS}" id="b_descargar" class="btn btn-sm btn-success">
-                        <span class="fa fa-file-excel-o"></span>&nbsp;XLS
+                        <span class="fa fa-file-excel-o"></span>&nbsp;Archivo XLS
                     </a>
                     <a href="{$fsc->fileNamePDF}" id="b_descargar" download class="btn btn-sm btn-info">
-                        <span class="fa fa-file-pdf-o"></span>&nbsp;PDF
+                        <span class="fa fa-file-pdf-o"></span>&nbsp;Archivo PDF
                     </a>
                 </div>
             </div>
         </form>
     </div>
     <div class="row">
-        <div class="container">
-            <div class="progress" style='height: 30px;'>
-                <div class="progress-bar progress-bar-success" style="width: 25%">
-                    <span>Ingresos {$fsc->show_precio($fsc->total_ingresos,$fsc->empresa->coddivisa)}</span>
-                </div>
-                <div class="progress-bar progress-bar-info progress-bar" style="width: 25%">
-                    <span>Egresos {$fsc->show_precio($fsc->total_egresos,$fsc->empresa->coddivisa)}</span>
-                </div>
-                <div class="progress-bar progress-bar-warning" style="width: 25%">
-                    <span>Cobros {$fsc->show_precio($fsc->total_cobros,$fsc->empresa->coddivisa)}</span>
-                </div>
-                <div class="progress-bar progress-bar-danger" style="width: 25%">
-                    <span>Pendientes de Cobro {$fsc->show_precio($fsc->total_pendientes_cobro,$fsc->empresa->coddivisa)}</span>
-                </div>
-            </div>
+        <div class="col-sm-3">
+            <a href="#" class="btn btn-lg btn-block btn-success">
+                <b>Ingresos</b><br/>
+                {$fsc->show_precio($fsc->total_ingresos,$fsc->empresa->coddivisa)}
+            </a>
         </div>
+        <div class="col-sm-3">
+            <a href="#" class="btn btn-lg btn-block btn-info">
+                <b>Egresos</b><br/>
+                {$fsc->show_precio($fsc->total_egresos,$fsc->empresa->coddivisa)}
+            </a>
+        </div>
+        <div class="col-sm-3">
+            <a href="#" class="btn btn-lg btn-block btn-warning">
+                <b>Cobros</b><br/>
+                {$fsc->show_precio($fsc->total_cobros,$fsc->empresa->coddivisa)}
+            </a>
+        </div>
+        <div class="col-sm-3">
+            <a href="#" class="btn btn-lg btn-block btn-danger">
+                <b>Pendientes de Cobro</b><br/>
+                {$fsc->show_precio($fsc->total_pendientes_cobro,$fsc->empresa->coddivisa)}
+            </a>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 10px;">
         <div class="container-fluid">
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
-                <li role="presentation" class="active"><a href="#resumen" aria-controls="resumen" role="tab" data-toggle="tab">Resumen</a></li>
-                <li role="presentation"><a href="#detalle_ventas" aria-controls="detalle_ventas" role="tab" data-toggle="tab">Detalle Ventas</a></li>
-                <li role="presentation"><a href="#detalle_compras" aria-controls="detalle_compras" role="tab" data-toggle="tab">Detalle Compras</a></li>
+                <li role="presentation" class="active"><a href="#resumen" aria-controls="resumen" role="tab" data-toggle="tab"><span class="fa fa-th-large"></span>&nbsp;Resumen</a></li>
+                <li role="presentation"><a href="#detalle_ventas" aria-controls="detalle_ventas" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Detalle Ventas</a></li>
+                <li role="presentation"><a href="#detalle_compras" aria-controls="detalle_compras" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Detalle Compras</a></li>
             </ul>
             <!-- Tab panes -->
             <div class="tab-content">
@@ -199,6 +209,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <!-- 
+                                    {$sumaIngresoBruto=0}
+                                    {$sumaIngresoNeto=0}
+                                    {$sumaEgresoBruto=0}
+                                    {$sumaEgresoNeto=0}
+                                    !-->
                                     {loop="$fsc->fp->all()"}
                                     <tr>
                                         <td>{$value->descripcion}</td>
@@ -207,8 +223,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         <td class="text-right">{$fsc->show_precio($fsc->egresos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
                                         <td class="text-right">{$fsc->show_precio($fsc->pagos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
                                     </tr>
+                                    <!-- 
+                                    {$sumaIngresoBruto+=$fsc->ingresos_condpago[$value->codpago]}
+                                    {$sumaIngresoNeto+=$fsc->cobros_condpago[$value->codpago]}
+                                    {$sumaEgresoBruto+=$fsc->egresos_condpago[$value->codpago]}
+                                    {$sumaEgresoNeto+=$fsc->pagos_condpago[$value->codpago]}
+                                    !-->
                                     {/loop}
                                 </tbody>
+                                <tfoot>
+                                    <tr style="background-color: #010101; color: #fff;">
+                                        <th>Total</th>
+                                        <th class="text-right">{$fsc->show_precio($sumaIngresoBruto,$fsc->empresa->coddivisa)}</th>
+                                        <th class="text-right">{$fsc->show_precio($sumaIngresoNeto,$fsc->empresa->coddivisa)}</th>
+                                        <th class="text-right">{$fsc->show_precio($sumaEgresoBruto,$fsc->empresa->coddivisa)}</th>
+                                        <th class="text-right">{$fsc->show_precio($sumaEgresoNeto,$fsc->empresa->coddivisa)}</th>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>
