@@ -735,18 +735,18 @@ function aux_all_um(num,um_base,factor_base,listaUM)
    for(var i=0; i<lista_um.length; i++){
        var line = lista_um[i].split('|');
        var nueva_lista_um = {};
-       nueva_lista_um.id = line[0];
+       nueva_lista_um.codum = line[0];
        nueva_lista_um.factor = line[1];
        buscador[line[0]] = nueva_lista_um;
    }
    var html = "<td><select id=\"um_"+num+"\" class=\"form-control\" name=\"um_"+num+"\" onchange=\"convertir_um('"+num+"')\">";
    for(var i=0; i<all_um.length; i++)
    {
-      if(um_base === all_um[i].id){
-        html += "<option value=\""+all_um[i].id+"|1"+"\" selected=\"\">"+all_um[i].name+"</option>";
+      if(um_base === all_um[i].codum){
+        html += "<option value=\""+all_um[i].codum+"|1"+"\" selected=\"\">"+all_um[i].nombre+"</option>";
       } else {
-        if(buscador[all_um[i].id]){
-            html += "<option value=\""+all_um[i].id+"|"+buscador[all_um[i].id].factor+"\">"+all_um[i].name+"</option>";
+        if(buscador[all_um[i].codum]){
+            html += "<option value=\""+all_um[i].codum+"|"+buscador[all_um[i].codum].factor+"\">"+all_um[i].nombre+"</option>";
         }
       }
    }

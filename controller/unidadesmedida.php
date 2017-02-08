@@ -37,14 +37,12 @@ class unidadesmedida extends fs_controller {
         $this->shared_extensions();
         $accion = filter_input(INPUT_POST, 'accion');
         if($accion=='agregar'){
-            $id = filter_input(INPUT_POST, 'id');
-            $name = filter_input(INPUT_POST, 'name');
-            $abreviatura = filter_input(INPUT_POST, 'abreviatura');
+            $codum = filter_input(INPUT_POST, 'codum');
+            $nombre = filter_input(INPUT_POST, 'nombre');
             $cantidad = filter_input(INPUT_POST, 'cantidad');
             $um0 = new unidadmedida();
-            $um0->id = $id;
-            $um0->name = $this->clearText($name);
-            $um0->abreviatura = $this->clearText($abreviatura);
+            $um0->codum = $codum;
+            $um0->nombre = $this->clearText($nombre);
             $um0->cantidad = floatval($cantidad);
             if($um0->save()){
                 $this->new_message('¡Unidad de medida agregada con exito, ya puede utilizarla en los artículos!');
@@ -52,8 +50,8 @@ class unidadesmedida extends fs_controller {
                 $this->new_error_msg('Ocurrio un error al agregar la Unidad de Medida, revise la información que agregó');
             }
         }elseif($accion=="eliminar"){
-            $id = filter_input(INPUT_POST, 'id');
-            $item = $this->unidadmedida->get($id);
+            $codum = filter_input(INPUT_POST, 'codum');
+            $item = $this->unidadmedida->get($codum);
             if($item){
                 if($item->delete()){
                     $this->new_message('¡Unidad de medida eliminada con exito!');

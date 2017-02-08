@@ -24,20 +24,17 @@
  */
 class unidadmedida extends fs_model {
     /**
-     * ID autogenerado de la unidad de medida
-     * @var type integer
+     * Codum es la abreviatura de la unidad de medida
+     * Se puede colocar CAJAx12, PAQUETE20
+     * CAJA100, debe ser lo más descriptiva posible
+     * @var type varchar(10)
      */
-    public $id;
+    public $codum;
     /**
      * Nombre de la Unidad de medida
      * @var type varchar(60)
      */
-    public $name;
-    /**
-     * Abreviatura para la unidad de medida
-     * @var type varchar(6)
-     */
-    public $abreviatura;
+    public $nombre;
     /**
      * Cantidad base de la unidad de medida
      * se usará como referencia a la hora de agregar
@@ -48,14 +45,12 @@ class unidadmedida extends fs_model {
     public function __construct($t = FALSE) {
          parent::__construct('unidadmedida','plugins/distribucion/');
          if($t){
-             $this->id = $t['id'];
-             $this->name = $t['name'];
-             $this->abreviatura = $t['abreviatura'];
+             $this->codum = $t['codum'];
+             $this->nombre = $t['nombre'];
              $this->cantidad = floatval($t['cantidad']);
          }else{
-             $this->id = NULL;
-             $this->name = NULL;
-             $this->abreviatura = NULL;
+             $this->codum = NULL;
+             $this->nombre = NULL;
              $this->cantidad = NULL;
          }
     }
@@ -65,7 +60,7 @@ class unidadmedida extends fs_model {
     }
 
     public function all(){
-        $sql = "SELECT * FROM ".$this->table_name." ORDER BY id;";
+        $sql = "SELECT * FROM ".$this->table_name." ORDER BY codum;";
         $data = $this->db->select($sql);
         if($data){
             $lista = array();
@@ -78,8 +73,8 @@ class unidadmedida extends fs_model {
         }
     }
 
-    public function get($id){
-        $sql = "SELECT * FROM ".$this->table_name." WHERE id = ".$this->intval($id).";";
+    public function get($codum){
+        $sql = "SELECT * FROM ".$this->table_name." WHERE codum = ".$this->var2str($codum).";";
         $data = $this->db->select($sql);
         if($data){
             return new unidadmedida($data[0]);
@@ -89,15 +84,15 @@ class unidadmedida extends fs_model {
     }
 
     public function exists() {
-        if(is_null($this->id)){
+        if(!$this->get($this->codum)){
             return false;
         }else{
-            return $this->get($this->id);
+            return $this->get($this->codum);
         }
     }
     
     public function en_uso(){
-        $sql = "SELECT count(id) as cantidad from articulo_unidadmedida where id = ".$this->id.";";
+        $sql = "SELECT count(codum) as cantidad from articulo_unidadmedida where codum = ".$this->var2str($this->codum).";";
         $data = $this->db->select($sql);
         if($data){
             return $data[0]['cantidad']+0;
@@ -111,14 +106,13 @@ class unidadmedida extends fs_model {
         if($this->exists()){
             $sql = "UPDATE ".$this->table_name." SET ".
                     " cantidad = ".floatval($this->cantidad).", ".
-                    " abreviatura = ".$this->var2str($this->abreviatura).", ".
-                    " name = ".$this->var2str($this->name).
+                    " nombre = ".$this->var2str($this->nombre).
                     " WHERE ".
-                    " id = ".$this->intval($this->id).";";
+                    " codum = ".$this->var2str($this->codum).";";
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (name, abreviatura, cantidad) VALUES (".
-                    $this->var2str($this->name).", ".
-                    $this->var2str($this->abreviatura).", ".
+            $sql = "INSERT INTO ".$this->table_name." (codum, nombre, cantidad) VALUES (".
+                    $this->var2str($this->codum).", ".
+                    $this->var2str($this->nombre).", ".
                     $this->var2str($this->cantidad).");";
         }
         $data = $this->db->exec($sql);
@@ -131,7 +125,7 @@ class unidadmedida extends fs_model {
     }
 
     public function delete() {
-        $sql = "DELETE FROM ".$this->table_name." WHERE id = ".$this->intval($this->id).";";
+        $sql = "DELETE FROM ".$this->table_name." WHERE codum = ".$this->var2str($this->codum).";";
         $data = $this->db->exec($sql);
         if($data){
             return true;
