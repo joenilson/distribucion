@@ -32,7 +32,7 @@ require_model('distribucion_transporte.php');
 require_model('distribucion_lineastransporte.php');
 require_model('cliente.php');
 require_model('articulo.php');
-
+require_model('articulo_unidadmedida.php');
 require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
 require_once 'helper_ordencarga.php';
 require_once 'helper_transportes.php';
@@ -73,6 +73,9 @@ class distrib_ordencarga extends fs_controller {
     public $articulo;
     public $helper_ordencarga;
     public $helper_transportes;
+    public $unidadmedida;
+    public $articulo_unidadmedida;
+
 
     public function __construct() {
         parent::__construct(__CLASS__, '4 - Crear Ordenes de Carga', 'distribucion');
@@ -95,10 +98,11 @@ class distrib_ordencarga extends fs_controller {
         $this->distrib_rutas = new distribucion_rutas();
         $this->distrib_clientes = new distribucion_clientes();
         $this->distrib_facturas = new distribucion_facturas();
-        $this->articulo = new articulo;
-
+        $this->articulo = new articulo();
+        $this->articulo_unidadmedida = new articulo_unidadmedida();
         $this->share_extensions();
 
+        //$this ->LoadDatos();
         //Leemos las variables que nos manda el view
         $type = \filter_input(INPUT_GET, 'type');
         $type_post = \filter_input(INPUT_POST, 'type');
@@ -215,6 +219,17 @@ class distrib_ordencarga extends fs_controller {
         $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga();
         $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes();
     }
+
+
+
+
+        public function LoadDatos(){
+
+         $this->prueba = $this->articulo_unidadmedida->all();
+
+        }
+
+
 
     public function buscador(){
         $datos_busqueda = array();
@@ -377,20 +392,25 @@ class distrib_ordencarga extends fs_controller {
 
     public function visualizar_ordencarga($idordencarga, $codalmacen) {
         $datos = array();
+        $datosMedidas = array();
         $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
         $datos['totalCantidad'] = $ordencarga[0]->totalcantidad;
         $datos['totalPeso'] = $ordencarga[0]->totalpeso;
         $lineasOrdencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
         $detalleLineas = array();
         foreach ($lineasOrdencarga as $values) {
+
             $producto = $this->articulo->get($values->referencia);
+            $medidas = $this->articulo_unidadmedida->getBase($values->referencia);
             $values->producto = $producto->descripcion;
+            $values->medidas = $medidas->nombre_um;
             $detalleLineas[] = $values;
+
         }
         $datos['resultados'] = $detalleLineas;
         $this->template = false;
         header('Content-Type: application/json');
-        echo json_encode(array('cabecera' => $ordencarga[0], 'userData' => array('referencia' => "", 'producto' => 'Total', 'cantidad' => $datos['totalCantidad']), 'rows' => $datos['resultados']));
+        echo json_encode(array('cabecera' => $ordencarga[0], 'userData' => array('referencia' => "", 'producto' => 'Total', 'medidas'  =>'medidas' , 'cantidad' => $datos['totalCantidad']), 'rows' => $datos['resultados']));
     }
 
     public function guardar_facturas_ordencarga($ordencarga, $facturas) {
@@ -458,7 +478,7 @@ class distrib_ordencarga extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($this->resultados);
     }
-    
+
     public function lista_rutas($idempresa, $codalmacen){
         $this->template = FALSE;
         $this->resultados = array();
