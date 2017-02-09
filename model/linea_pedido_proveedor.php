@@ -41,15 +41,13 @@ class linea_pedido_proveedor extends FacturaScripts\model\linea_pedido_proveedor
       {
          if( $this->exists() )
          {
-             $sql = "UPDATE ".$this->table_name." SET cantidad = ".$this->var2str($this->cantidad)
+                   $sql = "UPDATE ".$this->table_name." SET cantidad = ".$this->var2str($this->cantidad)
                     .", cantidad_um = ".$this->var2str($this->cantidad_um)
                     .", codum = ".$this->var2str($this->codum)
                     .", codimpuesto = ".$this->var2str($this->codimpuesto)
                     .", descripcion = ".$this->var2str($this->descripcion)
                     .", dtopor = ".$this->var2str($this->dtopor)
                     .", idpedido = ".$this->var2str($this->idpedido)
-                    .", idlineapresupuesto = ".$this->var2str($this->idlineapresupuesto)
-                    .", idpresupuesto = ".$this->var2str($this->idpresupuesto)
                     .", irpf = ".$this->var2str($this->irpf)
                     .", iva = ".$this->var2str($this->iva)
                     .", pvpsindto = ".$this->var2str($this->pvpsindto)
