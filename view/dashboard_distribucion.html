@@ -1,0 +1,142 @@
+{include="header"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-header">
+                <h3>
+                    <span class="fa fa-area-chart"></span>&nbsp;Dashboard de Distribución
+                    <a href="{$fsc->url()}" class="btn btn-sm btn-default" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    <span class="btn-group">
+                        {loop="$fsc->extensions"}
+                        {if="$value->type=='button'"}
+                        <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
+                        {/if}
+                        {/loop}
+                    </span>
+                </h3>
+                <p class="help-block">
+                    <small>
+                    Informe de ingresos y egresos de caja.
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <form class="form-horizontal" role="form" action="{$fsc->url()}" name="f_buscar" method="POST">
+            <div class="form-group">
+                <label for="f_desde" class="col-sm-1 control-label">Desde</label>
+                <div class="col-sm-2">
+                    <input type="text" name="f_desde" class="form-control datepicker" id="f_desde" value="{$fsc->f_desde}" placeholder="Fecha Inicio">
+                </div>
+                <label for="f_hasta" class="col-sm-1 control-label">Hasta</label>
+                <div class="col-sm-2">
+                    <input type="text" name="f_hasta" class="form-control datepicker" id="f_hasta" value="{$fsc->f_hasta}" placeholder="Fecha Fin">
+                </div>
+                <label for="codalmacen" class="col-sm-1 control-label">Almacén</label>
+                <div class="col-sm-2">
+                    <select name="codalmacen" class="form-control" required>
+                        <option value="">Elija un Almacen</option>
+                        {if="$fsc->user->admin"}
+                            {loop="$fsc->almacenes->all()"}
+                            <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
+                            {/loop}
+                        {else}
+                        <option value="{$fsc->user->codalmacen}" selected>{$fsc->user->nombrealmacen}</option>
+                        {/if}
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
+                        <span class="fa fa-search"></span>&nbsp;Generar
+                    </button>
+                    <a href="{$fsc->fileNameXLS}" id="b_descargar" class="btn btn-sm btn-success">
+                        <span class="fa fa-file-excel-o"></span>&nbsp;Archivo XLS
+                    </a>
+                    <a href="{$fsc->fileNamePDF}" id="b_descargar" download class="btn btn-sm btn-info">
+                        <span class="fa fa-file-pdf-o"></span>&nbsp;Archivo PDF
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            <a href="#" class="btn btn-lg btn-block btn-success">
+                <b>Supervisores</b><br/>
+                {$fsc->cantidad_supervisores}
+            </a>
+        </div>
+        <div class="col-sm-3">
+            <a href="#" class="btn btn-lg btn-block btn-info">
+                <b>Vendedores</b><br/>
+                {$fsc->cantidad_vendedores}
+            </a>
+        </div>
+        <div class="col-sm-3">
+            <a href="#" class="btn btn-lg btn-block btn-warning">
+                <b>Unidades de Transporte</b><br/>
+                {$fsc->cantidad_unidades}
+            </a>
+        </div>
+        <div class="col-sm-3">
+            <a href="#" class="btn btn-lg btn-block btn-danger">
+                <b>Artículos</b><br/>
+                {$fsc->cantidad_articulos}
+            </a>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 10px;">
+        <div class="container-fluid">
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active"><a href="#resumen" aria-controls="resumen" role="tab" data-toggle="tab"><span class="fa fa-th-large"></span>&nbsp;Resumen</a></li>
+                <li role="presentation"><a href="#cobertura" aria-controls="cobertura" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Cobertura</a></li>
+                <li role="presentation"><a href="#defectividad" aria-controls="efectividad" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Efectividad de Venta</a></li>
+                <li role="presentation"><a href="#distribucion" aria-controls="distribucion" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Distribución</a></li>
+            </ul>
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="resumen">
+                    <div class="col-sm-3">
+                        <ul class="list-group">
+                            <li class="list-group-item active">Supervisores</li>
+                            {loop="$fsc->supervisores"}
+                                <li class="list-group-item">
+                                    <span class="list-group-item-heading">{$value->nombre}</span>
+                                    <span class="badge">{$value->tiene_asignados($fsc->empresa->id,$value->codagente)} Vendedores</span>
+                                </li>
+                            {/loop}
+                        </ul>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="cobertura">
+                    
+                </div>
+                <div role="tabpanel" class="tab-pane" id="efectividad">
+                    
+                </div>
+                <div role="tabpanel" class="tab-pane" id="distribucion">
+                    
+                </div>
+            </div>
+</div>
+{include="footer"}
