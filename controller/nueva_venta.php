@@ -474,10 +474,11 @@ class nueva_venta extends fs_controller
          }
 
          //Buscamos las unidades de medida del artículo
-        $this->results[$i]->um_base = ($this->articulo_um->getBase($this->results[$i]->referencia))?$this->articulo_um->getBase($this->results[$i]->referencia)->codum:"DISPLAY";
-        $this->results[$i]->factor_base = ($this->articulo_um->getBase($this->results[$i]->referencia))?$this->articulo_um->getBase($this->results[$i]->referencia)->factor:1;
-        $umAdicionales = $this->articulo_um->getByTipo($this->results[$i]->referencia, 'se_compra');
-        $listaUM = "";
+         $umArticulo = $this->articulo_um->getBase($value->referencia);
+         $this->results[$i]->um_base = ($umArticulo)?$umArticulo->codum:"UNIDAD";
+         $this->results[$i]->factor_base = ($umArticulo)?$umArticulo->factor:1;
+         $umAdicionales = $this->articulo_um->getByTipo($value->referencia, 'se_compra');
+         $listaUM = "";
         if($umAdicionales){
            foreach($umAdicionales as $um){
                $listaUM .= $um->codum.'|'.$um->factor.',';
