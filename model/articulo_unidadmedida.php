@@ -94,16 +94,15 @@ class articulo_unidadmedida extends fs_model {
         return '';
     }
 
-    public function info_adicional($item){
-        if($this->unidadmedida->get($item->id)){
-            $item->nombre_um = $this->unidadmedida->get($item->id)->name;
-            $item->abrev_um = $this->unidadmedida->get($item->id)->abreviatura;
+        public function info_adicional($item){
+        if($this->unidadmedida->get($item->codum)){
+            $item->nombre_um = $this->unidadmedida->get($item->codum)->codum;
         }else{
             $item->nombre_um = 'NO EXISTE';
-            $item->abrev_um = 'NE';
         }
         return $item;
     }
+
 
 
     public function all() {

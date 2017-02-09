@@ -11,7 +11,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -21,21 +21,26 @@ require_model('distribucion_lineastransporte.php');
 require_model('distribucion_ordencarga_facturas.php');
 require_model('distribucion_ordencarga.php');
 require_model('distribucion_lineasordencarga.php');
+require_model('articulo_unidadmedida.php');
 /**
  * Description of helper_ordencarga
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class helper_ordencarga extends fs_controller {
-    
+
+
+   public $articulo_unidadmedida;
+
     public function __construct() {
         parent::__construct(__CLASS__, 'Helper Ordenes Carga', 'distribucion', FALSE, FALSE);
     }
-    
+
     public function private_core() {
-        
+
+       $this->articulo_unidadmedida = new articulo_unidadmedida();
     }
-    
+
     public function cabecera($ordencarga){
         setlocale(LC_ALL, 'es_ES');
         $table= '<table width: 100%;>';
@@ -90,7 +95,7 @@ class helper_ordencarga extends fs_controller {
         $table.= '<br /><br /><hr />';
         return $table;
     }
-    
+
     public function contenido($lineasordencarga){
         $table= '<table width: 100%;>';
         $table.= '<tr style="font-size: 10px;">';
@@ -100,13 +105,19 @@ class helper_ordencarga extends fs_controller {
         $table.= '<td width="40%">';
         $table.= '<b>Producto</b>';
         $table.= '</td>';
-        $table.= '<td width="30%" align="right">';
+        $table.= '<td width="20%">';
+        $table.= '<b>UDM</b>';
+        $table.= '</td>';
+        $table.= '<td width="10%" align="right">';
         $table.= '<b>Cantidad</b>';
         $table.= '</td>';
         $table.= '</tr>';
         $maxLineas = 33;
-        
+
+
         foreach($lineasordencarga as $key=>$linea){
+
+            $medidas = $this->articulo_unidadmedida->getBase($linea->referencia);
             $table.= '<tr style="font-size: 10px;">';
             $table.= '<td width="30%">';
             $table.= $linea->referencia;
@@ -114,7 +125,10 @@ class helper_ordencarga extends fs_controller {
             $table.= '<td width="40%">';
             $table.= $linea->descripcion;
             $table.= '</td>';
-            $table.= '<td width="30%" align="right">';
+            $table.= '<td width="20%">';
+            $table.= $medidas->nombre_um;
+            $table.= '</td>';
+            $table.= '<td width="10%" align="right">';
             $table.= number_format($linea->cantidad,2,".",",");
             $table.= '</td>';
             $table.= '</tr>';
@@ -125,10 +139,10 @@ class helper_ordencarga extends fs_controller {
             $table.="<br />";
         }
         $table.= '<hr /><br />';
-        
+
         return $table;
     }
-    
+
     public function pie($ordencarga){
         $table= '<table width: 100%;>';
         $table.= '<tr>';

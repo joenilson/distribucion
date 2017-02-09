@@ -11,7 +11,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Affero General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Affero General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -21,21 +21,25 @@ require_model('distribucion_lineastransporte.php');
 require_model('distribucion_ordencarga_facturas.php');
 require_model('distribucion_ordencarga.php');
 require_model('distribucion_lineasordencarga.php');
+require_model('articulo_unidadmedida.php');
+
 /**
  * Description of helper_transportes
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class helper_transportes extends fs_controller {
-    
+
+
     public function __construct() {
         parent::__construct(__CLASS__, 'Helper Transportes', 'distribucion', FALSE, FALSE);
     }
-    
+
     public function private_core() {
-        
+
+       $this->articulo_unidadmedida = new articulo_unidadmedida();
     }
-    
+
     public function cabecera_transporte($transporte){
         setlocale(LC_ALL, 'es_ES.UTF-8');
         $table= '<table style="width: 100%;">';
@@ -118,9 +122,10 @@ class helper_transportes extends fs_controller {
         $table.= '<br /><hr />';
         return $table;
     }
-    
+
     public function contenido_transporte($lineastransporte){
-        $table= '<table width: 100%;>';
+
+  $table= '<table width: 100%;>';
         $table.= '<tr style="font-size: 9px;">';
         $table.= '<td width="20%">';
         $table.= '<b>Referencia</b>';
@@ -128,16 +133,21 @@ class helper_transportes extends fs_controller {
         $table.= '<td width="40%">';
         $table.= '<b>Producto</b>';
         $table.= '</td>';
-        $table.= '<td width="20%" align="right">';
+        $table.= '<td width="7%" align="right">';
+        $table.= '<b>UDM</b>';
+        $table.= '</td>';
+        $table.= '<td width="11%" align="right">';
         $table.= '<b>Cantidad</b>';
         $table.= '</td>';
-        $table.= '<td width="20%" align="right">';
+        $table.= '<td width="18%" align="right">';
         $table.= '<b>Monto</b>';
         $table.= '</td>';
         $table.= '</tr>';
         $maxLineas = 34;
-        
+           //$lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen)
         foreach($lineastransporte as $key=>$linea){
+
+            $medidas = $this->articulo_unidadmedida->getBase($linea->referencia);
             $table.= '<tr style="font-size: 9px;">';
             $table.= '<td width="20%">';
             $table.= $linea->referencia;
@@ -145,10 +155,13 @@ class helper_transportes extends fs_controller {
             $table.= '<td width="40%">';
             $table.= $linea->descripcion;
             $table.= '</td>';
-            $table.= '<td width="20%" align="right">';
+            $table.= '<td width="8%" align="right">';
+            $table.=  $medidas->nombre_um;
+            $table.= '</td>';
+            $table.= '<td width="8%" align="right">';
             $table.= number_format($linea->cantidad,2,".",",");
             $table.= '</td>';
-            $table.= '<td width="20%" align="right">';
+            $table.= '<td width="21%" align="right">';
             $table.= number_format($linea->importe,2,".",",");
             $table.= '</td>';
             $table.= '</tr>';
@@ -159,10 +172,10 @@ class helper_transportes extends fs_controller {
             $table.="<br />";
         }
         $table.= '<hr />';
-        
+
         return $table;
     }
-    
+
     public function pie_transporte($transporte){
         $table= '<table style="width: 100%;">';
         $table.= '<tr>';
@@ -205,7 +218,7 @@ class helper_transportes extends fs_controller {
         $table.= '</table>';
         return $table;
     }
-    
+
     public function cabecera_liquidacion($transporte){
         setlocale(LC_ALL, 'es_ES.UTF-8');
         $table= '<table style="width: 100%;">';
@@ -288,7 +301,7 @@ class helper_transportes extends fs_controller {
         $table.= '<br /><hr />';
         return $table;
     }
-    
+
     public function contenido_liquidacion($facturastransporte){
         $table= '<table width: 100%;>';
         $table.= '<tr style="font-size: 9px;">';
@@ -346,11 +359,11 @@ class helper_transportes extends fs_controller {
             .'<td align="right"><b>'.$this->show_numero($sumAbono).'</b></td>'
             .'<td align="right"><b>'.$this->show_numero($sumSaldo).'</b></td>'
         .'</tr>';
-        $table.= '</table>';        
+        $table.= '</table>';
         $table.= '<hr />';
         return $table;
     }
-    
+
     public function pie_liquidacion($transporte,$faltante){
         $table= '<table style="width: 100%;" cellpadding="5">';
         if($faltante){
