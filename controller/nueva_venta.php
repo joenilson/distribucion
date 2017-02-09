@@ -473,18 +473,17 @@ class nueva_venta extends fs_controller
             $this->results[$i]->stockalm = $stock->total_from_articulo($this->results[$i]->referencia, $_REQUEST['codalmacen']);
          }
 
-
          //Buscamos las unidades de medida del artículo
-      $this->results[$i]->um_base = ($this->articulo_um->getBase($value->referencia))?$this->articulo_um->getBase($value->referencia)->codum:"DISPLAY";
-      $this->results[$i]->factor_base = ($this->articulo_um->getBase($value->referencia))?$this->articulo_um->getBase($value->referencia)->factor:1;
-      $umAdicionales = $this->articulo_um->getByTipo($value->referencia, 'se_compra');
-      $listaUM = "";
-      if($umAdicionales){
-         foreach($umAdicionales as $um){
-             $listaUM .= $um->codum.'|'.$um->factor.',';
-         }
-      }
-      $this->results[$i]->lista_um = substr($listaUM,0,strlen($listaUM)-1);
+        $this->results[$i]->um_base = ($this->articulo_um->getBase($this->results[$i]->referencia))?$this->articulo_um->getBase($this->results[$i]->referencia)->codum:"DISPLAY";
+        $this->results[$i]->factor_base = ($this->articulo_um->getBase($this->results[$i]->referencia))?$this->articulo_um->getBase($this->results[$i]->referencia)->factor:1;
+        $umAdicionales = $this->articulo_um->getByTipo($this->results[$i]->referencia, 'se_compra');
+        $listaUM = "";
+        if($umAdicionales){
+           foreach($umAdicionales as $um){
+               $listaUM .= $um->codum.'|'.$um->factor.',';
+           }
+        }
+        $this->results[$i]->lista_um = substr($listaUM,0,strlen($listaUM)-1);
       }
 
 //Metodos que busca las unidades de medidas del articulo
@@ -1478,12 +1477,29 @@ class nueva_venta extends fs_controller
                   }
 
                   $linea->irpf = floatval($_POST['irpf_'.$i]);
-                  $linea->pvpunitario = floatval($_POST['pvp_'.$i]);
-                  $linea->cantidad = floatval($_POST['cantidad_'.$i]);
+                  
+                  
                   $linea->dtopor = floatval($_POST['dto_'.$i]);
-                  $linea->pvpsindto = ($linea->pvpunitario * $linea->cantidad);
+                  
                   $linea->pvptotal = floatval($_POST['neto_'.$i]);
 
+                  //Si el factor es igual al factor_base del articulo entonces en cantidad guardamos el mismo valor
+                  if($_POST['factor_'.$i]==$_POST['factor_base_'.$i]){
+                    $linea->cantidad = floatval($_POST['cantidad_'.$i]);
+                    $linea->pvpunitario = floatval($_POST['pvp_'.$i]);
+                  }else{
+                    //Si el factor es diferente al factor_base entonces
+                    //Convertimos la cantidad a la unidad de medida base
+                    //Guardamos el precio con el pvp de la unidad base
+                    $linea->cantidad = floatval($_POST['cantidad_'.$i]*$_POST['factor_'.$i]);
+                    $linea->pvpunitario = floatval(round($_POST['pvp_'.$i]/$_POST['factor_'.$i],4));
+                  }
+                  
+                  $linea->pvpsindto = ($linea->pvpunitario * $linea->cantidad);
+                  $linea->cantidad_um = floatval($_POST['cantidad_'.$i]);
+                  $umdata = explode("|",$_POST['um_'.$i]);
+                  $linea->codum = $umdata[0];
+                  
                   $articulo = $art0->get($_POST['referencia_'.$i]);
                   if($articulo)
                   {
