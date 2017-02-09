@@ -43,6 +43,7 @@ class distribucion_transporte extends fs_model {
     public $totalpeso;
     public $estado;
     public $despachado;
+    public $devolucionado;
     public $liquidado;
     public $usuario_creacion;
     public $fecha_creacion;
@@ -78,6 +79,7 @@ class distribucion_transporte extends fs_model {
             $this->totalpeso = $t['totalpeso'];
             $this->estado = $this->str2bool($t['estado']);
             $this->despachado = $this->str2bool($t['despachado']);
+            $this->devolucionado = $this->str2bool($t['devolucionado']);
             $this->liquidado = $this->str2bool($t['liquidado']);
             $this->usuario_creacion = $t['usuario_creacion'];
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
@@ -106,6 +108,7 @@ class distribucion_transporte extends fs_model {
             $this->totalpeso = null;
             $this->estado = false;
             $this->despachado = false;
+            $this->devolucionado = false;
             $this->liquidado = false;
             $this->cargado = false;
             $this->usuario_creacion = null;
@@ -178,7 +181,7 @@ class distribucion_transporte extends fs_model {
         else
         {
             $this->idtransporte = $this->getNextId();
-            $sql = "INSERT INTO distribucion_transporte ( idempresa, codalmacen, idtransporte, idordencarga, codalmacen_dest, fecha, codtrans, unidad, tipounidad, conductor, tipolicencia, totalcantidad, totalimporte, totalpeso, estado, despachado, liquidado, usuario_creacion, fecha_creacion ) VALUES (".
+            $sql = "INSERT INTO distribucion_transporte ( idempresa, codalmacen, idtransporte, idordencarga, codalmacen_dest, fecha, codtrans, unidad, tipounidad, conductor, tipolicencia, totalcantidad, totalimporte, totalpeso, estado, despachado, devolucionado, liquidado, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
                     $this->var2str($this->codalmacen).", ".
                     $this->intval($this->idtransporte).", ".
@@ -195,6 +198,7 @@ class distribucion_transporte extends fs_model {
                     $this->var2str($this->totalpeso).", ".
                     $this->var2str($this->estado).", ".
                     $this->var2str($this->despachado).", ".
+                    $this->var2str($this->devolucionado).", ".
                     $this->var2str($this->cargado).", ".
                     $this->var2str($this->usuario_creacion).", ".
                     $this->var2str($this->fecha_creacion).");";
@@ -271,6 +275,22 @@ class distribucion_transporte extends fs_model {
         }
     }
 
+    public function confirmar_devolucion(){
+        $sql = "UPDATE distribucion_transporte SET ".
+                    "devolucionado = ".$this->var2str($this->devolucionado).", ".
+                    "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
+                    "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
+                    "WHERE ".
+                    "idempresa = ".$this->intval($this->idempresa)." AND ".
+                    "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                    "idtransporte = ".$this->intval($this->idtransporte).";";
+        if($this->db->exec($sql)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
     public function confirmar_liquidada(){
         $sql = "UPDATE distribucion_transporte SET ".
                     "liquidacion_importe = ".$this->var2str($this->liquidacion_importe).", ".

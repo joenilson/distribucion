@@ -97,27 +97,31 @@
        }
    }
 
-    function liquidarTransporte(id){
-        bootbox.dialog({
-            message: "Esta seguro que quiere generar la liquidación a este transporte?",
-            title: "Liquidar Transporte",
-            buttons: {
-              success: {
-                label: "Liquidar",
-                className: "btn-success",
-                callback: function() {
-                    window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte="+id);
+    function liquidarTransporte(id,estado){
+        if(estado){
+            window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte="+id);
+        }else{
+            bootbox.dialog({
+                message: "Esta seguro que quiere generar la liquidación a este transporte?",
+                title: "Liquidar Transporte",
+                buttons: {
+                  success: {
+                    label: "Liquidar",
+                    className: "btn-success",
+                    callback: function() {
+                        window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte="+id);
+                    }
+                  },
+                  danger: {
+                    label: "Cancelar",
+                    className: "btn-danger",
+                    callback: function() {
+                      this.hide();
+                    }
+                  }
                 }
-              },
-              danger: {
-                label: "Cancelar",
-                className: "btn-danger",
-                callback: function() {
-                  this.hide();
-                }
-              }
-            }
-        });
+            });
+        }
     }
     
     function eliminarLiquidacion(id,almacen){
@@ -277,21 +281,9 @@
         });
 
       {if="$fsc->mostrar=='buscar'"}
-      document.f_custom_search.query.focus();
+        document.f_custom_search.query.focus();
       {/if}
 
-      $('#b_buscar_lineas').click(function(event) {
-         event.preventDefault();
-         $('#modal_buscar_lineas').modal('show');
-         document.f_buscar_lineas.buscar_lineas.focus();
-      });
-      $('#f_buscar_lineas').keyup(function() {
-         buscar_lineas();
-      });
-      $('#f_buscar_lineas').submit(function(event) {
-         event.preventDefault();
-         buscar_lineas();
-      });
       $("#ac_conductor").autocomplete({
          serviceUrl: '{$fsc->url()}',
          paramName: 'buscar_conductor',
@@ -310,36 +302,34 @@
    });
 </script>
 <div class="container-fluid" style="margin-top: 10px; margin-bottom: 10px;">
-    <div class="page-header" style="margin-top: -10px;">
-        <h3>
-           <span class="glyphicon glyphicon-list"></span>
-           Transportes
-        </h3>
-   </div>
    <div class="row">
-      <div class="col-sm-8 col-xs-6">
-         <div class="btn-group hidden-xs">
-            <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
-               <span class="glyphicon glyphicon-refresh"></span>
-            </a>
-            {if="$fsc->page->is_default()"}
-            <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
-               <span class="glyphicon glyphicon-home"></span>
-            </a>
-            {else}
-            <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
-               <span class="glyphicon glyphicon-home"></span>
-            </a>
-            {/if}
-         </div>
-         <div class="btn-group">
-            {loop="$fsc->extensions"}
-               {if="$value->type=='button'"}
-               <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
-               {/if}
-            {/loop}
-         </div>
-      </div>
+       <div class="col-sm-8 col-xs-6 text-left">
+           <h3>
+            <span class="glyphicon glyphicon-list"></span>
+            Transportes
+                <div class="btn-group hidden-xs">
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    {if="$fsc->page->is_default()"}
+                    <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                        <span class="glyphicon glyphicon-home"></span>
+                    </a>
+                    {else}
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                        <span class="glyphicon glyphicon-home"></span>
+                    </a>
+                    {/if}
+                </div>
+                <div class="btn-group">
+                    {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                    <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
+                    {/if}
+                    {/loop}
+                </div>
+            </h3>
+       </div>
    </div>
 </div>
 

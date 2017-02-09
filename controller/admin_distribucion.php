@@ -101,6 +101,8 @@ class admin_distribucion extends fs_controller {
             'distrib_ordenescarga' => "Ordenes de Carga",
             'distrib_transporte' => "Transporte",
             'distrib_transportes' => "Transportes",
+            'distrib_devolucion' => "Devolución",
+            'distrib_devoluciones' => "Devoluciones",                
             'distrib_agencia' => "Agencia",
             'distrib_agencias' => "Agencias",
             'distrib_unidad' => "Unidad",
@@ -394,6 +396,8 @@ class admin_distribucion extends fs_controller {
             $this->distribucion_setup['distrib_ordenescarga'] = trim(\filter_input(INPUT_POST, 'distrib_ordenescarga'));
             $this->distribucion_setup['distrib_transporte'] = trim(\filter_input(INPUT_POST, 'distrib_transporte'));
             $this->distribucion_setup['distrib_transportes'] = trim(\filter_input(INPUT_POST, 'distrib_transportes'));
+            $this->distribucion_setup['distrib_devolucion'] = trim(\filter_input(INPUT_POST, 'distrib_devolucion'));
+            $this->distribucion_setup['distrib_devoluciones'] = trim(\filter_input(INPUT_POST, 'distrib_devoluciones'));
             $this->distribucion_setup['distrib_agencia'] = trim(\filter_input(INPUT_POST, 'distrib_agencia'));
             $this->distribucion_setup['distrib_agencias'] = trim(\filter_input(INPUT_POST, 'distrib_agencias'));
             $this->distribucion_setup['distrib_unidad'] = trim(\filter_input(INPUT_POST, 'distrib_unidad'));
