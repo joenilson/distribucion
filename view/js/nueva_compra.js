@@ -743,10 +743,10 @@ function aux_all_um(num,um_base,factor_base,listaUM)
    for(var i=0; i<all_um.length; i++)
    {
       if(um_base === all_um[i].codum){
-        html += "<option value=\""+all_um[i].codum+"|1"+"\" selected=\"\">"+all_um[i].nombre+"</option>";
+        html += "<option value=\""+all_um[i].codum+"|1"+"\" selected=\"\">"+all_um[i].codum+"</option>";
       } else {
         if(buscador[all_um[i].codum]){
-            html += "<option value=\""+all_um[i].codum+"|"+buscador[all_um[i].codum].factor+"\">"+all_um[i].nombre+"</option>";
+            html += "<option value=\""+all_um[i].codum+"|"+buscador[all_um[i].codum].factor+"\">"+all_um[i].codum+"</option>";
         }
       }
    }
