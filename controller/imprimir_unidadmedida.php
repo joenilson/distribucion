@@ -373,7 +373,7 @@ class imprimir_unidadmedida extends fs_controller {
                 'cantidad2' => $this->show_numero($cantidadConvertida, $dec_cantidad),
                 'descripcion' => $descripcion,
                 'pvp' => $this->show_precio($precioConvertido, $this->documento->coddivisa),
-                'unidadmedida' => $umCompra[0]->nombre_um,
+                'unidadmedida' => $lineas[$linea_actual]->codum,
                 'dto' => $this->show_numero($lineas[$linea_actual]->dtopor) . " %",
                 'iva' => $this->show_numero($lineas[$linea_actual]->iva) . " %",
                 're' => $this->show_numero($lineas[$linea_actual]->recargo) . " %",
