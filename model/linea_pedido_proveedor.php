@@ -41,7 +41,7 @@ class linea_pedido_proveedor extends FacturaScripts\model\linea_pedido_proveedor
       {
          if( $this->exists() )
          {
-            $sql = "UPDATE ".$this->table_name." SET cantidad = ".$this->var2str($this->cantidad)
+             $sql = "UPDATE ".$this->table_name." SET cantidad = ".$this->var2str($this->cantidad)
                     .", cantidad_um = ".$this->var2str($this->cantidad_um)
                     .", codum = ".$this->var2str($this->codum)
                     .", codimpuesto = ".$this->var2str($this->codimpuesto)
@@ -57,11 +57,7 @@ class linea_pedido_proveedor extends FacturaScripts\model\linea_pedido_proveedor
                     .", pvpunitario = ".$this->var2str($this->pvpunitario)
                     .", recargo = ".$this->var2str($this->recargo)
                     .", referencia = ".$this->var2str($this->referencia)
-                    .", orden = ".$this->var2str($this->orden)
-                    .", mostrar_cantidad = ".$this->var2str($this->mostrar_cantidad)
-                    .", mostrar_precio = ".$this->var2str($this->mostrar_precio)
                     ."  WHERE idlinea = ".$this->var2str($this->idlinea).";";
-
             return $this->db->exec($sql);
          }
          else
