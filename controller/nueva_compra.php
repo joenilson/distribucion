@@ -574,6 +574,23 @@ class nueva_compra extends fs_controller
                   $linea->pvpsindto = ($linea->pvpunitario * $linea->cantidad);
                   $linea->pvptotal = floatval($_POST['neto_'.$i]);
 
+                  //Si el factor es igual al factor_base del articulo entonces en cantidad guardamos el mismo valor
+                  if($_POST['factor_'.$i]==$_POST['factor_base_'.$i]){
+                    $linea->cantidad = floatval($_POST['cantidad_'.$i]);
+                    $linea->pvpunitario = floatval($_POST['pvp_'.$i]);
+                  }else{
+                    //Si el factor es diferente al factor_base entonces
+                    //Convertimos la cantidad a la unidad de medida base
+                    //Guardamos el precio con el pvp de la unidad base
+                    $linea->cantidad = floatval($_POST['cantidad_'.$i]*$_POST['factor_'.$i]);
+                    $linea->pvpunitario = floatval(round($_POST['pvp_'.$i]/$_POST['factor_'.$i],4));
+                  }
+
+                  $linea->pvpsindto = ($linea->pvpunitario * $linea->cantidad);
+                  $linea->cantidad_um = floatval($_POST['cantidad_'.$i]);
+                  $umdata = explode("|",$_POST['um_'.$i]);
+                  $linea->codum = $umdata[0];
+
                   $articulo = $art0->get($_POST['referencia_'.$i]);
                   if($articulo)
                   {
