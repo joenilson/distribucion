@@ -359,7 +359,8 @@ class imprimir_unidadmedida extends fs_controller {
              * Se agrega el convertidor de unidades de medida para mostrar la unidad de medida de compra
              * en la siguiente actualizacion se podrá configurar multiples unidades de medida
              */
-            $umCompra = $this->articulo_um->getByTipo($lineas[$linea_actual]->referencia,'se_compra');
+            //Deprecate
+            //$umCompra = $this->articulo_um->getByTipo($lineas[$linea_actual]->referencia,'se_compra');
             //print_r($umCompra);
             // Ejemplo: tenemos 1000 unidades que vienen en cajas de 100 unidades cada caja
             // Se divide cantidad/factor de um de compra.
