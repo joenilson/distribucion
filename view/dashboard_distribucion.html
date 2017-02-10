@@ -97,8 +97,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </div>
         <div class="col-sm-3">
             <a href="#" class="btn btn-lg btn-block btn-danger">
-                <b>Artículos</b><br/>
-                {$fsc->cantidad_articulos}
+                <b>Clientes</b><br/>
+                {$fsc->clientes_activos}
             </a>
         </div>
     </div>
@@ -173,6 +173,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <b>Clientes Totales</b>
                                 <span class="badge">{$fsc->cantidad_clientes}</span>
                             </li>
+                        </ul>
+                        <ul class="list-group">
+                            <li class="list-group-item active">Visitas</li>
+                            <li class="list-group-item">
+                                Clientes Visitados (1 vez minimo)
+                                <span class="badge">{$fsc->clientes_visitados}</span>
+                            </li>
+                            <li class="list-group-item">
+                                Clientes por Visitar
+                                <span class="badge">{$fsc->clientes_por_visitar}</span>
+                            </li>
+                        </ul>
+                        <ul class="list-group">
+                            <li class="list-group-item active">10 Mejores Clientes</li>
+                            {loop="$fsc->clientes_top"}
+                            <li class="list-group-item">
+                                <a href="{#FS_PATH#}index.php?page=ventas_cliente&cod={$value->codcliente}" target="_blank">{$value->codcliente}</a> - {$value->nombrecliente}
+                                <span class="badge">{$fsc->show_precio($value->totalventa,$fsc->empresa->coddivisa)}</span>
+                            </li>
+                            {/loop}
                         </ul>
                     </div>
                 </div>

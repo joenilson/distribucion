@@ -49,6 +49,9 @@ class dashboard_distribucion extends fs_controller {
     public $clientes_nuevos;
     public $clientes_debaja;
     public $clientes_grupo;
+    public $clientes_visitados;
+    public $clientes_por_visitar;
+    public $clientes_top;
     public $grupos_clientes;
     public $grupos_clientes_lista;
     public $facturascli;
@@ -129,6 +132,7 @@ class dashboard_distribucion extends fs_controller {
             switch ($accion){
                 case "buscar":
                     $this->generar_resumen();
+                    $this->top_clientes();
                 break;
             }
         }
@@ -162,6 +166,8 @@ class dashboard_distribucion extends fs_controller {
         $this->clientes_inactivos = 0;
         $this->clientes_nuevos = 0;
         $this->clientes_debaja = 0;
+        $this->clientes_visitados = 0;
+        $this->clientes_por_visitar = 0;
         $this->clientes_grupo = array();
         $clientes = new cliente();
         foreach($clientes->all_full() as $cli){
@@ -176,7 +182,20 @@ class dashboard_distribucion extends fs_controller {
             }elseif(!$cli->debaja and $dtalta<$diffdesde){
                 $this->clientes_activos++;   
             }
+            
+            //Buscamos la atención de clientes del mes
+            $sql = "SELECT COUNT(*) as count FROM facturascli WHERE codcliente = ".$this->empresa->var2str($cli->codcliente)." and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."';";
+            $data = $this->db->select($sql);
+            if(!empty($data[0]['count'])){
+                $this->clientes_visitados++;
+            }elseif(!$cli->debaja){
+                $this->clientes_por_visitar++;
+            }
+            
+            //Guardamos la cantidad total de clientes
             $this->cantidad_clientes++;
+            
+            //Agrupamos los clientes en sus grupos
             if($cli->codgrupo){
                 if(!isset($this->clientes_grupo[$cli->codgrupo])){
                     $this->clientes_grupo[$cli->codgrupo]=0;
@@ -191,6 +210,30 @@ class dashboard_distribucion extends fs_controller {
             $gc->clientes = (isset($this->clientes_grupo[$gc->codgrupo]))?$this->clientes_grupo[$gc->codgrupo]:0;
             $this->grupos_clientes_lista[] = $gc;
         }
+    }
+    
+    //Generamos el listado de los 10 clientes que más compran
+    public function top_clientes($cantidad=10,$excluidos=false){
+        $clientes = ($excluidos)?" AND codcliente NOT IN (".$excluidos.")":"";
+        $sql = "SELECT codcliente,nombrecliente,sum(total) as suma FROM facturascli where anulada = false $clientes and idfacturarect is null and fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' AND '".\date('Y-m-d',strtotime($this->f_hasta))."' GROUP BY codcliente,nombrecliente ORDER BY suma DESC LIMIT $cantidad;";
+        $data = $this->db->select($sql);
+        $this->clientes_top = array();
+        $i=0;
+        if($data){
+            foreach($data as $d){
+                $cliente_top = new stdClass();
+                $cliente_top->codcliente = $d['codcliente'];
+                $cliente_top->nombrecliente = $d['nombrecliente'];
+                $cliente_top->totalventa = $d['suma'];
+                $this->clientes_top[] = $cliente_top;
+                $i++;
+            }
+        }
+    }
+    
+    //Generamos el listado de los 10 productos mas vendidos
+    public function top_articulos(){
+        
     }
     
     public function shared_extensions(){
