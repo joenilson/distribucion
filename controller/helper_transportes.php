@@ -146,8 +146,11 @@ class helper_transportes extends fs_controller {
         $maxLineas = 34;
            //$lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen)
         foreach($lineastransporte as $key=>$linea){
-
-            $medidas = $this->articulo_unidadmedida->getBase($linea->referencia);
+              $medidas = $this->articulo_unidadmedida->getBase($linea->referencia);
+              /*Agregando validacion en la unidad de medida*/
+            if($medidas->codum==""){
+               $medidas->codum = 'UNIDAD';
+            }
             $table.= '<tr style="font-size: 9px;">';
             $table.= '<td width="18%">';
             $table.= $linea->referencia;

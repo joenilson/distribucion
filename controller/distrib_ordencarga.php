@@ -392,25 +392,28 @@ class distrib_ordencarga extends fs_controller {
 
     public function visualizar_ordencarga($idordencarga, $codalmacen) {
         $datos = array();
-        $datosMedidas = array();
         $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
         $datos['totalCantidad'] = $ordencarga[0]->totalcantidad;
         $datos['totalPeso'] = $ordencarga[0]->totalpeso;
         $lineasOrdencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
         $detalleLineas = array();
         foreach ($lineasOrdencarga as $values) {
-
-            $producto = $this->articulo->get($values->referencia);
-            $medidas = $this->articulo_unidadmedida->getBase($values->referencia);
-            $values->producto = $producto->descripcion;
-            $values->medidas = $medidas->nombre_um;
-            $detalleLineas[] = $values;
-
-        }
+        $producto = $this->articulo->get($values->referencia);
+        $medidas = $this->articulo_unidadmedida->getBase($values->referencia);
+        $values->producto = $producto->descripcion;
+        /*Se condiciona el articulo cuando no tiene  unidad de medida*/
+            if($medidas->codum==""){
+               $values->medidas = 'UNIDAD';
+               $values->factor=1;
+             }else{
+              $values->medidas = $medidas->codum;
+              }
+             $detalleLineas[] = $values;
+          }
         $datos['resultados'] = $detalleLineas;
         $this->template = false;
         header('Content-Type: application/json');
-        echo json_encode(array('cabecera' => $ordencarga[0], 'userData' => array('referencia' => "", 'producto' => 'Total', 'medidas'  =>'medidas' , 'cantidad' => $datos['totalCantidad']), 'rows' => $datos['resultados']));
+        echo json_encode(array('cabecera' => $ordencarga[0], 'userData' => array('referencia' => "", 'producto' => 'Total', 'medidas'  =>'' , 'cantidad' => $datos['totalCantidad']), 'rows' => $datos['resultados']));
     }
 
     public function guardar_facturas_ordencarga($ordencarga, $facturas) {

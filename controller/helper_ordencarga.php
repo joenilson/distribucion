@@ -114,10 +114,13 @@ class helper_ordencarga extends fs_controller {
         $table.= '</tr>';
         $maxLineas = 33;
 
-
         foreach($lineasordencarga as $key=>$linea){
 
             $medidas = $this->articulo_unidadmedida->getBase($linea->referencia);
+              /*Agregando validacion en la unidad de medida*/
+            if($medidas->nombre_um==""){
+               $medidas->nombre_um = 'UNIDAD';
+            }
             $table.= '<tr style="font-size: 10px;">';
             $table.= '<td width="30%">';
             $table.= $linea->referencia;
