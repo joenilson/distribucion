@@ -340,9 +340,10 @@ class helper_transportes extends fs_controller {
         $table.= '</td>';
         $table.= '</tr>';
         $maxLineas = 34;
-        //$lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen)
         foreach($lineastransporte as $key=>$linea){
-              $medidas = $this->articulo_unidadmedida->getBase($linea->referencia);
+              $medidas = $this->articulo_unidadmedida->// <editor-fold defaultstate="collapsed" desc="comment">
+                      getBase// </editor-fold>
+                      ($linea->referencia);
               /*Agregando validacion en la unidad de medida*/
             if($medidas->codum==""){
                $medidas->codum = 'UNIDAD';
