@@ -392,7 +392,6 @@ class distrib_ordencarga extends fs_controller {
 
     public function visualizar_ordencarga($idordencarga, $codalmacen) {
         $datos = array();
-        $datosMedidas = array();
         $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
         $datos['totalCantidad'] = $ordencarga[0]->totalcantidad;
         $datos['totalPeso'] = $ordencarga[0]->totalpeso;
@@ -403,7 +402,7 @@ class distrib_ordencarga extends fs_controller {
             $producto = $this->articulo->get($values->referencia);
             $medidas = $this->articulo_unidadmedida->getBase($values->referencia);
             $values->producto = $producto->descripcion;
-            $values->medidas = $medidas->nombre_um;
+            $values->medidas = ($medidas)?$medidas->nombre_um:"UNIDAD";
             $detalleLineas[] = $values;
 
         }

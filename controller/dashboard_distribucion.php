@@ -18,6 +18,8 @@
  */
 require_model('almacenes.php');
 require_model('articulo.php');
+require_model('cliente.php');
+require_model('grupo_clientes.php');
 require_model('distribucion_transportes.php');
 require_model('distribucion_conductores.php');
 require_model('distribucion_unidades.php');
@@ -41,6 +43,14 @@ class dashboard_distribucion extends fs_controller {
     public $cantidad_vendedores;
     public $cantidad_unidades;
     public $cantidad_articulos;
+    public $cantidad_clientes;
+    public $clientes_activos;
+    public $clientes_inactivos;
+    public $clientes_nuevos;
+    public $clientes_debaja;
+    public $clientes_grupo;
+    public $grupos_clientes;
+    public $grupos_clientes_lista;
     public $facturascli;
     public $facturaspro;
     public $transportes;
@@ -82,6 +92,7 @@ class dashboard_distribucion extends fs_controller {
         $this->faltantes = new distribucion_faltantes();
         $this->unidades = new distribucion_unidades();
         $this->fp = new forma_pago();
+        $this->grupos_clientes = new grupo_clientes();
         $this->resultados_formas_pago = false;
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
         if(!$this->user->admin){
@@ -124,15 +135,18 @@ class dashboard_distribucion extends fs_controller {
     }
     
     public function generar_resumen(){
-        $this->supervisores = $this->organizacion->all_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'SUPERVISOR');
+        $diffdesde = new \DateTime(\date('d-m-Y',strtotime($this->f_desde)));
+        $diffhasta = new \DateTime(\date('d-m-Y',strtotime($this->f_hasta)));
+        //Obtenemos la información de los supervisores
+        $this->supervisores = $this->organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'SUPERVISOR');
         $this->cantidad_supervisores = count($this->supervisores);
         $this->mesa_trabajo = array();
         foreach($this->supervisores as $sup){
             $vendedores = $this->organizacion->get_asignados($this->empresa->id, $sup->codagente);
             $this->mesa_trabajo[$sup->codagente] = $vendedores;
         }
-
-        $this->vendedores = $this->organizacion->all_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'VENDEDOR');
+        //Obtenemos la información de los vendedores
+        $this->vendedores = $this->organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'VENDEDOR');
         $this->cantidad_vendedores = count($this->vendedores);
         $unidades = $this->unidades->activos_almacen($this->empresa->id, $this->codalmacen);
         $this->cantidad_unidades = count($unidades);
@@ -142,6 +156,40 @@ class dashboard_distribucion extends fs_controller {
             if($art->sevende AND !$art->nostock){
                 $this->cantidad_articulos++;
             }
+        }
+        //Obtenemos la información de los Clientes
+        $this->clientes_activos = 0;
+        $this->clientes_inactivos = 0;
+        $this->clientes_nuevos = 0;
+        $this->clientes_debaja = 0;
+        $this->clientes_grupo = array();
+        $clientes = new cliente();
+        foreach($clientes->all_full() as $cli){
+            $dtalta = new \DateTime(\date('d-m-Y',strtotime($cli->fechaalta))); 
+            $dtbaja = new \DateTime(\date('d-m-Y',strtotime($cli->fechabaja)));
+            if($cli->debaja and $dtbaja>=$diffdesde AND $dtbaja<=$diffhasta){
+                $this->clientes_debaja++;
+            }elseif($cli->debaja and $dtbaja<$diffdesde){
+                $this->clientes_inactivos++;
+            }elseif(!$cli->debaja and $dtalta>=$diffdesde AND $dtalta<=$diffhasta){
+                $this->clientes_nuevos++;
+            }elseif(!$cli->debaja and $dtalta<$diffdesde){
+                $this->clientes_activos++;   
+            }
+            $this->cantidad_clientes++;
+            if($cli->codgrupo){
+                if(!isset($this->clientes_grupo[$cli->codgrupo])){
+                    $this->clientes_grupo[$cli->codgrupo]=0;
+                }
+                $this->clientes_grupo[$cli->codgrupo]++;
+            }
+        }
+        
+        //Guardamos la cantidad de lcientes por cada grupo
+        $this->grupos_clientes_lista = array();
+        foreach($this->grupos_clientes->all() as $gc){
+            $gc->clientes = (isset($this->clientes_grupo[$gc->codgrupo]))?$this->clientes_grupo[$gc->codgrupo]:0;
+            $this->grupos_clientes_lista[] = $gc;
         }
     }
     

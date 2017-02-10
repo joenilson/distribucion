@@ -31,12 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         {/if}
                         {/loop}
                     </span>
-                </h3>
-                <p class="help-block">
                     <small>
-                    Informe de ingresos y egresos de caja.
+                    Indicadores de Distribución cantidad de vendedores, clientes, rutas, cobertura de mercado, efectividad de venta y datos de distribución
                     </small>
-                </p>
+                </h3>
             </div>
         </div>
     </div>
@@ -114,17 +112,67 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <li role="presentation"><a href="#distribucion" aria-controls="distribucion" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Distribución</a></li>
             </ul>
             <!-- Tab panes -->
-            <div class="tab-content">
+            <div class="tab-content" style="margin-top: 15px;">
                 <div role="tabpanel" class="tab-pane active" id="resumen">
                     <div class="col-sm-3">
                         <ul class="list-group">
                             <li class="list-group-item active">Supervisores</li>
                             {loop="$fsc->supervisores"}
                                 <li class="list-group-item">
-                                    <span class="list-group-item-heading">{$value->nombre}</span>
-                                    <span class="badge">{$value->tiene_asignados($fsc->empresa->id,$value->codagente)} Vendedores</span>
+                                    <h4 class="list-group-item-heading">{$counter+1} {$value->nombre}</h4>
+                                    <p class="list-group-item-text text-right">
+                                    {$value->tiene_asignados($fsc->empresa->id,$value->codagente)} Vendedores
+                                    </p>
                                 </li>
                             {/loop}
+                        </ul>
+                        <ul class="list-group">
+                            <li class="list-group-item active">Vendedores</li>
+                            {loop="$fsc->vendedores"}
+                                <li class="list-group-item">
+                                    <h4 class="list-group-item-heading">{$counter+1} {$value->nombre}</h4>
+                                    <p class="list-group-item-text text-right">
+                                        {$value->tiene_clientes_asignados($fsc->empresa->id,$value->codalmacen,$value->codagente)+0} Clientes en 
+                                        {$value->tiene_rutas_asignadas($fsc->empresa->id,$value->codagente)+0} Rutas
+                                    </p>
+                                </li>
+                            {/loop}
+                        </ul>
+                    </div>
+                    <div class="col-sm-3">
+                        <ul class="list-group">
+                            <li class="list-group-item active">Grupos de Clientes</li>
+                            {loop="$fsc->grupos_clientes_lista"}
+                                <li class="list-group-item">
+                                    <h4 class="list-group-item-heading">{$value->nombre}</h4>
+                                    <p class="list-group-item-text text-right">{$value->clientes} {if="$value->clientes>1"}Clientes{else}Cliente{/if}</p>
+                                </li>
+                            {/loop}
+                        </ul>
+                    </div>
+                    <div class="col-sm-3">
+                        <ul class="list-group">
+                            <li class="list-group-item active">Clientes</li>
+                            <li class="list-group-item">
+                                Clientes Activos
+                                <span class="badge">{$fsc->clientes_activos}</span>
+                            </li>
+                            <li class="list-group-item">
+                                Clientes Inactivos
+                                <span class="badge">{$fsc->clientes_inactivos}</span>
+                            </li>
+                            <li class="list-group-item">
+                                Clientes Nuevos del periodo
+                                <span class="badge">{$fsc->clientes_nuevos}</span>
+                            </li>
+                            <li class="list-group-item">
+                                Clientes de Baja en el periodo
+                                <span class="badge">{$fsc->clientes_debaja}</span>
+                            </li>
+                            <li class="list-group-item list-group-item-info">
+                                <b>Clientes Totales</b>
+                                <span class="badge">{$fsc->cantidad_clientes}</span>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -138,5 +186,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     
                 </div>
             </div>
+        </div>
+    </div>
 </div>
 {include="footer"}

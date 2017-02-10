@@ -18,6 +18,7 @@
 
  */
 require_model('model/agente.php');
+require_model('distribucion_rutas.php');
 /**
  * Description of distribucion_organizacion
  *
@@ -36,7 +37,7 @@ class distribucion_organizacion extends fs_model {
     public $fecha_modificacion;
 
     public $agente;
-
+    public $rutas;
     public function __construct($t = false) {
         parent::__construct('distribucion_organizacion','plugins/distribucion/');
         if($t)
@@ -66,6 +67,7 @@ class distribucion_organizacion extends fs_model {
             $this->fecha_modificacion = null;
         }
         $this->agente = new agente();
+        //$this->rutas = new distribucion_rutas();
     }
 
     public function url(){
@@ -322,6 +324,23 @@ class distribucion_organizacion extends fs_model {
         }else{
             return false;
         }
-
+    }
+    
+    public function tiene_clientes_asignados($idempresa,$codalmacen,$codagente)
+    {
+        //Buscamos las rutas de este agente
+        $sql = "SELECT ruta FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND codagente = ".$this->var2str($codagente).";";
+        $data = $this->db->select($sql);
+        $cantidad = 0;
+        if($data)
+        {
+            foreach($data as $d){
+                $rutas = new distribucion_rutas();
+                $cantidad += $rutas->cantidad_asignados($idempresa,$codalmacen,$d['ruta']);
+            }
+            return $cantidad;
+        }else{
+            return false;
+        }
     }
 }
