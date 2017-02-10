@@ -30,6 +30,7 @@ class distribucion_lineastransporte extends fs_model {
     public $fecha;
     public $referencia;
     public $cantidad;
+    public $devolucion;
     public $importe;
     public $peso;
     public $estado;
@@ -50,6 +51,7 @@ class distribucion_lineastransporte extends fs_model {
             $this->fecha = $t['fecha'];
             $this->referencia = $t['referencia'];
             $this->cantidad = $t['cantidad'];
+            $this->devolucion = $t['devolucion'];
             $this->importe = $t['importe'];
             $this->peso = $t['peso'];
             $this->estado = $this->str2bool($t['estado']);
@@ -65,7 +67,8 @@ class distribucion_lineastransporte extends fs_model {
             $this->codalmacen = null;
             $this->fecha = null;
             $this->referencia = null;
-            $this->cantidad = null;
+            $this->cantidad = 0;
+            $this->devolucion = 0;
             $this->importe = null;
             $this->peso = null;
             $this->estado = false;
@@ -87,12 +90,7 @@ class distribucion_lineastransporte extends fs_model {
     }
     
     public function exists() {
-        $data = $this->db->select("SELECT * FROM distribucion_lineastransporte WHERE ".
-                    "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
-                    "referencia = ".$this->var2str($this->referencia)." AND ".
-                    "idtransporte = ".$this->intval($this->idtransporte).";");
-        if(count($data[0]) != 0){
+    if($this->getOne($this->idempresa, $this->idtransporte, $this->codalmacen, $this->referencia)){
             return true;
         }else{
             return false;
@@ -105,6 +103,7 @@ class distribucion_lineastransporte extends fs_model {
             $sql = "UPDATE distribucion_lineastransporte SET ".
                     "codalmacen = ".$this->var2str($this->codalmacen).", ".
                     "cantidad = ".$this->var2str($this->cantidad).", ".
+                    "devolucion = ".$this->var2str($this->devolucion).", ".
                     "importe = ".$this->var2str($this->importe).", ".
                     "peso = ".$this->intval($this->peso).", ".
                     "referencia = ".$this->var2str($this->referencia).", ".
@@ -114,18 +113,20 @@ class distribucion_lineastransporte extends fs_model {
                     " WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
+                    "referencia = ".$this->var2str($this->referencia)." AND ".
                     "idtransporte = ".$this->intval($this->idtransporte).";";
             return $this->db->exec($sql);
         }
         else
         {
-            $sql = "INSERT INTO distribucion_lineastransporte ( idempresa, codalmacen, idtransporte, fecha, referencia, cantidad, importe, peso, estado, usuario_creacion, fecha_creacion ) VALUES (".
+            $sql = "INSERT INTO distribucion_lineastransporte ( idempresa, codalmacen, idtransporte, fecha, referencia, cantidad, devolucion, importe, peso, estado, usuario_creacion, fecha_creacion ) VALUES (".
                     $this->intval($this->idempresa).", ".
                     $this->var2str($this->codalmacen).", ".
                     $this->intval($this->idtransporte).", ".
                     $this->var2str($this->fecha).", ".
                     $this->var2str($this->referencia).", ".
                     $this->var2str($this->cantidad).", ".
+                    $this->var2str($this->devolucion).", ".
                     $this->var2str($this->importe).", ".
                     $this->var2str($this->peso).", ".
                     $this->var2str($this->estado).", ".
@@ -287,5 +288,18 @@ class distribucion_lineastransporte extends fs_model {
             }
         }
         return $lista;
+    }
+    
+    public function getOne($idempresa,$idtransporte, $codalmacen, $referencia)
+    {
+        $data = $this->db->select("SELECT * FROM distribucion_lineastransporte WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen)." AND referencia = ".$this->var2str($referencia).";");
+        
+        if($data)
+        {
+            $valor_linea = new distribucion_lineastransporte($data[0]);
+            $descripcion_producto = $this->articulo->get($valor_linea->referencia);
+            $valor_linea->descripcion = $descripcion_producto->descripcion;
+        }
+        return $valor_linea;
     }
 }

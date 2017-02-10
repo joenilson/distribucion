@@ -8,6 +8,11 @@
     <columna>
         <nombre>cantidad</nombre>
         <tipo>numeric</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>devolucion</nombre>
+        <tipo>numeric</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>

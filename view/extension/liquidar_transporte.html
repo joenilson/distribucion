@@ -127,16 +127,27 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
     });
    }
 
-   function liquidarFactura(url){
+   function devolucionarFactura(id){
         $('#modal_liquidar_factura').modal('show');
         $("#liquidar_factura").detach();
         $("<iframe id='liquidar_factura' />")
-          .attr('src', url)
+          .attr('src', '{#FS_PATH#}index.php?page=ventas_factura_devolucion&id='+id)
           .attr('width', '100%')
           .attr('height', '500')
           .appendTo('#modal_body_liquidar_factura');
    }
 
+   function imprimirDevolucion(){
+        var url = '{$fsc->url()}&type=imprimir-devolucion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}';
+        $('#modal_imprimir_devolucion').modal('show');
+        $("#imprimir_devolucion").detach();
+        $("<iframe id='imprimir_devolucion' />")
+          .attr('src', url)
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_body_imprimir_devolucion');
+   }
+   
    function imprimirLiquidacion(){
         var url = '{$fsc->url()}&type=imprimir-liquidacion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}';
         $('#modal_imprimir_liquidacion').modal('show');
@@ -146,6 +157,42 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
           .attr('width', '100%')
           .attr('height', '500')
           .appendTo('#modal_body_imprimir_liquidacion');
+   }
+   
+   function confirmarDevolucion(){
+      bootbox.dialog({
+         message: "¿Esta seguro que quiere confirmar la devolución de este transporte?<br>Esta acción guardará las cantidades de devolución de las facturas en el transporte para que este pueda ser terminado de liquidar en caja.",
+         title: "Confirmar devolución del Transporte",
+         buttons: {
+           success: {
+             label: "Confirmar",
+             className: "btn-success",
+             callback: function() {
+                 $.ajax({
+                   type: 'GET',
+                   url: '{$fsc->url()}',
+                   async: false,
+                   data: 'type=confirmar-devolucion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}',
+                   success : function(datos) {
+                     bootbox.alert(datos.mensaje, function() {
+                        window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
+                     });
+                   },
+                   error: function() {
+                       bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                   }
+               });
+             }
+           },
+           danger: {
+             label: "Cancelar",
+             className: "btn-danger",
+             callback: function() {
+               this.hide();
+             }
+           }
+         }
+      });
    }
 
    function ingresarPago(factura,almacen){
@@ -210,23 +257,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
       $('#modal_liquidar_factura').on('hidden.bs.modal', function () {
           window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
       });
-
-      $("#ac_cliente").autocomplete({
-         serviceUrl: '{$fsc->url()}',
-         paramName: 'buscar_cliente',
-         onSelect: function (suggestion) {
-            if(suggestion)
-            {
-               if(document.f_pagar_facturas.codcliente.value != suggestion.data)
-               {
-                  document.f_pagar_facturas.codcliente.value = suggestion.data;
-               }
-            }
-         }
-      });
    });
 </script>
-<div class="container">
+<div class="container-fluid">
     <div class="row">
         <div class="col-sm-12">
             <div class="page-header">
@@ -248,8 +281,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
     </div>
     <div class="row">
         <form action="{$fsc->url()}&type=guardar-liquidacion&idtransporte={$fsc->transporte->idtransporte}" id='f_liquidar_transporte' name='f_liquidar_transporte' method="POST" class="form">
-            <div class="container">
-                <div class="row">
+                <div class="col-sm-12">
                     <div class="col-sm-2">
                         <label class="text-left" for="idordencarga"><b>Orden de Carga:</b></label>
                     </div>
@@ -270,7 +302,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     </div>
                 </div>
                 <span><br /></span>
-                <div class="row">
+                <div class="col-sm-12">
                     <div class="col-sm-2">
                         <label class="text-left" for="idordencarga"><b>Agencia:</b></label>
                     </div>
@@ -284,139 +316,205 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         <input class="form-control input-sm" type="text" readonly name="conductor" value="{$fsc->transporte->conductor_nombre}">
                     </div>
                 </div>
-                <div class="panel panel-default" style="margin-top: 10px;">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Facturas Asociadas al Transporte</h3>
+                <div class="col-sm-12">
+                    <ul class="nav nav-tabs" role="tablist" style="margin-top: 15px;">
+                        <li role="presentation" class="active"><a href="#facturas" aria-controls="facturas" role="tab" data-toggle="tab">Facturas del Transporte</a></li>
+                        <li role="presentation"><a href="#articulos" aria-controls="articulos" role="tab" data-toggle="tab">Articulos Transportados</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="facturas">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Factura</th>
+                                        <th>{#FS_NUMERO2#}</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th class="text-right">Cantidad</th>
+                                        <th class="text-right">Monto</th>
+                                        <th class="text-right">Abono</th>
+                                        <th class="text-right">Saldo</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <!--
+                                {$sumMonto=0}
+                                {$sumAbono=0}
+                                {$sumSaldo=0}
+                                {$sumFacturas=0}
+                                {$sumPagadas=0}
+                                !-->
+                                {loop="$fsc->facturastransporte"}
+                                <tr>
+                                    <td class="text-center">
+                                       {if condition="$value->pagada"}
+                                       {$sumPagadas=$sumPagadas+1}
+                                       <span class="glyphicon glyphicon-ok" title="La factura está pagada"></span>
+                                       {else}
+                                       <input type="checkbox" name="idfactura" value="{$value->idfactura}" checked="checked"/>
+                                       <!--{$total+=$value->total}-->
+                                       {/if}
+                                    </td>
+                                    <td><a href="{$value->enlace}">{$value->idfactura}</a></td>
+                                    <td>{$value->ncf}</td>
+                                    <td>{$value->nombrecliente}</td>
+                                    <td>{$value->fecha_factura}</td>
+                                    <td class="text-right">{$value->cantidad}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->monto)}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->abono)}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->saldo)}</td>
+                                    <td class="text-right">
+                                    {if="$value->pagada"}
+                                        <button class="btn btn-sm btn-danger" type="button" onclick="alert('Para eliminar el pago debe hacerlo un contador');">
+                                           <span class="glyphicon glyphicon-lock"></span> &nbsp; Pagada
+                                        </button>
+                                    {else}
+                                        <a href="#" class="btn btn-sm btn-primary" onclick="devolucionarFactura('{$value->idfactura}')">
+                                            <span class="fa fa-reply"></span>&nbsp; Devolucionar
+                                        </a>
+                                    {/if}
+                                    </td>
+                                </tr>
+                                <!--
+                                {$sumMonto=$sumMonto+$value->monto}
+                                {$sumAbono=$sumAbono+$value->abono}
+                                {$sumSaldo=$sumSaldo+$value->saldo}
+                                {$sumFacturas=$sumFacturas+1}
+                                !-->
+                                {/loop}
+                                <tr>
+                                    <td colspan="6" class="text-right"><b>Total</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumMonto)}</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumAbono)}</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumSaldo)}</b></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="articulos">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Referencia</th>
+                                        <th>Artículo</th>
+                                        <th class="text-right">Salida</th>
+                                        <th class="text-right">Devolución</th>
+                                        <th class="text-right">Saldo</th>
+                                    </tr>
+                                </thead>
+                                <!--
+                                {$sumSalida=0}
+                                {$sumDevolucion=0}
+                                {$sumSaldoDev=0}
+
+                                !-->
+                                {loop="$fsc->lineastransporte"}
+                                <tr>
+                                    <td class="text-center">
+                                    </td>
+                                    <td>{$value->referencia}</td>
+                                    <td>{$value->descripcion}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->cantidad)}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->devolucion)}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->cantidad+$value->devolucion)}</td>
+                                </tr>
+                                <!--
+                                {$sumSalida+=$value->cantidad}
+                                {$sumDevolucion+=$value->devolucion}
+                                {$sumSaldoDev+=($value->cantidad+$value->devolucion)}
+
+                                !-->
+                                {/loop}
+                                <tr>
+                                    <td colspan="3" class="text-right"><b>Total</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumSalida)}</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumDevolucion)}</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumSaldoDev)}</b></td>
+                                    <td></td>
+                                </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div class="panel-body">
+                    <div class="row">
+                        <div class="col-sm-3">
+                           <div class="btn-group">
+                              <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_todo()" title="Marcar todo">
+                                 <span class="glyphicon glyphicon-check"></span>
+                              </button>
+                              <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_nada()" title="Desmarcar todo">
+                                 <span class="glyphicon glyphicon-unchecked"></span>
+                              </button>
+                              <button class="btn btn-sm btn-primary" type="button" data-toggle="modal" data-target="#modal_opciones_pago">
+                                 <span class="glyphicon glyphicon-ok"></span> &nbsp; Marcar como pagadas
+                              </button>
+                           </div>
+                        </div>
+                        <div class="col-sm-3 text-center">
+                            {if="!$fsc->transporte->devolucionado"}
+                            <button class="btn btn-sm btn-warning" id="b_confirmar_devolucion" type="button" onclick="confirmarDevolucion({$fsc->transporte->idtransporte},'{$fsc->transporte->codalmacen}')">
+                               <span class="glyphicon glyphicon-ok"></span>
+                               <span class="hidden-xs">&nbsp;Confirmar Devolución</span>
+                            </button>
+                            {else}
+                            <button class="btn btn-sm btn-success" id="b_imprimir_devolucion" type="button" onclick="imprimirDevolucion({$fsc->transporte->idtransporte},'{$fsc->transporte->codalmacen}')">
+                                <span class="glyphicon glyphicon-print"></span>
+                                <span class="hidden-xs">&nbsp; Imprimir Devolución</span>
+                            </button>
+                            {/if}
+                        </div>
+                        <div class="col-sm-3 text-left">
+                           {if="!$fsc->faltante_transporte"}
+                           <button class="btn btn-sm btn-danger" {if="$fsc->transporte->liquidado"}disabled{/if} type="button" onclick="generarFaltante();">
+                              <span class="glyphicon glyphicon-exclamation-sign"></span> &nbsp; Generar faltante
+                           </button>
+                           {/if}
+                        </div>
+                        {if="$sumPagadas==$sumFacturas"}
+                        <div class="col-sm-3 text-right">
+                            {if="!$fsc->transporte->liquidado"}
+                            <button class="btn btn-sm btn-primary" type="button" onclick="guardarLiquidacion();">
+                               <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar Liquidación
+                            </button>
+                            {else}
+                            <button class="btn btn-sm btn-success" id="b_imprimir_liquidacion" type="button" onclick="imprimirLiquidacion()">
+                                <span class="glyphicon glyphicon-print"></span>
+                                <span class="hidden-xs">&nbsp; Imprimir Liquidación</span>
+                            </button>
+                            {/if}
+                        </div>
+                        {/if}
+                     </div>
+                    {if="$fsc->faltante_transporte"}
+                    <div class="row">
                         <table class="table table-responsive">
                             <thead>
                                 <tr>
-                                    <th></th>
-                                    <th>Factura</th>
-                                    <th>{#FS_NUMERO2#}</th>
-                                    <th>Cliente</th>
-                                    <th>Fecha</th>
-                                    <th class="text-right">Cantidad</th>
-                                    <th class="text-right">Monto</th>
-                                    <th class="text-right">Abono</th>
-                                    <th class="text-right">Saldo</th>
-                                    <th class="text-center">Acciones</th>
+                                    <th>Recibo Nro</th>
+                                    <th>Fecha Generado</th>
+                                    <th>Fecha Vencimiento</th>
+                                    <th>Fecha Pagado</th>
+                                    <th>Estado Actual</th>
+                                    <th class="text-right">Monto Faltante</th>
                                 </tr>
                             </thead>
-                            {$sumMonto=0}
-                            {$sumAbono=0}
-                            {$sumSaldo=0}
-                            {$sumFacturas=0}
-                            {$sumPagadas=0}
-                            {loop="$fsc->facturastransporte"}
-                            <tr>
-                                <td class="text-center">
-                                   {if condition="$value->pagada"}
-                                   {$sumPagadas=$sumPagadas+1}
-                                   <span class="glyphicon glyphicon-ok" title="La factura está pagada"></span>
-                                   {else}
-                                   <input type="checkbox" name="idfactura" value="{$value->idfactura}" checked="checked"/>
-                                   <!--{$total+=$value->total}-->
-                                   {/if}
-                                </td>
-                                <td><a href="{$value->enlace}">{$value->idfactura}</a></td>
-                                <td>{$value->ncf}</td>
-                                <td>{$value->nombrecliente}</td>
-                                <td>{$value->fecha_factura}</td>
-                                <td class="text-right">{$value->cantidad}</td>
-                                <td class="text-right">{$fsc->show_numero($value->monto)}</td>
-                                <td class="text-right">{$fsc->show_numero($value->abono)}</td>
-                                <td class="text-right">{$fsc->show_numero($value->saldo)}</td>
-                                <td class="text-right">
-                                {if="$value->pagada"}
-                                    <button class="btn btn-sm btn-danger" type="button" onclick="quitarPago('{$value->idfactura}','{$fsc->transporte->codalmacen}');">
-                                       <span class="glyphicon glyphicon-edit"></span> &nbsp; Quitar Pago
-                                    </button>
-                                {else}
-                                <a href="#" class="btn btn-sm btn-primary" onclick="liquidarFactura('{$value->enlace}')">
-                                       <span class="glyphicon glyphicon-ok"></span> &nbsp; Pagar / Devolucionar
-                                    </a>
-                                {/if}
-                                </td>
-                            </tr>
-                            {$sumMonto=$sumMonto+$value->monto}
-                            {$sumAbono=$sumAbono+$value->abono}
-                            {$sumSaldo=$sumSaldo+$value->saldo}
-                            {$sumFacturas=$sumFacturas+1}
-                            {/loop}
-                            <tr>
-                                <td colspan="6" class="text-right"><b>Total</b></td>
-                                <td class="text-right"><b>{$fsc->show_numero($sumMonto)}</b></td>
-                                <td class="text-right"><b>{$fsc->show_numero($sumAbono)}</b></td>
-                                <td class="text-right"><b>{$fsc->show_numero($sumSaldo)}</b></td>
-                                <td></td>
+                            <tr class='{if="$fsc->faltante_transporte->estado=='pendiente'"}danger{else}info{/if}'>
+                                <td>{$fsc->faltante_transporte->idrecibo}</td>
+                                <td>{$fsc->faltante_transporte->fecha}</td>
+                                <td>{$fsc->faltante_transporte->fechav}</td>
+                                <td>{$fsc->faltante_transporte->fechap}</td>
+                                <td>{$fsc->faltante_transporte->estado}</td>
+                                <td class="text-right">{$fsc->show_numero($fsc->faltante_transporte->importe)}</td>
                             </tr>
                         </table>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-6">
-                       <div class="btn-group">
-                          <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_todo()" title="Marcar todo">
-                             <span class="glyphicon glyphicon-check"></span>
-                          </button>
-                          <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_nada()" title="Desmarcar todo">
-                             <span class="glyphicon glyphicon-unchecked"></span>
-                          </button>
-                          <button class="btn btn-sm btn-primary" type="button" data-toggle="modal" data-target="#modal_opciones_pago">
-                             <span class="glyphicon glyphicon-ok"></span> &nbsp; Marcar como pagadas
-                          </button>
-                       </div>
-                    </div>
-                    <div class="col-sm-3 text-left">
-                       {if="!$fsc->faltante_transporte"}
-                       <button class="btn btn-sm btn-danger" {if="$fsc->transporte->liquidado"}disabled{/if} type="button" onclick="generarFaltante();">
-                          <span class="glyphicon glyphicon-exclamation-sign"></span> &nbsp; Generar faltante
-                       </button>
-                       {/if}
-                    </div>
-                    {if="$sumPagadas==$sumFacturas"}
-                    <div class="col-sm-3 text-right">
-                        {if="!$fsc->transporte->liquidado"}
-                        <button class="btn btn-sm btn-primary" type="button" onclick="guardarLiquidacion();">
-                           <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar Liquidación
-                        </button>
-                        {else}
-                        <button class="btn btn-sm btn-success" id="b_imprimir_liquidacion" type="button" onclick="imprimirLiquidacion()">
-                            <span class="glyphicon glyphicon-print"></span>
-                            <span class="hidden-xs">&nbsp; Imprimir Liquidación</span>
-                        </button>
-                        {/if}
-
-                    </div>
                     {/if}
-                 </div>
-                {if="$fsc->faltante_transporte"}
-                <div class="row">
-                    <table class="table table-responsive">
-                        <thead>
-                            <tr>
-                                <th>Recibo Nro</th>
-                                <th>Fecha Generado</th>
-                                <th>Fecha Vencimiento</th>
-                                <th>Fecha Pagado</th>
-                                <th>Estado Actual</th>
-                                <th class="text-right">Monto Faltante</th>
-                            </tr>
-                        </thead>
-                        <tr class='{if="$fsc->faltante_transporte->estado=='pendiente'"}danger{else}info{/if}'>
-                            <td>{$fsc->faltante_transporte->idrecibo}</td>
-                            <td>{$fsc->faltante_transporte->fecha}</td>
-                            <td>{$fsc->faltante_transporte->fechav}</td>
-                            <td>{$fsc->faltante_transporte->fechap}</td>
-                            <td>{$fsc->faltante_transporte->estado}</td>
-                            <td class="text-right">{$fsc->show_numero($fsc->faltante_transporte->importe)}</td>
-                        </tr>
-                    </table>
                 </div>
-                {/if}
-            </div>
         </form>
     </div>
 </div>
@@ -428,6 +526,19 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 <h4 class="modal-title">Liquidar Factura</h4>
             </div>
             <div class="modal-body" id='modal_body_liquidar_factura'>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal_imprimir_devolucion">
+    <div class="modal-dialog" style="width: 99%; max-width: 950px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body" id='modal_body_imprimir_devolucion'>
 
             </div>
         </div>
@@ -446,6 +557,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         </div>
     </div>
 </div>
+
 <div class="modal" id="modal_opciones_pago" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
@@ -460,9 +572,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <select name="codsubcuenta" id="codsubcuenta" class="form-control">
                         {loop="$fsc->get_subcuentas_pago()"}
                         {if="$value->codsubcuenta==$fsc->codsubcuenta_pago"}
-                        <option value="{$value->codsubcuenta}" selected="">{$value->descripcion}</option>
+                            <option value="{$value->codsubcuenta}" selected="">{$value->descripcion}</option>
                         {else}
-                        <option value="{$value->codsubcuenta}">{$value->descripcion}</option>
+                            <option value="{$value->codsubcuenta}">{$value->descripcion}</option>
                         {/if}
                         {/loop}
                         <option value="">------</option>
