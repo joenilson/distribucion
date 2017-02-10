@@ -86,6 +86,7 @@ class distrib_creacion extends fs_controller {
 
    public function private_core() {
       $this->share_extensions();
+      new distribucion_lineastransporte();
       $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
       $this->almacen = new almacen();
       $this->distrib_transporte = new distribucion_transporte();
@@ -165,6 +166,8 @@ class distrib_creacion extends fs_controller {
       $this->num_resultados = 0;
       if ($type === 'imprimir-transporte') {
          $this->imprimir_transporte();
+      } elseif ($type == 'confirmar-devolucion') {
+         $this->confirmar_devolucion(TRUE);
       } elseif ($type == 'confirmar-transporte') {
          $this->confirmar_transporte(TRUE);
       } elseif ($type == 'eliminar-transporte') {
@@ -179,6 +182,8 @@ class distrib_creacion extends fs_controller {
          $this->guardar_liquidacion();
       } elseif ($type == 'imprimir-liquidacion') {
          $this->imprimir_liquidacion();
+      } elseif ($type == 'imprimir-devolucion') {
+         $this->imprimir_devolucion();
       } elseif ($type == 'pagar-factura') {
          $this->pagar_factura();
       } elseif ($type == 'extornar-factura') {
@@ -319,6 +324,33 @@ class distrib_creacion extends fs_controller {
       header('Content-Type: application/json');
       echo json_encode( array('query' => $_REQUEST['buscar_conductor'], 'suggestions' => $json) );
    }
+   
+   public function imprimir_devolucion(){
+      $this->template = false;
+      $this->helper_transportes = new helper_transportes();
+      $value_transporte = \filter_input(INPUT_GET, 'transporte');
+      $lista_transporte = explode(',', $value_transporte);
+      $contador_transporte = 0;
+      $pdfFile = new asgard_PDFHandler();
+      $pdfFile->pdf_create();
+      foreach ($lista_transporte as $linea) {
+         if (!empty($linea)) {
+            $datos_transporte = explode('-', $linea);
+            $idtransporte = $datos_transporte[0];
+            $codalmacen = $datos_transporte[1];
+            $contador_transporte++;
+            $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $sumaDevolucion = 0;
+            foreach($lineastransporte as $l){
+                $sumaDevolucion += $l->devolucion;
+            }
+            $transporte->totaldevolucion = $sumaDevolucion;
+            $pdfFile->pdf_pagina($this->helper_transportes->cabecera_devolucion($transporte), $this->helper_transportes->contenido_devolucion($lineastransporte), $this->helper_transportes->pie_devolucion($transporte));
+         }
+      }
+      $pdfFile->pdf_mostrar();
+   }
 
    public function imprimir_transporte(){
       $this->template = false;
@@ -342,11 +374,68 @@ class distrib_creacion extends fs_controller {
       $pdfFile->pdf_mostrar();
    }
 
+   public function confirmar_devolucion($confirmado=TRUE){
+      $value_transporte = \filter_input(INPUT_GET, 'transporte');
+      $lista_transporte = explode(',', $value_transporte);
+      $tipo_mensaje = ($confirmado)?"devolucionado":"eliminado";
+      $mensaje = (count($lista_transporte)>1)?"Transportes ".$tipo_mensaje."s":"Transporte ".$tipo_mensaje;
+      foreach ($lista_transporte as $linea) {
+         if ($linea) {
+            $datos_transporte = explode('-', $linea);
+            $idtransporte = $datos_transporte[0];
+            $codalmacen = $datos_transporte[1];
+            $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $this->facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
+            $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $articulo = array();
+            foreach($this->facturastransporte as $fact){
+                $rectif = $this->factura_cliente->get($fact->idfactura)->get_rectificativas();
+                if($rectif){
+                    foreach($rectif as $f){
+                        foreach($f->get_lineas() as $linea){
+                            $articulo[$linea->referencia] = (!isset($articulo[$linea->referencia]))?0:$articulo[$linea->referencia];
+                            $articulo[$linea->referencia] += $linea->cantidad;
+                        }
+                    }
+                }
+            }
+            $error=0;
+            foreach($lineastransporte as $linea){
+                if(isset($articulo[$linea->referencia])){
+                    $lin0 = $this->distrib_lineastransporte->getOne($this->empresa->id, $idtransporte, $codalmacen, $linea->referencia);
+                    $lin0->devolucion = $articulo[$linea->referencia];
+                    if(!$lin0->save()){
+                        $error++;
+                    }
+                }
+            }
+            if(!$error){
+                $trans0->devolucionado = $confirmado;
+                $trans0->fecha_modificacion = Date('d-m-Y H:i');
+                $trans0->usuario_modificacion = $this->user->nick;
+                if ($trans0->confirmar_devolucion()) {
+                   $data['success'] = TRUE;
+                   $data['mensaje'] = $mensaje;
+                } else {
+                   $data['success'] = FALSE;
+                   $data['mensaje'] = '¡No se pudo confirmar la devolución del transporte pero se guardaron las cantidades de devolución!';
+                }
+            }else{
+                $data['success'] = FALSE;
+                $data['mensaje'] = '!No se lograron guardar las devoluciones de artículos en el Transporte!';
+            }
+         }
+      }
+      $this->template = false;
+      header('Content-Type: application/json');
+      echo json_encode($data);
+   }
+
    public function confirmar_transporte($confirmado=TRUE){
       $value_transporte = \filter_input(INPUT_GET, 'transporte');
       $lista_transporte = explode(',', $value_transporte);
       $tipo_mensaje = ($confirmado)?"despachado":"desconfirmado";
-      $mensaje = (count($lista_transporte)>1)?"Transportes ".$tipo_mensaje:"Transporte ".$tipo_mensaje."s";
+      $mensaje = (count($lista_transporte)>1)?"Transportes ".$tipo_mensaje."s":"Transporte ".$tipo_mensaje;
       foreach ($lista_transporte as $linea) {
          if ($linea) {
             $datos_transporte = explode('-', $linea);
@@ -402,8 +491,27 @@ class distrib_creacion extends fs_controller {
       $faltante_transporte = new distribucion_faltantes();
       $this->faltante_transporte = $faltante_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
       $this->transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-      $this->lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
       $this->facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
+      $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
+      if(!$this->transporte->devolucionado){
+        $articulo = array();
+        foreach($this->facturastransporte as $fact){
+            $rectif = $this->factura_cliente->get($fact->idfactura)->get_rectificativas();
+            if($rectif){
+                foreach($rectif as $f){
+                    foreach($f->get_lineas() as $linea){
+                        $articulo[$linea->referencia] = (!isset($articulo[$linea->referencia]))?0:$articulo[$linea->referencia];
+                        $articulo[$linea->referencia] += $linea->cantidad;
+                    }
+                }
+            }
+        }
+        
+        foreach($lineastransporte as $linea){
+            $linea->devolucion = (isset($articulo[$linea->referencia]))?$articulo[$linea->referencia]:0;
+        }
+      }
+      $this->lineastransporte = $lineastransporte;
       $this->template = 'extension/liquidar_transporte';
    }
 

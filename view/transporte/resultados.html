@@ -24,14 +24,11 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <th colspan="2">
                         <input type="checkbox">
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-success" type="button" id="b_imprimir_seleccion" title="Imprimir Transportes Seleccionados">
+                            <button class="btn btn-sm btn-success" type="button" data-toggle="tooltip" data-placement="top" id="b_imprimir_seleccion" title="Imprimir Transportes Seleccionados">
                                 <span class="glyphicon glyphicon-print"></span>
                             </button>
-                            <button class="btn btn-sm btn-primary" type="button" id="b_confirmar_transportes" onClick="confirmarTransporte()" title="Despachar Transportes Seleccionados">
+                            <button class="btn btn-sm btn-primary" type="button" data-toggle="tooltip" data-placement="top" id="b_confirmar_transportes" onClick="confirmarTransporte()" title="Despachar Transportes Seleccionados">
                                 <span class="glyphicon glyphicon-ok"></span>
-                            </button>
-                            <button class="btn btn-sm btn-info" type="button" id="b_generar_transporte" onClick="generarTransporte()" title="Generar Transportes de Ordenes Seleccionadas">
-                                <span class="glyphicon glyphicon-flag"></span>
                             </button>
                         </div>
                     </th>
@@ -57,7 +54,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <button class="btn btn-sm btn-default" type="button" title="Ver Transporte" onclick="mostrarTransporte('{$value->idtransporte}', '{$value->codalmacen}')"><span class="glyphicon glyphicon-eye-open"></span></button>
                     <button class="btn btn-sm btn-primary" type="button" title="Confirmar Transporte" onclick="confirmarTransporte('{$value->idtransporte}', '{$value->codalmacen}')"><span class="glyphicon glyphicon-ok-circle"></span></button>
                     {if="$value->despachado"}
-                    <button class="btn btn-sm btn-info" type="button" title="Liquidar Transporte" onclick="liquidarTransporte('{$value->idtransporte}-{$value->codalmacen}')"><span class="glyphicon glyphicon glyphicon-list-alt"></span></button>
+                        <button class="btn btn-sm {if="$value->liquidado"}btn-success{else}btn-info{/if}" type="button" title="Liquidar Transporte" onclick="liquidarTransporte('{$value->idtransporte}-{$value->codalmacen}','{$value->liquidado}')"><span class="glyphicon glyphicon glyphicon-list-alt"></span></button>
                     {/if}
                 </td>
                 <td><a href="{$value->url()}">{$value->idtransporte}</a></td>

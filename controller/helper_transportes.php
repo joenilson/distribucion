@@ -29,10 +29,31 @@ require_model('articulo_unidadmedida.php');
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class helper_transportes extends fs_controller {
-
-
+    public $distribucion_setup;
     public function __construct() {
         parent::__construct(__CLASS__, 'Helper Transportes', 'distribucion', FALSE, FALSE);
+        /// cargamos la configuración
+        $fsvar = new fs_var();
+        $this->distribucion_setup = $fsvar->array_get(
+            array(
+            'distrib_ordencarga' => "Orden de Carga",
+            'distrib_ordenescarga' => "Ordenes de Carga",
+            'distrib_transporte' => "Transporte",
+            'distrib_transportes' => "Transportes",
+            'distrib_devolucion' => "Devolución",
+            'distrib_devoluciones' => "Devoluciones",
+            'distrib_agencia' => "Agencia",
+            'distrib_agencias' => "Agencias",
+            'distrib_unidad' => "Unidad",
+            'distrib_unidades' => "Unidades",
+            'distrib_conductor' => "Conductor",
+            'distrib_conductores' => "Conductores",
+            'distrib_liquidacion' => "Liquidación",
+            'distrib_liquidaciones' => "Liquidaciones",
+            'distrib_faltante' => "Faltante",
+            'distrib_faltantes' => "Faltantes"
+            ), FALSE
+        );
     }
 
     public function private_core() {
@@ -40,6 +61,182 @@ class helper_transportes extends fs_controller {
        $this->articulo_unidadmedida = new articulo_unidadmedida();
     }
 
+    public function cabecera_devolucion($transporte){
+        setlocale(LC_ALL, 'es_ES.UTF-8');
+        $table= '<table style="width: 100%;">';
+        $table.= '<tr>';
+        $table.= '<td align="center" style="font-size: 14px;" colspan="4">';
+        $table.= '<b>'.ucfirst(strtolower($this->distribucion_setup['distrib_devolucion'])).'</b><br />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr style="font-size: 9px;">';
+        $table.= '<td width="20%" style="font-size: 9px;">';
+        $table.= '<b>Empresa:</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%" style="font-size: 9px;">';
+        $table.= $this->empresa->nombre;
+        $table.= '</td>';
+        $table.= '<td width="20%" align="right" style="font-size: 9px;">';
+        $table.= '<b>Direcci&oacute;n:</b>';
+        $table.= '</td>';
+        $table.= '<td width="40%" align="right" style="font-size: 9px;">';
+        $table.= $this->empresa->direccion;
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr style="font-size: 9px;">';
+        $table.= '<td width="20%" style="font-size: 9px;">';
+        $table.= '<b>RNC:</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%" style="font-size: 9px;">';
+        $table.= $this->empresa->cifnif;
+        $table.= '</td>';
+        $table.= '<td width="20%" style="font-size: 9px;" align="right">';
+        $table.= '<b>Teléfono:</b>';
+        $table.= '</td>';
+        $table.= '<td width="40%" style="font-size: 9px;" align="right">';
+        $table.= $this->empresa->telefono;
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr style="font-size: 9px;">';
+        $table.= '<td width="20%" style="font-size: 9px;">';
+        $table.= '<b>Conduce:</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%" style="font-size: 9px;">';
+        $table.= str_pad($transporte->idtransporte,10,"0",STR_PAD_LEFT);
+        $table.= '</td>';
+        $table.= '<td width="20%" align="right" style="font-size: 9px;">';
+        $table.= '<b>Fecha de Reparto:</b>';
+        $table.= '</td>';
+        $table.= '<td width="40%" align="right" style="font-size: 9px;">';
+        $table.= strftime("%A %d, %B %Y", strtotime($transporte->fecha));
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td width="20%" style="font-size: 9px;">';
+        $table.= '<b>Almacén Origen:</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%" style="font-size: 9px;">';
+        $table.= $transporte->codalmacen;
+        $table.= '</td>';
+        $table.= '<td width="20%" align="right" style="font-size: 9px;">';
+        $table.= '<b>Almacén Destino:</b>';
+        $table.= '</td>';
+        $table.= '<td width="40%" align="right" style="font-size: 9px;">';
+        $table.= $transporte->codalmacen_dest;
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td width="20%" style="font-size: 9px;">';
+        $table.= '<b>Unidad:</b>';
+        $table.= '</td>';
+        $table.= '<td width="20%">';
+        $table.= $transporte->unidad;
+        $table.= '</td>';
+        $table.= '<td width="20%" align="right" style="font-size: 9px;">';
+        $table.= '<b>Conductor:</b>';
+        $table.= '</td>';
+        $table.= '<td width="40%" align="right" style="font-size: 9px;">';
+        $table.= $transporte->conductor_nombre;
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '</table>';
+        $table.= '<br /><hr />';
+        return $table;
+    }
+    
+    public function contenido_devolucion($lineastransporte){
+        $table= '<table width: 100%;>';
+        $table.= '<tr style="font-size: 9px;">';
+        $table.= '<td width="15%">';
+        $table.= '<b>Referencia</b>';
+        $table.= '</td>';
+        $table.= '<td width="35%">';
+        $table.= '<b>Producto</b>';
+        $table.= '</td>';
+        $table.= '<td width="15%" align="right">';
+        $table.= '<b>Salida</b>';
+        $table.= '</td>';
+        $table.= '<td width="15%" align="right">';
+        $table.= '<b>Devolucion</b>';
+        $table.= '</td>';
+        $table.= '<td width="15%" align="right">';
+        $table.= '<b>Saldo</b>';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $maxLineas = 34;
+        
+        foreach($lineastransporte as $key=>$linea){
+            $table.= '<tr style="font-size: 9px;">';
+            $table.= '<td width="15%">';
+            $table.= $linea->referencia;
+            $table.= '</td>';
+            $table.= '<td width="35%">';
+            $table.= $linea->descripcion;
+            $table.= '</td>';
+            $table.= '<td width="15%" align="right">';
+            $table.= number_format($linea->cantidad,2,".",",");
+            $table.= '</td>';
+            $table.= '<td width="15%" align="right">';
+            $table.= number_format($linea->devolucion,2,".",",");
+            $table.= '</td>';
+            $table.= '<td width="15%" align="right">';
+            $table.= number_format(($linea->cantidad+$linea->devolucion),2,".",",");
+            $table.= '</td>';
+            $table.= '</tr>';
+            $maxLineas--;
+        }
+        $table.= '</table>';
+        for($x=0; $x<$maxLineas; $x++){
+            $table.="<br />";
+        }
+        $table.= '<hr />';
+        
+        return $table;
+    }
+    
+    public function pie_devolucion($transporte){
+        $table= '<table style="width: 100%;">';
+        $table.= '<tr>';
+        $table.= '<td align="right" style="font-size: 9px;" colspan="5">';
+        $table.= '<b>Total Salidas:</b> &nbsp;'.number_format($transporte->totalcantidad,2,".",",");
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td align="right" style="font-size: 9px;" colspan="5">';
+        $table.= '<b>Total Devolucion:</b> &nbsp;'.number_format($transporte->totaldevolucion,2,".",",");
+        $table.= '<br /><br />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td style="font-size: 9px;">';
+        $table.= '<br /><hr />';
+        $table.= '</td>';
+        $table.= '<td width="15%">&nbsp;</td>';
+        $table.= '<td style="font-size: 9px;">';
+        $table.= '<br /><hr />';
+        $table.= '</td>';
+        $table.= '<td width="15%">&nbsp;</td>';
+        $table.= '<td style="font-size: 9px;">';
+        $table.= '<br /><hr />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '<tr>';
+        $table.= '<td align="center" style="font-size: 9px;">';
+        $table.= '<b>Firma Transportista</b><br />';
+        $table.= '</td>';
+        $table.= '<td width="15%">&nbsp;</td>';
+        $table.= '<td align="center" style="font-size: 9px;">';
+        $table.= '<b>Firma Liquidador</b><br />';
+        $table.= '</td>';
+        $table.= '<td width="15%">&nbsp;</td>';
+        $table.= '<td align="center" style="font-size: 9px;">';
+        $table.= '<b>Firma Almac&eacute;n</b><br />';
+        $table.= '</td>';
+        $table.= '</tr>';
+        $table.= '</table>';
+        return $table;
+    }
+    
     public function cabecera_transporte($transporte){
         setlocale(LC_ALL, 'es_ES.UTF-8');
         $table= '<table style="width: 100%;">';
@@ -73,7 +270,7 @@ class helper_transportes extends fs_controller {
         $table.= '<b>Teléfono:</b>';
         $table.= '</td>';
         $table.= '<td width="40%" style="font-size: 9px;" align="right">';
-                $table.= $this->empresa->telefono;
+        $table.= $this->empresa->telefono;
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr style="font-size: 9px;">';
@@ -124,8 +321,7 @@ class helper_transportes extends fs_controller {
     }
 
     public function contenido_transporte($lineastransporte){
-
-  $table= '<table width: 100%;>';
+        $table= '<table width: 100%;>';
         $table.= '<tr style="font-size: 9px;">';
         $table.= '<td width="20%">';
         $table.= '<b>Referencia</b>';
@@ -144,7 +340,7 @@ class helper_transportes extends fs_controller {
         $table.= '</td>';
         $table.= '</tr>';
         $maxLineas = 34;
-           //$lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen)
+        //$lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen)
         foreach($lineastransporte as $key=>$linea){
 
             $medidas = $this->articulo_unidadmedida->getBase($linea->referencia);

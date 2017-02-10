@@ -11,27 +11,21 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
-        <nombre>abreviatura</nombre>
-        <tipo>character varying(6)</tipo>
+        <nombre>codum</nombre>
+        <tipo>character varying(10)</tipo>
         <nulo>NO</nulo>
     </columna>
     <columna>
-        <nombre>id</nombre>
-        <tipo>serial</tipo>
-        <nulo>NO</nulo>
-        <defecto>nextval('unidadmedida_id_seq'::regclass)</defecto>
-    </columna>
-    <columna>
-        <nombre>name</nombre>
+        <nombre>nombre</nombre>
         <tipo>character varying(60)</tipo>
         <nulo>NO</nulo>
     </columna>
     <restriccion>
         <nombre>unidadmedida_pkey</nombre>
-        <consulta>PRIMARY KEY (id)</consulta>
+        <consulta>PRIMARY KEY (codum)</consulta>
     </restriccion>
     <restriccion>
         <nombre>unidadmedida_ukey</nombre>
-        <consulta>UNIQUE (name)</consulta>
+        <consulta>UNIQUE (nombre)</consulta>
     </restriccion>
 </tabla>

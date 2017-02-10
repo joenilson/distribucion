@@ -50,14 +50,14 @@ class articulo_unidadesmedida extends fs_controller {
 
         $accion = filter_input(INPUT_POST, 'accion');
         if($accion == 'agregar'){
-            $unidadmedida = filter_input(INPUT_POST, 'id');
+            $unidadmedida = filter_input(INPUT_POST, 'codum');
             $factor = filter_input(INPUT_POST, 'factor');
             $peso = filter_input(INPUT_POST, 'peso');
             $base = filter_input(INPUT_POST, 'base');
             $se_compra = filter_input(INPUT_POST, 'se_compra');
             $se_vende = filter_input(INPUT_POST, 'se_vende');
             $aum0 = new articulo_unidadmedida();
-            $aum0->id = $unidadmedida;
+            $aum0->codum = $unidadmedida;
             $aum0->referencia = $this->articulo->referencia;
             $aum0->factor = floatval($factor);
             $aum0->peso = floatval($peso);
@@ -70,7 +70,7 @@ class articulo_unidadesmedida extends fs_controller {
                 $this->new_error_msg('Ocurrio un error al tratar de agregar la unidad de medida, por favor revise los datos ingresados');
             }
         }elseif($accion=='eliminar'){
-            $unidadmedida = filter_input(INPUT_POST, 'id');
+            $unidadmedida = filter_input(INPUT_POST, 'codum');
             $aum0 = $this->articulo_unidadmedida->getOne($unidadmedida, $this->articulo->referencia);
             if($aum0){
                 if($aum0->delete()){
