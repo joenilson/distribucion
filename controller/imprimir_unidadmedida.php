@@ -367,6 +367,10 @@ class imprimir_unidadmedida extends fs_controller {
             // $nuevaCantidad = $lineas[$linea_actual]->cantidad/$umCompra->factor;
             // Pero el precio no se divide se multiplica para poder mostrar el valor total
             // $nuevoPrecio = $lineas[$linea_actual]->pvpunitario*$umCompra->factor;
+              //Validando linea de unidad de medida. 
+            if($lineas[$linea_actual]->codum==""){
+               $lineas[$linea_actual]->codum = 'UNIDAD';}
+               
             $cantidadConvertida = $lineas[$linea_actual]->cantidad/$umCompra[0]->factor;
             $precioConvertido = $lineas[$linea_actual]->pvpunitario*$umCompra[0]->factor;
             $fila = array(
