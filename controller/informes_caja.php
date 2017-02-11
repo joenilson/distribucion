@@ -108,7 +108,7 @@ class informes_caja extends fs_controller {
         if(in_array('tesoreria',$GLOBALS['plugins']) and !in_array('tesoreria',$disabled)){
             $this->tesoreria = TRUE;
         }
-        
+
         //Creamos o validamos las carpetas para grabar los informes de caja
         $this->fileName = '';
         $basepath = dirname(dirname(dirname(__DIR__)));
@@ -187,7 +187,7 @@ class informes_caja extends fs_controller {
             $totales_fp['egresos_netos'] += $this->pagos_condpago[$fp->codpago];
         }
         $this->writer->writeSheetRow('Resumen', array('Total', $totales_fp['ingresos_brutos'], $totales_fp['ingresos_netos'], $totales_fp['egresos_brutos'], $totales_fp['egresos_netos']));
-        
+
         $cabeceraDetalleVenta['Factura'] = 'string';
         $cabeceraDetalleVenta[FS_NUMERO2] = 'string';
         $cabeceraDetalleVenta['Cliente'] = 'string';
@@ -214,24 +214,24 @@ class informes_caja extends fs_controller {
         $this->writer->writeSheetRow('Ventas', array('Total', '', '', '', $totalImporte, $totalRectificativas, $totalAbonos, $totalSaldo, '',''));
         $this->writer->writeSheetRow('Ventas', array('Total', '', '', '', 0, 0, 0, ($totalAbonos+$totalSaldo), '',''));
         $this->writer->writeSheetHeader('Compras', $cabeceraDetalleVenta);
-        $totalImporte=0;
-        $totalRectificativas=0;
-        $totalAbonos=0;
-        $totalSaldo=0;
+        $totalImporteCompras=0;
+        $totalRectificativasCompras=0;
+        $totalAbonosCompras=0;
+        $totalSaldoCompras=0;
         foreach($this->detalle['compras'] as $factura){
             $factura->saldo = ($factura->total+$factura->rectificativa)-$factura->abonos;
-            $this->writer->writeSheetRow('Compras', array($factura->idfactura, $factura->numero2, $factura->nombre, ($factura->pagada)?'Pagada':'Pendiente', $factura->total, $factura->rectificativa, $factura->abonos, $factura->saldo, \date('Y-m-d',strtotime($factura->fecha)), ($factura->fecha_pago)?\date('Y-m-d',strtotime($factura->fecha_pago)):''));
-            $totalImporte+=$factura->total;
-            $totalRectificativas+=$factura->rectificativa;
-            $totalAbonos+=$factura->abonos;
-            $totalSaldo+=$factura->saldo;
+            $this->writer->writeSheetRow('Compras', array($factura->idfactura, $factura->numproveedor, $factura->nombre, ($factura->pagada)?'Pagada':'Pendiente', $factura->total, $factura->rectificativa, $factura->abonos, $factura->saldo, \date('Y-m-d',strtotime($factura->fecha)), ($factura->fecha_pago)?\date('Y-m-d',strtotime($factura->fecha_pago)):''));
+            $totalImporteCompras+=$factura->total;
+            $totalRectificativasCompras+=$factura->rectificativa;
+            $totalAbonosCompras+=$factura->abonos;
+            $totalSaldoCompras+=$factura->saldo;
         }
-        $this->writer->writeSheetRow('Compras', array('Total', '', '', '', $totalImporte, $totalRectificativas, $totalAbonos, $totalSaldo, '',''));
+        $this->writer->writeSheetRow('Compras', array('Total', '', '', '', $totalImporteCompras, $totalRectificativasCompras, $totalAbonosCompras, $totalSaldoCompras, '',''));
         $this->writer->writeSheetRow('Compras', array('Total', '', '', '', 0, 0, 0, ($totalAbonos+$totalSaldo), '',''));
         $this->writer->writeToFile($this->pathNameXLS);
         gc_collect_cycles();
     }
-    
+
     private function generar_pdf(){
         $this->pathNamePDF = $this->cajaDir . DIRECTORY_SEPARATOR . 'informe' . "_" . $this->user->nick . ".pdf";
         $this->fileNamePDF = $this->publicPath . DIRECTORY_SEPARATOR . 'informe' . "_" . $this->user->nick . ".pdf";
@@ -245,10 +245,10 @@ class informes_caja extends fs_controller {
         $logo_empresa = (file_exists($logo))?$logo:false;
         $this->pdf->startPageGroup();
         $this->pdf->SetHeaderData(
-            $logo_empresa, 
+            $logo_empresa,
             10,
-            $this->empresa->nombre, 
-            'Informe de Caja del Almacén: '.$this->almacenes->get($this->codalmacen)->nombre.' del '.$this->f_desde.' al '.$this->f_hasta. 'generado el: '.\date('d-m-Y H:i:s'), 
+            $this->empresa->nombre,
+            'Informe de Caja del Almacén: '.$this->almacenes->get($this->codalmacen)->nombre.' del '.$this->f_desde.' al '.$this->f_hasta. 'generado el: '.\date('d-m-Y H:i:s'),
             array(0,0,0),
             array(0,0,0)
         );
@@ -339,7 +339,7 @@ class informes_caja extends fs_controller {
             $totales_fp['egresos_netos'] += $this->pagos_condpago[$fp->codpago];
             $this->pdf->Ln();
         }
-        
+
         $this->pdf->SetFont('courier', 'B');
         $this->pdf->Cell(60, 4, 'Total', 1, 0, 'L', 0);
         $this->pdf->Cell(30, 4, $this->show_precio($totales_fp['ingresos_brutos'],$this->empresa->coddivisa), 1, 0, 'R', 0);
@@ -442,19 +442,19 @@ class informes_caja extends fs_controller {
         $this->pdf->Cell(25, 4, $this->show_precio($totalAbonosCompras,$this->empresa->coddivisa), 1, 0, 'R', 0);
         $this->pdf->Cell(25, 4, $this->show_precio($totalSaldoCompras,$this->empresa->coddivisa), 1, 0, 'R', 0);
         $this->pdf->Cell(180, 4, '', 1, 0, 'L', 0);
-        $this->pdf->Cell(50, 4, $this->show_precio(($totalAbonosCompras+$totalSaldoCompras),$this->empresa->coddivisa), 1, 0, 'R', 0);        
-        
+        $this->pdf->Cell(50, 4, $this->show_precio(($totalAbonosCompras+$totalSaldoCompras),$this->empresa->coddivisa), 1, 0, 'R', 0);
+
         //Guardamos el PDF
         $this->pdf->Output($this->pathNamePDF,'F');
     }
-    
+
     private function pdfHeader($header){
         $this->pdf->SetFillColor(255, 255, 255);
         $this->pdf->SetTextColor(0);
         $this->pdf->SetDrawColor(153, 153, 153);
         $this->pdf->SetLineWidth(0.3);
         $this->pdf->SetFont('courier', 'B');
-        //Cabecera 
+        //Cabecera
         foreach($header as $text=>$width){
             $this->pdf->Cell($width, 1, $text, 1, 0, 'C', 1);
         }
@@ -465,7 +465,7 @@ class informes_caja extends fs_controller {
         $this->pdf->SetFillColor(224, 235, 255);
         $this->pdf->SetTextColor(0);
         $this->pdf->SetFont('courier','',8);
-        
+
     }
 
     private function generar_formas_pago(){
@@ -513,10 +513,11 @@ class informes_caja extends fs_controller {
                         $rec0 = $recibos->all_from_factura($factura->idfactura);
                         foreach($rec0 as $r){
                             if(\date('Y-m-d',strtotime($r->fecha))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($r->fecha))<=\date('Y-m-d',strtotime($this->f_hasta))){
-                                
+
                             }
                         }
-                        $pago_venta = $recibos->all_from_factura($factura->idfactura)[0];
+                        $recibos = $recibos->all_from_factura($factura->idfactura);
+                        $pago_venta = $recibos[0];
                     }else{
                         $pago_venta = $factura->get_asiento_pago();
                     }
@@ -575,7 +576,7 @@ class informes_caja extends fs_controller {
                         }
                     }
                     $factura->rectificativa = $total_rectificativas;
-                    
+
                 }
                 $this->detalle['ventas'][] = $factura;
                 $this->total_ventas += $factura->total;
@@ -633,14 +634,14 @@ class informes_caja extends fs_controller {
                 $factura->abonos = 0;
                 $factura->fecha_pago = 0;
                 if($factura->pagada and $factura->idfacturarect == ''){
-                    $pago_compra = $factura->get_asiento_pago();  
+                    $pago_compra = $factura->get_asiento_pago();
                     if($pago_compra){
                         if(\date('Y-m-d',strtotime($pago_compra->fecha))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($pago_compra->fecha))<=\date('Y-m-d',strtotime($this->f_hasta))){
                             //Esta pagada a la fecha buscada
                             $this->total_pagos += $factura->total;
                             $this->pagadas['compras'] += $factura->total;
                             $this->pagos_condpago[$factura->codpago] += $factura->total;
-                            $factura->fecha_pago = $pago_compra->fechap;
+                            $factura->fecha_pago = ($this->tesoreria)?$pago_compra->fechap:$pago_compra->fecha;
                         }else{
                             //Esta pendiente a la fecha buscada
                             $this->total_pendientes_pago += $factura->total;

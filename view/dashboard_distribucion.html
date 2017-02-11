@@ -16,66 +16,79 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="page-header">
-                <h3>
-                    <span class="fa fa-area-chart"></span>&nbsp;Dashboard de Distribución
-                    <a href="{$fsc->url()}" class="btn btn-sm btn-default" title="Recargar la página">
-                        <span class="glyphicon glyphicon-refresh"></span>
-                    </a>
-                    <span class="btn-group">
-                        {loop="$fsc->extensions"}
-                        {if="$value->type=='button'"}
-                        <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
-                        {/if}
-                        {/loop}
-                    </span>
-                    <small>
-                    Indicadores de Distribución cantidad de vendedores, clientes, rutas, cobertura de mercado, efectividad de venta y datos de distribución
-                    </small>
-                </h3>
+    <section class="col-sm-12">
+        <div class="page-header">
+            <h3 class="pull-left">
+                <span class="fa fa-area-chart"></span>&nbsp;Distribución
+                <a href="{$fsc->url()}" class="btn btn-sm btn-default" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {/if}
+                <span class="btn-group">
+                    {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                    <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
+                    {/if}
+                    {/loop}
+                </span>
+            </h3>
+            <div class="pull-right">
+                <form class="form-horizontal" role="form" action="{$fsc->url()}" name="f_buscar" method="POST">
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label for="f_desde" class="control-label">Desde</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
+                                <input type="text" name="f_desde" class="form-control datepicker" id="f_desde" value="{$fsc->f_desde}" placeholder="Fecha Inicio">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="f_hasta" class="control-label">Hasta</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
+                                <input type="text" name="f_hasta" class="form-control datepicker" id="f_hasta" value="{$fsc->f_hasta}" placeholder="Fecha Fin">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="codalmacen" class="control-label">Almacén</label>
+                            <select name="codalmacen" class="form-control" required>
+                                <option value="">Elija un Almacen</option>
+                                {if="$fsc->user->admin"}
+                                    {loop="$fsc->almacenes->all()"}
+                                    <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
+                                    {/loop}
+                                {else}
+                                <option value="{$fsc->user->codalmacen}" selected>{$fsc->user->nombrealmacen}</option>
+                                {/if}
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="btn-group" role="group" aria-label="..." style="margin-top: 25px;">
+                                <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
+                                    <span class="fa fa-search"></span>&nbsp;Generar
+                                </button>
+                                <a href="{$fsc->fileNameXLS}" id="b_descargar" class="btn btn-sm btn-link" role="button">
+                                    <span class="fa fa-download"></span>&nbsp;XLS
+                                </a>
+                                <a href="{$fsc->fileNamePDF}" id="b_descargar" download class="btn btn-sm btn-link" role="button">
+                                    <span class="fa fa-download"></span>&nbsp;PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
+            <div class="clearfix"></div>
         </div>
-    </div>
-    <div class="row">
-        <form class="form-horizontal" role="form" action="{$fsc->url()}" name="f_buscar" method="POST">
-            <div class="form-group">
-                <label for="f_desde" class="col-sm-1 control-label">Desde</label>
-                <div class="col-sm-2">
-                    <input type="text" name="f_desde" class="form-control datepicker" id="f_desde" value="{$fsc->f_desde}" placeholder="Fecha Inicio">
-                </div>
-                <label for="f_hasta" class="col-sm-1 control-label">Hasta</label>
-                <div class="col-sm-2">
-                    <input type="text" name="f_hasta" class="form-control datepicker" id="f_hasta" value="{$fsc->f_hasta}" placeholder="Fecha Fin">
-                </div>
-                <label for="codalmacen" class="col-sm-1 control-label">Almacén</label>
-                <div class="col-sm-2">
-                    <select name="codalmacen" class="form-control" required>
-                        <option value="">Elija un Almacen</option>
-                        {if="$fsc->user->admin"}
-                            {loop="$fsc->almacenes->all()"}
-                            <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
-                            {/loop}
-                        {else}
-                        <option value="{$fsc->user->codalmacen}" selected>{$fsc->user->nombrealmacen}</option>
-                        {/if}
-                    </select>
-                </div>
-                <div class="col-sm-3">
-                    <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
-                        <span class="fa fa-search"></span>&nbsp;Generar
-                    </button>
-                    <a href="{$fsc->fileNameXLS}" id="b_descargar" class="btn btn-sm btn-success">
-                        <span class="fa fa-file-excel-o"></span>&nbsp;Archivo XLS
-                    </a>
-                    <a href="{$fsc->fileNamePDF}" id="b_descargar" download class="btn btn-sm btn-info">
-                        <span class="fa fa-file-pdf-o"></span>&nbsp;Archivo PDF
-                    </a>
-                </div>
-            </div>
-        </form>
-    </div>
+    </section>
     <div class="row">
         <div class="col-sm-3">
             <a href="#" class="btn btn-lg btn-block btn-success">
@@ -132,7 +145,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <li class="list-group-item">
                                     <h4 class="list-group-item-heading">{$counter+1} {$value->nombre}</h4>
                                     <p class="list-group-item-text text-right">
-                                        {$value->tiene_clientes_asignados($fsc->empresa->id,$value->codalmacen,$value->codagente)+0} Clientes en 
+                                        {$value->tiene_clientes_asignados($fsc->empresa->id,$value->codalmacen,$value->codagente)+0} Clientes en
                                         {$value->tiene_rutas_asignadas($fsc->empresa->id,$value->codagente)+0} Rutas
                                     </p>
                                 </li>
@@ -197,13 +210,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="cobertura">
-                    
+
                 </div>
                 <div role="tabpanel" class="tab-pane" id="efectividad">
-                    
+
                 </div>
                 <div role="tabpanel" class="tab-pane" id="distribucion">
-                    
+
                 </div>
             </div>
         </div>
