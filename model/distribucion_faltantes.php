@@ -190,6 +190,22 @@ class distribucion_faltantes extends fs_model {
             return false;
         }
     }
+    
+    public function get_pagos(){
+        $sql = "SELECT * from ".$this->table_name." WHERE idempresa = ".$this->intval($this->idempresa)
+                ." AND codalmacen = ".$this->var2str($this->codalmacen)
+                ." AND idreciboref = ".$this->intval($this->idrecibo).";";
+        $data = $this->db->select($sql);
+        if($data){
+            $lista = array();
+            foreach($data as $d){
+                $lista[] = new distribucion_faltantes($d);
+            }
+            return $lista;
+        }else{
+            return false;
+        }
+    }
 
     public function getNextId() {
         $data = $this->db->select("SELECT max(idrecibo) as max FROM distribucion_faltantes WHERE " .
@@ -579,7 +595,7 @@ class distribucion_faltantes extends fs_model {
             $cuenta = new cuenta();
             $ctafaltante = $cuenta->get_cuentaesp($cuentaesp, $ejercicio);
             if ($ctafaltante) {
-                $subc0 = $ctafaltante->new_subcuenta($conductor[0]->id);
+                $subc0 = $ctafaltante->new_subcuenta($conductor->id);
                 $subc0->descripcion = $this->nombreconductor;
                 if (!$subc0->save()) {
                     $this->new_error_msg('Imposible crear la subcuenta para el conductor ' . $this->nombreconductor);
