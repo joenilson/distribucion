@@ -17,11 +17,9 @@
    cliente = {function="json_encode($fsc->cliente_s)"};
    nueva_venta_url = '{$fsc->nuevo_pedido_url}';
    kiwimaru_url = '{#FS_COMMUNITY_URL#}/index.php?page=kiwimaru';
-
    {if="$fsc->cliente_s"}
    all_direcciones = {function="json_encode($fsc->cliente_s->get_direcciones())"};
    {/if}
-
    $(document).ready(function () {
       $('#numlineas').val(numlineas);
       usar_serie();
@@ -65,7 +63,6 @@
          event.preventDefault();
          $('#modal_eliminar').modal('show');
       });
-
       {if="$fsc->pedido->totalrecargo==0"}
       $('.recargo').hide();
       {/if}
@@ -74,7 +71,6 @@
       {/if}
    });
 </script>
-
 <form name="f_pedido" action="{$fsc->pedido->url()}" method="post" class="form">
    <input type="hidden" name="idpedido" value="{$fsc->pedido->idpedido}"/>
    <input type="hidden" name="cliente" value="{$fsc->pedido->codcliente}"/>
@@ -311,7 +307,6 @@
          </div>
       </div>
    </div>
-
    <div role="tabpanel">
       <ul class="nav nav-tabs" role="tablist">
          <li role="presentation" class="active">
@@ -394,8 +389,28 @@
                                   value="{$value->cantidad}" onchange="recalcular()" onkeyup="recalcular()" autocomplete="off" value="1"/>
                         </td>
                         <td>
-                           <input type="text" id="codum_{$counter}" class="form-control text-left" name="codum_{$counter}"
-                                  value="{$value->codum}" autocomplete="off"/>
+
+                        <select class="form-data" id="codum_{$counter}" name="codum_{$counter}" onchange="ajustar_iva('{$counter}')">
+
+                             {loop="$fsc->articulos_unidad->get($value->referencia)"}
+
+                             {if="$value1->codum==$value2->codum OR $value1->codum==$value2->codum"}
+                             <option value="{$value2->codum}" selected="">{$value2->codum}</option>
+                             {else}
+                             <option value="{$value2->codum}">{$value2->codum}</option>
+                             {/if}
+                              {/loop}
+
+                              {if="$value2->codum=='' or $value1->codum == '' "}
+                              {loop="$fsc->articulos_unidad->all()"}
+
+                               <option value="$value->codum">{$value->codum}</option>
+                                {/loop}
+                               {else}
+
+                              {/if}
+
+                             </select>
                         </td>
                         <td>
                            <button class="btn btn-sm btn-danger" type="button" onclick="$('#linea_{$counter}').remove();recalcular();">
@@ -891,7 +906,6 @@
       </div>
    </div>
 </form>
-
 <div class="modal" id="modal_articulos">
    <div class="modal-dialog" style="width: 99%; max-width: 1000px;">
       <div class="modal-content">
@@ -1072,7 +1086,6 @@
       </div>
    </div>
 </div>
-
 <div class="modal fade" id="modal_imprimir_pedido">
    <div class="modal-dialog">
       <div class="modal-content">
@@ -1104,7 +1117,6 @@
       </div>
    </div>
 </div>
-
 <form class="form" role="form" name="f_enviar_email" action="{$fsc->url()}" method="post" enctype="multipart/form-data">
    <input type="hidden" name="codcliente" value="{$fsc->pedido->codcliente}"/>
    <div class="modal" id="modal_enviar">
@@ -1196,7 +1208,6 @@
       </div>
    </div>
 </form>
-
 <form class="form" role="form" action="{$fsc->url()}&status=1" method="post">
    <div class="modal" id="modal_aprobar">
       <div class="modal-dialog modal-sm">
@@ -1221,7 +1232,6 @@
       </div>
    </div>
 </form>
-
 <form action="{$fsc->ppage->url()}" method="post">
    <input type="hidden" name="delete" value="{$fsc->pedido->idpedido}"/>
    <div class="modal fade" id="modal_eliminar">
@@ -1245,7 +1255,6 @@
       </div>
    </div>
 </form>
-
 <div class="modal fade" id="modal_versionesp" tabindex="-1" role="dialog">
    <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
@@ -1334,5 +1343,6 @@
    <img src="{#FS_PATH#}view/img/fuuu_face.png" alt="fuuuuu"/>
 </div>
 {/if}
-
 {include="footer"}
+Contact GitHub API Training Shop Blog About
+© 2017 GitHub, Inc. Terms Privacy Security Status Help
