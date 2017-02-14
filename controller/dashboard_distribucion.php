@@ -39,6 +39,8 @@ require_once 'plugins/distribucion/vendors/tcpdf/tcpdf.php';
 class dashboard_distribucion extends fs_controller {
     public $almacenes;
     public $articulos;
+    public $articulos_top_cantidad;
+    public $articulos_top_valor;
     public $cantidad_supervisores;
     public $cantidad_vendedores;
     public $cantidad_unidades;
@@ -81,6 +83,7 @@ class dashboard_distribucion extends fs_controller {
     public $distribucionDir;
     public $publicPath;
     public $pdf;
+    public $procesado;
     public function __construct() {
         parent::__construct(__CLASS__,'Dashboard Distribución', 'informes', FALSE, TRUE, FALSE);
     }
@@ -97,6 +100,7 @@ class dashboard_distribucion extends fs_controller {
         $this->fp = new forma_pago();
         $this->grupos_clientes = new grupo_clientes();
         $this->resultados_formas_pago = false;
+        $this->procesado = false;
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
         if(!$this->user->admin){
             $this->agente = new agente();
@@ -133,6 +137,8 @@ class dashboard_distribucion extends fs_controller {
                 case "buscar":
                     $this->generar_resumen();
                     $this->top_clientes();
+                    $this->top_articulos();
+                    $this->procesado = TRUE;
                 break;
             }
         }
@@ -232,7 +238,45 @@ class dashboard_distribucion extends fs_controller {
     }
     
     //Generamos el listado de los 10 productos mas vendidos
-    public function top_articulos(){
+    public function top_articulos($cantidad=10,$excluidos=false){
+        $this->articulos_top_cantidad = array();
+        $this->articulos_top_valor = array();
+        //Buscamos primero la suma por cantidad
+        $referencias = ($excluidos)?" AND referencia NOT IN (".$excluidos.")":"";
+        $sql1 = "select referencia, descripcion, sum(cantidad) as cantidad from lineasfacturascli ".
+                "WHERE idfactura IN (select idfactura from facturascli where fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' and '".\date('Y-m-d',strtotime($this->f_hasta))."' and anulada = FALSE) ".
+                " $referencias group by referencia, descripcion order by cantidad DESC limit $cantidad;";
+        $data1 = $this->db->select($sql1);
+        
+        $i=0;
+        if($data1){
+            foreach($data1 as $d){
+                $articulo_top = new stdClass();
+                $articulo_top->referencia = $d['referencia'];
+                $articulo_top->descripcion = $d['descripcion'];
+                $articulo_top->totalventa = $d['cantidad'];
+                $this->articulos_top_cantidad[] = $articulo_top;
+                $i++;
+            }
+        }
+        
+        //Buscamos la suma por previo de venta total
+        $sql2 = "select referencia, descripcion, sum(pvptotal) as total from lineasfacturascli ".
+                "WHERE idfactura IN (select idfactura from facturascli where fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' and '".\date('Y-m-d',strtotime($this->f_hasta))."' and anulada = FALSE) ".
+                " $referencias group by referencia, descripcion order by total DESC limit $cantidad;";
+        $data2 = $this->db->select($sql2);
+        
+        $ii=0;
+        if($data2){
+            foreach($data2 as $d){
+                $articulo_top = new stdClass();
+                $articulo_top->referencia = $d['referencia'];
+                $articulo_top->descripcion = $d['descripcion'];
+                $articulo_top->totalventa = $d['total'];
+                $this->articulos_top_valor[] = $articulo_top;
+                $ii++;
+            }
+        }
         
     }
     

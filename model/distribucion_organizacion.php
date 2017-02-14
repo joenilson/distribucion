@@ -286,7 +286,7 @@ class distribucion_organizacion extends fs_model {
         if($data)
         {
             foreach($data as $d){
-                $value = new distribucion_organizacion($data[0]);
+                $value = new distribucion_organizacion($d);
                 $data_agente = $this->agente->get($value->codagente);
                 $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
                 $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;

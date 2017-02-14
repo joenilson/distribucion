@@ -173,7 +173,7 @@ class distribucion_segmentos extends fs_model {
         return $lista;
     }
 
-    public function all_codigopadre_tipoagente($idempresa,$codigopadre,$tiposegmento)
+    public function all_codigopadre_tiposegmento($idempresa,$codigopadre,$tiposegmento)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_segmentos WHERE idempresa = ".$this->intval($idempresa)." AND codigo_padre = ".$this->var2str($codigopadre)." AND tiposegmento = ".$this->var2str($tiposegmento)." ORDER BY codigo;");

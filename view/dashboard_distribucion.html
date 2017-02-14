@@ -126,98 +126,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </ul>
             <!-- Tab panes -->
             <div class="tab-content" style="margin-top: 15px;">
-                <div role="tabpanel" class="tab-pane active" id="resumen">
-                    <div class="col-sm-3">
-                        <ul class="list-group">
-                            <li class="list-group-item active">Supervisores</li>
-                            {loop="$fsc->supervisores"}
-                                <li class="list-group-item">
-                                    <h4 class="list-group-item-heading">{$counter+1} {$value->nombre}</h4>
-                                    <p class="list-group-item-text text-right">
-                                    {$value->tiene_asignados($fsc->empresa->id,$value->codagente)} Vendedores
-                                    </p>
-                                </li>
-                            {/loop}
-                        </ul>
-                        <ul class="list-group">
-                            <li class="list-group-item active">Vendedores</li>
-                            {loop="$fsc->vendedores"}
-                                <li class="list-group-item">
-                                    <h4 class="list-group-item-heading">{$counter+1} {$value->nombre}</h4>
-                                    <p class="list-group-item-text text-right">
-                                        {$value->tiene_clientes_asignados($fsc->empresa->id,$value->codalmacen,$value->codagente)+0} Clientes en
-                                        {$value->tiene_rutas_asignadas($fsc->empresa->id,$value->codagente)+0} Rutas
-                                    </p>
-                                </li>
-                            {/loop}
-                        </ul>
-                    </div>
-                    <div class="col-sm-3">
-                        <ul class="list-group">
-                            <li class="list-group-item active">Grupos de Clientes</li>
-                            {loop="$fsc->grupos_clientes_lista"}
-                                <li class="list-group-item">
-                                    <h4 class="list-group-item-heading">{$value->nombre}</h4>
-                                    <p class="list-group-item-text text-right">{$value->clientes} {if="$value->clientes>1"}Clientes{else}Cliente{/if}</p>
-                                </li>
-                            {/loop}
-                        </ul>
-                    </div>
-                    <div class="col-sm-3">
-                        <ul class="list-group">
-                            <li class="list-group-item active">Clientes</li>
-                            <li class="list-group-item">
-                                Clientes Activos
-                                <span class="badge">{$fsc->clientes_activos}</span>
-                            </li>
-                            <li class="list-group-item">
-                                Clientes Inactivos
-                                <span class="badge">{$fsc->clientes_inactivos}</span>
-                            </li>
-                            <li class="list-group-item">
-                                Clientes Nuevos del periodo
-                                <span class="badge">{$fsc->clientes_nuevos}</span>
-                            </li>
-                            <li class="list-group-item">
-                                Clientes de Baja en el periodo
-                                <span class="badge">{$fsc->clientes_debaja}</span>
-                            </li>
-                            <li class="list-group-item list-group-item-info">
-                                <b>Clientes Totales</b>
-                                <span class="badge">{$fsc->cantidad_clientes}</span>
-                            </li>
-                        </ul>
-                        <ul class="list-group">
-                            <li class="list-group-item active">Visitas</li>
-                            <li class="list-group-item">
-                                Clientes Visitados (1 vez minimo)
-                                <span class="badge">{$fsc->clientes_visitados}</span>
-                            </li>
-                            <li class="list-group-item">
-                                Clientes por Visitar
-                                <span class="badge">{$fsc->clientes_por_visitar}</span>
-                            </li>
-                        </ul>
-                        <ul class="list-group">
-                            <li class="list-group-item active">10 Mejores Clientes</li>
-                            {loop="$fsc->clientes_top"}
-                            <li class="list-group-item">
-                                <a href="{#FS_PATH#}index.php?page=ventas_cliente&cod={$value->codcliente}" target="_blank">{$value->codcliente}</a> - {$value->nombrecliente}
-                                <span class="badge">{$fsc->show_precio($value->totalventa,$fsc->empresa->coddivisa)}</span>
-                            </li>
-                            {/loop}
-                        </ul>
-                    </div>
-                </div>
-                <div role="tabpanel" class="tab-pane" id="cobertura">
-
-                </div>
-                <div role="tabpanel" class="tab-pane" id="efectividad">
-
-                </div>
-                <div role="tabpanel" class="tab-pane" id="distribucion">
-
-                </div>
+                {include="dashboard/resumen"}
+                {include="dashboard/cobertura"}
+                {include="dashboard/efectividad"}
+                {include="dashboard/distribucion"}
             </div>
         </div>
     </div>

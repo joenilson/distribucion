@@ -15,19 +15,15 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-{include="header"}
+{include="header2"}
 <div class="container-fluid">
-    <div class="panel panel-default" id="panel_distrib_cliente">
+    <div class="panel panel-primary" id="panel_distrib_cliente">
         <div class="panel-heading">
             <h3 class="panel-title">
                 <span class="glyphicon glyphicon-transfer"></span>
-                Datos de Distribución para {$fsc->codcliente} - {$fsc->info_cliente->nombre}
-                <a class="btn btn-xs btn-default" href="{$fsc->url()}&codcliente={$fsc->codcliente}" title="Recargar la página">
+                Datos de Distribución para {$fsc->info_cliente->nombre}
+                <a class="btn btn-sm btn-primary" href="{$fsc->url()}&cod={$fsc->codcliente}" title="Recargar la página">
                     <span class="glyphicon glyphicon-refresh"></span>
-                </a>
-                <a href="{$fsc->info_cliente->url()}" class="btn btn-xs btn-default">
-                    <span class="glyphicon glyphicon-arrow-left"></span>
-                    <span class="hidden-xs">&nbsp; Datos del Cliente </span>
                 </a>
             </h3>
         </div>
@@ -51,9 +47,11 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             </tr>
                         </thead>
                         {loop="$fsc->distrib_cliente"}
-                        <form name="f_cliente{$value1->ruta}" id="f_cliente{$value1->ruta}" method="POST" action="{$fsc->url()}&codcliente={$fsc->codcliente}" class="form">
+                        <form name="f_cliente{$counter}" id="f_cliente{$counter}" method="POST" action="{$fsc->url()}&cod={$fsc->codcliente}" class="form">
                             <input type="hidden" name="type" value="distrib_cliente">
                             <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
+                            <input type="hidden" name="codalmacen" value="{$value1->codalmacen}">
+                            <input type="hidden" name="iddireccion" value="{$value1->iddireccion}">
                             <input type="hidden" name="ruta" value="{$value1->ruta}">
                             <tr>
                                 <td>
@@ -69,28 +67,35 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <input type="text" name="descruta" readonly value="{$value1->ruta_descripcion}" class="form-control input-sm"/>
                                 </td>
                                 <td>
-                                    <input type="text" name="desccanal" value="{$value1->canal_descripcion}" class="form-control input-sm"/>
+                                    <select name="canal" class="form-control" required onchange="actualizaSubcanales(this.value,{$counter})">
+                                        {loop="$fsc->canales"}
+                                        <option value="{$value->codigo}" {if="$value1->canal==$value->codigo"}selected{/if}>{$value->descripcion}</option>
+                                        {/loop}
+                                    </select>
                                 </td>
                                 <td class="text-center">
-                                    <input type="text" name="descsubcanal" value="{$value1->subcanal_descripcion}" class="form-control input-sm"/>
+                                    <select name="subcanal" id="subcanal{$counter}" required class="form-control">
+                                        {loop="$fsc->subcanales"}
+                                        <option value="{$value->codigo}" {if="$value1->subcanal==$value->codigo"}selected{/if}>{$value->descripcion}</option>
+                                        {/loop}
+                                    </select>
                                 </td>
                                 <td class="text-right">
                                     <div class="btn-group">
                                         {if="$fsc->allow_delete"}
-                                            <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Ruta','{$value->ruta}','')">
+                                            <button class="btn btn-sm btn-danger" type="submit" name="accion" value="eliminar" title="Eliminar" onclick="return confirm('¿Está seguro que quiere eliminar la ruta {$value1->ruta_descripcion} del cliente?')">
                                                 <span class="glyphicon glyphicon-trash"></span>
                                             </button>
                                         {/if}
-                                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
-                                                document.f_cliente{$value1->ruta}.submit();" title="Guardar">
+                                        <button class="btn btn-sm btn-primary" name="accion" value="agregar" type="submit" onclick="document.f_cliente{$counter}.submit();" title="Guardar">
                                             <span class="glyphicon glyphicon-floppy-disk"></span>
                                         </button>
                                     </div>
-                            </td>
+                                </td>
                             </tr>
                         </form>
                         {/loop}
-                        <form name="n_distrib_cliente" id="n_distrib_cliente" action="{$fsc->url()}&codcliente={$fsc->codcliente}" method="POST" class="form">
+                        <form name="n_distrib_cliente" id="n_distrib_cliente" action="{$fsc->url()}&cod={$fsc->codcliente}" method="POST" class="form">
                             <tr class="info">
                                 <td>    
                                     <select name="iddireccion" class="form-control">
@@ -116,22 +121,18 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     </select>
                                 </td>
                                 <td>
-                                    <select name="canal" class="form-control">
+                                    <select name="canal" id="canal" required class="form-control">
                                         {loop="$fsc->canales"}
                                         <option value="{$value->codigo}">{$value->descripcion}</option>
                                         {/loop}
                                     </select>
                                 </td>
                                 <td>
-                                    <select name="subcanal" class="form-control">
-                                        {loop="$fsc->subcanales"}
-                                        <option value="{$value->codigo}">{$value->descripcion}</option>
-                                        {/loop}
+                                    <select name="subcanal" id="subcanal" required class="form-control">
                                     </select>
                                 </td>
                                 <td class="text-right">
-                                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
-                                            document.n_distrib_cliente.submit();" title="Guardar">
+                                    <button class="btn btn-sm btn-primary" name="accion" value="agregar" type="submit" onclick="document.n_distrib_cliente.submit();" title="Guardar">
                                         <span class="glyphicon glyphicon-floppy-disk"></span>
                                     </button>
                                 </td>
@@ -150,23 +151,23 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 </tr>
                             </thead>
                             {loop="$fsc->distrib_coordenadas_cliente"}
-                            <form name="f_dircli{$value->id}" id="f_dircli{$value->id}" action="{$fsc->url()}&codcliente={$fsc->codcliente}" method="POST" class="form">
+                            <form name="f_dircli{$counter}" id="f_dircli{$counter}" action="{$fsc->url()}&cod={$fsc->codcliente}" method="POST" class="form">
                                 <tr>
                                     <td>
                                         <input type="hidden" name="type" value="direccion_cliente">
                                         <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
-                                        <input type="hidden" name="iddireccion" value="{$value->id}">
+                                        <input type="hidden" name="iddireccion" value="{$value->iddireccion}">
                                         {$value->direccion}
                                     </td>
                                     <td>
                                         <div class="input-group">
                                             <span class="input-group-addon" id="basic-addon1"><i class="fa fa-map-marker"></i></span>
-                                            <input type="text" class="form-control" name="coordenadas" value="{$value->coordenadas}" placeholder="Coordenadas ejemplo 24.8240156,-75.4925647" pattern="^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$" required aria-describedby="basic-addon1">
+                                            <input type="text" class="form-control" name="coordenadas" value="{$value->coordenadas}" maxlength="64" placeholder="Coordenadas ejemplo 24.8240156,-75.4925647" pattern="^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$" aria-describedby="basic-addon1">
                                         </div>
                                     </td>
                                     <td class="text-right">
-                                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;
-                                                document.f_dircli{$value->id}.submit();" title="Guardar">
+                                        <button class="btn btn-sm btn-primary" name="accion" value="agregar_coordenada" type="submit" onclick="this.disabled = true;
+                                                document.f_dircli{$counter}.submit();" title="Guardar">
                                             <span class="glyphicon glyphicon-floppy-disk"></span>
                                         </button>
                                     </td>
@@ -184,6 +185,39 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
 {if="$fsc->tab_activa"}
 $('#lista_tabs a[href="#{$fsc->tab_activa}"]').tab('show');
 {/if}
+    function actualizaSubcanales(canal,fila){
+        var data = "";
+        //Llenamos el selector de rutas
+        $.ajax({
+            type: 'GET',
+            url : '{$fsc->url()}&type=select-subcanal',
+            data : 'canal='+canal,
+            async: false,
+            success : function(response) {
+                if(response.length !== 0){
+                    data = response;
+                }else{
+                    alert('¡No hay Subcanales para este Canal!');
+                }
+            },
+            error: function() {
+                alert(response);
+            }
+        });
+        var select = $('#subcanal'+fila);
+        select.empty();
+        if(data.length !== 0){
+            var array = data.filter(function(e){return e;});
+            select.append(
+                $('<option></option>').val('').html('Elija un subcanal')
+            );
+            $.each(array, function(index, value) {
+                select.append(
+                    $('<option></option>').val(value.codigo).html(value.descripcion)
+                );
+            });
+        }
+    }
     $(document).ready(function(){
         $('#codalmacen').change(function() {
             var data = "";
@@ -209,10 +243,9 @@ $('#lista_tabs a[href="#{$fsc->tab_activa}"]').tab('show');
             select.empty();
             if(data.length !== 0){
                 var array = data.filter(function(e){return e;});
-                //
-                //select.append(
-                //    $('<option></option>').val('').html('--------------')
-                //);
+                select.append(
+                    $('<option></option>').val('').html('Elija una ruta')
+                );
                 $.each(array, function(index, value) {
                     select.append(
                         $('<option></option>').val(value.ruta).html(value.ruta+' - '+value.descripcion)
@@ -220,6 +253,41 @@ $('#lista_tabs a[href="#{$fsc->tab_activa}"]').tab('show');
                 });
             }
         });
+        
+        $('#canal').change(function() {
+            var data = "";
+            var canal = document.n_distrib_cliente.canal.value;
+            //Llenamos el selector de rutas
+            $.ajax({
+                type: 'GET',
+                url : '{$fsc->url()}&type=select-subcanal',
+                data : 'canal='+canal,
+                async: false,
+                success : function(response) {
+                    if(response.length !== 0){
+                        data = response;
+                    }else{
+                        alert('¡No hay Subcanales para este Canal!');
+                    }
+                },
+                error: function() {
+                    alert(response);
+                }
+            });
+            var select = $('#subcanal');
+            select.empty();
+            if(data.length !== 0){
+                var array = data.filter(function(e){return e;});
+                select.append(
+                    $('<option></option>').val('').html('Elija un subcanal')
+                );
+                $.each(array, function(index, value) {
+                    select.append(
+                        $('<option></option>').val(value.codigo).html(value.descripcion)
+                    );
+                });
+            }
+        });
     });
 </script>
-{include="footer"}
+{include="footer2"}

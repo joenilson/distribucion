@@ -1,0 +1,46 @@
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div role="tabpanel" class="tab-pane" id="cobertura">
+    {if="$fsc->procesado"}
+    <div class="table-responsive">
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>SUPERVISOR</th>
+                    <th>VENDEDOR</th>
+                    <th>COBERTURA POR FAMILIA</th>
+                </tr>
+            </thead>
+            <tbody>
+                {loop="$fsc->supervisores"}
+                    {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente)"}
+                    <tr>
+                    <td class="text-left">{$value1->nombre}</td>
+                    <td class="text-left">{$value2->nombre}</td>
+                    </tr>
+                    {loop="$fsc->articulos->all()"}
+                    {/loop}
+                    <tr>
+                    <td colspan="2" class="text-left info"><b>Total de {$value1->nombre}</b></td>
+                    </tr>
+                {/loop}                  
+                
+            </tbody>
+        </table>
+    </div>
+    {/if}
+</div>
