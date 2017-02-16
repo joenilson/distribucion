@@ -18,8 +18,10 @@
  */
 require_model('almacenes.php');
 require_model('articulo.php');
+require_model('familia.php');
 require_model('cliente.php');
 require_model('grupo_clientes.php');
+require_model('distribucion_clientes.php');
 require_model('distribucion_transportes.php');
 require_model('distribucion_conductores.php');
 require_model('distribucion_unidades.php');
@@ -38,6 +40,7 @@ require_once 'plugins/distribucion/vendors/tcpdf/tcpdf.php';
  */
 class dashboard_distribucion extends fs_controller {
     public $almacenes;
+    public $familias;
     public $articulos;
     public $articulos_top_cantidad;
     public $articulos_top_valor;
@@ -54,6 +57,7 @@ class dashboard_distribucion extends fs_controller {
     public $clientes_visitados;
     public $clientes_por_visitar;
     public $clientes_top;
+    public $clientes_rutas;
     public $grupos_clientes;
     public $grupos_clientes_lista;
     public $facturascli;
@@ -92,11 +96,13 @@ class dashboard_distribucion extends fs_controller {
         $this->shared_extensions();
         $this->almacenes = new almacen();
         $this->articulos = new articulo();
+        $this->familias = new familia();
         $this->facturascli = new factura_cliente();
         $this->facturaspro = new factura_proveedor();
         $this->organizacion = new distribucion_organizacion();
         $this->faltantes = new distribucion_faltantes();
         $this->unidades = new distribucion_unidades();
+        $this->rutas = new distribucion_rutas();
         $this->fp = new forma_pago();
         $this->grupos_clientes = new grupo_clientes();
         $this->resultados_formas_pago = false;
@@ -144,6 +150,15 @@ class dashboard_distribucion extends fs_controller {
         }
     }
     
+    public function cobertura_artiuclos(){
+        $diffdesde = new \DateTime(\date('d-m-Y',strtotime($this->f_desde)));
+        $diffhasta = new \DateTime(\date('d-m-Y',strtotime($this->f_hasta)));
+        
+        //Buscamos los productos en la fecha dada y los agrupamos por familia
+        $sql = "SELECT familia,referencia,sum(cantidad) as total FROM facturascli WHERE fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."';";
+        
+    }
+    
     public function generar_resumen(){
         $diffdesde = new \DateTime(\date('d-m-Y',strtotime($this->f_desde)));
         $diffhasta = new \DateTime(\date('d-m-Y',strtotime($this->f_hasta)));
@@ -186,7 +201,7 @@ class dashboard_distribucion extends fs_controller {
             }elseif(!$cli->debaja and $dtalta>=$diffdesde AND $dtalta<=$diffhasta){
                 $this->clientes_nuevos++;
             }elseif(!$cli->debaja and $dtalta<$diffdesde){
-                $this->clientes_activos++;   
+                $this->clientes_activos++;  
             }
             
             //Buscamos la atención de clientes del mes
@@ -210,12 +225,46 @@ class dashboard_distribucion extends fs_controller {
             }
         }
         
-        //Guardamos la cantidad de lcientes por cada grupo
+        //Guardamos la cantidad de clientes por cada grupo
         $this->grupos_clientes_lista = array();
         foreach($this->grupos_clientes->all() as $gc){
             $gc->clientes = (isset($this->clientes_grupo[$gc->codgrupo]))?$this->clientes_grupo[$gc->codgrupo]:0;
             $this->grupos_clientes_lista[] = $gc;
         }
+        
+        $dc = new distribucion_clientes();
+        $this->clientes_rutas = array();
+        $this->clientes_rutas['atendidos'] = array();
+        $this->clientes_rutas['no_atendidos'] = array();
+        foreach($this->vendedores as $vendedor){
+            $rutasagente = $this->rutas->all_rutasporagente($this->empresa->id, $this->codalmacen, $vendedor->codagente);
+            if($rutasagente){
+                foreach($rutasagente as $ruta){
+                    if(!isset($this->clientes_rutas['atendidos'][$ruta->ruta])){
+                        $this->clientes_rutas['atendidos'][$ruta->ruta] = 0;
+                    }
+                    if(!isset($this->clientes_rutas['no_atendidos'][$ruta->ruta])){
+                        $this->clientes_rutas['no_atendidos'][$ruta->ruta] = 0;
+                    }
+                    //A corregir , se debe generar una consulta join entre facturascli y distribucion_clientes
+                    $sql = "SELECT DISTINCT codcliente,COUNT(*) as count FROM facturascli WHERE codcliente IN (select codcliente from distribucion_clientes where codalmacen = ".$this->empresa->var2str($this->codalmacen)." AND ruta = ".$this->empresa->var2str($ruta->ruta).") and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' group by codcliente;";
+                    $data = $this->db->select($sql);
+                    
+                    if($data){
+                        foreach($dc->clientes_ruta($this->empresa->id, $this->codalmacen, $ruta->ruta) as $cli){
+                            if(in_array($cli->codcliente, $data)){
+                                $this->clientes_rutas['atendidos'][$ruta->ruta]++;
+                            }else{
+                                $this->clientes_rutas['no_atendidos'][$ruta->ruta]++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        //$dc->clientes_ruta($idempresa, $codalmacen, $ruta);
+        //$rutas = $this->rutas->all_rutasporagente($idempresa, $codalmacen, $codagente);
     }
     
     //Generamos el listado de los 10 clientes que más compran

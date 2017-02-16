@@ -91,8 +91,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <li class="list-group-item active">10 Mejores Clientes</li>
             {loop="$fsc->clientes_top"}
             <li class="list-group-item">
-                <a href="{#FS_PATH#}index.php?page=ventas_cliente&cod={$value->codcliente}" target="_blank">{$value->codcliente}</a> - {$value->nombrecliente}
-                <span class="badge">{$fsc->show_precio($value->totalventa,$fsc->empresa->coddivisa)}</span>
+                <h5 class="list-group-item-heading"><a href="{#FS_PATH#}index.php?page=ventas_cliente&cod={$value->codcliente}" target="_blank">{$value->codcliente}</a> - {$value->nombrecliente}</h5>
+                <p class="list-group-item-text text-right"><b>{$fsc->show_precio($value->totalventa,$fsc->empresa->coddivisa)}</b></p>
             </li>
             {/loop}
         </ul>
@@ -119,4 +119,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </div>
     {/if}
 </div>
-
