@@ -15,43 +15,5 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div role="tabpanel" class="tab-pane" id="cobertura">
-    {if="$fsc->procesado"}
-    <div class="table-responsive">
-        <table class="table table-condensed">
-            <thead>
-                <tr>
-                    <th>SUPERVISOR</th>
-                    <th>VENDEDOR</th>
-                    <th>RUTA</th>
-                    <th>CLIENTES</th>
-                    <th>ATENTIDOS</th>
-                    <th>NO ATENDIDOS</th>
-                    <th>COBERTURA POR FAMILIA</th>
-                </tr>
-            </thead>
-            <tbody>
-                {loop="$fsc->supervisores"}
-                    {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente)"}
-                        {loop="$fsc->rutas->all_rutasporagente($fsc->empresa->id, $value2->codalmacen, $value2->codagente)"}
-                        <tr>
-                            <td class="text-left">{$value1->nombre}</td>
-                            <td class="text-left">{$value2->nombre}</td>
-                            <td class="text-left">{$value3->ruta}</td>
-                            <td class="text-right">{$fsc->rutas->cantidad_asignados($fsc->empresa->id,$value2->codalmacen, $value3->ruta)}</td>
-                            <td class="text-right">{$fsc->clientes_rutas['atendidos'][$value3->ruta]}</td>
-                            <td class="text-right">{$fsc->clientes_rutas['no_atendidos'][$value3->ruta]}</td>
-                        </tr>                            
-                        {/loop}
-                        {loop="$fsc->articulos->all()"}
-
-                        {/loop}
-                    {/loop}                  
-                    <tr>
-                        <td colspan="4" class="text-left info"><b>Total de {$value1->nombre}</b></td>
-                    </tr>
-                {/loop}
-            </tbody>
-        </table>
-    </div>
-    {/if}
+    
 </div>

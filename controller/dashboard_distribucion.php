@@ -204,8 +204,8 @@ class dashboard_distribucion extends fs_controller {
                 $this->clientes_activos++;  
             }
             
-            //Buscamos la atención de clientes del mes
-            $sql = "SELECT COUNT(*) as count FROM facturascli WHERE codcliente = ".$this->empresa->var2str($cli->codcliente)." and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."';";
+            //Buscamos la atención de clientes del rango de fechas
+            $sql = "SELECT COUNT(*) as count FROM facturascli WHERE codcliente = ".$this->empresa->var2str($cli->codcliente)." and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' AND anulada = FALSE;";
             $data = $this->db->select($sql);
             if(!empty($data[0]['count'])){
                 $this->clientes_visitados++;
@@ -232,39 +232,99 @@ class dashboard_distribucion extends fs_controller {
             $this->grupos_clientes_lista[] = $gc;
         }
         
-        $dc = new distribucion_clientes();
+        
+        //Generamos la efectividad de visitas
+        //La efectividad es el porcentaje de clientes visitados entre la cantidad de clientes totales
         $this->clientes_rutas = array();
+        $this->clientes_rutas['total'] = array();
         $this->clientes_rutas['atendidos'] = array();
         $this->clientes_rutas['no_atendidos'] = array();
+        $this->clientes_rutas['efectividad'] = array();
+        $this->clientes_rutas['efectividad_vendedor'] = array();
+        $this->clientes_rutas['total_rutas'] = array();
+        $this->clientes_rutas['total_clientes'] = array();
+        $this->clientes_rutas['total_atendidos'] = array();
+        $this->clientes_rutas['total_no_atendidos'] = array();
+        //La mesa es el grupo de vendedores que tiene un supervisor
+        $this->clientes_rutas['mesa_rutas'] = array();
+        $this->clientes_rutas['mesa_vendedores'] = array();
+        $this->clientes_rutas['mesa_clientes'] = array();
+        $this->clientes_rutas['mesa_atendidos'] = array();
+        $this->clientes_rutas['mesa_no_atendidos'] = array();
+        $this->clientes_rutas['mesa_efectividad'] = array();
+        //Generamos los totales por supervisor
+        foreach($this->supervisores as $supervisor){
+            $this->clientes_rutas['mesa_rutas'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_vendedores'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_clientes'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_atendidos'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_no_atendidos'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_efectividad'][$supervisor->codagente] = 0;
+        } 
         foreach($this->vendedores as $vendedor){
             $rutasagente = $this->rutas->all_rutasporagente($this->empresa->id, $this->codalmacen, $vendedor->codagente);
+            $this->clientes_rutas['total_rutas'][$vendedor->codagente] = count($rutasagente);
+            $this->clientes_rutas['total_clientes'][$vendedor->codagente] = 0;
+            $this->clientes_rutas['total_atendidos'][$vendedor->codagente] = 0;
+            $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] = 0;
+            $this->clientes_rutas['mesa'][$vendedor->codsupervisor] = 0;
             if($rutasagente){
                 foreach($rutasagente as $ruta){
+                    $clientes_ruta = $this->rutas->cantidad_asignados($this->empresa->id, $this->codalmacen, $ruta->ruta);
+                    $this->clientes_rutas['total'][$ruta->ruta] = $clientes_ruta;
+                    $this->clientes_rutas['total_clientes'][$vendedor->codagente] += $clientes_ruta;
                     if(!isset($this->clientes_rutas['atendidos'][$ruta->ruta])){
                         $this->clientes_rutas['atendidos'][$ruta->ruta] = 0;
                     }
                     if(!isset($this->clientes_rutas['no_atendidos'][$ruta->ruta])){
-                        $this->clientes_rutas['no_atendidos'][$ruta->ruta] = 0;
+                        $this->clientes_rutas['no_atendidos'][$ruta->ruta] = $clientes_ruta;
                     }
-                    //A corregir , se debe generar una consulta join entre facturascli y distribucion_clientes
-                    $sql = "SELECT DISTINCT codcliente,COUNT(*) as count FROM facturascli WHERE codcliente IN (select codcliente from distribucion_clientes where codalmacen = ".$this->empresa->var2str($this->codalmacen)." AND ruta = ".$this->empresa->var2str($ruta->ruta).") and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' group by codcliente;";
-                    $data = $this->db->select($sql);
                     
+                    //A corregir , se debe generar una consulta join entre facturascli y distribucion_clientes
+                    $sql = "SELECT T1.ruta,count(DISTINCT T2.codcliente) as clientes_visitados ".
+                        "FROM distribucion_clientes AS T1 ".
+                        "LEFT JOIN facturascli as T2 ".
+                        "ON T1.codcliente = T2.codcliente ".
+                        "WHERE fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' ".
+                        "AND T1.codalmacen = ".$this->empresa->var2str($this->codalmacen)." and ruta = ".$this->empresa->var2str($ruta->ruta)." and anulada = FALSE ".
+                        "GROUP by T1.ruta;";
+                    $data = $this->db->select($sql);
                     if($data){
-                        foreach($dc->clientes_ruta($this->empresa->id, $this->codalmacen, $ruta->ruta) as $cli){
-                            if(in_array($cli->codcliente, $data)){
-                                $this->clientes_rutas['atendidos'][$ruta->ruta]++;
-                            }else{
-                                $this->clientes_rutas['no_atendidos'][$ruta->ruta]++;
-                            }
-                        }
+                        $this->clientes_rutas['atendidos'][$ruta->ruta] = $data[0]['clientes_visitados'];
+                        $this->clientes_rutas['no_atendidos'][$ruta->ruta] -= $data[0]['clientes_visitados'];
                     }
+                    $efectividad = round(($this->clientes_rutas['atendidos'][$ruta->ruta]/$clientes_ruta)*100,0);
+                    $this->clientes_rutas['efectividad'][$ruta->ruta] = $efectividad;
+                    $efectividad_color = ($efectividad<=30)?'danger':'success';
+                    $efectividad_color = ($efectividad>30 AND $efectividad<65)?'warning':$efectividad_color;
+                    $this->clientes_rutas['efectividad_color'][$ruta->ruta] = $efectividad_color;
+                    $this->clientes_rutas['total_atendidos'][$vendedor->codagente] += $this->clientes_rutas['atendidos'][$ruta->ruta];
+                    $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] += $this->clientes_rutas['no_atendidos'][$ruta->ruta];
                 }
+            }if($this->clientes_rutas['total_clientes'][$vendedor->codagente]){
+                $efectividad_vendedor = round(($this->clientes_rutas['total_atendidos'][$vendedor->codagente]/$this->clientes_rutas['total_clientes'][$vendedor->codagente])*100,0);
+            }else{
+                $efectividad_vendedor = 0;
             }
+            $this->clientes_rutas['efectividad_vendedor'][$vendedor->codagente] = $efectividad_vendedor;
+            $efectividad_color = ($efectividad_vendedor<=30)?'danger':'success';
+            $efectividad_color = ($efectividad_vendedor>30 AND $efectividad_vendedor<65)?'warning':$efectividad_color;
+            $this->clientes_rutas['efectividad_vendedor_color'][$vendedor->codagente] = $efectividad_color;
+            $this->clientes_rutas['mesa_rutas'][$vendedor->codsupervisor] += $this->clientes_rutas['total_rutas'][$vendedor->codagente];
+            $this->clientes_rutas['mesa_vendedores'][$vendedor->codsupervisor]++;
+            $this->clientes_rutas['mesa_clientes'][$vendedor->codsupervisor] += $this->clientes_rutas['total_clientes'][$vendedor->codagente];
+            $this->clientes_rutas['mesa_atendidos'][$vendedor->codsupervisor] += $this->clientes_rutas['total_atendidos'][$vendedor->codagente];
+            $this->clientes_rutas['mesa_no_atendidos'][$vendedor->codsupervisor] += $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente];
         }
         
-        //$dc->clientes_ruta($idempresa, $codalmacen, $ruta);
-        //$rutas = $this->rutas->all_rutasporagente($idempresa, $codalmacen, $codagente);
+        //Generamos la estadistica por supervisor
+        foreach($this->supervisores as $supervisor){
+            $efectividad_supervisor = round(($this->clientes_rutas['mesa_atendidos'][$supervisor->codagente]/$this->clientes_rutas['mesa_clientes'][$supervisor->codagente])*100,0);
+            $this->clientes_rutas['mesa_efectividad'][$supervisor->codagente] = $efectividad_supervisor;
+            $efectividad_color = ($efectividad_supervisor<=30)?'danger':'success';
+            $efectividad_color = ($efectividad_supervisor>30 AND $efectividad_supervisor<65)?'warning':$efectividad_color;
+            $this->clientes_rutas['efectividad_mesa_color'][$supervisor->codagente] = $efectividad_color;
+        }
     }
     
     //Generamos el listado de los 10 clientes que más compran
