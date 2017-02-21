@@ -150,7 +150,7 @@ class dashboard_distribucion extends fs_controller {
         }
     }
     
-    public function cobertura_artiuclos(){
+    public function cobertura_articulos(){
         $diffdesde = new \DateTime(\date('d-m-Y',strtotime($this->f_desde)));
         $diffhasta = new \DateTime(\date('d-m-Y',strtotime($this->f_hasta)));
         
