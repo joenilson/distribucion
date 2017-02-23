@@ -106,6 +106,22 @@ class distribucion_clientes extends fs_model {
         return $informacion;
     }
     
+    //Agregando metodo para mostrar la informacion  de la ruta y las iniciales del agente. 
+    public function info_vendedor($factura){
+    $data = $this->db->select("SELECT  '('||dc.ruta || '/'|| substring(ag.nombre,1,1)||substring(ag.apellidos,1,1) ||')' as vendedor   FROM facturascli f inner join distribucion_clientes dc  on dc.codcliente = f.codcliente
+     inner join albaranescli a on a.idfactura = f.idfactura inner join pedidoscli p on p.idalbaran = a.idalbaran
+    inner join agentes ag on ag.codagente = p.codagente  WHERE  f.idfactura=".$this->var2str($factura).";");
+      if($data){
+
+        return $data[0]['vendedor'];
+      }else{
+        return false;
+    }
+
+       }
+
+    
+    
     public function exists() {
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
