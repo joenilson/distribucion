@@ -46,6 +46,7 @@ class imprimir_unidadmedida extends fs_controller {
     public $articulo_proveedor;
     public $proveedor;
     private $numpaginas;
+    public $unidadmedida;
 
     public function __construct() {
         parent::__construct(__CLASS__, 'imprimir', 'ventas', FALSE, FALSE, FALSE);
@@ -367,11 +368,16 @@ class imprimir_unidadmedida extends fs_controller {
             // $nuevaCantidad = $lineas[$linea_actual]->cantidad/$umCompra->factor;
             // Pero el precio no se divide se multiplica para poder mostrar el valor total
             // $nuevoPrecio = $lineas[$linea_actual]->pvpunitario*$umCompra->factor;
-            $cantidadConvertida = $lineas[$linea_actual]->cantidad/$umCompra[0]->factor;
-            $precioConvertido = $lineas[$linea_actual]->pvpunitario*$umCompra[0]->factor;
+             //$cantidadConvertida = $lineas[$linea_actual]->cantidad/$umCompra[0]->factor;
+            $this->unidadmedida = new unidadmedida();
+            $unidadM = $this->unidadmedida->get($lineas[$linea_actual]->codum);
+            $precioConvertido = $lineas[$linea_actual]->pvpunitario*$unidadM->cantidad;
+            //Se le agrego a la linea los campos cantidad_um y codum para evitar estar haciendo consultas. 
+            //Es mas factible que busque en unidad de medida que en articulos ya que pueden haber articulos sin unidad de medida asignada.
+            //$precioConvertido = $lineas[$linea_actual]->pvpunitario*$umCompra[0]->factor;
             $fila = array(
-                'cantidad' => $this->show_numero($cantidadConvertida, $dec_cantidad),
-                'cantidad2' => $this->show_numero($cantidadConvertida, $dec_cantidad),
+                'cantidad' => $this->show_numero($lineas[$linea_actual]->cantidad_um, $dec_cantidad),
+                'cantidad2' => $this->show_numero($lineas[$linea_actual]->cantidad_um, $dec_cantidad),
                 'descripcion' => $descripcion,
                 'pvp' => $this->show_precio($precioConvertido, $this->documento->coddivisa),
                 'unidadmedida' => $lineas[$linea_actual]->codum,
