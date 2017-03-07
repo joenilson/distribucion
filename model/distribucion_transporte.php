@@ -215,7 +215,8 @@ class distribucion_transporte extends fs_model {
 
     public function info_adicional($t){
         $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
-        $t->conductor_nombre = $con0->nombre;
+        //(!empty($res->codruta))?$this->tiporuta->get($res->codruta)->descripcion:"";
+        $t->conductor_nombre = (!empty($con0->nombre));
         return $t;
     }
 

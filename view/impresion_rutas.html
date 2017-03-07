@@ -42,6 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             
             if(checkboxValues.length === 0 && almacen !== undefined){
                alert('¡Debe elegir una ruta a Imprimir!');
+               seguir = false;
+               
             }else if(checkboxValues.length === 0 && almacen === undefined){
                 seguir = false;
                 alert('¡Error de informacion enviada a procesar, no hay un almacen seleccionado ni rutas elegidas!');

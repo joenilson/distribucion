@@ -132,7 +132,7 @@ class distribucion_rutas extends fs_model {
         $data_agente = $this->agente->get($res->codagente);
         $data_organizacion = $this->organizacion->get($res->idempresa, $res->codagente);
         $res->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-        $data_supervisor = ($data_organizacion->codsupervisor != null)?$this->agente->get($data_organizacion->codsupervisor):null;
+        $data_supervisor = (!empty($data_organizacion->codsupervisor))?$this->agente->get($data_organizacion->codsupervisor):null;
         $res->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
         $res->tiene_asignados = $this->tiene_asignados($res->idempresa, $res->codalmacen, $res->codagente);
         $res->tipo_ruta = (!empty($res->codruta))?$this->tiporuta->get($res->codruta)->descripcion:"";
