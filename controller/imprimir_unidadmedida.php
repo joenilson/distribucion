@@ -77,7 +77,6 @@ class imprimir_unidadmedida extends fs_controller {
         $fsvar = new fs_var();
         
         $this->impresion = $fsvar->array_get($this->impresion, FALSE);
-
         $this->shared_extensions();
         $pedido_um_p = \filter_input(INPUT_POST, 'pedido_um');
         $pedido_um_g = \filter_input(INPUT_GET, 'pedido_um');
