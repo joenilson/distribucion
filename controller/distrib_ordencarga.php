@@ -402,13 +402,8 @@ class distrib_ordencarga extends fs_controller {
         $medidas = $this->articulo_unidadmedida->getBase($values->referencia);
         $values->producto = $producto->descripcion;
         /*Se condiciona el articulo cuando no tiene  unidad de medida*/
-            if($medidas->codum==""){
-               $values->medidas = 'UNIDAD';
-               $values->factor=1;
-             }else{
-              $values->medidas = $medidas->codum;
-              }
-             $detalleLineas[] = $values;
+         $values->medidas = 'UNIDAD';
+         $detalleLineas[] = $values;
           }
         $datos['resultados'] = $detalleLineas;
         $this->template = false;
