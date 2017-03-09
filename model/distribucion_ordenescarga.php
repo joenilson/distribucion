@@ -284,8 +284,13 @@ class distribucion_ordenescarga extends fs_model {
     }
 
     public function info_adicional($t){
+        
         $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
+         
+        if(!empty($con0 )){
         $t->conductor_nombre = $con0->nombre;
+        
+        }
         return $t;
     }
 

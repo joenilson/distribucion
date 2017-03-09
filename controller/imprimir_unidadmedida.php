@@ -38,6 +38,7 @@ require_model('proveedor.php');
 class imprimir_unidadmedida extends fs_controller {
 
     public $pedido_um;
+    public $pedidos_um_client;
     public $id;
     public $email;
     public $um;
@@ -48,8 +49,10 @@ class imprimir_unidadmedida extends fs_controller {
     public $proveedor;
     private $numpaginas;
     public $clientes;
-    public  $clin;
+    public  $clint;
     public $unidadmedida;
+    public $datosCli;
+   
 
     public function __construct() {
         parent::__construct(__CLASS__, 'imprimir', 'ventas', FALSE, FALSE, FALSE);
@@ -77,6 +80,7 @@ class imprimir_unidadmedida extends fs_controller {
         $fsvar = new fs_var();
         
         $this->impresion = $fsvar->array_get($this->impresion, FALSE);
+
         $this->shared_extensions();
         $pedido_um_p = \filter_input(INPUT_POST, 'pedido_um');
         $pedido_um_g = \filter_input(INPUT_GET, 'pedido_um');
@@ -89,15 +93,15 @@ class imprimir_unidadmedida extends fs_controller {
         $this->id = ($id_p) ? $id_p : $id_g;
         $this->email = ($email_p) ? $email_p : $email_g;
         
-        if(!empty($pedidos_um_client) and ! empty($this->id)){
+        if(!empty($pedidos_um_client) and !empty($this->id)){
              
           $clientes = new pedido_cliente(); 
           $this->document_client = $clientes->get($this->id);
+          
           if($this->document_client){
-              
-              $clin = new cliente();
-              $this->cli =$cli->get($this->document_client->codcliente);
-              
+              $clint = new cliente();
+              $this->datosCli= $clint->get($this->document_client->codcliente);
+              var_dump($this->datosCli);
            }
             $this->generar_pdf_pedido_ventas();
         
@@ -106,11 +110,11 @@ class imprimir_unidadmedida extends fs_controller {
         if(!empty($this->pedido_um) and ! empty($this->id)) {
             $ped = new pedido_proveedor();
             $this->documento = $ped->get($this->id);
-            if ($this->documento) {
+            
+        if($this->documento){
                 $proveedor = new proveedor();
                 $this->proveedor = $proveedor->get($this->documento->codproveedor);
-            }
-
+        }
             if (!empty($this->email)) {
                 $this->enviar_email_proveedor();
             } else {
@@ -166,7 +170,7 @@ class imprimir_unidadmedida extends fs_controller {
                 $pdf_doc->add_table_row(
                         array(
                             'campo1' => "<b>Cliente:</b>",
-                            'dato1' => $pdf_doc->fix_html($this->document_client->nombre),
+                            'dato1' => $pdf_doc->fix_html($this->datosCli->nombre),
                             'campo2' => "<b>" . $tipoidfiscal . ":</b> " .$this->document_client->cifnif
                         )
                 );
@@ -500,13 +504,13 @@ class imprimir_unidadmedida extends fs_controller {
                 'cantidad' => $this->show_numero($lineas[$linea_actual]->cantidad_um, $dec_cantidad),
                 'cantidad2' => $this->show_numero($lineas[$linea_actual]->cantidad_um, $dec_cantidad),
                 'descripcion' => $descripcion,
-                'pvp' => $this->show_precio($precioConvertido, $this->documento->coddivisa),
+                'pvp' => $this->show_precio($precioConvertido, $this->document_client->coddivisa),
                 'unidadmedida' => $lineas[$linea_actual]->codum,
                 'dto' => $this->show_numero($lineas[$linea_actual]->dtopor) . " %",
                 'iva' => $this->show_numero($lineas[$linea_actual]->iva) . " %",
                 're' => $this->show_numero($lineas[$linea_actual]->recargo) . " %",
                 'irpf' => $this->show_numero($lineas[$linea_actual]->irpf) . " %",
-                'importe' => $this->show_precio($lineas[$linea_actual]->pvptotal, $this->documento->coddivisa)
+                'importe' => $this->show_precio($lineas[$linea_actual]->pvptotal, $this->document_client->coddivisa)
             );
 
             if ($lineas[$linea_actual]->dtopor == 0) {
@@ -564,8 +568,8 @@ class imprimir_unidadmedida extends fs_controller {
 
         /// ¿Última página?
         if ($linea_actual == count($lineas)) {
-            if ($this->documento->observaciones != '') {
-                $pdf_doc->pdf->ezText("\n" . $pdf_doc->fix_html($this->documento->observaciones), 9);
+            if ($this->document_client->observaciones != '') {
+                $pdf_doc->pdf->ezText("\n" . $pdf_doc->fix_html($this->document_client->observaciones), 9);
             }
         }
     }
@@ -583,7 +587,7 @@ class imprimir_unidadmedida extends fs_controller {
             $titulo = array('pagina' => '<b>Página</b>', 'neto' => '<b>Neto</b>',);
             $fila = array(
                 'pagina' => $pagina . '/' . $this->numpaginas,
-                'neto' => $this->show_precio($this->documento->neto, $this->documento->coddivisa),
+                'neto' => $this->show_precio($this->document_client->neto,$this->document_client->coddivisa),
             );
             $opciones = array(
                 'cols' => array(
@@ -602,23 +606,23 @@ class imprimir_unidadmedida extends fs_controller {
                 } else
                     $titulo['iva' . $li['iva']] = '<b>' . FS_IVA . ' ' . $li['iva'] . '%</b>';
 
-                $fila['iva' . $li['iva']] = $this->show_precio($li['totaliva'], $this->documento->coddivisa);
+                $fila['iva' . $li['iva']] = $this->show_precio($li['totaliva'], $this->document_client->coddivisa);
 
                 if ($li['totalrecargo'] != 0) {
-                    $fila['iva' . $li['iva']] .= "\nR.E. " . $li['recargo'] . "%: " . $this->show_precio($li['totalrecargo'], $this->documento->coddivisa);
+                    $fila['iva' . $li['iva']] .= "\nR.E. " . $li['recargo'] . "%: " . $this->show_precio($li['totalrecargo'], $this->document_client->coddivisa);
                 }
 
                 $opciones['cols']['iva' . $li['iva']] = array('justification' => 'right');
             }
 
-            if ($this->documento->totalirpf != 0) {
-                $titulo['irpf'] = '<b>' . FS_IRPF . ' ' . $this->documento->irpf . '%</b>';
-                $fila['irpf'] = $this->show_precio($this->documento->totalirpf);
+            if ($this->document_client->totalirpf != 0) {
+                $titulo['irpf'] = '<b>' . FS_IRPF . ' ' . $this->document_client->irpf . '%</b>';
+                $fila['irpf'] = $this->show_precio($this->document_client->totalirpf);
                 $opciones['cols']['irpf'] = array('justification' => 'right');
             }
 
             $titulo['liquido'] = '<b>Total</b>';
-            $fila['liquido'] = $this->show_precio($this->documento->total, $this->documento->coddivisa);
+            $fila['liquido'] = $this->show_precio($this->document_client->total, $this->document_client->coddivisa);
             $opciones['cols']['liquido'] = array('justification' => 'right');
 
             $pdf_doc->add_table_header($titulo);
