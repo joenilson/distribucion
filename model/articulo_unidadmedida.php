@@ -171,7 +171,7 @@ class articulo_unidadmedida extends fs_model {
                 $lista[] = $item;
             }
             return $lista;
-        }else{
+        }else {
             return false;
         }
     }

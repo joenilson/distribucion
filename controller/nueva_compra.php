@@ -48,7 +48,7 @@ class nueva_compra extends fs_controller
    public $serie;
    public $tipo;
    public $um;
-
+ 
    public function __construct()
    {
       parent::__construct(__CLASS__, 'Nueva compra...', 'compras', FALSE, FALSE, TRUE);

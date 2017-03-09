@@ -153,6 +153,7 @@ function recalcular()
       if($("#linea_"+i).length > 0)
       {
          /// cambiamos coma por punto
+         
          if( input_number == 'text' && $("#cantidad_"+i).val().search(",") >= 0 )
          {
             $("#cantidad_"+i).val( $("#cantidad_"+i).val().replace(",",".") );
@@ -177,8 +178,8 @@ function recalcular()
          {
             $("#recargo_"+i).val( $("#recargo_"+i).val().replace(",",".") );
          }
-
-         l_uds = parseFloat( $("#cantidad_"+i).val() );
+           
+         l_uds = parseFloat($("#cantidad_"+i).val());
          l_pvp = parseFloat( $("#pvp_"+i).val() );
          l_dto = parseFloat( $("#dto_"+i).val() );
          l_neto = l_uds*l_pvp*(100-l_dto)/100;
@@ -216,7 +217,7 @@ function recalcular()
    total_irpf = fs_round(total_irpf, fs_nf0);
    total_recargo = fs_round(total_recargo, fs_nf0);
    $("#aneto").html( show_numero(neto) );
-   $("#aiva").html( show_numero(total_iva) );
+   $("#aiva").html(show_numero(total_iva) );
    $("#are").html( show_numero(total_recargo) );
    $("#airpf").html( show_numero(total_irpf) );
    $("#atotal").val( fs_round(neto + total_iva - total_irpf + total_recargo, fs_nf0) );
@@ -536,7 +537,6 @@ function add_linea_libre()
          <input type=\"text\" class=\"form-control text-right\" id=\"total_"+numlineas+"\" name=\"total_"+numlineas+
          "\" onchange=\"ajustar_total("+numlineas+")\" onclick=\"this.select()\" autocomplete=\"off\"/></td></tr>");
    numlineas += 1;
-   $("#numlineas").val(numlineas);
    recalcular();
 
    $("#desc_"+(numlineas-1)).select();
@@ -652,15 +652,21 @@ function buscar_articulos()
 
                if(val.sevende)
                {
+                   if(val.lista_um == ""){
+                       
+                       val.lista_um = "UNIDAD";
+                   }
                   if(val.stockalm > 0 || val.controlstock)
                   {
                      var funcion = "add_articulo('"+val.referencia+"','"+descripcion+"','"+val.pvp+"','"
                              +val.dtopor+"','"+val.codimpuesto+"','"+val.cantidad+"','"+val.um_base+"','"+val.factor_base+"','"+val.lista_um+"')";
+                     
 
                      if(val.tipo)
                      {
                         funcion = "add_articulo_"+val.tipo+"('"+val.referencia+"','"+descripcion+"','"
                                 +val.pvp+"','"+val.dtopor+"','"+val.codimpuesto+"','"+val.cantidad+"','"+val.um_base+"','"+val.factor_base+"','"+val.lista_um+"')";
+                      
                      }
                   }
                   else
@@ -694,7 +700,7 @@ function buscar_articulos()
             }
 
             if(insertar)
-            {
+            {   
                $("#search_results").html("<div class=\"table-responsive\"><table class=\"table table-hover\"><thead><tr>\n\
                   <th class=\"text-left\">Referencia + descripción</th>\n\
                   <th class=\"text-right\" width=\"80\">Precio</th>\n\
@@ -750,6 +756,7 @@ function buscar_articulos()
                   <div class=\"table-responsive\"><table class=\"table table-hover\"><thead><tr>\n\
                   <th class=\"text-left\">Sector / Tienda / Familia</th><th class=\"text-left\">Referencia + descripción</th>\n\
                   <th class=\"text-right\">Precio+IVA</th></tr></thead>"+items.join('')+"</table></div>");
+                
             }
          });
       }
