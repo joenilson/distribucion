@@ -702,7 +702,7 @@ class distrib_ordencarga extends fs_controller {
                 $ord0->idempresa = $this->empresa->id;
                 $ord0->idordencarga = $idordencarga;
                 $ord0->codalmacen = $codalmacen;
-                if ($ord0->delete()) {
+                if($ord0->delete()) {
                     $data['success'] = TRUE;
                     $data['mensaje'] = "Orden de Carga " . $idordencarga . " eliminada correctamente.";
                 } else {
