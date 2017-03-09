@@ -22,7 +22,8 @@ require_model('distribucion_ordencarga_facturas.php');
 require_model('distribucion_ordencarga.php');
 require_model('distribucion_lineasordencarga.php');
 require_model('articulo_unidadmedida.php');
-
+require_model('articulo_unidadmedida.php');
+require_model('unidadmedida.php');
 /**
  * Description of helper_transportes
  *
@@ -341,13 +342,7 @@ class helper_transportes extends fs_controller {
         $table.= '</tr>';
         $maxLineas = 34;
         foreach($lineastransporte as $key=>$linea){
-              $medidas = $this->articulo_unidadmedida->// <editor-fold defaultstate="collapsed" desc="comment">
-                      getBase// </editor-fold>
-                      ($linea->referencia);
-              /*Agregando validacion en la unidad de medida*/
-            if($medidas->codum==""){
-               $medidas->codum = 'UNIDAD';
-            }
+           
             $table.= '<tr style="font-size: 9px;">';
             $table.= '<td width="18%">';
             $table.= $linea->referencia;
@@ -356,7 +351,7 @@ class helper_transportes extends fs_controller {
             $table.= $linea->descripcion;
             $table.= '</td>';
             $table.= '<td width="10%" align="right">';
-            $table.=  $medidas->codum;
+            $table.=  'UNIDAD';
             $table.= '</td>';
             $table.= '<td width="9%" align="right">';
             $table.= number_format($linea->cantidad,2,".",",");
