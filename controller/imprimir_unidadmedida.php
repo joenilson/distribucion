@@ -101,8 +101,8 @@ class imprimir_unidadmedida extends fs_controller {
           if($this->document_client){
               $clint = new cliente();
               $this->datosCli= $clint->get($this->document_client->codcliente);
-              var_dump($this->datosCli);
-           }
+            
+              }
             $this->generar_pdf_pedido_ventas();
         
           }
