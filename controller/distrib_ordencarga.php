@@ -408,7 +408,7 @@ class distrib_ordencarga extends fs_controller {
         $datos['resultados'] = $detalleLineas;
         $this->template = false;
         header('Content-Type: application/json');
-        echo json_encode(array('cabecera' => $ordencarga[0], 'userData' => array('referencia' => "", 'producto' => 'Total', 'medidas'  =>'' , 'cantidad' => $datos['totalCantidad']), 'rows' => $datos['resultados']));
+        echo json_encode(array('cabecera' => $ordencarga[0], 'userData' => array('referencia' => "", 'producto' => 'Total', 'medidas'=>'' , 'cantidad' => $datos['totalCantidad']), 'rows' => $datos['resultados']));
     }
 
     public function guardar_facturas_ordencarga($ordencarga, $facturas) {
