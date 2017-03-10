@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : distribucion_ordenescarga_facturas.xml
+    Description:
+        Estructura de la tabla distribucion_ordenescarga_facturas.
+-->
+<tabla>
+    <columna>
+        <nombre>codalmacen</nombre>
+        <tipo>character varying(4)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>fecha</nombre>
+        <tipo>date</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>fecha_creacion</nombre>
+        <tipo>timestamp without time zone</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>fecha_modificacion</nombre>
+        <tipo>timestamp without time zone</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>idempresa</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>idfactura</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>idordencarga</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>idtransporte</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>usuario_creacion</nombre>
+        <tipo>character varying(12)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>usuario_modificacion</nombre>
+        <tipo>character varying(12)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <restriccion>
+        <nombre>ca_facturas_ordenescarga</nombre>
+        <consulta>FOREIGN KEY (idempresa, codalmacen, idordencarga) 
+            REFERENCES distribucion_ordenescarga (idempresa, codalmacen, idordencarga) MATCH SIMPLE
+            ON UPDATE CASCADE ON DELETE CASCADE
+        </consulta>
+    </restriccion>
+    <restriccion>
+        <nombre>distribucion_ordenescarga_fact_pkey</nombre>
+        <consulta>PRIMARY KEY (idempresa,idordencarga,codalmacen,idfactura)</consulta>
+    </restriccion>
+</tabla>

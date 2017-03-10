@@ -104,6 +104,7 @@ class articulo_unidadmedida extends fs_model {
     }
 
 
+
     public function all() {
         $sql = "SELECT * FROM ".$this->table_name." ORDER BY referencia,base DESC,codum";
         $data = $this->db->select($sql);
@@ -171,7 +172,7 @@ class articulo_unidadmedida extends fs_model {
                 $lista[] = $item;
             }
             return $lista;
-        }else {
+        }else{
             return false;
         }
     }

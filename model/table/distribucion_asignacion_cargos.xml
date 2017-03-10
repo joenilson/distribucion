@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : distribucion_asignacion_cargos.xml
+    Description:
+        Estructura de la tabla distribucion_asignacion_cargos.
+-->
+<tabla>
+    <columna>
+        <nombre>codcargo</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>fecha_creacion</nombre>
+        <tipo>timestamp without time zone</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>idempresa</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>tipo_cargo</nombre>
+        <tipo>character varying(3)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>usuario_creacion</nombre>
+        <tipo>character varying(12)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <restriccion>
+        <nombre>distribucion_asignacion_cargos_pkey</nombre>
+        <consulta>PRIMARY KEY (idempresa, codcargo, tipo_cargo)</consulta>
+    </restriccion>
+</tabla>

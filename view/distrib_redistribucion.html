@@ -1,0 +1,261 @@
+{include="header"}
+<!--
+Copyright (C) 2016 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<link href="{#FS_PATH#}plugins/distribucion/view/css/bootstrap-select.min.css" rel="stylesheet" type="text/css"/>
+<script src="{#FS_PATH#}plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>
+<script src="{#FS_PATH#}plugins/distribucion/view/js/bootbox.min.js" type="text/javascript"></script>
+<script src="{#FS_PATH#}plugins/distribucion/view/js/plugins/jquery.tablecheckbox.min.js" type="text/javascript"></script>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <form role="form" class="form" method="POST" action="{$fsc->url()}&type=almacen"> 
+                    <label class="control-label" for="codalmacen">
+                        Rutas del Almacén: 
+                        <select class="selectpicker form-control input-sm" data-style="btn-sm" id="codalmacen" name="codalmacen" required onchange="this.form.submit();">
+                            <option value="" {if="$fsc->codalmacen==''"}selected{/if}></option>
+                            {loop="$fsc->almacen->all()"}
+                            <option value="{$value->codalmacen}" {if="$fsc->codalmacen==$value->codalmacen"}selected{/if}>{$value->nombre}</option>
+                            {/loop}
+                        </select>
+                    </label>
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}&codalmacen={$fsc->codalmacen}" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {if="$fsc->codalmacen"}
+            {if="!$fsc->rutas_almacen"}
+            <div class="col-sm-12">
+                <span class="help-block alert alert-danger">
+                    ¡No hay rutas asignadas a este Almacén!,
+                    debe ir al modulo de <b><a  href="{$fsc->distribucion_clientes->url()}">Distribución Clientes</a></b> para realizar las configuraciones necesarias.
+                </span>
+            </div>
+            {/if}
+            {if="$fsc->total_rutas_almacen == 1"}
+            <div class="col-sm-12">
+                <span class="help-block alert alert-danger">
+                    ¡Solo hay una ruta asignada a este Almacén!,
+                    debe ir al modulo de <b><a  href="{$fsc->distribucion_clientes->url()}">Distribución Clientes</a></b> para agregar más rutas a este Almacén.
+                </span>
+            </div>        
+            {/if}
+        {/if}
+        <div class="col-md-6">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <form role="form" class="form" method="POST" action="{$fsc->url()}&type=ruta_origen&codalmacen={$fsc->codalmacen}"> 
+                        <label for="ruta_origen" class="control-label">Ruta Origen
+                            <select data-style="btn-sm" class="selectpicker form-control input-sm" name='ruta_origen' id='ruta_origen' onchange="this.form.submit();" {$fsc->selector_habilitado}>
+                                
+                                <option value="" {if="$fsc->ruta_origen==''"}selected{/if}></option>
+                                <option value="noruta" {if="$fsc->ruta_origen=='noruta'"}selected{/if}>Clientes Sin Ruta</option>
+                                {loop="$fsc->rutas_almacen"}
+                                <option value="{$value->ruta}" {if="$fsc->ruta_origen==$value->ruta"}selected{/if}>{$value->ruta} - {$value->descripcion}</option>
+                                {/loop}
+                            </select>
+                        </label>
+                        <a class="btn btn-sm btn-default" href="{$fsc->url()}&codalmacen={$fsc->codalmacen}&ruta_origen={$fsc->ruta_origen}&ruta_destino={$fsc->ruta_destino}" title="Actualizar lista" {$fsc->selector_habilitado}>
+                            <span class="glyphicon glyphicon-refresh"></span>
+                        </a>
+                    </form>
+                </div>
+                <div class="panel-body" style="max-height: 430px; overflow-y: scroll;">
+                    <form role="form" id="f_origen" method="POST" action="{$fsc->url()}&formulario=origen">
+                        <table id="tabla_origen" class="table table-responsive">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" align="center">
+                                        <input type="checkbox">
+                                    </th>
+                                    <th>Codigo</th>
+                                    <th>
+                                        Cliente
+                                        <span class="pull-right">
+                                        <button class="btn btn-default btn-xs" type="button" onclick="transferir()" title="Marcar todo" {$fsc->selector_habilitado}>
+                                            Transferir Seleccionados&nbsp;<span class="glyphicon glyphicon-arrow-right"></span>
+                                        </button>
+                                        </span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {loop="$fsc->clientes_origen"}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" id="codcliente_{$value->codcliente}" class="checkbox text-center" name="codcliente" value="{$value->codcliente}-{$value->iddireccion}">                                           </label>
+                                    </td>
+                                    <td class="text-center">{$value->codcliente}</td>
+                                    <td>{$value->nombre_cliente}
+                                        <span class="help-block">{$value->direccion}</span>
+                                    </td>
+                                </tr>
+                            {/loop}
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <form role="form" class="form" method="POST" action="{$fsc->url()}&type=ruta_destino&codalmacen={$fsc->codalmacen}&ruta_origen={$fsc->ruta_origen}"> 
+                        <label for="ruta_destino" class="control-label">Ruta Destino
+                            <select data-style="btn-sm" class="selectpicker form-control input-sm" name='ruta_destino' id='ruta_destino' onchange="this.form.submit();" {$fsc->selector_habilitado}>
+                                <option value="" {if="$fsc->ruta_destino==''"}selected{/if}></option>
+                                {loop="$fsc->rutas_almacen"}
+                                    {if="$fsc->ruta_origen!=$value->ruta"}
+                                        <option value="{$value->ruta}" {if="$fsc->ruta_destino==$value->ruta"}selected{/if}>{$value->ruta} - {$value->descripcion}</option>
+                                    {/if}
+                                {/loop}
+                            </select>
+                        </label>
+                        <a class="btn btn-sm btn-default" href="{$fsc->url()}&codalmacen={$fsc->codalmacen}&ruta_origen={$fsc->ruta_origen}&ruta_destino={$fsc->ruta_destino}" title="Actualizar lista" {$fsc->selector_habilitado}>
+                            <span class="glyphicon glyphicon-refresh"></span>
+                        </a>
+                    </form>
+                </div>
+                <div class="panel-body" style="max-height: 430px; overflow-y: scroll;">
+                    <table class="table table-responsive">
+                        <thead>
+                            <th></th>
+                            <th>Codigo</th>
+                            <th>Cliente</th>
+                        </thead>
+                        <tbody>
+                        {$contador=1}
+                        {loop="$fsc->clientes_destino"}
+                            <tr class="">
+                                <td>
+                                    {$contador}
+                                </td>
+                                <td>{$value->codcliente}</td>
+                                <td>{$value->nombre_cliente}
+                                    <span class="help-block">{$value->direccion}</span>
+                                </td>
+                            </tr>
+                            {$contador=$contador+1}
+                        {/loop}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('.selectpicker').selectpicker({
+        noneSelectedText: 'Nada Seleccionado'
+    });
+    function fs_marcar_todo()
+    {
+       $('#f_origen input:checkbox').prop('checked', true);
+    }
+
+    function fs_marcar_nada()
+    {
+       $('#f_origen input:checkbox').prop('checked', false);
+    }
+    
+    function transferir(){
+        var destino = '{$fsc->ruta_destino}';
+        var origen = '{$fsc->ruta_origen}';
+        var checkboxValues = [];
+        var seguir = true;
+        $('input[name=codcliente]:checked').map(function() {
+            checkboxValues.push($(this).val());
+        });
+        if(checkboxValues.length === 0 && destino !== ''){
+            alert('Debe marcar un cliente como mínimo!');
+            seguir = false;
+        }
+        if(seguir){
+         var frase = (checkboxValues.length===1)?"el cliente seleccionado":"los clientes seleccionados";
+         if(origen === 'noruta'){
+             message_text = "Esta seguro que quiere transferir "+frase+"?, antes de continuar debe seleccionar el Canal y Subcanal al ser una nueva asignacion: "+
+                     '<div class="row">  ' +
+                    '<div class="col-md-12"> ' +
+                    '<form class="form-horizontal"> ' +
+                    '<div class="form-group"> ' +
+                    '<label class="col-md-4 control-label" for="canal">Canal</label> ' +
+                    '<div class="col-md-4"> ' +
+                    '<select data-style="btn-sm" class="form-control input-sm" name="canal" id="canal">'+
+                    {loop="$fsc->canales"}
+                    '<option value="{$value->codigo}">{$value->descripcion}</option>'+
+                    {/loop}
+                    '</select>' +
+                    '</div> </div> ' +
+                    '<div class="form-group"> ' +
+                    '<label class="col-md-4 control-label" for="subcanal">Subcanal</label> ' +
+                    '<div class="col-md-4"> ' +
+                    '<select data-style="btn-sm" class="form-control input-sm" name="subcanal" id="subcanal">'+
+                    {loop="$fsc->subcanales"}
+                    '<option value="{$value->codigo}">{$value->descripcion}</option>'+
+                    {/loop}
+                    '</select>' +                    
+                    '</div> ' +
+                    '</div> </div>' +
+                    '</form> </div>  </div>';
+         }else{
+             message_text = "Esta seguro que quiere transferir "+frase+"?";
+         }
+         bootbox.dialog({
+              message: message_text,
+              title: "Confirmar Transferencia de Clientes",
+              buttons: {
+                success: {
+                  label: "Confirmar",
+                  className: "btn-success",
+                  callback: function() {
+                      var canal = $('#canal').val();
+                      var subcanal = $('#subcanal').val();
+                      var sinruta = (origen === 'noruta')?'&canal='+canal+'&subcanal='+subcanal:'';
+                      $.ajax({
+                        type: 'GET',
+                        url: '{$fsc->url()}',
+                        async: false,
+                        data: 'codalmacen={$fsc->codalmacen}&ruta_origen={$fsc->ruta_origen}&ruta_destino={$fsc->ruta_destino}&type=transferir&clientes='+checkboxValues+sinruta,
+                        success : function(datos) {
+                            bootbox.alert(datos.mensaje, function() {
+                                window.location.assign("{$fsc->url()}&codalmacen={$fsc->codalmacen}&ruta_origen={$fsc->ruta_origen}&ruta_destino={$fsc->ruta_destino}");
+                            });
+                        },
+                        error: function() {
+                            bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                        }
+                    });
+                  }
+                },
+                danger: {
+                  label: "Cancelar",
+                  className: "btn-danger",
+                  callback: function() {
+                    this.hide();
+                  }
+                }
+              }
+          });
+       }
+    }
+    $('table').tablecheckbox();
+</script>
+{include="footer"}

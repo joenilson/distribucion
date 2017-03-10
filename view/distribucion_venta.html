@@ -1,0 +1,175 @@
+{include="header"}
+<!--
+Copyright (C) 2016 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-6 col-xs-6">
+            <div class="btn-group hidden-xs">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {/if}
+            </div>
+            <div class="btn-group">
+                <a href="index.php?page=ventas_albaranes" class="btn btn-sm btn-default">
+                    <span class="fa fa-arrow-up"></span>&nbsp;
+                    <span class="hidden-xs">&nbsp; Ir a {#FS_ALBARANES#}</span>
+                </a>
+                {loop="$fsc->extensions"}
+                {if="$value->type=='button'"}
+                <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
+                {/if}
+                {/loop}
+            </div>
+        </div>
+        <div class="col-sm-6 col-xs-6 text-right">
+            <h2 style="margin-top: 0px;">
+                <span class="fa fa-cart-plus"></span> Nueva Venta
+            </h2>
+        </div>
+    </div>
+    <form class="form" name="f_nueva_venta" action="{$fsc->url()}" method="POST">
+        <input type="hidden" name="procesar" value="FALSE">
+        <div class="row">
+            <div class="col-sm-9">
+                <div class="panel panel-default panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Información Básica</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-sm-3">
+                            <label for="fecha_pedido" class="col-sm-6 control-label">F. Pedido</label>
+                            <div class="col-sm-6 form-group">
+                                <input type="text" name="fecha_pedido" id="fecha_pedido" class="form-control input-sm datepicker" autocomplete="off" value="{$fsc->fecha_pedido}">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="fecha_facturacion" class="col-sm-6 control-label">F. Facturación</label>
+                            <div class="col-sm-6 form-group-sm">
+                                <input type="text" name="fecha_facturacion" id="fecha_facturacion" class="form-control input-sm datepicker" autocomplete="off" value="{$fsc->fecha_facturacion}">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group-sm">
+                                <select name="codalmacen" id="codalmacen" class="selectpicker form-control" required="" onchange="this.form.submit()">
+                                    <option value="">Elige un almacén</option>
+                                    {loop="$fsc->almacen->all()"}
+                                    <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group-sm">
+                                <select name="documento" class="selectpicker form-control">
+                                    <option value="pedido">{#FS_PEDIDO#}</option>
+                                    <option value="albaran">{#FS_ALBARAN#}</option>
+                                    <option value="factura">Factura</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="panel panel-default panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Pedido específico</h3>
+                    </div>
+                    <div class="panel-body">
+                        <label for="ac_cliente" class="col-sm-4 control-label">Buscar un cliente:</label>
+                        <div class="col-sm-8 form-group">
+                            <input type="text" id="ac_cliente" name="cliente" autocomplete="off" class="form-control input-sm" placeholder="Busca un cliente">
+                            <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
+                            <input type="hidden" name="cliente_nombre" value="{$fsc->cliente_nombre}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix">
+
+        </div>
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="panel panel-default panel-info">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <span class="col-sm-4">Clientes de</span>
+                            <div class="form-group-sm">
+                                <select name="ruta" class="selectpicker form-control" data-width="auto" onchange="this.form.submit();">
+                                    <option value="">Elige una ruta</option>
+                                    {loop="$fsc->rutas"}
+                                    <option value="{$value->ruta}" {if="$fsc->ruta==$value->ruta"}selected{/if}>{$value->ruta} - {$value->descripcion}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="list-group">
+                        {loop="$fsc->clientes_ruta"}
+                            <a href="#" class="list-group-item">
+                                <h5 class="list-group-item-heading">{$value->codcliente} - {$value->nombre_cliente}</h5>
+                                <p class="list-group-item-text">{$value->direccion}</p>
+                            </a>
+                        {/loop}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-9">
+                <div class="panel panel-default panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Ingreso de pedidos</h3>
+                    </div>
+                    <div class="panel-body">
+                        Pantalla de pedidos
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+$(document).ready(function () {
+    $("#ac_cliente").autocomplete({
+        serviceUrl: '{$fsc->url()}',
+        paramName: 'buscar_cliente',
+        width: 300,
+        onSelect: function (suggestion) {
+           if(suggestion)
+           {
+              if(document.f_nueva_venta.codcliente.value !== suggestion.codcliente)
+              {
+                 document.f_nueva_venta.codcliente.value = suggestion.codcliente;
+                 document.f_nueva_venta.cliente_nombre.value = suggestion.value;
+              }
+           }
+        }
+    });
+});
+</script>
+{include="footer"}

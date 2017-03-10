@@ -1,0 +1,100 @@
+<!--
+Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<div class="modal" id="modal_resumen_ordencarga">
+    <div class="modal-dialog" style="width: 99%; max-width: 950px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Resumen de Carga</h4>
+                <p class="warning" align="justify">Si no esta conforme con los datos, cierre esta ventana y vuelva a seleccionar los valores en la ventana anterior.</p>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" method="POST" action="{$fsc->url()}" id="f_guardar_carga" name="f_guardar_carga">
+                    <input type="hidden" name="type" value="guardar-carga">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Cabecera</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <b>Almacén Origen:</b>
+                                        <span id="carga_almacenorig"></span>
+                                        <input type="hidden" name="carga_almacenorig">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <b>Almacén Destino:</b>
+                                        <span id="carga_almacendest"></span>
+                                        <input type="hidden" name="carga_almacendest">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <b>Conductor:</b>
+                                        <span id="carga_conductor"></span>
+                                        <input type="hidden" name="carga_conductor">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <b>Unidad:</b>
+                                        <span id="carga_unidad"></span>
+                                        <input type="hidden" name="carga_unidad">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <b>Fecha de Reparto:</b>
+                                        <span id="carga_fecha_reparto"></span>
+                                        <input type="hidden" name="carga_fechareparto">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input type="hidden" name="carga_facturas">
+                                        <input type="hidden" name="carga_codtrans">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Detalle de la Carga</h3>
+                        </div>
+                        <div class="panel-body">
+                            <table id="grid_productos"></table>
+                            <div id="grid_productos_pager"></div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Observaciones</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div id="carga_observaciones"></div>
+                            <input type="hidden" name="carga_obs">
+                        </div>
+                    </div>
+                    <div align="right">
+                        <br />
+                        <button type="button" class="btn btn-primary hidden" id="f_imprimir_carga_btn">Imprimir</button>
+                        <button type="button" class="btn btn-primary" id="f_guardar_carga_btn">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

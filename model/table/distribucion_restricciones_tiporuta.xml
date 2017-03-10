@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : distribucion_restricciones_tiporuta.xml
+    Description:
+        Estructura de la tabla distribucion_restricciones_tiporuta.
+-->
+<tabla>
+    <columna>
+        <nombre>fecha_creacion</nombre>
+        <tipo>timestamp without time zone</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>id</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>referencia</nombre>
+        <tipo>character varying(18)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>usuario_creacion</nombre>
+        <tipo>character varying(12)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <restriccion>
+        <nombre>distribucion_restricciones_tiporuta_pkey</nombre>
+        <consulta>PRIMARY KEY (referencia,id)</consulta>
+    </restriccion>
+</tabla>

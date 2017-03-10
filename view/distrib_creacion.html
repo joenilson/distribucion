@@ -1,0 +1,507 @@
+{include="header"}
+<script src="{#FS_PATH#}plugins/distribucion/view/js/plugins/jquery.tablecheckbox.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+   function buscar_lineas()
+   {
+      if(document.f_buscar_lineas.buscar_lineas.value == '')
+      {
+         $('#search_results').html('');
+      }
+      else
+      {
+         $.ajax({
+            type: 'POST',
+            url: '{$fsc->url()}',
+            dataType: 'html',
+            data: $('form[name=f_buscar_lineas]').serialize(),
+            success: function(datos) {
+               var re = /<!--(.*?)-->/g;
+               var m = re.exec( datos );
+               if( m[1] === document.f_buscar_lineas.buscar_lineas.value )
+               {
+                  $('#search_results').html(datos);
+               }
+            }
+         });
+      }
+   }
+   function mas_resultados(num)
+   {
+      document.f_buscar_lineas.offset.value = parseInt(document.f_buscar_lineas.offset.value) + parseInt(num);
+
+      if(document.f_buscar_lineas.offset.value < 0)
+      {
+         document.f_buscar_lineas.offset.value = 0;
+      }
+
+      buscar_lineas();
+   }
+   function clean_conductor()
+   {
+      document.f_custom_search.ac_conductor.value='';
+      document.f_custom_search.conductor.value='';
+      document.f_custom_search.ac_conductor.focus();
+   }
+
+   function nuevoTransporte(){
+       $('#modal_nuevo_transporte').modal('show');
+   }
+
+   function confirmarTransporte(id,almacen){
+       var checkboxValues = [];
+       var seguir = true;
+       $('input[name=imprimir]:checked').map(function() {
+           checkboxValues.push($(this).val());
+       });
+       if(checkboxValues.length === 0 && id !== undefined && almacen !== undefined){
+          checkboxValues.push(id+'-'+almacen);
+       }else if(checkboxValues.length === 0 && id === undefined && almacen === undefined){
+           seguir = false;
+           alert('Error de informacion enviada a procesar!');
+       }
+       if(seguir){
+        var frase = (checkboxValues.length===1)?"del transporte seleccionado":"de los transportes seleccionados";
+        bootbox.dialog({
+             message: "Esta seguro que quiere confirmar el despacho "+frase+"?",
+             title: "Confirmar despacho de Transportes",
+             buttons: {
+               success: {
+                 label: "Confirmar",
+                 className: "btn-success",
+                 callback: function() {
+                     $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=confirmar-transporte&transporte='+checkboxValues,
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            window.location.assign("{$fsc->url()}");
+                         });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                 }
+               },
+               danger: {
+                 label: "Cancelar",
+                 className: "btn-danger",
+                 callback: function() {
+                   this.hide();
+                 }
+               }
+             }
+         });
+       }
+   }
+
+    function liquidarTransporte(id,estado){
+        if(estado){
+            window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte="+id);
+        }else{
+            bootbox.dialog({
+                message: "Esta seguro que quiere generar la liquidación a este transporte?",
+                title: "Liquidar Transporte",
+                buttons: {
+                  success: {
+                    label: "Liquidar",
+                    className: "btn-success",
+                    callback: function() {
+                        window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte="+id);
+                    }
+                  },
+                  danger: {
+                    label: "Cancelar",
+                    className: "btn-danger",
+                    callback: function() {
+                      this.hide();
+                    }
+                  }
+                }
+            });
+        }
+    }
+    
+    function eliminarLiquidacion(id,almacen){
+        bootbox.dialog({
+            message: "Esta seguro que quiere eliminar la liquidación a este transporte?, esto solo borrará la liquidación realizada y los recibos por faltantes generados, no tocara las facturas de devolucion de productos.",
+            title: "Eliminar Liquidación de Transporte",
+            buttons: {
+              success: {
+                label: "Eliminar Liquidacion",
+                className: "btn-success",
+                callback: function() {
+                    $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=eliminar-liquidacion&transporte='+id+'&almacen='+almacen,
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            window.location.assign("{$fsc->url()}");
+                         });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                }
+              },
+              danger: {
+                label: "Cancelar",
+                className: "btn-danger",
+                callback: function() {
+                  this.hide();
+                }
+              }
+            }
+        });
+    }
+    
+    function quitarDespacho(id,almacen){
+        bootbox.dialog({
+            message: "Esta seguro que quiere quitar el despacho a este transporte?, esto significa que el transporte no salió del almacén y no será liquidado.",
+            title: "Quitar despacho de Transporte",
+            buttons: {
+              success: {
+                label: "Quitar Despacho",
+                className: "btn-success",
+                callback: function() {
+                    $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=eliminar-despacho&transporte='+id+'-'+almacen,
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            window.location.assign("{$fsc->url()}");
+                         });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                }
+              },
+              danger: {
+                label: "Cancelar",
+                className: "btn-danger",
+                callback: function() {
+                  this.hide();
+                }
+              }
+            }
+        });
+    }
+
+   function mostrarTransporte(idtransporte,almacen){
+        $('#modal_impresion_transporte').modal('show');
+        $("#imprimir_transporte").detach();
+        $("<iframe id='imprimir_transporte' />")
+          .attr('src', '{$fsc->url()}&type=imprimir-transporte&transporte='+idtransporte+'-'+almacen)
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_body_impresion_transporte');
+   }
+
+   function eliminarTransporte(idtransporte,almacen){
+        bootbox.dialog({
+            message: "¿Esta seguro que quiere eliminar el transporte <b>"+idtransporte+"</b> seleccionado?",
+            title: "Eliminar Transporte de Mercancías",
+            buttons: {
+              success: {
+                label: "Eliminar",
+                className: "btn-warning",
+                callback: function() {
+                    $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=eliminar-transporte&transporte='+idtransporte+'-'+almacen,
+                       success : function(datos) {
+                            bootbox.alert(datos.mensaje, function() {
+                               window.location.assign("{$fsc->url()}");
+                            });
+                       },
+                       error: function() {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+                }
+              },
+              danger: {
+                label: "Cancelar",
+                className: "btn-danger",
+                callback: function() {
+                  this.hide();
+                }
+              }
+            }
+        });
+   }
+
+   $(document).ready(function() {
+        $('#b_imprimir_seleccion').click(function (event) {
+            var checkboxValues = [];
+            $('input[name=imprimir]:checked').map(function() {
+                checkboxValues.push($(this).val());
+            });
+            if(checkboxValues.length !== 0){
+                bootbox.dialog({
+                    message: "Esta seguro que quiere imprimir los transportes seleccionados?",
+                    title: "Imprimir Transportes",
+                    buttons: {
+                      success: {
+                        label: "Imprimir",
+                        className: "btn-success",
+                        callback: function() {
+                            $('#modal_impresion_transporte').modal('show');
+                            $("#imprimir_transporte").detach();
+                            $("<iframe id='imprimir_transporte' />")
+                              .attr('src', '{$fsc->url()}&type=imprimir-transporte&transporte='+checkboxValues)
+                              .attr('width', '100%')
+                              .attr('height', '500')
+                              .appendTo('#modal_body_impresion_transporte');
+                        }
+                      },
+                      danger: {
+                        label: "Cancelar",
+                        className: "btn-danger",
+                        callback: function() {
+                          this.hide();
+                        }
+                      }
+                    }
+                });
+            }else{
+                alert('Debe seleccionar un transporte!');
+            }
+        });
+
+      {if="$fsc->mostrar=='buscar'"}
+        document.f_custom_search.query.focus();
+      {/if}
+
+      $("#ac_conductor").autocomplete({
+         serviceUrl: '{$fsc->url()}',
+         paramName: 'buscar_conductor',
+         onSelect: function (suggestion) {
+            if(suggestion)
+            {
+               if(document.f_custom_search.conductor.value != suggestion.data && suggestion.data != '')
+               {
+                  document.f_custom_search.conductor.value = suggestion.data;
+                  document.f_custom_search.submit();
+               }
+            }
+         }
+      });
+      $('table').tablecheckbox();
+   });
+</script>
+<div class="container-fluid" style="margin-top: 10px; margin-bottom: 10px;">
+   <div class="row">
+       <div class="col-sm-8 col-xs-6 text-left">
+           <h3>
+            <span class="glyphicon glyphicon-list"></span>
+            Transportes
+                <div class="btn-group hidden-xs">
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    {if="$fsc->page->is_default()"}
+                    <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                        <span class="glyphicon glyphicon-home"></span>
+                    </a>
+                    {else}
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                        <span class="glyphicon glyphicon-home"></span>
+                    </a>
+                    {/if}
+                </div>
+                <div class="btn-group">
+                    {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                    <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
+                    {/if}
+                    {/loop}
+                </div>
+            </h3>
+       </div>
+   </div>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+   <li{if="$fsc->mostrar=='todo'"} class="active"{/if}>
+      <a href="{$fsc->url()}&mostrar=todo">
+         Todos
+      </a>
+   </li>
+   <li{if="$fsc->mostrar=='por_despachar'"} class="active"{/if}>
+      <a href="{$fsc->url()}&mostrar=por_despachar">
+         <span class="glyphicon glyphicon-time"></span>
+         <span class="hidden-xs">&nbsp; Por Despachar</span>
+         <span class="hidden-xs badge">{$fsc->total_pendientes('despachado')}</span>
+      </a>
+   </li>
+   <li{if="$fsc->mostrar=='por_liquidar'"} class="active"{/if}>
+      <a href="{$fsc->url()}&mostrar=por_liquidar">
+         <span class="glyphicon glyphicon-time"></span>
+         <span class="hidden-xs">&nbsp; Por Liquidar</span>
+         <span class="hidden-xs badge">{$fsc->total_pendientes('liquidado')}</span>
+      </a>
+   </li>
+   <li{if="$fsc->mostrar=='buscar'"} class="active"{/if}>
+      <a href="{$fsc->url()}&mostrar=buscar" title="Buscar">
+         <span class="glyphicon glyphicon-search"></span>
+         {if="$fsc->num_resultados!==''"}
+         <span class="hidden-xs badge">{$fsc->num_resultados}</span>
+         {/if}
+      </a>
+   </li>
+</ul>
+
+{if="$fsc->mostrar=='buscar'"}
+<br/>
+<form name="f_custom_search" action="{$fsc->url()}" method="post" class="form">
+   {if="$fsc->conductor"}
+   <input type="hidden" name="conductor" value="{$fsc->conductor->licencia}"/>
+   {else}
+   <input type="hidden" name="conductor"/>
+   {/if}
+   <div class="container-fluid">
+      <div class="row">
+         <div class="col-sm-2">
+            <div class="form-group">
+               <div class="input-group">
+                  <input class="form-control" type="text" name="query" value="{$fsc->query}" autocomplete="off" placeholder="Buscar">
+                  <span class="input-group-btn">
+                     <button class="btn btn-primary hidden-sm" type="submit">
+                        <span class="glyphicon glyphicon-search"></span>
+                     </button>
+                  </span>
+               </div>
+            </div>
+         </div>
+         <div class="col-sm-2">
+            <div class="form-group">
+               <div class="input-group">
+                  {if="$fsc->conductor"}
+                  <input class="form-control" type="text" name="ac_conductor" value="{$fsc->conductor->nombre}" id="ac_conductor" placeholder="Cualquier conductor" autocomplete="off"/>
+                  {else}
+                  <input class="form-control" type="text" name="ac_conductor" id="ac_conductor" placeholder="Cualquier conductor" autocomplete="off"/>
+                  {/if}
+                  <span class="input-group-btn">
+                     <button class="btn btn-default" type="button" onclick="clean_conductor()">
+                        <span class="glyphicon glyphicon-remove"></span>
+                     </button>
+                  </span>
+               </div>
+            </div>
+         </div>
+          <div class="col-sm-2">
+            <div class="form-group">
+                <select name="codalmacen" required class="selectpicker form-control" onchange="this.form.submit();">
+                    <option value="">--------</option>
+                    {loop="$fsc->almacen->all()"}
+                    <option value="{$value->codalmacen}" {if="$fsc->codalmacen==$value->codalmacen"}selected{/if}>{$value->nombre}</option>
+                    {/loop}
+                </select>
+            </div>
+         </div>
+         <div class="col-sm-2">
+            <div class="form-group">
+               <input type="text" name="desde" value="{$fsc->desde}" class="form-control datepicker" placeholder="Desde" autocomplete="off" onchange="this.form.submit()"/>
+            </div>
+         </div>
+         <div class="col-sm-2">
+            <div class="form-group">
+               <input type="text" name="hasta" value="{$fsc->hasta}" class="form-control datepicker" placeholder="Hasta" autocomplete="off" onchange="this.form.submit()"/>
+            </div>
+         </div>
+      </div>
+   </div>
+</form>
+{/if}
+
+<!-- Resultados de transportes generados -->
+{include="transporte/resultados"}
+<div class="container-fluid">
+   <div class="row">
+      <div class="col-sm-12 text-center">
+         <ul class="pagination">
+            {loop="$fsc->paginas()"}
+            <li{if="$value['actual']"} class="active"{/if}>
+               <a href="{$value['url']}">{$value['num']}</a>
+            </li>
+            {/loop}
+         </ul>
+      </div>
+   </div>
+</div>
+<form class="form" role="form" id="f_buscar_lineas" name="f_buscar_lineas" action ="{$fsc->url()}" method="post">
+   <input type="hidden" name="offset" value="0"/>
+   <div class="modal" id="modal_buscar_lineas">
+      <div class="modal-dialog" style="width: 99%; max-width: 950px;">
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+               <h4 class="modal-title">Buscar en las líneas</h4>
+               {if="$fsc->cliente"}
+               <p class="help-block">
+                  Estas buscando en las líneas de los {#FS_ALBARANES#} de {$fsc->cliente->nombre}.
+               </p>
+               {else}
+               <p class="help-block">Si quieres, puede <a href="{$fsc->url()}&mostrar=buscar">filtrar por cliente</a>.</p>
+               {/if}
+            </div>
+            <div class="modal-body">
+               {if="$fsc->cliente"}
+               <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+               <div class="container-fluid">
+                  <div class="row">
+                     <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="input-group">
+                           <input class="form-control" type="text" name="buscar_lineas" placeholder="Referencia" autocomplete="off"/>
+                           <span class="input-group-btn">
+                              <button class="btn btn-primary" type="submit">
+                                 <span class="glyphicon glyphicon-search"></span>
+                              </button>
+                           </span>
+                        </div>
+                     </div>
+                     <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="form-group">
+                           <input class="form-control" type="text" name="buscar_lineas_o" placeholder="Observaciones" autocomplete="off"/>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               {else}
+               <div class="input-group">
+                  <input class="form-control" type="text" name="buscar_lineas" placeholder="Referencia" autocomplete="off"/>
+                  <span class="input-group-btn">
+                     <button class="btn btn-primary" type="submit">
+                        <span class="glyphicon glyphicon-search"></span>
+                     </button>
+                  </span>
+               </div>
+               {/if}
+            </div>
+            <div id="search_results" class="table-responsive"></div>
+         </div>
+      </div>
+   </div>
+</form>
+<!-- Modal para generar las devoluciones de producto del transporte -->
+{include="transporte/devolucion"}
+<!-- Modal para mostrar el resumen del transporte -->
+{include="transporte/resumen"}
+<!-- Modal para mostrar la pantalla de liquidación del transporte -->
+{include="transporte/liquidacion"}
+<!-- Modal para mostrar el pdf para las impresiones de los transportes -->
+{include="transporte/impresion"}
+<!-- Pie de Pagina -->
+{include="footer"}

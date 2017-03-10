@@ -1,0 +1,72 @@
+<div class="panel panel-info hidden" id="panel_tipo_transporte">
+    <div class="panel-heading">
+        <h3 class="panel-title">Tipo de Unidades de transporte</h3>
+    </div>
+    <div class="panel-body">
+        <p class="help-block" align="justify">
+            Este plugin te permite agregar unidades de transporte, para lo que debes ingresar el tipo de unidad de transporte que vas a utilizar,
+            esto debido a que puedes tener unidades de transporte liviano (autos, camionetas), intermedio (camiones, buses medianos) y pesado
+            (Camiones de transporte pesado), o puede ser por via de transporte Terrestre, Aereo o Mar&iacute;timo.
+        </p>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="text-left">Tipo de Unidad</th>
+                    <th width="15" class="text-center">Activo</th>
+                    <th width="120"></th>
+                </tr>
+            </thead>
+            {loop="$fsc->listado_tipo_transporte"}
+            <form action="{$fsc->url()}" method="post" class="form">
+                <input type='hidden' name='type' value='tipo_transporte'>
+                <tr{if="!$value->estado"} class="danger"{/if}>
+                    <td>
+                        <input type="hidden" name="id" value="{$value->id}" class="form-control" {if="!$fsc->allow_delete"}readonly=""{/if}/>
+                        <input type="text" name="descripcion" value="{$value->descripcion}" class="form-control" {if="!$fsc->allow_delete"}readonly=""{/if}/>
+                    </td>
+                    <td class="text-center">
+                            <label>
+                                {if="$value->estado"}
+                                <input type="checkbox" name="estado" value="TRUE" checked/>
+                                {else}
+                                <input type="checkbox" name="estado" value="TRUE"/>
+                                {/if}
+                            </label>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group">
+                            {if="$fsc->allow_delete"}
+                            <button class="btn btn-sm btn-danger" type="submit" name="delete" title="Eliminar" onclick="confirm('Desea Borrar el Tipo de unidad: {$value->id} {$value->descripcion}')">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </button>
+                            {/if}
+                            <button class="btn btn-sm btn-primary" type="submit" name="update" onclick="this.disabled = true;this.form.submit();" title="Guardar">
+                                <span class="glyphicon glyphicon-floppy-disk"></span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </form>
+            {/loop}
+            <form action="{$fsc->url()}" method="post" class="form">
+                <input type='hidden' name='type' value='tipo_transporte'>
+                <input type='hidden' name='id' value=''>
+                <tr class="info">
+                    <td>
+                        <input type="text" name="descripcion" class="form-control" maxlength="20" autocomplete="off" placeholder="Descripcion"/>
+                    </td>
+                    <td class="text-center">
+                        <label>
+                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                        </label>
+                    </td>
+                    <td class="text-right">
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();" title="Guardar">
+                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                    </td>
+                </tr>
+            </form>
+        </table>
+    </div>
+</div>

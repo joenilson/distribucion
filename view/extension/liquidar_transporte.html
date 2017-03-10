@@ -1,0 +1,614 @@
+<!--
+Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+{include="header"}
+<script type="text/javascript">
+   function fs_marcar_todo()
+   {
+      $("#f_liquidar_transporte input[name='idfactura']").prop('checked', true);
+   }
+   function fs_marcar_nada()
+   {
+      $("#f_liquidar_transporte input[name='idfactura']").prop('checked', false);
+   }
+
+   function guardarLiquidacion(){
+        bootbox.dialog({
+            message: "Esta seguro que quiere Guardar la liquidación de este transporte?",
+            title: "Guardar Liquidacion",
+            buttons: {
+              success: {
+                label: "<span class='glyphicon glyphicon-floppy-disk'></span> &nbsp; Guardar",
+                className: "btn-success",
+                callback: function() {
+                    $.ajax({
+                       type: 'GET',
+                       url: '{$fsc->url()}',
+                       async: false,
+                       data: 'type=guardar-liquidacion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}',
+                       success : function(datos) {
+                         bootbox.alert(datos.mensaje, function() {
+                            window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
+                         });
+                       },
+                       error: function(datos) {
+                           bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                       }
+                   });
+
+                }
+              },
+              danger: {
+                label: "Cancelar",
+                className: "btn-danger",
+                callback: function() {
+                  this.hide();
+                }
+              }
+            }
+        });
+   }
+
+   function generarFaltante(){
+       bootbox.dialog({
+        title: "<b>Generar faltante al Transporte {$fsc->transporte->idtransporte} <br />Conductor:  {$fsc->transporte->conductor_nombre}</b>",
+        message: '<div class="row">  ' +
+            '<div class="col-md-12"> ' +
+            '<form id="f_faltante" class="form-horizontal"> ' +
+            '<input id="codtrans" name="idtransporte" type="hidden" value="{$fsc->transporte->idtransporte}"> ' +
+            '<input id="codtrans" name="codalmacen" type="hidden" value="{$fsc->transporte->codalmacen}"> ' +
+            '<input id="codtrans" name="codtrans" type="hidden" value="{$fsc->transporte->codtrans}"> ' +
+            '<input id="conductor" name="conductor" type="hidden" value="{$fsc->transporte->conductor}"> ' +
+            '<div class="form-group"> ' +
+            '<label class="col-md-4 control-label" for="monto">Monto</label> ' +
+            '<div class="col-md-6"> ' +
+            '<input id="monto" name="monto" type="text" placeholder="Monto" class="form-control input-sm"> ' +
+            '<span class="help-block">Ingrese la cantidad del faltante</span> </div> ' +
+            '</div> ' +
+            '<div class="form-group"> ' +
+            '<label class="col-md-4 control-label" for="descripcion">Descripcion (opcional)</label> ' +
+            '<div class="col-md-6"> ' +
+            '<input id="descripcion" name="descripcion" type="text" class="form-control input-sm"> ' +
+            '<span class="help-block">Ingrese una descripción relevante al faltante</span> </div> ' +
+            '</div> ' +
+            '<div class="form-group"> ' +
+            '<label class="col-md-4 control-label" for="tipo_faltante">Tipo de Faltante</label> ' +
+            '<div class="col-md-4"> <div class="radio"> <label for="tipo_faltante-0"> ' +
+            '<input type="radio" name="tipo_faltante" id="tipo_faltante-0" value="perdida" checked="checked">' +
+            'Perdida </label> ' +
+            '</div><div class="radio"> <label for="tipo_faltante-1"> ' +
+            '<input type="radio" name="tipo_faltante" id="tipo_faltante-1" value="gasto">Gasto</label> ' +
+            '</div> ' +
+            '</div> </div>' +
+            '</form> </div>  </div>',
+        buttons: {
+            success: {
+                label: "Gardar Faltante",
+                className: "btn-success",
+                callback: function () {
+                    $.ajax({
+                        type: 'GET',
+                        url: '{$fsc->url()}',
+                        async: false,
+                        data: 'type=crear-faltante&'+$('#f_faltante').serialize(),
+                        success : function(datos) {
+                          bootbox.alert("Faltante Generado!", function() {
+                             window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
+                         });
+                        },
+                        error: function(datos) {
+                            bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                        }
+                    });
+                }
+            },
+            danger: {
+              label: "Cancelar",
+              className: "btn-danger",
+              callback: function() {
+                this.hide();
+              }
+            }
+        }
+    });
+   }
+
+   function devolucionarFactura(id){
+        $('#modal_liquidar_factura').modal('show');
+        $("#liquidar_factura").detach();
+        $("<iframe id='liquidar_factura' />")
+          .attr('src', '{#FS_PATH#}index.php?page=ventas_factura_devolucion&id='+id)
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_body_liquidar_factura');
+   }
+
+   function imprimirDevolucion(){
+        var url = '{$fsc->url()}&type=imprimir-devolucion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}';
+        $('#modal_imprimir_devolucion').modal('show');
+        $("#imprimir_devolucion").detach();
+        $("<iframe id='imprimir_devolucion' />")
+          .attr('src', url)
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_body_imprimir_devolucion');
+   }
+   
+   function imprimirLiquidacion(){
+        var url = '{$fsc->url()}&type=imprimir-liquidacion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}';
+        $('#modal_imprimir_liquidacion').modal('show');
+        $("#imprimir_liquidacion").detach();
+        $("<iframe id='imprimir_liquidacion' />")
+          .attr('src', url)
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_body_imprimir_liquidacion');
+   }
+   
+   function confirmarDevolucion(){
+      bootbox.dialog({
+         message: "¿Esta seguro que quiere confirmar la devolución de este transporte?<br>Esta acción guardará las cantidades de devolución de las facturas en el transporte para que este pueda ser terminado de liquidar en caja.",
+         title: "Confirmar devolución del Transporte",
+         buttons: {
+           success: {
+             label: "Confirmar",
+             className: "btn-success",
+             callback: function() {
+                 $.ajax({
+                   type: 'GET',
+                   url: '{$fsc->url()}',
+                   async: false,
+                   data: 'type=confirmar-devolucion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}',
+                   success : function(datos) {
+                     bootbox.alert(datos.mensaje, function() {
+                        window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
+                     });
+                   },
+                   error: function() {
+                       bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                   }
+               });
+             }
+           },
+           danger: {
+             label: "Cancelar",
+             className: "btn-danger",
+             callback: function() {
+               this.hide();
+             }
+           }
+         }
+      });
+   }
+
+   function ingresarPago(factura,almacen){
+        var checkboxValues = [];
+        var seguir = true;
+        $('input[name=idfactura]:checked').map(function() {
+            checkboxValues.push($(this).val());
+        });
+        var codsubcuenta = $('#codsubcuenta').val();
+        var fecha_pago = $('#fecha_pago').val();
+        if(checkboxValues.length === 0 && factura !== undefined && almacen !== undefined){
+           checkboxValues.push(factura+'-'+almacen);
+        }else if(checkboxValues.length === 0 && factura === undefined && almacen === undefined){
+            seguir = false;
+            alert('Error de informacion enviada a procesar, no hay datos seleccionados!');
+        }
+        
+        if(codsubcuenta === '' && fecha_pago ===''){
+            alert('Debe elegir una cuenta para generar el asiento de pago y una fecha de pago');
+        }
+        
+        if(seguir){
+            var frase = (checkboxValues.length===1)?"la factura "+checkboxValues[0]:"las facturas seleccionadas";
+            bootbox.dialog({
+                message: "Esta seguro que quiere generar el pago a "+frase+"?",
+                title: "Marcar como pagada Factura",
+                buttons: {
+                  success: {
+                    label: "Pagar",
+                    className: "btn-success",
+                    callback: function() {
+                        $.ajax({
+                           type: 'GET',
+                           url: '{$fsc->url()}',
+                           async: false,
+                           data: 'type=pagar-factura&factura='+checkboxValues+'&codsubcuenta='+codsubcuenta+'&fecha_pago='+fecha_pago,
+                           success : function(datos) {
+                             bootbox.alert('Se han pagado '+datos.facturas_procesadas+' facturas.', function() {
+                                window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
+                             });
+                           },
+                           error: function(datos) {
+                               bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                           }
+                       });
+
+                    }
+                  },
+                  danger: {
+                    label: "Cancelar",
+                    className: "btn-danger",
+                    callback: function() {
+                      this.hide();
+                    }
+                  }
+                }
+            });
+        }
+   }
+
+   $(document).ready(function() {
+      $('#modal_liquidar_factura').on('hidden.bs.modal', function () {
+          window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
+      });
+   });
+</script>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-header">
+                <h3>
+                    <span class="glyphicon glyphicon-transfer"></span>
+                    Liquidaci&oacute;n de Transporte {$fsc->transporte->idtransporte}
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    <span class="btn-group">
+                        <a href="{$fsc->url()}" class="btn btn-sm btn-default">
+                            <span class="glyphicon glyphicon-arrow-left"></span>
+                            <span class="hidden-xs">&nbsp; Todos los Transportes</span>
+                        </a>
+                    </span>
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <form action="{$fsc->url()}&type=guardar-liquidacion&idtransporte={$fsc->transporte->idtransporte}" id='f_liquidar_transporte' name='f_liquidar_transporte' method="POST" class="form">
+                <div class="col-sm-12">
+                    <div class="col-sm-2">
+                        <label class="text-left" for="idordencarga"><b>Orden de Carga:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input class="form-control input-sm" type="text" readonly name="idordencarga" value="{$fsc->transporte->idordencarga}">
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="text-left" for="fecha"><b>Fecha de Reparto:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input class="form-control input-sm" type="text" readonly name="fecha" value="{$fsc->transporte->fecha}">
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="text-left" for="codalmacen"><b>Almacen:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input class="form-control input-sm" type="text" readonly name="codalmacen" value="{$fsc->transporte->codalmacen}">
+                    </div>
+                </div>
+                <span><br /></span>
+                <div class="col-sm-12">
+                    <div class="col-sm-2">
+                        <label class="text-left" for="idordencarga"><b>Agencia:</b></label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input class="form-control input-sm" type="text" readonly name="codagencia" value="{$fsc->transporte->codtrans}">
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="text-left" for="fecha"><b>Conductor:</b></label>
+                    </div>
+                    <div class="col-sm-6">
+                        <input class="form-control input-sm" type="text" readonly name="conductor" value="{$fsc->transporte->conductor_nombre}">
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <ul class="nav nav-tabs" role="tablist" style="margin-top: 15px;">
+                        <li role="presentation" class="active"><a href="#facturas" aria-controls="facturas" role="tab" data-toggle="tab">Facturas del Transporte</a></li>
+                        <li role="presentation"><a href="#articulos" aria-controls="articulos" role="tab" data-toggle="tab">Articulos Transportados</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="facturas">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Factura</th>
+                                        <th>{#FS_NUMERO2#}</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th class="text-right">Cantidad</th>
+                                        <th class="text-right">Monto</th>
+                                        <th class="text-right">Abono</th>
+                                        <th class="text-right">Saldo</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <!--
+                                {$sumMonto=0}
+                                {$sumAbono=0}
+                                {$sumSaldo=0}
+                                {$sumFacturas=0}
+                                {$sumPagadas=0}
+                                !-->
+                                {loop="$fsc->facturastransporte"}
+                                <tr>
+                                    <td class="text-center">
+                                       {if condition="$value->pagada"}
+                                       {$sumPagadas=$sumPagadas+1}
+                                       <span class="glyphicon glyphicon-ok" title="La factura está pagada"></span>
+                                       {else}
+                                       <input type="checkbox" name="idfactura" value="{$value->idfactura}" checked="checked"/>
+                                       <!--{$total+=$value->total}-->
+                                       {/if}
+                                    </td>
+                                    <td><a href="{$value->enlace}">{$value->idfactura}</a></td>
+                                    <td>{$value->ncf}</td>
+                                    <td>{$value->nombrecliente}</td>
+                                    <td>{$value->fecha_factura}</td>
+                                    <td class="text-right">{$value->cantidad}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->monto)}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->abono)}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->saldo)}</td>
+                                    <td class="text-right">
+                                    {if="$value->pagada"}
+                                        <button class="btn btn-sm btn-danger" type="button" onclick="alert('Para eliminar el pago debe hacerlo un contador');">
+                                           <span class="glyphicon glyphicon-lock"></span> &nbsp; Pagada
+                                        </button>
+                                    {else}
+                                        <a href="#" class="btn btn-sm btn-primary" onclick="devolucionarFactura('{$value->idfactura}')">
+                                            <span class="fa fa-reply"></span>&nbsp; Devolucionar
+                                        </a>
+                                    {/if}
+                                    </td>
+                                </tr>
+                                <!--
+                                {$sumMonto=$sumMonto+$value->monto}
+                                {$sumAbono=$sumAbono+$value->abono}
+                                {$sumSaldo=$sumSaldo+$value->saldo}
+                                {$sumFacturas=$sumFacturas+1}
+                                !-->
+                                {/loop}
+                                <tr>
+                                    <td colspan="6" class="text-right"><b>Total</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumMonto)}</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumAbono)}</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumSaldo)}</b></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="articulos">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Referencia</th>
+                                        <th>Artículo</th>
+                                        <th class="text-right">Salida</th>
+                                        <th class="text-right">Devolución</th>
+                                        <th class="text-right">Saldo</th>
+                                    </tr>
+                                </thead>
+                                <!--
+                                {$sumSalida=0}
+                                {$sumDevolucion=0}
+                                {$sumSaldoDev=0}
+
+                                !-->
+                                {loop="$fsc->lineastransporte"}
+                                <tr>
+                                    <td class="text-center">
+                                    </td>
+                                    <td>{$value->referencia}</td>
+                                    <td>{$value->descripcion}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->cantidad)}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->devolucion)}</td>
+                                    <td class="text-right">{$fsc->show_numero($value->cantidad+$value->devolucion)}</td>
+                                </tr>
+                                <!--
+                                {$sumSalida+=$value->cantidad}
+                                {$sumDevolucion+=$value->devolucion}
+                                {$sumSaldoDev+=($value->cantidad+$value->devolucion)}
+
+                                !-->
+                                {/loop}
+                                <tr>
+                                    <td colspan="3" class="text-right"><b>Total</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumSalida)}</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumDevolucion)}</b></td>
+                                    <td class="text-right"><b>{$fsc->show_numero($sumSaldoDev)}</b></td>
+                                    <td></td>
+                                </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3">
+                           <div class="btn-group">
+                              <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_todo()" title="Marcar todo">
+                                 <span class="glyphicon glyphicon-check"></span>
+                              </button>
+                              <button class="btn btn-sm btn-default" type="button" onclick="fs_marcar_nada()" title="Desmarcar todo">
+                                 <span class="glyphicon glyphicon-unchecked"></span>
+                              </button>
+                              <button class="btn btn-sm btn-primary" type="button" data-toggle="modal" data-target="#modal_opciones_pago">
+                                 <span class="glyphicon glyphicon-ok"></span> &nbsp; Marcar como pagadas
+                              </button>
+                           </div>
+                        </div>
+                        <div class="col-sm-3 text-center">
+                            {if="!$fsc->transporte->devolucionado"}
+                            <button class="btn btn-sm btn-warning" id="b_confirmar_devolucion" type="button" onclick="confirmarDevolucion({$fsc->transporte->idtransporte},'{$fsc->transporte->codalmacen}')">
+                               <span class="glyphicon glyphicon-ok"></span>
+                               <span class="hidden-xs">&nbsp;Confirmar Devolución</span>
+                            </button>
+                            {else}
+                            <button class="btn btn-sm btn-success" id="b_imprimir_devolucion" type="button" onclick="imprimirDevolucion({$fsc->transporte->idtransporte},'{$fsc->transporte->codalmacen}')">
+                                <span class="glyphicon glyphicon-print"></span>
+                                <span class="hidden-xs">&nbsp; Imprimir Devolución</span>
+                            </button>
+                            {/if}
+                        </div>
+                        <div class="col-sm-3 text-left">
+                           {if="!$fsc->faltante_transporte"}
+                           <button class="btn btn-sm btn-danger" {if="$fsc->transporte->liquidado"}disabled{/if} type="button" onclick="generarFaltante();">
+                              <span class="glyphicon glyphicon-exclamation-sign"></span> &nbsp; Generar faltante
+                           </button>
+                           {/if}
+                        </div>
+                        {if="$sumPagadas==$sumFacturas"}
+                        <div class="col-sm-3 text-right">
+                            {if="!$fsc->transporte->liquidado"}
+                            <button class="btn btn-sm btn-primary" type="button" onclick="guardarLiquidacion();">
+                               <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar Liquidación
+                            </button>
+                            {else}
+                            <button class="btn btn-sm btn-success" id="b_imprimir_liquidacion" type="button" onclick="imprimirLiquidacion()">
+                                <span class="glyphicon glyphicon-print"></span>
+                                <span class="hidden-xs">&nbsp; Imprimir Liquidación</span>
+                            </button>
+                            {/if}
+                        </div>
+                        {/if}
+                     </div>
+                    {if="$fsc->faltante_transporte"}
+                    <div class="row">
+                        <table class="table table-responsive">
+                            <thead>
+                                <tr>
+                                    <th>Recibo Nro</th>
+                                    <th>Fecha Generado</th>
+                                    <th>Fecha Vencimiento</th>
+                                    <th>Fecha Pagado</th>
+                                    <th>Estado Actual</th>
+                                    <th class="text-right">Monto Faltante</th>
+                                </tr>
+                            </thead>
+                            <tr class='{if="$fsc->faltante_transporte->estado=='pendiente'"}danger{else}info{/if}'>
+                                <td>{$fsc->faltante_transporte->idrecibo}</td>
+                                <td>{$fsc->faltante_transporte->fecha}</td>
+                                <td>{$fsc->faltante_transporte->fechav}</td>
+                                <td>{$fsc->faltante_transporte->fechap}</td>
+                                <td>{$fsc->faltante_transporte->estado}</td>
+                                <td class="text-right">{$fsc->show_numero($fsc->faltante_transporte->importe)}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {/if}
+                </div>
+        </form>
+    </div>
+</div>
+<div class="modal" id="modal_liquidar_factura">
+    <div class="modal-dialog" style="width: 99%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Liquidar Factura</h4>
+            </div>
+            <div class="modal-body" id='modal_body_liquidar_factura'>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal_imprimir_devolucion">
+    <div class="modal-dialog" style="width: 99%; max-width: 950px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body" id='modal_body_imprimir_devolucion'>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal_imprimir_liquidacion">
+    <div class="modal-dialog" style="width: 99%; max-width: 950px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body" id='modal_body_imprimir_liquidacion'>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal_opciones_pago" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Pagar en...</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <select name="codsubcuenta" id="codsubcuenta" class="form-control">
+                        {loop="$fsc->get_subcuentas_pago()"}
+                        {if="$value->codsubcuenta==$fsc->codsubcuenta_pago"}
+                            <option value="{$value->codsubcuenta}" selected="">{$value->descripcion}</option>
+                        {else}
+                            <option value="{$value->codsubcuenta}">{$value->descripcion}</option>
+                        {/if}
+                        {/loop}
+                        <option value="">------</option>
+                        {loop="$fsc->cuenta_banco->all()"}
+                        {if="!$value->codsubcuenta"}
+                        {elseif="$value->codsubcuenta==$fsc->codsubcuenta_pago"}
+                        <option value="{$value->codsubcuenta}" selected="">{$value->descripcion}</option>
+                        {else}
+                        <option value="{$value->codsubcuenta}">{$value->descripcion}</option>
+                        {/if}
+                        {/loop}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                        <input type="text" name="fecha"  id="fecha_pago" value="{$fsc->fecha_pago}" class="form-control datepicker" autocomplete="off"/>
+                    </div>
+                </div>
+                {if="$fsc->cliente"}
+                <p class="help-block">
+                    <span class="glyphicon glyphicon-info-sign"></span>
+                    Se generará un único asiento de pago.
+                </p>
+                {/if}
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-sm btn-primary" onclick="ingresarPago()">
+                    <span class="glyphicon glyphicon-ok"></span>&nbsp; Marcar como pagadas
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{include="footer"}

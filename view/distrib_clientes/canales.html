@@ -1,0 +1,89 @@
+<div class="panel panel-info hidden" id="panel_canales">
+    <div class="panel-heading">
+        <h3 class="panel-title">Canales</h3>
+    </div>
+    <div class="panel-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="text-left">Código Canal</th>
+                    <th class="text-left">Descripción Canal</th>
+                    <th class="text-center">Tarifa Asignada</th>
+                    <th class="text-center">Activo</th>
+                    <th width="120"></th>
+                </tr>
+            </thead>
+            {loop="$fsc->canales"}
+            <form name="f_canales{$value1->codigo}" id="f_canales{$value1->codigo}" method="POST" action="{$fsc->url()}" class="form">
+                <tr{if="!$value->estado"} class="danger"{/if}>
+                    <td>
+                        <input type="text" name="canal" readonly value="{$value1->codigo}" class="form-control"/>
+                    </td>
+                    <td>
+                        <input type="text" name="descripcion" value="{$value1->descripcion}" class="form-control"/>
+                    </td>
+                    <td class="text-center">
+                        Proximamente
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                            <label>
+                                {if="$value->estado"}
+                                <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                {else}
+                                <input type="checkbox" name="estado" value="TRUE"/>
+                                {/if}
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group">
+                            <input type='hidden' name='type' value='canal'>
+                            {if="$fsc->allow_delete"}
+                            {if="$value->tiene_asignados"}
+                            <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar este Canal porque tiene clientes asignados.')">
+                                <span class="glyphicon glyphicon-lock"></span>
+                            </a>
+                            {else}
+                            <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar('Canal', '{$value->codigo}', '')">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </button>
+                            {/if}
+                            {/if}
+                            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;document.f_canales{$value1->codigo}.submit();" title="Guardar">
+                                <span class="glyphicon glyphicon-floppy-disk"></span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </form>
+            {/loop}
+            <form name="n_canales" id="n_canales" action="{$fsc->url()}" method="POST" class="form">
+                <tr class="info">
+                    <td>
+
+                    </td>
+                    <td>
+                        <input type="text" name="descripcion" class="form-control"/>
+                    </td>
+                    <td class="text-center">
+                        Proximamente
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <input type='hidden' name='type' value='canal'>
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;document.n_canales.submit();" title="Guardar">
+                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                    </td>
+                </tr>
+            </form>
+        </table>
+    </div>
+</div>
