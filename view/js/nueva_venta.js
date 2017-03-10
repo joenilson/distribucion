@@ -178,6 +178,13 @@ function recalcular()
          {
             $("#recargo_"+i).val( $("#recargo_"+i).val().replace(",",".") );
          }
+         if($('#codum_'+i).val()!= 'UNIDAD'){
+            l_uds = parseFloat($("#cantidadX_"+i).val());
+           
+          }else{
+             l_uds = parseFloat($("#cantidad_"+i).val());
+          
+            }   
            
          l_uds = parseFloat($("#cantidad_"+i).val());
          l_pvp = parseFloat( $("#pvp_"+i).val() );

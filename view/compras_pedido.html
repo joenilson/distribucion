@@ -2,11 +2,15 @@
 
 {if="$fsc->pedido"}
 <script type="text/javascript" src="{$fsc->get_js_location('ac_email_proveedor.js')}"></script>
-<script type="text/javascript" src="{$fsc->get_js_location('nueva_compra.js')}"></script>
+<script type="text/javascript" src="{$fsc->get_js_location('nueva_compra.js')}">
+
+    
+</script>
 <!--{$lineas=$fsc->pedido->get_lineas()}-->
 
 {if="$fsc->pedido->editable"}
 <script type="text/javascript">
+     all_series1 = {function="json_encode($fsc->articulo_um->all())"};
    all_pedidos = {function="json_encode($fsc->pedido->get_lineas())"}
    numlineas = {function="count($lineas)"};
    fs_nf0 = {#FS_NF0#};
@@ -18,17 +22,37 @@
    nueva_compra_url = '{$fsc->nuevo_pedido_url}';
    kiwimaru_url = '{#FS_COMMUNITY_URL#}/index.php?page=kiwimaru';
    precio_compra = '{#FS_PRECIO_COMPRA#}';
-   all_series1 = {function="json_encode($fsc->articulo_um->all())"};
+  
+   
+    function Convert_um_edit(num){
+     
+      var factor_product = 0;
+      var cant = parseFloat($('#cantidad_'+num).val());
+          
+        all_series1.forEach(function(current,index,arr){
+        
+            if(current.codum == $('#codum_'+num).val()){
+            
+            factor_product = current.factor;
+           }
+         
+       });
+        factor_product = (factor_product * cant);
+         $('#cantidadX_'+num).val(factor_product);
+          recalcular();   
+        //console.log(factor_product);
+    }
  
   {if="$fsc->empresa->recequivalencia"}
    tiene_recargo = true;
+      
    {/if}
   $(document).ready(function () {
       $('#numlineas').val(numlineas);
       usar_almacen();
       usar_divisa();
       recalcular();
-
+      
         $('#ac_proveedor').autocomplete({
          serviceUrl: nueva_compra_url,
          paramName: 'buscar_proveedor',
@@ -44,6 +68,7 @@
          }
       });
    });
+
 </script>
 {/if}
 <script type="text/javascript">
@@ -334,21 +359,23 @@
                            </div>
                         </td>
                         <td><textarea class="form-control" name="desc_{$counter}" rows="1">{$value->descripcion}</textarea></td>
-                        <td>
-                            <input type="text" step="any" id="cantidad_{$counter}" class="form-control text-right" name="cantidad_{$counter}"
-                                   value="{$value->cantidad}" disabled="disable"/>
-                        
+                           <td>
+                            {if="$value->codum =='UNIDAD' "}
+                            <input type="number" step="any" id="cantidad_{$counter}" class="form-control text-right" name="cantidad_{$counter}"
+                                   value="{$value->cantidad}" onkeyup="recalcular()" onchange="recalcular();Convert_um_edit('{$counter}')" />
+                             
+                            {else}
+                             <input type="number" step="any" id="cantidad_{$counter}" class="form-control text-right" name="cantidad_{$counter}"
+                                    value="{$value->cantidad_um}"  onkeyup="recalcular()"  onchange="recalcular();Convert_um_edit('{$counter}')" autocomplete="off" value="1"/>
+                            {/if}
                         </td>
                         
                           <td>
-                            <input type="number" step="any" id="cantidadX_{$counter}" class="form-control text-right" name="cantidadX_{$counter}"
-                             value="{$value->cantidad_um}" onchange="recalcular();"  autocomplete="off" value="1"/>
-                        
+                            <input type="text" id="cantidadX_{$counter}" class="form-control text-right" name="cantidadX_{$counter}"
+                                   value="{$value->cantidad}"  disabled="disable" onchange="recalcular()"/>
                         </td>
-
                         <td>
-
-                          <select class="form-control" id="codum_{$counter}" name="codum_{$counter}"  onchange="">
+                            <select class="form-control" id="codum_{$counter}" name="codum_{$counter}"  onchange=" Convert_um_edit('{$counter}')">
                               {if="$value->codum == ''"}
                              <option value="UNIDAD" selected="">UNIDAD</option>
                              {else}
@@ -381,7 +408,7 @@
                                   onkeyup="recalcular()" onclick="this.select()" autocomplete="off"/>
                         </td>
                         <td>
-                           <input type="text" class="form-control text-right" id="neto_{$counter}" name="neto_{$counter}"
+                           <input type="text"  class="form-control text-right" id="neto_{$counter}" name="neto_{$counter}"
                                   onchange="ajustar_neto('{$counter}')" onclick="this.select()" autocomplete="off"/> 
                         </td>
                         <td>
@@ -443,7 +470,7 @@
                         <td class="text-right">{$fsc->show_precio($fsc->pedido->totaliva, $fsc->pedido->coddivisa)}</td>
                         <td class="recargo text-right">{$fsc->show_precio($fsc->pedido->totalrecargo, $fsc->pedido->coddivisa)}</td>
                         <td class="irpf text-right">{$fsc->show_precio($fsc->pedido->totalirpf, $fsc->pedido->coddivisa)}</td>
-                        <td class="text-right">{$fsc->show_precio($fsc->pedido->total, $fsc->pedido->coddivisa)}</td>
+                        <td class="text-right">{$fsc->show_precio($fsc->pedido->total, $fsc->pedido->coddivisa)}</td> 
                      </tr>
                      {/if}
                   </tbody>

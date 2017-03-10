@@ -33,6 +33,7 @@ var siniva = false;
 var irpf = 0;
 var tiene_recargo = false;
 
+
 function usar_proveedor(codproveedor)
 {
    if(nueva_compra_url !== '')
@@ -106,7 +107,8 @@ function recalcular()
    var total_iva = 0;
    var total_irpf = 0;
    var total_recargo = 0;
-
+   var l_udsEditar = 0;
+   
    for(var i=0; i<numlineas; i++)
    {
       if($("#linea_"+i).length > 0)
@@ -132,22 +134,31 @@ function recalcular()
          {
             $("#irpf_"+i).val( $("#irpf_"+i).val().replace(",",".") );
          }
-         if( $("#recargo_"+i).val().search(",") >= 0 )
-         {
+         if( $("#recargo_"+i).val().search(",") >= 0 ) {
+             
             $("#recargo_"+i).val( $("#recargo_"+i).val().replace(",",".") );
          }
-
-         l_uds = parseFloat($("#cantidad_"+i).val());
+    
+         if($('#codum_'+i).val()!= 'UNIDAD'){
+                 l_uds = parseFloat($("#cantidadX_"+i).val());
+                 
+               
+            }else{
+                
+            l_uds = parseFloat($("#cantidad_"+i).val());
+            }
+            
+         l_udsEditar = parseFloat($("#cantidad_"+i).val());
+         //l_uds = parseFloat($("#cantidad_"+i).val());
          l_pvp = parseFloat( $("#pvp_"+i).val() );
          l_dto = parseFloat( $("#dto_"+i).val() );
          l_neto = l_uds*l_pvp*(100-l_dto)/100;
          l_iva = parseFloat( $("#iva_"+i).val() );
          l_irpf = parseFloat( $("#irpf_"+i).val() );
          l_recargo = parseFloat( $("#recargo_"+i).val() );
-
-         $("#neto_"+i).val( l_neto );
-         if(numlineas == 1)
-         {
+        
+            
+        if(numlineas == 1)  {
             $("#total_"+i).val( fs_round(l_neto, fs_nf0) + fs_round(l_neto*(l_iva-l_irpf+l_recargo)/100, fs_nf0) );
          }
          else
@@ -178,8 +189,7 @@ function recalcular()
    $("#aiva").html( show_numero(total_iva) );
    $("#are").html( show_numero(total_recargo) );
    $("#airpf").html( show_numero(total_irpf) );
-   //console.log(neto);
-   $("#atotal").val( fs_round(neto + total_iva - total_irpf + total_recargo, fs_nf0) );
+   $("#atotal").val( fs_round(neto + total_iva - total_irpf + total_recargo, fs_nf0));
 
    if(total_recargo == 0 && !tiene_recargo)
    {
@@ -198,6 +208,7 @@ function recalcular()
    {
       $(".irpf").show();
    }
+   
 }
 
 function ajustar_neto(i)
@@ -283,8 +294,8 @@ function ajustar_total(i)
       l_recargo = parseFloat( $("#recargo_"+i).val());
       l_irpf = parseFloat( $("#irpf_"+i).val());
       l_total = parseFloat( $("#total_"+i).val());
-      if( isNaN(l_total) )
-      {
+      
+      if( isNaN(l_total) ){
          l_total = 0;
       }
       else if(l_total < 0)
@@ -296,7 +307,7 @@ function ajustar_total(i)
       {
          l_neto = 100*l_total/(100+l_iva-l_irpf+l_recargo);
          l_dto = 100 - 100*l_neto/(l_pvp*l_uds);
-         if( isNaN(l_dto) )
+         if( isNaN(l_dto))
          {
             l_dto = 0;
          }
@@ -414,8 +425,8 @@ function add_articulo(ref,desc,pvp,dto,codimpuesto,cantidad,um_base,factor_base,
       <td class=\"warning\" title=\"Cálculo aproximado del total de la linea\">\n\
          <input type=\"text\" class=\"form-control text-right\" id=\"total_"+numlineas+"\" name=\"total_"+numlineas+
          "\" onchange=\"ajustar_total("+numlineas+")\" onclick=\"this.select()\" autocomplete=\"off\"/></td></tr>");
-   numlineas += 1;
-   $("#numlineas").val(numlineas);
+         numlineas += 1;
+        $("#numlineas").val(numlineas);
    recalcular();
 
    $("#modal_articulos").modal('hide');

@@ -413,13 +413,13 @@ class ventas_pedido extends fs_controller
                   
                          if($_POST['codum_'.$num] == "UNIDAD"){
                              
-                             $lineas[$k]->cantidad_um = floatval($_POST['cantidadX_' . $num]);
-                             $lineas[$k]->cantidad = floatval($_POST['cantidadX_' . $num]);
+                             $lineas[$k]->cantidad_um = floatval($_POST['cantidad_' . $num]);
+                             $lineas[$k]->cantidad = floatval($_POST['cantidad_' . $num]);
                              $lineas[$k]->codum = $unidadM->codum;
 
                          }else{
-                          $lineas[$k]->cantidad_um = floatval($_POST['cantidadX_'.$num]);
-                          $lineas[$k]->cantidad = floatval($_POST['cantidadX_' .$num] * $unidadM->cantidad); //Cantidad por el factor de la unidad que no sale. 
+                          $lineas[$k]->cantidad_um = floatval($_POST['cantidad_'.$num]);
+                          $lineas[$k]->cantidad = floatval($_POST['cantidad_' .$num] * $unidadM->cantidad); //Cantidad por el factor de la unidad que no sale. 
                           $lineas[$k]->codum = $unidadM->codum;
                          
                          }

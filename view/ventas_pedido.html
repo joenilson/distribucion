@@ -17,6 +17,24 @@
    nueva_venta_url = '{$fsc->nuevo_pedido_url}';
    kiwimaru_url = '{#FS_COMMUNITY_URL#}/index.php?page=kiwimaru';
     all_series1 = {function="json_encode($fsc->articulo_um->all())"};
+    function Convert_um_edit(num){
+     
+      var factor_product = 0;
+      var cant = parseFloat($('#cantidad_'+num).val());
+          
+        all_series1.forEach(function(current,index,arr){
+        
+            if(current.codum == $('#codum_'+num).val()){
+            
+            factor_product = current.factor;
+           }
+         
+       });
+        factor_product = (factor_product * cant);
+         $('#cantidadX_'+num).val(factor_product);
+          recalcular();   
+        //console.log(factor_product);
+    }
    {if="$fsc->cliente_s"}
    all_direcciones = {function="json_encode($fsc->cliente_s->get_direcciones())"};
    {/if}
@@ -392,27 +410,25 @@
                            {/if}
                         </td>
                         <td><textarea class="form-control" name="desc_{$counter}" rows="1">{$value->descripcion}</textarea></td>
-                               <td>
-                            <input type="text" step="any" id="cantidad_{$counter}" class="form-control text-right" name="cantidad_{$counter}"
-                                   value="{$value->cantidad}" disabled="disable"/>
-                        
+                           <td>
+                            {if="$value->codum =='UNIDAD' "}
+                            <input type="number" step="any" id="cantidad_{$counter}" class="form-control text-right" name="cantidad_{$counter}"
+                                   value="{$value->cantidad}" onkeyup="recalcular()" onchange="recalcular();Convert_um_edit('{$counter}')" />
+                             
+                            {else}
+                             <input type="number" step="any" id="cantidad_{$counter}" class="form-control text-right" name="cantidad_{$counter}"
+                                    value="{$value->cantidad_um}"  onkeyup="recalcular()"  onchange="recalcular();Convert_um_edit('{$counter}')" autocomplete="off" value="1"/>
+                            {/if}
                         </td>
                         
                           <td>
-                              {if="$value->cantidad_um == 0"}
-                            
-                              <input type="number" step="any" id="cantidadX_{$counter}" class="form-control text-right" name="cantidadX_{$counter}"
-                             value="{$value->cantidad}" onchange="recalcular();"  autocomplete="off" value="1"/>
-                            {else}
-                             <input type="number" step="any" id="cantidadX_{$counter}" class="form-control text-right" name="cantidadX_{$counter}"
-                             value="{$value->cantidad_um}" onchange="recalcular();"  autocomplete="off" value="1"/>
-                            
-                            {/if}
-                            
+                            <input type="text" id="cantidadX_{$counter}" class="form-control text-right" name="cantidadX_{$counter}"
+                                   value="{$value->cantidad}"  disabled="disable" onchange="recalcular()"/>
                         </td>
- <td>
 
-                          <select class="form-control" id="codum_{$counter}" name="codum_{$counter}"  onchange="Show_unidadmedida({$value->referencia},{$value->idlinea},{$counter})">
+                          <td>
+
+                          <select class="form-control" id="codum_{$counter}" name="codum_{$counter}"  onchange="convertir_um{$counter})">
                               {if="$value->codum == ''"}
                              <option value="UNIDAD" selected="">UNIDAD</option>
                              {else}

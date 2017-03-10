@@ -358,13 +358,13 @@ class compras_pedido extends fs_controller
                   
                          if($_POST['codum_'.$num] == "UNIDAD"){
                              
-                             $lineas[$k]->cantidad_um = floatval($_POST['cantidadX_' . $num]);
-                             $lineas[$k]->cantidad = floatval($_POST['cantidadX_' . $num]);
+                             $lineas[$k]->cantidad_um = floatval($_POST['cantidad_' . $num]);
+                             $lineas[$k]->cantidad = floatval($_POST['cantidad_' . $num]);
                              $lineas[$k]->codum = $unidadM->codum;
 
                          }else{
-                          $lineas[$k]->cantidad_um = floatval($_POST['cantidadX_'.$num]);
-                          $lineas[$k]->cantidad = floatval($_POST['cantidadX_' .$num] * $unidadM->cantidad); //Cantidad por el factor de la unidad que no sale. 
+                          $lineas[$k]->cantidad_um = floatval($_POST['cantidad_'.$num]);
+                          $lineas[$k]->cantidad = floatval($_POST['cantidad_' .$num] * $unidadM->cantidad); //Cantidad por el factor de la unidad que no sale. 
                           $lineas[$k]->codum = $unidadM->codum;
                          
                          }
@@ -466,6 +466,7 @@ class compras_pedido extends fs_controller
             $this->pedido->totalirpf = round($this->pedido->totalirpf, FS_NF0);
             $this->pedido->totalrecargo = round($this->pedido->totalrecargo, FS_NF0);
             $this->pedido->total = $this->pedido->neto + $this->pedido->totaliva - $this->pedido->totalirpf + $this->pedido->totalrecargo;
+            
 
             if( abs(floatval($_POST['atotal']) - $this->pedido->total) >= .02 )
             {
