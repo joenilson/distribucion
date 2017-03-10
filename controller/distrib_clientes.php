@@ -102,6 +102,8 @@ class distrib_clientes extends fs_controller {
             $this->tratar_direccion_cliente();
         }elseif($type == 'select-rutas'){
             $this->lista_rutas();
+        }elseif($type == 'select-subcanal'){
+            $this->lista_subcanales();
         }
 
         $array_cargos_supervisores = $this->listado_cargos('SUP','array');
@@ -119,7 +121,7 @@ class distrib_clientes extends fs_controller {
         $this->canales_activos = $this->distribucion_segmentos->activos_tiposegmento($this->empresa->id, 'CANAL');
         $this->subcanales = $this->distribucion_segmentos->all_tiposegmento($this->empresa->id, 'SUBCANAL');
 
-        $codcliente = \filter_input(INPUT_GET, 'codcliente');
+        $codcliente = \filter_input(INPUT_GET, 'cod');
         if(!empty($codcliente)){
             $this->codcliente = $codcliente;
             $this->info_cliente = $this->cliente->get($codcliente);
@@ -340,7 +342,7 @@ class distrib_clientes extends fs_controller {
         $ruta = \filter_input(INPUT_POST, 'ruta');
         $canal = \filter_input(INPUT_POST, 'canal');
         $subcanal = \filter_input(INPUT_POST, 'subcanal');
-        $borrar = \filter_input(INPUT_POST, 'borrar');
+        $accion = \filter_input(INPUT_POST, 'accion');
         $distcli0 = new distribucion_clientes();
         $distcli0->idempresa = $this->empresa->id;
         $distcli0->codcliente = $codcliente;
@@ -351,10 +353,12 @@ class distrib_clientes extends fs_controller {
         $distcli0->subcanal = $subcanal;
         $distcli0->fecha_creacion = \Date('d-m-Y H:i:s');
         $distcli0->usuario_creacion = $this->user->nick;
-        if($borrar){
+        $distcli0->fecha_modificacion = \Date('d-m-Y H:i:s');
+        $distcli0->usuario_modificacion = $this->user->nick;
+        if($accion == 'eliminar'){
             $distcli0->delete();
             $this->new_message("Datos del cliente $distcli0->codcliente para la ruta $distcli0->ruta eliminados correctamente.");
-        }else{
+        }elseif($accion=='agregar'){
             if($distcli0->save()){
                 $this->new_message("Datos del cliente $distcli0->codcliente tratados correctamente.");
             }else{
@@ -382,6 +386,8 @@ class distrib_clientes extends fs_controller {
         $distccli0->coordenadas = $coordenadas;
         $distccli0->fecha_creacion = \Date('d-m-Y H:i:s');
         $distccli0->usuario_creacion = $this->user->nick;
+        $distccli0->fecha_modificacion = \Date('d-m-Y H:i:s');
+        $distccli0->usuario_modificacion = $this->user->nick;
         if($borrar){
             $distccli0->delete();
             $this->new_message("Coordenadas de la dirección del cliente $distccli0->codcliente eliminados correctamente.");
@@ -389,7 +395,7 @@ class distrib_clientes extends fs_controller {
             if($distccli0->save()){
                 $this->new_message("Coordenadas del cliente $distccli0->codcliente tratadas correctamente.");
             }else{
-                $this->new_error_msg("¡Imposible tratar los datos ingresados!");
+                $this->new_error_msg("¡Ocurrio un error intentando guardar la coordenada ingresada, por favor revise la longitud o el tipo de dato ingresado!");
             }
         }
         $this->rutas = $this->distribucion_rutas->all($this->empresa->id);
@@ -408,6 +414,14 @@ class distrib_clientes extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($resultados);
     }
+    
+    public function lista_subcanales(){
+        $this->template = FALSE;
+        $canal = filter_input(INPUT_GET, 'canal');
+        $resultados = $this->distribucion_segmentos->activos_codigopadre_tiposegmento($this->empresa->id, $canal, 'SUBCANAL');
+        header('Content-Type: application/json');
+        echo json_encode($resultados);
+    }
 
     private function share_extension() {
         $extensiones = array(
@@ -415,7 +429,7 @@ class distrib_clientes extends fs_controller {
                 'name' => 'distribucion_cliente',
                 'page_from' => __CLASS__,
                 'page_to' => 'ventas_cliente',
-                'type' => 'button',
+                'type' => 'tab',
                 'text' => '<span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> &nbsp; Distribución',
                 'params' => ''
             ),

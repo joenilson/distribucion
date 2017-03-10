@@ -16,68 +16,79 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="page-header">
-                <h3>
-                    <span class="fa fa-money"></span>&nbsp;Informes de Caja
-                    <a href="{$fsc->url()}" class="btn btn-sm btn-default" title="Recargar la página">
-                        <span class="glyphicon glyphicon-refresh"></span>
-                    </a>
-                    <span class="btn-group">
-                        {loop="$fsc->extensions"}
-                        {if="$value->type=='button'"}
-                        <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
-                        {/if}
-                        {/loop}
-                    </span>
-                </h3>
-                <p class="help-block">
-                    <small>
-                    Informe de ingresos y egresos de caja.
-                    </small>
-                </p>
+    <section class="col-sm-12">
+        <div class="page-header">
+            <h3 class="pull-left">
+                <span class="fa fa-money"></span>&nbsp;Informes de Caja
+                <a href="{$fsc->url()}" class="btn btn-sm btn-default" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {/if}
+                <span class="btn-group">
+                    {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                    <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
+                    {/if}
+                    {/loop}
+                </span>
+            </h3>
+            <div class="pull-right">
+                <form class="form-horizontal" role="form" action="{$fsc->url()}" name="f_buscar" method="POST">
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label for="f_desde" class="control-label">Desde</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
+                                <input type="text" name="f_desde" class="form-control datepicker" id="f_desde" value="{$fsc->f_desde}" placeholder="Fecha Inicio">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="f_hasta" class="control-label">Hasta</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
+                                <input type="text" name="f_hasta" class="form-control datepicker" id="f_hasta" value="{$fsc->f_hasta}" placeholder="Fecha Fin">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="codalmacen" class="control-label">Almacén</label>
+                            <select name="codalmacen" class="form-control" required>
+                                <option value="">Elija un Almacen</option>
+                                {if="$fsc->user->admin"}
+                                    {loop="$fsc->almacenes->all()"}
+                                    <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
+                                    {/loop}
+                                {else}
+                                <option value="{$fsc->user->codalmacen}" selected>{$fsc->user->nombrealmacen}</option>
+                                {/if}
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="btn-group" role="group" aria-label="..." style="margin-top: 25px;">
+                                <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
+                                    <span class="fa fa-search"></span>&nbsp;Generar
+                                </button>
+                                <a href="{$fsc->fileNameXLS}" id="b_descargar" class="btn btn-sm btn-link" role="button">
+                                    <span class="fa fa-download"></span>&nbsp;XLS
+                                </a>
+                                <a href="{$fsc->fileNamePDF}" id="b_descargar" download class="btn btn-sm btn-link" role="button">
+                                    <span class="fa fa-download"></span>&nbsp;PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
+            <div class="clearfix"></div>
         </div>
-    </div>
-    <div class="row">
-        <form class="form-horizontal" role="form" action="{$fsc->url()}" name="f_buscar" method="POST">
-            <div class="form-group">
-                <label for="f_desde" class="col-sm-1 control-label">Desde</label>
-                <div class="col-sm-2">
-                    <input type="text" name="f_desde" class="form-control datepicker" id="f_desde" value="{$fsc->f_desde}" placeholder="Fecha Inicio">
-                </div>
-                <label for="f_hasta" class="col-sm-1 control-label">Hasta</label>
-                <div class="col-sm-2">
-                    <input type="text" name="f_hasta" class="form-control datepicker" id="f_hasta" value="{$fsc->f_hasta}" placeholder="Fecha Fin">
-                </div>
-                <label for="codalmacen" class="col-sm-1 control-label">Almacén</label>
-                <div class="col-sm-2">
-                    <select name="codalmacen" class="form-control" required>
-                        <option value="">Elija un Almacen</option>
-                        {if="$fsc->user->admin"}
-                            {loop="$fsc->almacenes->all()"}
-                            <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
-                            {/loop}
-                        {else}
-                        <option value="{$fsc->user->codalmacen}" selected>{$fsc->user->nombrealmacen}</option>
-                        {/if}
-                    </select>
-                </div>
-                <div class="col-sm-3">
-                    <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
-                        <span class="fa fa-search"></span>&nbsp;Generar
-                    </button>
-                    <a href="{$fsc->fileNameXLS}" id="b_descargar" class="btn btn-sm btn-success">
-                        <span class="fa fa-file-excel-o"></span>&nbsp;Archivo XLS
-                    </a>
-                    <a href="{$fsc->fileNamePDF}" id="b_descargar" download class="btn btn-sm btn-info">
-                        <span class="fa fa-file-pdf-o"></span>&nbsp;Archivo PDF
-                    </a>
-                </div>
-            </div>
-        </form>
-    </div>
+    </section>
     <div class="row">
         <div class="col-sm-3">
             <a href="#" class="btn btn-lg btn-block btn-success">
@@ -110,7 +121,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <ul class="nav nav-tabs" role="tablist">
                 <li role="presentation" class="active"><a href="#resumen" aria-controls="resumen" role="tab" data-toggle="tab"><span class="fa fa-th-large"></span>&nbsp;Resumen</a></li>
                 <li role="presentation"><a href="#detalle_ventas" aria-controls="detalle_ventas" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Detalle Ventas</a></li>
+                <li role="presentation"><a href="#cuadre_ventas" aria-controls="cuadre_ventas" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Cuadre Ventas</a></li>
                 <li role="presentation"><a href="#detalle_compras" aria-controls="detalle_compras" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Detalle Compras</a></li>
+                <li role="presentation"><a href="#cuadre_compras" aria-controls="cuadre_compras" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Cuadre Compras</a></li>
             </ul>
             <!-- Tab panes -->
             <div class="tab-content">
@@ -209,7 +222,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- 
+                                    <!--
                                     {$sumaIngresoBruto=0}
                                     {$sumaIngresoNeto=0}
                                     {$sumaEgresoBruto=0}
@@ -223,7 +236,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         <td class="text-right">{$fsc->show_precio($fsc->egresos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
                                         <td class="text-right">{$fsc->show_precio($fsc->pagos_condpago[$value->codpago],$fsc->empresa->coddivisa)}</td>
                                     </tr>
-                                    <!-- 
+                                    <!--
                                     {$sumaIngresoBruto+=$fsc->ingresos_condpago[$value->codpago]}
                                     {$sumaIngresoNeto+=$fsc->cobros_condpago[$value->codpago]}
                                     {$sumaEgresoBruto+=$fsc->egresos_condpago[$value->codpago]}
@@ -268,7 +281,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- 
+                                <!--
                                 {$totalImporte=0}
                                 {$totalRectificativas=0}
                                 {$totalAbonos=0}
@@ -287,29 +300,217 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <td class="text-center">{$value->fecha}</td>
                                     <td class="text-center {if="$value->fecha!=$value->fecha_pago"}warning{/if}">{if="$value->fecha_pago"}{$value->fecha_pago}{/if}</td>
                                 </tr>
-                                <!-- 
+                                <!--
                                 {$totalImporte+=$value->total}
                                 {$totalRectificativas+=$value->rectificativa}
                                 {$totalAbonos+=$value->abonos}
                                 {$totalSaldo+=($value->total+$value->rectificativa)-$value->abonos}
                                 !-->
                                 {/loop}
-                            </tbody>
-                            <tfoot>
                                 <tr>
-                                    <th colspan="4">Total</th>
+                                    <th colspan="4">Total Ingresos</th>
                                     <th class="text-right">{$fsc->show_precio($totalImporte,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalRectificativas,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalAbonos,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalSaldo,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
                                     <th></th>
                                 </tr>
                                 <tr>
                                     <th colspan="6"></th>
                                     <th colspan="2" class="text-right info">{$fsc->show_precio($totalAbonos+$totalSaldo,$fsc->empresa->coddivisa)}</th>
                                     <th></th>
+                                    <th></th>
                                 </tr>
-                            </tfoot>
+                                <!--
+                                {$totalImporteFaltante=0}
+                                {$totalAbonosFaltante=0}
+                                {$totalSaldoFaltante=0}
+                                !-->
+                                {loop="$fsc->detalle['faltantes']"}
+                                <tr>
+                                    <td><a href='{$value->url()}'>{$value->idrecibo}</a></td>
+                                    <td class="text-center"></td>
+                                    <td class="text-left">{$value->conductor_nombre}</td>
+                                    <td class="text-center">{$value->estado|ucfirst}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->importe,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right"></td>
+                                    <td class="text-right">{$fsc->show_precio($value->importe_pagos,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->importe_saldo,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-center">{$value->fecha}</td>
+                                    <td class="text-center {if="$value->fecha!=$value->fechap"}warning{/if}">{if="$value->fechap"}{$value->fechap}{/if}</td>
+                                </tr>
+                                <!--
+                                {$totalImporteFaltante+=$value->importe}
+                                {$totalAbonosFaltante+=$value->importe_pagos}
+                                {$totalSaldoFaltante+=$value->importe_saldo}
+                                !-->
+                                {/loop}
+                                <tr>
+                                    <th colspan="4">Total Faltantes</th>
+                                    <th class="text-right">{$fsc->show_precio($totalImporteFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right"></th>
+                                    <th class="text-right">{$fsc->show_precio($totalAbonosFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="6"></th>
+                                    <th colspan="2" class="text-right warning">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="6">Total Ingreso Neto</th>
+                                    <th colspan="2" class="text-right active">{$fsc->show_precio(($totalAbonos+$totalSaldo)-$totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="cuadre_ventas">
+                    <div class="table-responsive col-sm-11">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th colspan="87" class="text-center">Listado de Documentos</th>
+                                </tr>
+                                <tr>
+                                    <th class='text-center'>Factura</th>
+                                    <th class='text-center'>{#FS_NUMERO2#}</th>
+                                    <th class='text-center'>Cliente</th>
+                                    <th class='text-center'>Pagada</th>
+                                    <th class='text-center'>Importe</th>
+                                    <th class='text-center'>Rect.</th>
+                                    <th class='text-center'>Abonos</th>
+                                    <th class='text-center'>Saldo</th>
+                                    <th class='text-center'>Fecha Factura</th>
+                                    <th class='text-center'>Fecha Pago</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!--
+                                {$totalImporte=0}
+                                {$totalRectificativas=0}
+                                {$totalAbonos=0}
+                                {$totalSaldo=0}
+                                !-->
+                                {loop="$fsc->detalle['ventas']"}
+                                <tr>
+                                    <td class="text-left"><a href='{$value->url()}'>{$value->idfactura}</a></td>
+                                    <td class="text-center">{$value->numero2}</td>
+                                    <td class="text-left">{$value->nombrecliente}</td>
+                                    <td class="text-center">{if="$value->pagada"}Pagada{else}Pendiente{/if}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->total,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->rectificativa,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio(($value->abonos),$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio((($value->total+$value->rectificativa)-$value->abonos),$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-center">{$value->fecha}</td>
+                                    <td class="text-center {if="$value->fecha!=$value->fecha_pago"}warning{/if}">{if="$value->fecha_pago"}{$value->fecha_pago}{/if}</td>
+                                </tr>
+                                {if="$value->get_rectificativas()"}
+                                    {loop="$value->get_rectificativas()"}
+                                    <tr>
+                                        <td class="text-right"><a href='{$value->url()}'>{$value2->idfactura}</a></td>
+                                        <td class="text-center">{$value2->numero2}</td>
+                                        <td class="text-left text-uppercase">{#FS_FACTURA_RECTIFICATIVA#}</td>
+                                        <td class="text-center">{if="$value2->anulada"}Anulada{else}Activa{/if}</td>
+                                        <td class="text-right"></td>
+                                        <td class="text-right danger">{$fsc->show_precio($value2->total,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right"></td>
+                                        <td class="text-right"></td>
+                                        <td class="text-center">{$value2->fecha}</td>
+                                        <td class="text-center"></td>
+                                    </tr>
+                                    {/loop}
+                                {/if}
+                                <!--
+                                {$totalImporte+=$value->total}
+                                {$totalRectificativas+=$value->rectificativa}
+                                {$totalAbonos+=$value->abonos}
+                                {$totalSaldo+=($value->total+$value->rectificativa)-$value->abonos}
+                                !-->
+                                {/loop}
+                                <tr>
+                                    <th colspan="4">Total Ingresos</th>
+                                    <th class="text-right">{$fsc->show_precio($totalImporte,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalRectificativas,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalAbonos,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalSaldo,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="6"></th>
+                                    <th colspan="2" class="text-right info">{$fsc->show_precio($totalAbonos+$totalSaldo,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                                <!--
+                                {$totalImporteFaltante=0}
+                                {$totalAbonosFaltante=0}
+                                {$totalSaldoFaltante=0}
+                                !-->
+                                {loop="$fsc->detalle['faltantes']"}
+                                <tr>
+                                    <td><a href='{$value->url()}'>{$value->idrecibo}</a></td>
+                                    <td class="text-center"></td>
+                                    <td class="text-left">{$value->conductor_nombre}</td>
+                                    <td class="text-center">{$value->estado|ucfirst}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->importe,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right"></td>
+                                    <td class="text-right">{$fsc->show_precio($value->importe_pagos,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->importe_saldo,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-center">{$value->fecha}</td>
+                                    <td class="text-center {if="$value->fecha!=$value->fechap"}warning{/if}">{if="$value->fechap"}{$value->fechap}{/if}</td>
+                                </tr>
+                                {if="$value->get_pagos()"}
+                                    {loop="$value->get_pagos()"}
+                                    <tr>
+                                        <td><a href='{$value->url()}'>{$value->idrecibo}</a></td>
+                                        <td class="text-center"></td>
+                                        <td class="text-left"></td>
+                                        <td class="text-center">{$value->estado|ucfirst}</td>
+                                        <td class="text-right"></td>
+                                        <td class="text-right"></td>
+                                        <td class="text-right">{$fsc->show_precio($value->importe,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right"></td>
+                                        <td class="text-center">{$value->fecha}</td>
+                                        <td class="text-center"></td>
+                                    </tr>
+                                    {/loop}
+                                {/if}
+                                <!--
+                                {$totalImporteFaltante+=$value->importe}
+                                {$totalAbonosFaltante+=$value->importe_pagos}
+                                {$totalSaldoFaltante+=$value->importe_saldo}
+                                !-->
+                                {/loop}
+                                <tr>
+                                    <th colspan="4">Total Faltantes</th>
+                                    <th class="text-right">{$fsc->show_precio($totalImporteFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right"></th>
+                                    <th class="text-right">{$fsc->show_precio($totalAbonosFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="6"></th>
+                                    <th colspan="2" class="text-right warning">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="6">Total Ingreso Neto</th>
+                                    <th colspan="2" class="text-right active">{$fsc->show_precio(($totalAbonos+$totalSaldo)-$totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -334,7 +535,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- 
+                                <!--
                                 {$totalImporte=0}
                                 {$totalRectificativas=0}
                                 {$totalAbonos=0}
@@ -353,7 +554,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <td class="text-center">{$value->fecha}</td>
                                     <td class="text-center {if="$value->fecha!=$value->fecha_pago"}warning{/if}">{if="$value->fecha_pago"}{$value->fecha_pago}{/if}</td>
                                 </tr>
-                                <!-- 
+                                <!--
                                 {$totalImporte+=$value->total}
                                 {$totalRectificativas+=$value->rectificativa}
                                 {$totalAbonos+=$value->abonos}

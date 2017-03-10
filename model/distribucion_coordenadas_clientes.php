@@ -18,19 +18,56 @@
  */
 require_model('direccion_cliente.php');
 /**
- * Description of distribucion_coordenadas_clientes
+ * Tabla para almacenar las coordenadas de los clientes
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class distribucion_coordenadas_clientes extends fs_model {
+    /**
+     * El id de la empresa
+     * @var type integer
+     */
     public $idempresa;
+    /**
+     * El codidgo del cliente
+     * @var type varchar(6)
+     */
     public $codcliente;
+    /**
+     * El id de la tabla direccion_cliente
+     * @var type integer
+     */
     public $iddireccion;
+    /**
+     * Las coordenadas del cliente en formato LAT,LON
+     * ejemplo 24.8240156,-75.4925647
+     * @var type varchar(64)
+     */
     public $coordenadas;
+    /**
+     * Fecha de creación
+     * @var type date(y-m-d)
+     */
     public $fecha_creacion;
+    /**
+     * Fecha de modificacion
+     * @var type date(y-m-d)
+     */
     public $fecha_modificacion;
+    /**
+     * Usuario que crea la entrada
+     * @var type varchar(10)
+     */
     public $usuario_creacion;
+    /**
+     * Usuario que modifica la entrada
+     * @var type varhcar(10)
+     */
     public $usuario_modificacion;
+    /**
+     * Variable auxiliar para cargar el model direccion_cliente
+     * @var type object model direccion_cliente
+     */
     public $direccion_cliente;
     
     public function __construct($t = false) {
