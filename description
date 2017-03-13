@@ -1,8 +1,8 @@
-Plugin de FacturaScripts para manejo de unidades_medida.
+Plugin de FacturaScripts para manejo de Distribución de productos/articulos.
 <ul>
-<li>Agregar unidades de medida a los articulos</li>
-<li>Al momento de crear un pedido, albaran o factura se puede elegir la unidad de medida a usar</li>
-<li>Reportes con agrupación en distintas unidades de medida</a>
-<li></li>
+<li>Agrupación de facturas en un transporte</li>
+<li>Creación de unidades de transporte</li>
+<li>Recepción de devoluciones de distribución</li>
+<li>Liquidación de transportes con generación de notas de credito</li>
+<li>Generación de Pagos de Facturas al liquidar un transporte</li>
 </ul>
-Requisitos son facturacion_base y presupuestos_y_pedidos
