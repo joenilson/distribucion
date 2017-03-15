@@ -469,8 +469,11 @@ class imprimir_unidadmedida extends fs_controller {
                 if (get_class_name($lineas[$linea_actual]) == 'linea_pedido_proveedor') {
                     $descripcion = '<b>' . $this->get_referencia_proveedor($lineas[$linea_actual]->referencia, $this->documento->codproveedor)
                             . '</b> ' . $descripcion;
+                      /*Linea para validar la impresion de los pedidos con sus unidades de medidas correspondientes*/
+                    $this->document_client =  $this->documento;
                 } else {
                     $descripcion = '<b>' . $lineas[$linea_actual]->referencia . '</b> ' . $descripcion;
+                    
                 }
             }
             /**
