@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Document   : lineasfacturasprov.xml
+    Author     : Carlos Garcia Gomez
     Description:
         Estructura de la tabla lineasfacturasprov.
 -->
@@ -102,6 +103,10 @@
    </columna>
    <columna>
       <nombre>referencia</nombre>
+      <tipo>character varying(18)</tipo>
+   </columna>
+   <columna>
+      <nombre>codcombinacion</nombre>
       <tipo>character varying(18)</tipo>
    </columna>
    <restriccion>

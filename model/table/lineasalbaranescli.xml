@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Document   : lineasalbaranescli.xml
+    Author     : Carlos Garcia Gomez
     Description:
         Estructura de la tabla lineasalbaranescli.
 -->
@@ -103,6 +104,10 @@
    </columna>
    <columna>
       <nombre>referencia</nombre>
+      <tipo>character varying(18)</tipo>
+   </columna>
+   <columna>
+      <nombre>codcombinacion</nombre>
       <tipo>character varying(18)</tipo>
    </columna>
    <columna>
