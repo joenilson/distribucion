@@ -22,6 +22,7 @@ require_model('distribucion_ordencarga_facturas.php');
 require_model('distribucion_ordencarga.php');
 require_model('distribucion_lineasordencarga.php');
 require_model('articulo_unidadmedida.php');
+require_model('unidadmedida.php');
 /**
  * Description of helper_ordencarga
  *
@@ -116,8 +117,9 @@ class helper_ordencarga extends fs_controller {
 
 
         foreach($lineasordencarga as $key=>$linea){
-
-            $medidas = $this->articulo_unidadmedida->getBase($linea->referencia);
+            //Algunos articulos no tienen unidad de medida al encontrar un  dato vacio de un error de nulo, por defecto se le valida la 'UNIDAD' por defecto.
+            $art = new articulo_unidadmedida();
+            $this->articulo_unidadmedida = $art->getBase($linea->referencia);
             $table.= '<tr style="font-size: 10px;">';
             $table.= '<td width="30%">';
             $table.= $linea->referencia;
@@ -126,7 +128,7 @@ class helper_ordencarga extends fs_controller {
             $table.= $linea->descripcion;
             $table.= '</td>';
             $table.= '<td width="20%">';
-            $table.= $medidas->nombre_um;
+            $table.= !empty($this->articulo_unidadmedida->codum)? $this->articulo_unidadmedida->codum:'UNIDAD';
             $table.= '</td>';
             $table.= '<td width="10%" align="right">';
             $table.= number_format($linea->cantidad,2,".",",");
