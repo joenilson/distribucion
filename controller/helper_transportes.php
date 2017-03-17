@@ -22,7 +22,7 @@ require_model('distribucion_ordencarga_facturas.php');
 require_model('distribucion_ordencarga.php');
 require_model('distribucion_lineasordencarga.php');
 require_model('articulo_unidadmedida.php');
-
+require_model('unidadmedida.php');
 /**
  * Description of helper_transportes
  *
