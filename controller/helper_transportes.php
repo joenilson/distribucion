@@ -343,7 +343,8 @@ class helper_transportes extends fs_controller {
         //$lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen)
         foreach($lineastransporte as $key=>$linea){
 
-            $medidas = $this->articulo_unidadmedida->getBase($linea->referencia);
+            $art = new articulo_unidadmedida();
+            $this->articulo_unidadmedida = $art->getBase($linea->referencia);
             $table.= '<tr style="font-size: 9px;">';
             $table.= '<td width="18%">';
             $table.= $linea->referencia;
@@ -352,7 +353,7 @@ class helper_transportes extends fs_controller {
             $table.= $linea->descripcion;
             $table.= '</td>';
             $table.= '<td width="10%" align="right">';
-            $table.=  $medidas->codum;
+            $table.=  !empty($this->articulo_unidadmedida->codum)? $this->articulo_unidadmedida->codum:'UNIDAD';
             $table.= '</td>';
             $table.= '<td width="9%" align="right">';
             $table.= number_format($linea->cantidad,2,".",",");
