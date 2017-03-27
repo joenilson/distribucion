@@ -342,7 +342,6 @@ class helper_transportes extends fs_controller {
         $maxLineas = 34;
         //$lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen)
         foreach($lineastransporte as $key=>$linea){
-
             $art = new articulo_unidadmedida();
             $this->articulo_unidadmedida = $art->getBase($linea->referencia);
             $table.= '<tr style="font-size: 9px;">';
