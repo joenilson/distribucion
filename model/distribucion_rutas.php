@@ -395,4 +395,28 @@ class distribucion_rutas extends fs_model {
             return false;
         }
     }
+    
+    public function search($almacen,$query){
+        $lista = array();
+        $sql = "SELECT * FROM ".$this->table_name." WHERE ";
+        $sql .= "codalmacen = ".$this->var2str($almacen);
+        if(is_numeric($query)){
+            $sql.= " AND CAST(codruta as CHAR) like '%".$query."%'";
+            $sql.= " OR ruta like '%".$query."%'";
+            $sql.="ORDER BY codalmacen, codruta";
+        }else{
+            $sql.= " OR lower(ruta) like '%".$query."%'";
+            $sql.= " OR lower(descripcion) like '%".$query."%'";
+            $sql.=" ORDER BY codalmacen, codruta";
+        }
+        $data = $this->db->select($sql);
+        if($data){
+            foreach($data as $d){
+                $value = new distribucion_rutas($d);
+                $value_final = $this->info_adicional($value);
+                $lista[] = $value_final;
+            }
+        }
+        return $lista;
+    }
 }

@@ -383,112 +383,176 @@ class impresion_rutas extends fs_controller{
     }
 
     private function share_extensions(){
-        $fsext0 = new fs_extension(
+        $extensiones = array(
             array(
                 'name' => 'impresion_rutas_datepicker_es_js',
                 'page_from' => __CLASS__,
                 'page_to' => 'impresion_rutas',
                 'type' => 'head',
-                'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
+                'text' => '<script type="text/javascript" src="' . FS_PATH . 'plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_jqueryui_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="' . FS_PATH . 'plugins/distribucion/view/js/jquery-ui.min.js"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_jqueryui_css1',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="' . FS_PATH . 'plugins/distribucion/view/css/jquery-ui.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_jqueryui_css2',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="' . FS_PATH . 'plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_jqueryui_css3',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="' . FS_PATH . 'plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_css5',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="' . FS_PATH . 'plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_css6',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<script src="' . FS_PATH . 'plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_css7',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<script src="' . FS_PATH . 'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_css11',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="' . FS_PATH . 'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
                 'params' => ''
             )
         );
-        $fsext0->save();
-
-        $fsext1 = new fs_extension(
+        
+        foreach ($extensiones as $ext) {
+            $fsext0 = new fs_extension($ext);
+            if (!$fsext0->delete()) {
+                $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
+            }
+        }
+        
+        $extensiones2 = array(
             array(
-            'name' => 'impresion_rutas_jqueryui_js',
-            'page_from' => __CLASS__,
-            'page_to' => 'impresion_rutas',
-            'type' => 'head',
-            'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/jquery-ui.min.js"></script>',
-            'params' => ''
+                'name' => '001_impresion_rutas_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="' . FS_PATH . 'plugins/distribucion/view/js/jquery-ui.min.js"></script>',
+                'params' => ''
+            ),            
+            array(
+                'name' => '002_impresion_rutas_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="' . FS_PATH . 'plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '003_impresion_rutas_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/locale/defaults-es_CL.min.js"></script>',
+                'params' => ''
+            ),            
+            array(
+                'name' => '004_impresion_rutas_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<script src="' . FS_PATH . 'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),            
+            array(
+                'name' => '005_impresion_rutas_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<script src="' . FS_PATH . 'plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_jqueryui_css1',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="' . FS_PATH . 'plugins/distribucion/view/css/jquery-ui.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_jqueryui_css2',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="' . FS_PATH . 'plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_jqueryui_css3',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="' . FS_PATH . 'plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_css5',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="' . FS_PATH . 'plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'impresion_rutas_css11',
+                'page_from' => __CLASS__,
+                'page_to' => 'impresion_rutas',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="' . FS_PATH . 'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
+                'params' => ''
             )
         );
-        $fsext1->save();
-
-        $fsext2 = new fs_extension(
-            array(
-            'name' => 'impresion_rutas_jqueryui_css1',
-            'page_from' => __CLASS__,
-            'page_to' => 'impresion_rutas',
-            'type' => 'head',
-            'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.min.css"/>',
-            'params' => ''
-            )
-        );
-        $fsext2->save();
-
-        $fsext3 = new fs_extension(
-                array(
-           'name' => 'impresion_rutas_jqueryui_css2',
-           'page_from' => __CLASS__,
-           'page_to' => 'impresion_rutas',
-           'type' => 'head',
-           'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
-           'params' => ''
-                )
-        );
-        $fsext3->save();
-
-        $fsext4 = new fs_extension(
-                array(
-           'name' => 'impresion_rutas_jqueryui_css3',
-           'page_from' => __CLASS__,
-           'page_to' => 'impresion_rutas',
-           'type' => 'head',
-           'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
-           'params' => ''
-                )
-        );
-        $fsext4->save();
         
-        $fsext6 = new fs_extension(
-          array(
-           'name' => 'impresion_rutas_css5',
-           'page_from' => __CLASS__,
-           'page_to' => 'impresion_rutas',
-           'type' => 'head',
-           'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
-           'params' => ''
-          )
-        );
-        $fsext6->save();
-
-        $fsext7 = new fs_extension(
-                array(
-           'name' => 'impresion_rutas_css6',
-           'page_from' => __CLASS__,
-           'page_to' => 'impresion_rutas',
-           'type' => 'head',
-           'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
-           'params' => ''
-                )
-        );
-        $fsext7->save();
-
-        $fsext8 = new fs_extension(
-                array(
-           'name' => 'impresion_rutas_css7',
-           'page_from' => __CLASS__,
-           'page_to' => 'impresion_rutas',
-           'type' => 'head',
-           'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
-           'params' => ''
-                )
-        );
-        $fsext8->save();
-        
-        $fsext11 = new fs_extension(
-                array(
-           'name' => 'impresion_rutas_css11',
-           'page_from' => __CLASS__,
-           'page_to' => 'impresion_rutas',
-           'type' => 'head',
-           'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
-           'params' => ''
-                )
-        );
-        $fsext11->save();
+        foreach ($extensiones2 as $ext) {
+            $fsext0 = new fs_extension($ext);
+            if (!$fsext0->save()) {
+                $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
+            }
+        }
     }
 }

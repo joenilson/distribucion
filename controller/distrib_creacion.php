@@ -852,6 +852,121 @@ class distrib_creacion extends fs_controller {
 
       foreach ($extensiones as $ext) {
          $fsext0 = new fs_extension($ext);
+         if (!$fsext0->delete()) {
+            $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
+         }
+      }
+      
+      $extensiones2 = array(
+          array(
+            'name' => '001_ordencarga_jqueryui_js',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/jquery-ui.min.js"></script>',
+            'params' => ''
+         ),
+         array(
+            'name' => '002_distribucion__grid_js',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
+            'params' => ''
+         ),          
+          array(
+            'name' => '003_distribucion_gridlocale_js',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
+            'params' => ''
+         ),
+         array(
+            'name' => '004_distribucion_bootstrap-select_js',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>',
+            'params' => ''
+         ),
+         array(
+            'name' => '005_distribucion_validator_js',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>',
+            'params' => ''
+         ),
+         array(
+            'name' => '008_ordencarga_datepicker_es_js',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
+            'params' => ''
+         ),
+         array(
+            'name' => '009_distribucion_js10',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/defaults-es_CL.min.js" type="text/javascript"></script>',
+            'params' => ''
+         ),
+         
+         array(
+            'name' => 'ordencarga_jqueryui_css1',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.min.css"/>',
+            'params' => ''
+         ),
+         array(
+            'name' => 'ordencarga_jqueryui_css2',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
+            'params' => ''
+         ),
+         array(
+            'name' => 'ordencarga_jqueryui_css3',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
+            'params' => ''
+         ),
+         array(
+            'name' => 'distribucion_css4',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/distribucion.css"/>',
+            'params' => ''
+         ),
+         array(
+            'name' => 'distribucion_css5',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
+            'params' => ''
+         ),
+         array(
+            'name' => 'distribucion_css11',
+            'page_from' => __CLASS__,
+            'page_to' => 'distrib_creacion',
+            'type' => 'head',
+            'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
+            'params' => ''
+         ),
+      );
+
+      foreach ($extensiones2 as $ext) {
+         $fsext0 = new fs_extension($ext);
          if (!$fsext0->save()) {
             $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
          }

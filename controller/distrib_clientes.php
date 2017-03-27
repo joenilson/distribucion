@@ -452,6 +452,39 @@ class distrib_clientes extends fs_controller {
         );
         foreach ($extensiones as $ext) {
             $fsext0 = new fs_extension($ext);
+            if (!$fsext0->delete()) {
+                $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
+            }
+        }
+        
+        $extensiones2 = array(
+            array(
+                'name' => 'distribucion_cliente',
+                'page_from' => __CLASS__,
+                'page_to' => 'ventas_cliente',
+                'type' => 'tab',
+                'text' => '<span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> &nbsp; Distribución',
+                'params' => ''
+            ),
+            array(
+                'name' => '009_treeview_distribucion_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-treeview.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'treeview_distribucion_css',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-treeview.min.css"/>',
+                'params' => ''
+            )
+        );
+        foreach ($extensiones as $ext) {
+            $fsext0 = new fs_extension($ext);
             if (!$fsext0->save()) {
                 $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
             }

@@ -170,6 +170,8 @@ class distrib_ordencarga extends fs_controller {
             $this->buscar_facturas($buscar_fecha, $codalmacen, $rutas, $offset);
         } elseif ($type === 'select-rutas') {
             $this->lista_rutas($this->empresa->id, $codalmacen);
+        } elseif ($type === 'buscar-rutas') {
+            $this->buscar_rutas();
         } elseif ($type === 'select-unidad') {
             $this->lista_unidades($this->empresa->id, $codtrans, $codalmacen);
         }elseif ($type === 'select-conductor') {
@@ -554,6 +556,16 @@ class distrib_ordencarga extends fs_controller {
     public function total_pendientes(){
         return $this->distrib_ordenescarga->total_pendientes();
     }
+    
+    public function buscar_rutas(){
+        $rutas = new distribucion_rutas();
+        $query = \filter_input(INPUT_POST, 'q');
+        $almacen = \filter_input(INPUT_POST, 'almacen');
+        $data = $rutas->search($almacen,$query);
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    }
 
     public function crear_carga($datos, $retorno) {
 
@@ -602,7 +614,7 @@ class distrib_ordencarga extends fs_controller {
         $conductor = \filter_input(INPUT_POST, 'carga_conductor');
         $fecha_reparto = \filter_input(INPUT_POST, 'carga_fechareparto');
         $carga_facturas = \filter_input(INPUT_POST, 'carga_facturas');
-        $resultados_facturas = $this->crear_carga(['facturas' => $carga_facturas], 'array');
+        $resultados_facturas = $this->crear_carga(array('facturas' => $carga_facturas), 'array');
         $observaciones = \filter_input(INPUT_POST, 'carga_obs');
         $ordenCarga0 = new distribucion_ordenescarga();
         $ordenCarga0->idempresa = $this->empresa->id;
@@ -746,7 +758,7 @@ class distrib_ordencarga extends fs_controller {
     }
 
     private function share_extensions() {
-        $fsext0 = new fs_extension(
+        $extensiones = array(
             array(
                 'name' => 'ordencarga_datepicker_es_js',
                 'page_from' => __CLASS__,
@@ -754,153 +766,241 @@ class distrib_ordencarga extends fs_controller {
                 'type' => 'head',
                 'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
                 'params' => ''
-            )
-        );
-        $fsext0->save();
-
-        $fsext1 = new fs_extension(
+            ),
             array(
-            'name' => 'ordencarga_jqueryui_js',
-            'page_from' => __CLASS__,
-            'page_to' => 'distrib_ordencarga',
-            'type' => 'head',
-            'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/jquery-ui.min.js"></script>',
-            'params' => ''
-            )
-        );
-        $fsext1->save();
-
-        $fsext2 = new fs_extension(
+                'name' => 'ordencarga_jqueryui_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/jquery-ui.min.js"></script>',
+                'params' => ''
+            ),
             array(
-            'name' => 'ordencarga_jqueryui_css1',
-            'page_from' => __CLASS__,
-            'page_to' => 'distrib_ordencarga',
-            'type' => 'head',
-            'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.min.css"/>',
-            'params' => ''
-            )
-        );
-        $fsext2->save();
-
-        $fsext3 = new fs_extension(
-                array(
-           'name' => 'ordencarga_jqueryui_css2',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
-           'params' => ''
-                )
-        );
-        $fsext3->save();
-
-        $fsext4 = new fs_extension(
-                array(
-           'name' => 'ordencarga_jqueryui_css3',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
-           'params' => ''
-                )
-        );
-        $fsext4->save();
-
-        $fsext5 = new fs_extension(
-                array(
-           'name' => 'distribucion_css4',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/distribucion.css"/>',
-           'params' => ''
-                )
-        );
-        $fsext5->save();
-
-        $fsext6 = new fs_extension(
-          array(
-           'name' => 'distribucion_css5',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
-           'params' => ''
-          )
-        );
-        $fsext6->save();
-
-        $fsext7 = new fs_extension(
-                array(
-           'name' => 'distribucion_css6',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
-           'params' => ''
-                )
-        );
-        $fsext7->save();
-
-        $fsext8 = new fs_extension(
-                array(
-           'name' => 'distribucion_css7',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
-           'params' => ''
-                )
-        );
-        $fsext8->save();
-
-        $fsext10 = new fs_extension(
-                array(
-           'name' => 'distribucion_js10',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/defaults-es_CL.min.js" type="text/javascript"></script>',
-           'params' => ''
-                )
-        );
-        $fsext10->save();
-
-        $fsext9 = new fs_extension(
-                array(
-           'name' => 'distribucion_js9',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>',
-           'params' => ''
-                )
-        );
-        $fsext9->save();
-
-        $fsext11 = new fs_extension(
-                array(
-           'name' => 'distribucion_css11',
-           'page_from' => __CLASS__,
-           'page_to' => 'distrib_ordencarga',
-           'type' => 'head',
-           'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
-           'params' => ''
-                )
-        );
-        $fsext11->save();
-
-        $fsext13 = new fs_extension(
+                'name' => 'ordencarga_jqueryui_css1',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.min.css"/>',
+                'params' => ''
+            ),
             array(
-            'name' => 'distribucion_js13',
-            'page_from' => __CLASS__,
-            'page_to' => 'distrib_facturas',
-            'type' => 'head',
-            'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>',
-            'params' => ''
-            )
+                'name' => 'ordencarga_jqueryui_css2',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'ordencarga_jqueryui_css3',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css4',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/distribucion.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css5',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css6',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css7',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_js10',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/defaults-es_CL.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_js9',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css11',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_js13',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_facturas',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '003_distribucion_datepicker_locale_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/defaults-es_CL.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '003_ordencarga_datepicker_locale_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/defaults-es_CL.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
         );
-        $fsext13->save();
+
+        foreach ($extensiones as $ext) {
+            $fsext0 = new fs_extension($ext);
+            if (!$fsext0->delete()) {
+                $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
+            }
+        }
+        
+        $extensiones2 = array(
+            array(
+                'name' => '001_ordencarga_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/jquery-ui.min.js"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '002_ordencarga_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_facturas',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/validator.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '003_ordencarga_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
+                'params' => ''
+            ),            
+            array(
+                'name' => '004_ordencarga_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/locale/defaults-es_CL.min.js"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '005_ordencarga_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '006_ordencarga_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '007_ordencarga_js',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'ordencarga_jqueryui_1_css',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'ordencarga_jqueryui_2_css',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'ordencarga_jqueryui_3_css',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_css',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" href="'.FS_PATH.'plugins/distribucion/view/css/distribucion.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_jqgrid_css',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'distribucion_bootstrap-select_css',
+                'page_from' => __CLASS__,
+                'page_to' => 'distrib_ordencarga',
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
+                'params' => ''
+            ),
+        );
+
+        foreach ($extensiones2 as $ext) {
+            $fsext0 = new fs_extension($ext);
+            if (!$fsext0->save()) {
+                $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
+            }
+        }
     }
 
 }
