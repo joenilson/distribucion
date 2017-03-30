@@ -543,6 +543,7 @@ class distrib_creacion extends fs_controller {
        $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
        $trans0->fechal = NULL;
        $trans0->liquidado = FALSE;
+       $trans0->devolucionado = FALSE;
        $trans0->fecha_modificacion = Date('d-m-Y H:i');
        $trans0->usuario_modificacion = $this->user->nick;
        $msg_aux = "";

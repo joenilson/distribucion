@@ -1,0 +1,173 @@
+{include="header"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid">
+    <section class="col-sm-12">
+        <div class="page-header">
+            <h3 class="pull-left">
+                <span class="fa fa-area-chart"></span>&nbsp;Informe Vendedores
+                <a href="{$fsc->url()}" class="btn btn-sm btn-default" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {/if}
+                <span class="btn-group">
+                    {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                    <a href="index.php?page={$value->from}{$value->params}" class="btn btn-xs btn-default">{$value->text}</a>
+                    {/if}
+                    {/loop}
+                </span>
+            </h3>
+            <div class="pull-right">
+                <form class="form-horizontal" role="form" action="{$fsc->url()}" name="f_buscar" method="POST">
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <label for="f_desde" class="control-label">Desde</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
+                                <input type="text" name="f_desde" class="form-control datepicker" id="f_desde" value="{$fsc->f_desde}" placeholder="Fecha Inicio">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="f_hasta" class="control-label">Hasta</label>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
+                                <input type="text" name="f_hasta" class="form-control datepicker" id="f_hasta" value="{$fsc->f_hasta}" placeholder="Fecha Fin">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="codalmacen" class="control-label">Almacén</label>
+                            <select name="codalmacen" class="form-control" required>
+                                <option value="">Elija un Almacen</option>
+                                {if="$fsc->user->admin"}
+                                    {loop="$fsc->almacenes->all()"}
+                                    <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
+                                    {/loop}
+                                {else}
+                                <option value="{$fsc->user->codalmacen}" selected>{$fsc->user->nombrealmacen}</option>
+                                {/if}
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="btn-group" role="group" aria-label="..." style="margin-top: 25px;">
+                                <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
+                                    <span class="fa fa-search"></span>&nbsp;Generar
+                                </button>
+                                <a href="{$fsc->fileNameXLS}" id="b_descargar" class="btn btn-sm btn-link" role="button">
+                                    <span class="fa fa-download"></span>&nbsp;XLS
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+    </section>
+    <div class="row">
+        <div class="col-sm-12">
+        {if="$fsc->procesado"}
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="text-center">Supervisor</th>
+                        <th rowspan="2" class="text-center">Vendedor</th>
+                        <th rowspan="2" class="text-center">Ruta</th>
+                        <th rowspan="2" class="text-center">Clientes</th>
+                        <th rowspan="2" class="text-center">Qdad Venta</th>
+                        <th rowspan="2" class="text-center">Importe</th>
+                        <th rowspan="2" class="text-center">Qdad Oferta</th>
+                        {loop="$fsc->rango_fechas"}
+                        <th colspan="3" class="text-center">{$value->format("d-m-Y")}</th>
+                        {/loop}
+                    </tr>
+                    <tr>
+                        {loop="$fsc->rango_fechas"}
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-center">Importe</th>
+                        <th class="text-center">Oferta</th>
+                        {/loop}
+                    </tr>
+                </thead>
+                <tbody>
+                    {loop="$fsc->supervisores"}
+                        <!-- {$inicio=0} !-->
+                        {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente)"}    
+                            {loop="$fsc->rutas->all_rutasporagente($fsc->empresa->id, $value2->codalmacen, $value2->codagente)"}
+                            <tr>
+                                {if="$inicio==0"}
+                                <td class="text-left" rowspan="{$fsc->clientes_rutas['mesa_rutas'][$value1->codagente]+$fsc->clientes_rutas['mesa_vendedores'][$value1->codagente]}">{$value1->nombre}</td>
+                                {/if}
+                                {if="$counter==0"}
+                                <td class="text-left" rowspan="{$fsc->clientes_rutas['total_rutas'][$value2->codagente]}">{$value2->nombre}</td>
+                                {/if}
+                                <td class="text-left">{$value3->ruta}</td>
+                                <td class="text-right">{$fsc->clientes_rutas['total'][$value3->ruta]}</td>
+                                <td class="text-right">{$fsc->ruta_cantidad[$value3->ruta]}</td>
+                                <td class="text-right">{$fsc->show_numero($fsc->ruta_importe[$value3->ruta])}</td>
+                                <td class="text-right">{$fsc->ruta_ofertas[$value3->ruta]}</td>
+                                {loop="$fsc->rango_fechas"}
+                                <td class="text-center">{$fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['cantidad']}</td>
+                                <td class="text-center">{if="$fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['importe']"}{$fsc->show_numero($fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['importe'])}{/if}</td>
+                                <td class="text-center">{$fsc->lista_ofertas[$value3->ruta][$value4->format('dmY')]['cantidad']}</td>
+                                {/loop}
+                            </tr>                      
+                            <!-- {$inicio++} !-->
+                            {/loop}
+                            <tr>
+                                <td colspan="2" class="text-right info"><b>Total de {$value2->nombre}</b></td>
+                                <td class="text-right info"><b>{$fsc->clientes_rutas['total_clientes'][$value2->codagente]}</b></td>
+                                <td class="text-right info"><b>{$fsc->vendedor_cantidad[$value2->codagente]}</b></td>
+                                <td class="text-right info"><b>{$fsc->show_numero($fsc->vendedor_importe[$value2->codagente])}</b></td>
+                                <td class="text-right info"><b>{$fsc->vendedor_ofertas[$value2->codagente]}</b></td>
+                                {loop="$fsc->rango_fechas"}
+                                <td class="text-right info"><b>{$fsc->vendedor_total_cantidad[$value2->codagente][$value3->format('dmY')]}</b></td>
+                                <td class="text-right info"><b>{if="$fsc->vendedor_total_importe[$value2->codagente][$value3->format('dmY')]"}{$fsc->show_numero($fsc->vendedor_total_importe[$value2->codagente][$value3->format('dmY')])}{/if}</b></td>
+                                <td class="text-right info"><b>{$fsc->vendedor_total_ofertas[$value2->codagente][$value3->format('dmY')]}</b></td>
+                                {/loop}
+                            </tr>
+                        {/loop}                  
+                        <tr>
+                            <td colspan="3" class="text-left info"><b>Total de {$value1->nombre}</b></td>
+                            <td class="text-right info"><b>{$fsc->clientes_rutas['mesa_clientes'][$value1->codagente]}</b></td>
+                            <td class="text-right info"><b>{$fsc->mesa_cantidad[$value1->codagente]}</b></td>
+                            <td class="text-right info"><b>{$fsc->show_numero($fsc->mesa_importe[$value1->codagente])}</b></td>
+                            <td class="text-right info"><b>{$fsc->mesa_ofertas[$value1->codagente]}</b></td>
+                            {loop="$fsc->rango_fechas"}
+                            <td class="text-right info"><b>{$fsc->mesa_total_cantidad[$value1->codagente][$value2->format('dmY')]}</b></td>
+                            <td class="text-right info"><b>{if="$fsc->mesa_total_importe[$value1->codagente][$value2->format('dmY')]"}{$fsc->show_numero($fsc->mesa_total_importe[$value1->codagente][$value2->format('dmY')])}{/if}</b></td>
+                            <td class="text-right info"><b>{$fsc->mesa_total_ofertas[$value1->codagente][$value2->format('dmY')]}</b></td>
+                            {/loop}
+                        </tr>
+                    {/loop}
+                </tbody>
+            </table>
+        </div>
+        {/if}
+        </div>
+    </div>
+</div>
+{include="footer"}

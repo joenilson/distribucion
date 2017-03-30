@@ -102,26 +102,25 @@ class distribucion_clientes extends fs_model {
         $informacion->nombre = $datos_ruta->nombre;
         $informacion->canal_descripcion = $datos_canal->descripcion;
         $informacion->subcanal_descripcion = $datos_subcanal->descripcion;
-        $informacion->nombre_cliente = ($datos_direccion)?$datos_cliente->nombre:'Error de nombre del cliente';
+        $informacion->nombre_cliente = ($datos_cliente)?$datos_cliente->nombre:'Error de nombre del cliente';
+        $informacion->fechaalta = ($datos_cliente)?$datos_cliente->fechaalta:'Error de fechaalta del cliente';
+        $informacion->fechabaja = ($datos_cliente)?$datos_cliente->fechabaja:'Error de fechabaja del cliente';
+        $informacion->debaja = ($datos_cliente)?$datos_cliente->debaja:'Error de fechabaja del cliente';
         return $informacion;
     }
     
     //Agregando metodo para mostrar la informacion  de la ruta y las iniciales del agente. 
-    public function info_vendedor($factura){
-    $data = $this->db->select("SELECT  '('||dc.ruta || '/'|| substring(ag.nombre,1,1)||substring(ag.apellidos,1,1) ||')' as vendedor   FROM facturascli f inner join distribucion_clientes dc  on dc.codcliente = f.codcliente
-     inner join albaranescli a on a.idfactura = f.idfactura inner join pedidoscli p on p.idalbaran = a.idalbaran
-    inner join agentes ag on ag.codagente = p.codagente  WHERE  f.idfactura=".$this->var2str($factura).";");
-      if($data){
-
-        return $data[0]['vendedor'];
-      }else{
-        return false;
+    public function info_vendedor($factura) {
+        $data = $this->db->select("SELECT  '('||dc.ruta || '/'|| substring(ag.nombre,1,1)||substring(ag.apellidos,1,1) ||')' as vendedor FROM facturascli f inner join distribucion_clientes dc  on dc.codcliente = f.codcliente
+            inner join albaranescli a on a.idfactura = f.idfactura inner join pedidoscli p on p.idalbaran = a.idalbaran
+           inner join agentes ag on ag.codagente = p.codagente  WHERE  f.idfactura=" . $this->var2str($factura) . ";");
+        if ($data) {
+            return $data[0]['vendedor'];
+        } else {
+            return false;
+        }
     }
 
-       }
-
-    
-    
     public function exists() {
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -248,10 +247,35 @@ class distribucion_clientes extends fs_model {
         return $lista;
     }
        
+    public function clientes_almacen($idempresa,$codalmacen)
+    {
+        $sql = "SELECT c.*, dc.* FROM clientes as c, distribucion_clientes as dc ".
+                " WHERE idempresa = ".$this->intval($idempresa).
+                " AND codalmacen = ".$this->var2str($codalmacen).
+                " AND c.codcliente = dc.codcliente ".
+                " ORDER BY ruta, c.codcliente;";
+        $lista = array();
+        $data = $this->db->select($sql);
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $info = new cliente($d);
+                $info->codalmacen = $d['codalmacen'];
+                $info->iddireccion = $d['iddireccion'];
+                $info->ruta = $d['ruta'];
+                $info->canal = $d['canal'];
+                $info->subcanal = $d['subcanal'];
+                $lista[] = $info;
+            }
+        }
+        return $lista;
+    }
+    
     public function clientes_ruta($idempresa,$codalmacen, $ruta)
     {
         $sql = "SELECT * FROM distribucion_clientes ".
-                "WHERE idempresa = ".$this->intval($idempresa).
+                " WHERE idempresa = ".$this->intval($idempresa).
                 " AND ruta = ".$this->var2str($ruta).
                 " AND codalmacen = ".$this->var2str($codalmacen).
                 " ORDER BY ruta, codcliente;";

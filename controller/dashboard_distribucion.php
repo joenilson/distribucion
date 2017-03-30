@@ -65,6 +65,7 @@ class dashboard_distribucion extends fs_controller {
     public $transportes;
     public $conductores;
     public $unidades;
+    public $distribucion_clientes;
     public $organizacion;
     public $supervisores;
     public $vendedores;
@@ -99,6 +100,7 @@ class dashboard_distribucion extends fs_controller {
         $this->familias = new familia();
         $this->facturascli = new factura_cliente();
         $this->facturaspro = new factura_proveedor();
+        $this->distribucion_clientes = new distribucion_clientes();
         $this->organizacion = new distribucion_organizacion();
         $this->faltantes = new distribucion_faltantes();
         $this->unidades = new distribucion_unidades();
@@ -190,8 +192,8 @@ class dashboard_distribucion extends fs_controller {
         $this->clientes_visitados = 0;
         $this->clientes_por_visitar = 0;
         $this->clientes_grupo = array();
-        $clientes = new cliente();
-        foreach($clientes->all_full() as $cli){
+        $clientes_almacen = $this->distribucion_clientes->clientes_almacen($this->empresa->id,$this->codalmacen);
+        foreach($clientes_almacen as $cli){
             $dtalta = new \DateTime(\date('d-m-Y',strtotime($cli->fechaalta))); 
             $dtbaja = new \DateTime(\date('d-m-Y',strtotime($cli->fechabaja)));
             if($cli->debaja and $dtbaja>=$diffdesde AND $dtbaja<=$diffhasta){
@@ -202,8 +204,8 @@ class dashboard_distribucion extends fs_controller {
                 $this->clientes_nuevos++;
             }elseif(!$cli->debaja and $dtalta<$diffdesde){
                 $this->clientes_activos++;  
-            }
-            
+        }
+        
             //Buscamos la atención de clientes del rango de fechas
             $sql = "SELECT COUNT(*) as count FROM facturascli WHERE codcliente = ".$this->empresa->var2str($cli->codcliente)." and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' AND anulada = FALSE;";
             $data = $this->db->select($sql);
@@ -212,7 +214,7 @@ class dashboard_distribucion extends fs_controller {
             }elseif(!$cli->debaja){
                 $this->clientes_por_visitar++;
             }
-            
+                    
             //Guardamos la cantidad total de clientes
             $this->cantidad_clientes++;
             
@@ -301,7 +303,8 @@ class dashboard_distribucion extends fs_controller {
                     $this->clientes_rutas['total_atendidos'][$vendedor->codagente] += $this->clientes_rutas['atendidos'][$ruta->ruta];
                     $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] += $this->clientes_rutas['no_atendidos'][$ruta->ruta];
                 }
-            }if($this->clientes_rutas['total_clientes'][$vendedor->codagente]){
+            }
+            if($this->clientes_rutas['total_clientes'][$vendedor->codagente]){
                 $efectividad_vendedor = round(($this->clientes_rutas['total_atendidos'][$vendedor->codagente]/$this->clientes_rutas['total_clientes'][$vendedor->codagente])*100,0);
             }else{
                 $efectividad_vendedor = 0;
