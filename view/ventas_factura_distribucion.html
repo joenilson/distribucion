@@ -1,0 +1,90 @@
+{include="header2"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+{if="$fsc->factura"}
+<div class="container-fluid">
+    <div class="col-sm-12">
+        <form class="form" role="form" action="{$fsc->url()}">
+            <div class="form-group">
+                <label for="transporte" class="col-sm-2 control-label">Transporte</label>
+                <div class="col-sm-2">
+                    {$fsc->informacion->transporte}
+                </div>
+                <label for="fecha_transporte" class="col-sm-2 control-label">Fecha de Transporte</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="fecha_transporte" value="{$fsc->informacion->fecha_transporte}">
+                </div>
+                <label for="ordencarga" class="col-sm-2 control-label">Orden de Carga</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="ordencarga" value="{$fsc->informacion->ordencarga}">
+                </div>
+                <label for="conductor" class="col-sm-2 control-label">Conductor</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="conductor" value="{$fsc->informacion->conductor_nombre}">
+                </div>
+                <label for="unidad_transporte" class="col-sm-2 control-label">Unidad de Transporte</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="unidad_transporte" value="{$fsc->informacion->unidad_transporte}">
+                </div>
+                <label for="liquidado" class="col-sm-2 control-label">Liquidado</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="liquidado" value="{if="$fsc->informacion->liquidado"}SI{else}NO{/if}">
+                </div>
+                <label for="ruta" class="col-sm-2 control-label">Ruta</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="ruta" value="{$fsc->informacion->ruta}">
+                </div>
+                <label for="vendedor" class="col-sm-2 control-label">Vendedor</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="vendedor" value="{$fsc->informacion->vendedor}">
+                </div>
+                <label for="supervisor" class="col-sm-2 control-label">Supervisor</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="supervisor" value="{$fsc->informacion->supervisor}">
+                </div>
+                <label for="frecuencia_visita" class="col-sm-2 control-label">frecuencia_visita</label>
+                {if="$fsc->informacion->frecuencia_visita"}
+                <div class="btn-group col-sm-4" data-toggle="buttons">
+                    <label id="lunes{$fsc->informacion->frecuencia_visita->ruta}" class="btn btn-default {if="$fsc->informacion->frecuencia_visita->lunes"}active{/if}">
+                        <input name="lunes" type="checkbox" autocomplete="off" {if="$fsc->informacion->frecuencia_visita->lunes"}checked{/if}> Lu
+                    </label>
+                    <label id="martes{$fsc->informacion->frecuencia_visita->ruta}" class="btn btn-default {if="$fsc->informacion->frecuencia_visita->martes"}active{/if}">
+                        <input name="martes" type="checkbox" autocomplete="off" {if="$fsc->informacion->frecuencia_visita->martes"}checked{/if}> Ma
+                    </label>
+                    <label id="miercoles{$fsc->informacion->frecuencia_visita->ruta}" class="btn btn-default {if="$fsc->informacion->frecuencia_visita->miercoles"}active{/if}">
+                        <input name="miercoles" type="checkbox" autocomplete="off" {if="$fsc->informacion->frecuencia_visita->miercoles"}checked{/if}> Mi
+                    </label>
+                    <label id="jueves{$fsc->informacion->frecuencia_visita->ruta}" class="btn btn-default {if="$fsc->informacion->frecuencia_visita->jueves"}active{/if}">
+                        <input name="jueves" type="checkbox" autocomplete="off" {if="$fsc->informacion->frecuencia_visita->jueves"}checked{/if}> Ju
+                    </label>
+                    <label id="viernes{$fsc->informacion->frecuencia_visita->ruta}" class="btn btn-default {if="$fsc->informacion->frecuencia_visita->viernes"}active{/if}">
+                        <input name="viernes" type="checkbox" autocomplete="off" {if="$fsc->informacion->frecuencia_visita->viernes"}checked{/if}> Vi
+                    </label>
+                    <label id="sabado{$fsc->informacion->frecuencia_visita->ruta}" class="btn btn-default {if="$fsc->informacion->frecuencia_visita->sabado"}active{/if}">
+                        <input name="sabado" type="checkbox" autocomplete="off" {if="$fsc->informacion->frecuencia_visita->sabado"}checked{/if}> Sa
+                    </label>
+                    <label id="domingo{$fsc->informacion->frecuencia_visita->ruta}" class="btn btn-default {if="$fsc->informacion->frecuencia_visita->domingo"}active{/if}">
+                        <input name="domingo" type="checkbox" autocomplete="off" {if="$fsc->informacion->frecuencia_visita->domingo"}checked{/if}> Do
+                    </label>
+                </div>
+                {/if}
+            </div>
+        </form>
+    </div>    
+</div>
+{/if}
+{include="footer2"}

@@ -110,6 +110,59 @@
                     </div>
                 </div>
             </div>
+            <div class="col-sm-6">
+                <div class="panel panel-default" id="panel_interno_administradores">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Administradores</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form method="POST" action="{$fsc->url()}">
+                        <div class="row">
+                            <input type="hidden" name="type" value="asignacion_cargos">
+                            <input type="hidden" name="tipo_cargo" value="ADM">
+                            <div class="col-sm-8">
+                                <select class="input-sm form-control" name="cargos_disponibles_administradores">
+                                    <option value="">---------</option>
+                                    {loop="$fsc->cargos_disponibles"}
+                                        <option value="{$value->codcargo}">{$value->descripcion}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                            <div class="col-sm-2 pull-left">
+                                <button class="btn btn-sm btn-warning" type="submit" name="accion" value="agregar" onclick="if(this.form.cargos_disponibles_administradores.value==''){bootbox.alert('Escoja un cargo!'); return false;}else{return true;}"><span class="fa fa-plus"></span></button>
+                            </div>
+                        </div>
+                        </form>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Cargo</th>
+                                    <th width="120"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loop="$fsc->listado_administradores_asignados"}
+                                <form method="POST" action="{$fsc->url()}">
+                                    <tr>
+                                        <td>
+                                            <input type="hidden" name="type" value="asignacion_cargos">
+                                            <input type="hidden" name="codcargo" value="{$value->codcargo}">
+                                            <input type="hidden" name="tipo_cargo" value="{$value->tipo_cargo}">
+                                            {$value->descripcion}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger" name="accion" value="eliminar" onclick="return confirm('Esta seguro de querer eliminar este cargo?')" title="Eliminar Asignación">
+                                                <span class="fa fa-trash"></span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </form>
+                                {/loop}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>

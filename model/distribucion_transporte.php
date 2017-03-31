@@ -122,7 +122,15 @@ class distribucion_transporte extends fs_model {
     }
 
     public function url(){
-        return "index.php?page=distrib_ordencarga";
+        if($this->idtransporte){
+            if($this->liquidado){
+                return "index.php?page=distrib_creacion&type=liquidar-transporte&transporte=".$this->idtransporte."-".$this->codalmacen;
+            }else{
+                return "index.php?page=distrib_creacion";
+            }
+        }else{
+            return "index.php?page=distrib_creacion";
+        }
     }
 
     protected function install() {
@@ -215,8 +223,7 @@ class distribucion_transporte extends fs_model {
 
     public function info_adicional($t){
         $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
-        //(!empty($res->codruta))?$this->tiporuta->get($res->codruta)->descripcion:"";
-        $t->conductor_nombre = (!empty($con0->nombre));
+        $t->conductor_nombre = (!empty($con0->nombre))?$con0->nombre:'';
         return $t;
     }
 

@@ -61,6 +61,7 @@ class admin_distribucion extends fs_controller {
     public $listado_articulos_restringidos;
     public $listado_supervisores_asignados;
     public $listado_vendedores_asignados;
+    public $listado_administradores_asignados;
     public $familia;
     public $type;
     public $nomina;
@@ -167,6 +168,7 @@ class admin_distribucion extends fs_controller {
         $this->listado_articulos_restringidos = $this->distribucion_restricciones_tiporuta->all();
         $this->listado_supervisores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'SUP');
         $this->listado_vendedores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'VEN');
+        $this->listado_administradores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'ADM');
 
     }
     
@@ -422,10 +424,12 @@ class admin_distribucion extends fs_controller {
         $id_supervisor = \filter_input(INPUT_POST, 'cargos_disponibles_supervisores');
         $tipo_cargo = \filter_input(INPUT_POST, 'tipo_cargo');
         $id_vendedor = \filter_input(INPUT_POST, 'cargos_disponibles_vendedores');
+        $id_admin = \filter_input(INPUT_POST, 'cargos_disponibles_administradores');
         $accion = \filter_input(INPUT_POST, 'accion');
 
         if($accion == 'agregar'){
             $id_cargo=($id_supervisor)?$id_supervisor:$id_vendedor;
+            $id_cargo=($id_admin)?$id_admin:$id_cargo;
         }elseif($accion == 'eliminar'){
             $id_cargo=\filter_input(INPUT_POST, 'codcargo');
         }
@@ -444,7 +448,7 @@ class admin_distribucion extends fs_controller {
             $ac0 = $this->distribucion_asignacion_cargos->get($this->empresa->id, $id_cargo, $tipo_cargo);
             if($ac0){
                 $ac0->delete();
-                $this->new_message('Asignación de Supervisor eliminada correctamente.');
+                $this->new_message('Asignación de cargo eliminada correctamente.');
             }else{
                 $this->new_message('Datos incompletos, por favor revise la información enviada');
             }

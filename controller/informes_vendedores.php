@@ -245,14 +245,16 @@ class informes_vendedores extends fs_controller {
                 "facturascli as f, distribucion_clientes as dc, lineasfacturascli as lf ".
                 " WHERE ".
                 " dc.ruta = ".$this->empresa->var2str($linea->ruta).
-                " AND f.codcliente = dc.codcliente AND f.codalmacen = ".$this->empresa->var2str($this->codalmacen).
+                " AND f.codcliente = dc.codcliente ".
+                " AND f.codalmacen = ".$this->empresa->var2str($this->codalmacen).
+                " AND f.codagente = ".$this->empresa->var2str($linea->codagente).
                 " AND f.idfactura = lf.idfactura ".
                 " AND f.anulada = FALSE ".
                 " AND lf.dtopor != 100 ".
                 " AND f.fecha >= ".$this->empresa->var2str(\date('d-m-Y',strtotime($this->f_desde))).
                 " AND f.fecha <= ".$this->empresa->var2str(\date('d-m-Y',strtotime($this->f_hasta))).
-                " GROUP BY fecha ";
-            //$this->new_advice($sql);
+                " GROUP BY fecha ".
+                " ORDER BY fecha ";           
             $data = $this->db->select($sql);
             $fecha_cantidad = array();
             $fecha_importe = array();
@@ -361,8 +363,26 @@ class informes_vendedores extends fs_controller {
         if (file_exists($this->fileNameXLS)) {
             unlink($this->fileNameXLS);
         }
+        $header_format = array("string","string","string","0","0","0.00","0");
+        foreach($this->rango_fechas as $fecha){
+            array_push($header_format,"@");
+            array_push($header_format,"@");
+            array_push($header_format,"@");
+        }
         
-        $this->estilo_cabecera = array('border'=>'left,right,top,bottom','font-style'=>'bold');
+        $this->estilo_cabecera = array('border'=>'left,right,top,bottom','font-style'=>'bold','halign'=>'center');
+        $this->estilo_merged = array( array('halign'=>'left','valign'=>'center','font-style'=>'bold'),array('halign'=>'left','valign'=>'center','font-style'=>'bold'),array('halign'=>'center','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'));
+        foreach($this->rango_fechas as $fecha){
+            array_push($this->estilo_merged,array('halign'=>'right'));
+            array_push($this->estilo_merged,array('halign'=>'right'));
+            array_push($this->estilo_merged,array('halign'=>'right'));
+        }
+        $this->estilo_subtotal_merged = array( array('halign'=>'left','valign'=>'center','font-style'=>'bold'),array('halign'=>'left','valign'=>'center','font-style'=>'bold'),array('halign'=>'center','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'));
+        foreach($this->rango_fechas as $fecha){
+            array_push($this->estilo_subtotal_merged,array('halign'=>'right','font-style'=>'bold'));
+            array_push($this->estilo_subtotal_merged,array('halign'=>'right','font-style'=>'bold'));
+            array_push($this->estilo_subtotal_merged,array('halign'=>'right','font-style'=>'bold'));
+        }
         $this->estilo_cuerpo = array( array('halign'=>'left'),array('halign'=>'right'),array('halign'=>'center'),array('halign'=>'none'));
         $this->estilo_pie = array('border'=>'left,right,top,bottom','font-style'=>'bold','color'=>'#FFFFFF','fill'=>'#000000');
         $header=array();
@@ -387,13 +407,17 @@ class informes_vendedores extends fs_controller {
         $subheader[] = "";
         $subheader[] = "";
         $subheader[] = "";
-        foreach($this->rango_fechas as $fecha){
+        $subheader[] = "";
+        foreach($this->rango_fechas as $fecha) {
             $subheader[]="Cantidad";
             $subheader[]="Importe";
             $subheader[]="Oferta";
         }
         
         $this->writer = new XLSXWriter();
+        /**
+         * Cabecera del archivo
+         */
         $almacen0 = $this->almacenes->get($this->codalmacen);
         $this->writer->writeSheetHeader($almacen0->nombre, array(), true);
         $this->writer->writeSheetRow($almacen0->nombre, $header,$this->estilo_cabecera);
@@ -407,7 +431,79 @@ class informes_vendedores extends fs_controller {
             $this->writer->markMergedCell($almacen0->nombre, 0, $col, 0, $col+2);
             $col = $col+3;
         }
+        //Agregamos el subheader para las lineas debajo de fecha
         $this->writer->writeSheetRow($almacen0->nombre, $subheader,$this->estilo_cabecera);
+        
+        /**
+         * Contenido del archivo
+         */
+        $col_ini_s = 2;
+        foreach($this->supervisores as $sup){
+            $contador_s = 1;
+            $col_ini_v = 2;
+            foreach($this->organizacion->get_asignados($this->empresa->id,$sup->codagente) as $vendedor){
+                $contador_v = 1;
+                foreach($this->rutas->all_rutasporagente($this->empresa->id, $vendedor->codalmacen, $vendedor->codagente) as $rutas){
+                    $linea = array();
+                    $linea[] = $sup->nombre;
+                    $linea[]=$vendedor->nombre;
+                    $linea[]=$rutas->ruta;
+                    $linea[]=$this->clientes_rutas['total'][$rutas->ruta];
+                    $linea[]=$this->ruta_cantidad[$rutas->ruta];
+                    $linea[]=round($this->ruta_importe[$rutas->ruta],2);
+                    $linea[]=$this->ruta_ofertas[$rutas->ruta];
+                    foreach($this->rango_fechas as $fecha){
+                        $linea[]=$this->lista_ruta[$rutas->ruta][$fecha->format('dmY')]['cantidad'];
+                        $linea[]=round($this->lista_ruta[$rutas->ruta][$fecha->format('dmY')]['importe'],FS_NF0);
+                        $linea[]=$this->lista_ofertas[$rutas->ruta][$fecha->format('dmY')]['cantidad'];
+                    }
+                    $this->writer->writeSheetRow($almacen0->nombre, $linea,$this->estilo_merged);
+                    if($contador_s==1){
+                        $col_fin = $this->clientes_rutas['mesa_rutas'][$sup->codagente]+$this->clientes_rutas['mesa_vendedores'][$sup->codagente]+2;
+                        $this->writer->markMergedCell($almacen0->nombre, $col_ini_s, 0, $col_fin, 0);
+                        $col_ini_s = $col_fin+1;
+                    }
+                    if($contador_v==1){
+                        $col_fin = $col_ini_v+$this->clientes_rutas['total_rutas'][$vendedor->codagente]-1;
+                        $this->writer->markMergedCell($almacen0->nombre, $col_ini_v, 1, $col_fin, 1);
+                        $col_ini_v = $col_fin+2;
+                    }
+                    $contador_v++;
+                    $contador_s++;
+                }
+                //Linea del total del vendedor
+                $linea_subtotal = array();
+                $linea_subtotal[]="";
+                $linea_subtotal[]="";
+                $linea_subtotal[]="Total de ".$vendedor->nombre;
+                $linea_subtotal[]=$this->clientes_rutas['total_clientes'][$vendedor->codagente];
+                $linea_subtotal[]=$this->vendedor_cantidad[$vendedor->codagente];
+                $linea_subtotal[]=round($this->vendedor_importe[$vendedor->codagente],FS_NF0);
+                $linea_subtotal[]=$this->vendedor_ofertas[$vendedor->codagente];
+                foreach($this->rango_fechas as $fecha){
+                    $linea_subtotal[]=$this->vendedor_total_cantidad[$vendedor->codagente][$fecha->format('dmY')];
+                    $linea_subtotal[]=round($this->vendedor_total_importe[$vendedor->codagente][$fecha->format('dmY')],FS_NF0);
+                    $linea_subtotal[]=$this->vendedor_total_ofertas[$vendedor->codagente][$fecha->format('dmY')];
+                }
+                $this->writer->writeSheetRow($almacen0->nombre, $linea_subtotal,$this->estilo_subtotal_merged);
+            }
+            //Linea del total del vendedor
+            $linea_total = array();
+            $linea_total[]="";
+            $linea_total[]="Total de ".$sup->nombre;
+            $linea_total[]="";
+            $linea_total[]=$this->clientes_rutas['mesa_clientes'][$sup->codagente];
+            $linea_total[]=$this->mesa_cantidad[$sup->codagente];
+            $linea_total[]=round($this->mesa_importe[$sup->codagente],FS_NF0);
+            $linea_total[]=$this->mesa_ofertas[$sup->codagente];
+            foreach($this->rango_fechas as $fecha){
+                $linea_total[]=$this->mesa_total_cantidad[$sup->codagente][$fecha->format('dmY')];
+                $linea_total[]=round($this->mesa_total_importe[$sup->codagente][$fecha->format('dmY')],FS_NF0);
+                $linea_total[]=$this->mesa_total_ofertas[$sup->codagente][$fecha->format('dmY')];
+            }
+            $this->writer->writeSheetRow($almacen0->nombre, $linea_total,$this->estilo_subtotal_merged);
+        }
+        
         $this->writer->writeToFile($this->pathNameXLS);
         gc_collect_cycles();
     }
