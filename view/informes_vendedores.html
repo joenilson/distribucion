@@ -130,9 +130,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <td class="text-right">{$fsc->show_numero($fsc->ruta_importe[$value3->ruta])}</td>
                                 <td class="text-right">{$fsc->ruta_ofertas[$value3->ruta]}</td>
                                 {loop="$fsc->rango_fechas"}
-                                <td class="text-center">{$fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['cantidad']}</td>
-                                <td class="text-center">{if="$fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['importe']"}{$fsc->show_numero($fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['importe'])}{/if}</td>
-                                <td class="text-center">{$fsc->lista_ofertas[$value3->ruta][$value4->format('dmY')]['cantidad']}</td>
+                                <td class="text-right">{$fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['cantidad']}</td>
+                                <td class="text-right">{if="$fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['importe']"}{$fsc->show_numero($fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['importe'])}{/if}</td>
+                                <td class="text-right">{$fsc->lista_ofertas[$value3->ruta][$value4->format('dmY')]['cantidad']}</td>
                                 {/loop}
                             </tr>                      
                             <!-- {$inicio++} !-->

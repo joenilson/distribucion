@@ -47,7 +47,7 @@ class helper_ordencarga extends fs_controller {
         $table= '<table width: 100%;>';
         $table.= '<tr>';
         $table.= '<td align="center" style="font-size: 14px;" colspan="2">';
-        $table.= '<b>Orden de Carga</b><br />';
+        $table.= '<b>Orden de Carga '.str_pad($ordencarga[0]->idordencarga,10,"0",STR_PAD_LEFT).'</b><br />';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr>';

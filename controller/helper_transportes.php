@@ -66,7 +66,7 @@ class helper_transportes extends fs_controller {
         $table= '<table style="width: 100%;">';
         $table.= '<tr>';
         $table.= '<td align="center" style="font-size: 14px;" colspan="4">';
-        $table.= '<b>'.ucfirst(strtolower($this->distribucion_setup['distrib_devolucion'])).'</b><br />';
+        $table.= '<b>'.ucfirst(strtolower($this->distribucion_setup['distrib_devolucion'])).' del '.ucfirst(strtolower($this->distribucion_setup['distrib_transporte'])).' '.$transporte->idtransporte.'</b><br />';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr style="font-size: 9px;">';
@@ -99,7 +99,7 @@ class helper_transportes extends fs_controller {
         $table.= '</tr>';
         $table.= '<tr style="font-size: 9px;">';
         $table.= '<td width="20%" style="font-size: 9px;">';
-        $table.= '<b>Conduce:</b>';
+        $table.= '<b>'.ucfirst(strtolower($this->distribucion_setup['distrib_transporte'])).':</b>';
         $table.= '</td>';
         $table.= '<td width="20%" style="font-size: 9px;">';
         $table.= str_pad($transporte->idtransporte,10,"0",STR_PAD_LEFT);
@@ -242,7 +242,7 @@ class helper_transportes extends fs_controller {
         $table= '<table style="width: 100%;">';
         $table.= '<tr>';
         $table.= '<td align="center" style="font-size: 14px;" colspan="4">';
-        $table.= '<b>Transporte</b><br />';
+        $table.= '<b>Transporte '.$transporte->idtransporte.'</b><br />';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr style="font-size: 9px;">';
@@ -275,10 +275,10 @@ class helper_transportes extends fs_controller {
         $table.= '</tr>';
         $table.= '<tr style="font-size: 9px;">';
         $table.= '<td width="20%" style="font-size: 9px;">';
-        $table.= '<b>Conduce:</b>';
+        $table.= '<b>Orden de Carga:</b>';
         $table.= '</td>';
         $table.= '<td width="20%" style="font-size: 9px;">';
-        $table.= str_pad($transporte->idtransporte,10,"0",STR_PAD_LEFT);
+        $table.= str_pad($transporte->idordencarga,10,"0",STR_PAD_LEFT);
         $table.= '</td>';
         $table.= '<td width="20%" align="right" style="font-size: 9px;">';
         $table.= '<b>Fecha de Reparto:</b>';
@@ -305,7 +305,7 @@ class helper_transportes extends fs_controller {
         $table.= '<td width="20%" style="font-size: 9px;">';
         $table.= '<b>Unidad:</b>';
         $table.= '</td>';
-        $table.= '<td width="20%">';
+        $table.= '<td width="20%" style="font-size: 9px;">';
         $table.= $transporte->unidad;
         $table.= '</td>';
         $table.= '<td width="20%" align="right" style="font-size: 9px;">';
@@ -420,7 +420,7 @@ class helper_transportes extends fs_controller {
         $table= '<table style="width: 100%;">';
         $table.= '<tr>';
         $table.= '<td align="center" style="font-size: 14px;" colspan="4">';
-        $table.= '<b>Liquidación del Transporte del '.strftime("%A %d, %B %Y", strtotime($transporte->fecha)).'</b><br />';
+        $table.= '<b>Liquidación del '.ucfirst(strtolower($this->distribucion_setup['distrib_transporte'])).' '.$transporte->idtransporte.' del '.strftime("%A %d, %B %Y", strtotime($transporte->fecha)).'</b><br />';
         $table.= '</td>';
         $table.= '</tr>';
         $table.= '<tr style="font-size: 9px;">';

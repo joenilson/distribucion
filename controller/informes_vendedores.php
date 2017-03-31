@@ -373,16 +373,41 @@ class informes_vendedores extends fs_controller {
         $header[]="Qdad Venta";
         $header[]="Importe";
         $header[]="Qdad Oferta";
-        //creamos un merge de las columnas
-        $col = 7;
+        
         foreach($this->rango_fechas as $fecha){
             $header[]=$fecha->format('d-m-Y');
+            $header[]="";
+            $header[]="";
+        }
+        
+        $subheader= array();
+        $subheader[] = "";
+        $subheader[] = "";
+        $subheader[] = "";
+        $subheader[] = "";
+        $subheader[] = "";
+        $subheader[] = "";
+        foreach($this->rango_fechas as $fecha){
+            $subheader[]="Cantidad";
+            $subheader[]="Importe";
+            $subheader[]="Oferta";
         }
         
         $this->writer = new XLSXWriter();
         $almacen0 = $this->almacenes->get($this->codalmacen);
         $this->writer->writeSheetHeader($almacen0->nombre, array(), true);
         $this->writer->writeSheetRow($almacen0->nombre, $header,$this->estilo_cabecera);
+        //Hacemos un merge de filas
+        for($x=0; $x<7;$x++){
+            $this->writer->markMergedCell($almacen0->nombre, 0, $x, 1, $x);
+        }
+        //creamos un merge de las columnas
+        $col = 7;
+        foreach($this->rango_fechas as $fecha){
+            $this->writer->markMergedCell($almacen0->nombre, 0, $col, 0, $col+2);
+            $col = $col+3;
+        }
+        $this->writer->writeSheetRow($almacen0->nombre, $subheader,$this->estilo_cabecera);
         $this->writer->writeToFile($this->pathNameXLS);
         gc_collect_cycles();
     }
