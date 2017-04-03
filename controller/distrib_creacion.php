@@ -411,6 +411,7 @@ class distrib_creacion extends fs_controller {
             }
             if(!$error){
                 $trans0->devolucionado = $confirmado;
+                $trans0->fechad = \Date('d-m-Y');
                 $trans0->fecha_modificacion = Date('d-m-Y H:i');
                 $trans0->usuario_modificacion = $this->user->nick;
                 if ($trans0->confirmar_devolucion()) {

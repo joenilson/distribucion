@@ -286,6 +286,7 @@ class distribucion_transporte extends fs_model {
     public function confirmar_devolucion(){
         $sql = "UPDATE distribucion_transporte SET ".
                     "devolucionado = ".$this->var2str($this->devolucionado).", ".
+                    "fechad = ".$this->var2str($this->fechad).", ".
                     "usuario_modificacion = ".$this->var2str($this->usuario_modificacion).", ".
                     "fecha_modificacion = ".$this->var2str($this->fecha_modificacion)." ".
                     "WHERE ".
