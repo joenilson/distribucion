@@ -481,7 +481,7 @@ class distrib_clientes extends fs_controller {
                 'type' => 'head',
                 'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-treeview.min.css"/>',
                 'params' => ''
-            )
+            ),
         );
         foreach ($extensiones as $ext) {
             $fsext0 = new fs_extension($ext);
