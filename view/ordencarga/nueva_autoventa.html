@@ -461,12 +461,12 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         });
     });
 </script>
-<div class="modal" id="modal_nueva_ordencarga">
+<div class="modal" id="modal_nueva_ordencarga_autoventa">
     <div class="modal-dialog" style="width: 99%; max-width: 950px;">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title">Orden de Carga Nueva</h4>
+                <h4 class="modal-title">Orden de Carga Autoventa Nueva</h4>
             </div>
             <div class="modal-body">
                 <form class="form" role="form" id="f_buscar_facturas" name="f_buscar_facturas" action ="{$fsc->url()}" method="post">
@@ -475,9 +475,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     <div class="input-group col-sm-12">
                         <div class="col-sm-3"> 
                             <div class="input-group">
-                                <input class="form-control" readonly type="text" id="buscar_fecha" name="buscar_fecha" placeholder="Fecha de las Facturas"/>
+                                <input class="form-control" readonly type="text" id="buscar_fecha_a" name="buscar_fecha_a" placeholder="Fecha de Reparto"/>
                                 <div class="input-group-btn">
-                                    <button class="btn btn-primary" type="button" onClick="javascript:datePickerShow('#buscar_fecha')">
+                                    <button class="btn btn-primary" type="button" onClick="javascript:datePickerShow('#buscar_fecha_a')">
                                         <span class="glyphicon glyphicon-calendar"></span>
                                     </button>
                                 </div>

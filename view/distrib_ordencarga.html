@@ -264,10 +264,15 @@
          event.preventDefault();
          $('#modal_nueva_ordencarga').modal('show');
       });
-
-      $('#b_nueva_ordencarga').click(function(event) {
+      
+      $('#b_nueva_ordencarga_preventa').click(function(event) {
          event.preventDefault();
          $('#modal_nueva_ordencarga').modal('show');
+      });
+      
+      $('#b_nueva_ordencarga_autoventa').click(function(event) {
+         event.preventDefault();
+         $('#modal_nueva_ordencarga_autoventa').modal('show');
       });
 
       {if="$fsc->mostrar=='buscar'"}
@@ -279,6 +284,7 @@
          $('#modal_buscar_lineas').modal('show');
          document.f_buscar_lineas.buscar_lineas.focus();
       });
+      
       $('#f_buscar_lineas').keyup(function() {
          buscar_lineas();
       });
@@ -317,38 +323,59 @@
 <div class="container-fluid" style="margin-top: 10px; margin-bottom: 10px;">
     <div class="page-header" style="margin-top: -10px;">
         <h3>
-           <span class="glyphicon glyphicon-list"></span>
-           Ordenes de Carga
+            <div class="col-sm-8 col-xs-6 pull-left">
+                <div class="btn-group hidden-xs">
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    {if="$fsc->page->is_default()"}
+                    <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                        <span class="glyphicon glyphicon-home"></span>
+                    </a>
+                    {else}
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                        <span class="glyphicon glyphicon-home"></span>
+                    </a>
+                    {/if}
+                </div>
+                <div class="btn-group">
+                    <div class="btn-group">
+                        <div class="dropdown">
+                            <button id="dLabel" class="btn btn-sm btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="fa fa-plus"></span>&nbsp;Nueva Orden de Carga
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dLabel">
+                                <li class="dropdown">
+                                    <a id="b_nueva_ordencarga_preventa" class="dropdown-toggle" role="button">
+                                    para Preventa
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a id="b_nueva_ordencarga_autoventa" class="dropdown-toggle" role="button">
+                                    para Autoventa
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                    <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
+                    {/if}
+                    {/loop}
+                </div>
+            </div>
+            <div class="col-sm-4 col-xs-6">
+                <div class=" pull-right">
+                    <span class="glyphicon glyphicon-list"></span>Ordenes de Carga
+                </div>
+            </div>
         </h3>
-   </div>
+        <div class="clearfix"></div>
+    </div>
    <div class="row">
-      <div class="col-sm-8 col-xs-6">
-         <div class="btn-group hidden-xs">
-            <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
-               <span class="glyphicon glyphicon-refresh"></span>
-            </a>
-            {if="$fsc->page->is_default()"}
-            <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
-               <span class="glyphicon glyphicon-home"></span>
-            </a>
-            {else}
-            <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
-               <span class="glyphicon glyphicon-home"></span>
-            </a>
-            {/if}
-         </div>
-         <div class="btn-group">
-             <a id="b_nueva_ordencarga" class="btn btn-sm btn-success">
-               <span class="glyphicon glyphicon-plus"></span>
-               <span class="hidden-xs">&nbsp; Nueva</span>
-            </a>
-            {loop="$fsc->extensions"}
-               {if="$value->type=='button'"}
-               <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
-               {/if}
-            {/loop}
-         </div>
-      </div>
+
    </div>
 </div>
 
@@ -454,8 +481,10 @@
       </div>
    </div>
 </div>
-<!-- Modal para buscar facturas pendientes de transportar -->
-{include="ordencarga/nueva"}
+<!-- Modal para buscar facturas pendientes de transportar en orden de carga de preventa-->
+{include="ordencarga/nueva_preventa"}
+<!-- Modal para transportar productos sueltos en orden de carga de preventa-->
+{include="ordencarga/nueva_autoventa"}
 <!-- Modal para mostrar el resultado de las facturas seleccionadas a ser transportadas -->
 {include="ordencarga/resumen"}
 <!-- Modal para mostrar el pdf para las impresiones de las ordenes de carga -->
