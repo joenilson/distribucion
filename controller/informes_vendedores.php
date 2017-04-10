@@ -62,7 +62,7 @@ class informes_vendedores extends fs_controller {
     public $procesado;
     public $lista_ruta;
     public $lista_fecha;
-    public $lista_ofertas;    
+    public $lista_ofertas;
     public $ruta_cantidad;
     public $ruta_importe;
     public $ruta_ofertas;
@@ -79,11 +79,11 @@ class informes_vendedores extends fs_controller {
     public $mesa_total_cantidad;
     public $mesa_total_importe;
     public $mesa_total_ofertas;
-    
+
     public function __construct() {
         parent::__construct(__CLASS__, 'Vendedores', 'informes', FALSE, TRUE, FALSE);
     }
-    
+
     protected function private_core() {
         $this->shared_extensions();
         $this->almacenes = new almacen();
@@ -100,7 +100,7 @@ class informes_vendedores extends fs_controller {
         $this->grupos_clientes = new grupo_clientes();
         $this->resultados_formas_pago = false;
         $this->procesado = false;
-        
+
         $basepath = dirname(dirname(dirname(__DIR__)));
         $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
         $this->distribucionDir = $this->documentosDir . DIRECTORY_SEPARATOR . "distribucion";
@@ -112,7 +112,7 @@ class informes_vendedores extends fs_controller {
         if (!is_dir($this->distribucionDir)) {
             mkdir($this->distribucionDir);
         }
-        
+
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
         if(!$this->user->admin){
             $this->agente = new agente();
@@ -121,7 +121,7 @@ class informes_vendedores extends fs_controller {
             $this->user->codalmacen = $user_almacen->codalmacen;
             $this->user->nombrealmacen = $user_almacen->nombre;
         }
-        
+
         $f_desde = filter_input(INPUT_POST, 'f_desde');
         $this->f_desde = ($f_desde)?$f_desde:\date('01-m-Y');
         $f_hasta = filter_input(INPUT_POST, 'f_hasta');
@@ -132,8 +132,8 @@ class informes_vendedores extends fs_controller {
         //Ragno de fechas según los datos enviados
         $desde = new DateTime($this->f_desde);
         $hasta_f = new DateTime($this->f_hasta);
-        $hasta = $hasta_f->modify( '+1 day' ); 
-        //intervalo de aumento es 1 día        
+        $hasta = $hasta_f->modify( '+1 day' );
+        //intervalo de aumento es 1 día
         $intervalo = new \DateInterval('P1D');
         $this->rango_fechas = new \DatePeriod($desde, $intervalo, $hasta);
         //Verificamos el intervalo
@@ -149,9 +149,9 @@ class informes_vendedores extends fs_controller {
                 break;
             }
         }
-        
+
     }
-    
+
     public function generar_resumen(){
         //Obtenemos la información de las rutas
         $this->ruta_cantidad = array();
@@ -173,7 +173,7 @@ class informes_vendedores extends fs_controller {
         $this->mesa_total_cantidad = array();
         $this->mesa_total_importe = array();
         $this->mesa_total_ofertas = array();
-        
+
         //Obtenemos la información de los supervisores
         $this->supervisores = $this->organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'SUPERVISOR');
         $this->cantidad_supervisores = count($this->supervisores);
@@ -201,7 +201,7 @@ class informes_vendedores extends fs_controller {
                 $this->cantidad_articulos++;
             }
         }
-        
+
         $rutas_almacen = $this->rutas->all_rutasporalmacen($this->empresa->id,$this->codalmacen);
         foreach($rutas_almacen as $linea){
             //Inicializamos los colectores de informacion por ruta y fecha
@@ -210,36 +210,36 @@ class informes_vendedores extends fs_controller {
                 $this->lista_ofertas[$linea->ruta] = array();
                 $this->ruta_cantidad[$linea->ruta] = 0;
                 $this->ruta_importe[$linea->ruta] = 0;
-                $this->ruta_ofertas[$linea->ruta] = 0;                
+                $this->ruta_ofertas[$linea->ruta] = 0;
             }
-            
+
             if(!isset($this->vendedor_cantidad[$linea->codagente])){
                 //Inicializamos variables de vendedores
                 $this->vendedor_cantidad[$linea->codagente] = 0;
                 $this->vendedor_importe[$linea->codagente] = 0;
                 $this->vendedor_ofertas[$linea->codagente] = 0;
-            }            
-            
+            }
+
             foreach($this->rango_fechas as $fecha){
                 $fecha_idx = $fecha->format('dmY');
                 $this->lista_ruta[$linea->ruta][$fecha_idx] = array('cantidad'=>NULL,'importe'=>NULL);
                 $this->lista_ofertas[$linea->ruta][$fecha_idx] = array('cantidad'=>NULL,'importe'=>NULL);
                 $this->lista_fecha[$fecha_idx] = array('cantidad'=>NULL,'importe'=>NULL);
                 $this->ofertas_fecha[$fecha_idx] = array('cantidad'=>NULL,'importe'=>NULL);
-                
+
                 if(!isset($this->mesa_total_cantidad[$linea->codsupervisor][$fecha_idx])){
                     $this->mesa_total_cantidad[$linea->codsupervisor][$fecha_idx] = 0;
                     $this->mesa_total_importe[$linea->codsupervisor][$fecha_idx] = 0;
                     $this->mesa_total_ofertas[$linea->codsupervisor][$fecha_idx] = 0;
                 }
-                
+
                 if(!isset($this->vendedor_total_cantidad[$linea->codagente][$fecha_idx])){
                     $this->vendedor_total_cantidad[$linea->codagente][$fecha_idx] = 0;
                     $this->vendedor_total_importe[$linea->codagente][$fecha_idx] = 0;
                     $this->vendedor_total_ofertas[$linea->codagente][$fecha_idx] = 0;
                 }
             }
-            
+
             //sumamos las ventas efectivas sin bonificaciones
             $sql = "SELECT fecha,SUM(cantidad) as cantidad,sum(pvptotal) as importe FROM ".
                 "facturascli as f, distribucion_clientes as dc, lineasfacturascli as lf ".
@@ -254,7 +254,7 @@ class informes_vendedores extends fs_controller {
                 " AND f.fecha >= ".$this->empresa->var2str(\date('d-m-Y',strtotime($this->f_desde))).
                 " AND f.fecha <= ".$this->empresa->var2str(\date('d-m-Y',strtotime($this->f_hasta))).
                 " GROUP BY fecha ".
-                " ORDER BY fecha ";           
+                " ORDER BY fecha ";
             $data = $this->db->select($sql);
             $fecha_cantidad = array();
             $fecha_importe = array();
@@ -284,7 +284,7 @@ class informes_vendedores extends fs_controller {
                     $this->mesa_total_importe[$linea->codsupervisor][$fecha_idx] += $importe;
                 }
             }
-            
+
             //sumamos las bonificaciones
             $sql = "SELECT fecha,SUM(cantidad) as cantidad FROM ".
                 "facturascli as f, distribucion_clientes as dc, lineasfacturascli as lf ".
@@ -319,8 +319,8 @@ class informes_vendedores extends fs_controller {
                 }
             }
         }
-        
-        
+
+
         //Generamos la efectividad de visitas
         //La efectividad es el porcentaje de clientes visitados entre la cantidad de clientes totales
         $this->clientes_rutas = array();
@@ -356,7 +356,7 @@ class informes_vendedores extends fs_controller {
         }
         $this->generar_excel();
     }
-    
+
     public function generar_excel(){
         $this->pathNameXLS = $this->distribucionDir . DIRECTORY_SEPARATOR . 'Ventas_Vendedores' . "_" . $this->user->nick . ".xlsx";
         $this->fileNameXLS = $this->publicPath . DIRECTORY_SEPARATOR . 'Ventas_Vendedores' . "_" . $this->user->nick . ".xlsx";
@@ -369,7 +369,7 @@ class informes_vendedores extends fs_controller {
             array_push($header_format,"@");
             array_push($header_format,"@");
         }
-        
+
         $this->estilo_cabecera = array('border'=>'left,right,top,bottom','font-style'=>'bold','halign'=>'center');
         $this->estilo_merged = array( array('halign'=>'left','valign'=>'center','font-style'=>'bold'),array('halign'=>'left','valign'=>'center','font-style'=>'bold'),array('halign'=>'center','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'),array('halign'=>'right','font-style'=>'bold'));
         foreach($this->rango_fechas as $fecha){
@@ -393,13 +393,13 @@ class informes_vendedores extends fs_controller {
         $header[]="Qdad Venta";
         $header[]="Importe";
         $header[]="Qdad Oferta";
-        
+
         foreach($this->rango_fechas as $fecha){
             $header[]=$fecha->format('d-m-Y');
             $header[]="";
             $header[]="";
         }
-        
+
         $subheader= array();
         $subheader[] = "";
         $subheader[] = "";
@@ -413,7 +413,7 @@ class informes_vendedores extends fs_controller {
             $subheader[]="Importe";
             $subheader[]="Oferta";
         }
-        
+
         $this->writer = new XLSXWriter();
         /**
          * Cabecera del archivo
@@ -433,7 +433,7 @@ class informes_vendedores extends fs_controller {
         }
         //Agregamos el subheader para las lineas debajo de fecha
         $this->writer->writeSheetRow($almacen0->nombre, $subheader,$this->estilo_cabecera);
-        
+
         /**
          * Contenido del archivo
          */
@@ -477,13 +477,13 @@ class informes_vendedores extends fs_controller {
                 $linea_subtotal[]="";
                 $linea_subtotal[]="Total de ".$vendedor->nombre;
                 $linea_subtotal[]=$this->clientes_rutas['total_clientes'][$vendedor->codagente];
-                $linea_subtotal[]=$this->vendedor_cantidad[$vendedor->codagente];
-                $linea_subtotal[]=round($this->vendedor_importe[$vendedor->codagente],FS_NF0);
-                $linea_subtotal[]=$this->vendedor_ofertas[$vendedor->codagente];
+                $linea_subtotal[]=($this->vendedor_cantidad[$vendedor->codagente])?$this->vendedor_cantidad[$vendedor->codagente]:0;
+                $linea_subtotal[]=($this->vendedor_importe[$vendedor->codagente])?round($this->vendedor_importe[$vendedor->codagente],FS_NF0):0;
+                $linea_subtotal[]=($this->vendedor_ofertas[$vendedor->codagente])?$this->vendedor_ofertas[$vendedor->codagente]:0;
                 foreach($this->rango_fechas as $fecha){
-                    $linea_subtotal[]=$this->vendedor_total_cantidad[$vendedor->codagente][$fecha->format('dmY')];
-                    $linea_subtotal[]=round($this->vendedor_total_importe[$vendedor->codagente][$fecha->format('dmY')],FS_NF0);
-                    $linea_subtotal[]=$this->vendedor_total_ofertas[$vendedor->codagente][$fecha->format('dmY')];
+                    $linea_subtotal[]=($this->vendedor_total_cantidad[$vendedor->codagente][$fecha->format('dmY')])?$this->vendedor_total_cantidad[$vendedor->codagente][$fecha->format('dmY')]:0;
+                    $linea_subtotal[]=($this->vendedor_total_importe[$vendedor->codagente][$fecha->format('dmY')])?round($this->vendedor_total_importe[$vendedor->codagente][$fecha->format('dmY')],FS_NF0):0;
+                    $linea_subtotal[]=($this->vendedor_total_ofertas[$vendedor->codagente][$fecha->format('dmY')])?$this->vendedor_total_ofertas[$vendedor->codagente][$fecha->format('dmY')]:0;
                 }
                 $this->writer->writeSheetRow($almacen0->nombre, $linea_subtotal,$this->estilo_subtotal_merged);
             }
@@ -503,11 +503,11 @@ class informes_vendedores extends fs_controller {
             }
             $this->writer->writeSheetRow($almacen0->nombre, $linea_total,$this->estilo_subtotal_merged);
         }
-        
+
         $this->writer->writeToFile($this->pathNameXLS);
         gc_collect_cycles();
     }
-    
+
     public function shared_extensions(){
         $extensiones = array(
             array(
@@ -527,7 +527,7 @@ class informes_vendedores extends fs_controller {
                 'params' => ''
             ),
         );
-        
+
         foreach ($extensiones as $ext) {
             $fsext0 = new fs_extension($ext);
             if (!$fsext0->save()) {
