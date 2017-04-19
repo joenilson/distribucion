@@ -131,7 +131,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         $('#modal_liquidar_factura').modal('show');
         $("#liquidar_factura").detach();
         $("<iframe id='liquidar_factura' />")
-          .attr('src', '{#FS_PATH#}index.php?page=ventas_factura_devolucion&id='+id)
+          .attr('src', '{#FS_PATH#}{#FS_MYDOCS#}index.php?page=ventas_factura_devolucion&id='+id)
           .attr('width', '100%')
           .attr('height', '500')
           .appendTo('#modal_body_liquidar_factura');
@@ -157,6 +157,43 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
           .attr('width', '100%')
           .attr('height', '500')
           .appendTo('#modal_body_imprimir_liquidacion');
+   }
+   
+   function desconfirmarDevolucion(){
+       bootbox.dialog({
+         message: "¿Esta seguro que quiere <b>desconfirmar</b> el calculo de devolución de este transporte?<br>"+
+                    "Esta acción solo quitará el cotejo de devolución para se vuelvan a recalcular si hizo modificaciones en las facturas.",
+         title: "Desconfirmar devolución del Transporte",
+         buttons: {
+           success: {
+             label: "Desconfirmar",
+             className: "btn-success",
+             callback: function() {
+                 $.ajax({
+                   type: 'GET',
+                   url: '{$fsc->url()}',
+                   async: false,
+                   data: 'type=eliminar-devolucion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}&desconfirmar=TRUE',
+                   success : function(datos) {
+                     bootbox.alert(datos.mensaje, function() {
+                        window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
+                     });
+                   },
+                   error: function() {
+                       bootbox.alert("Ocurrio un error no contemplado en el plugin, por favor envie un mensaje en el foro de soporte de FacturaScripts para verificar el problema, gracias.");
+                   }
+               });
+             }
+           },
+           danger: {
+             label: "Cancelar",
+             className: "btn-danger",
+             callback: function() {
+               this.hide();
+             }
+           }
+         }
+      });
    }
    
    function confirmarDevolucion(){
@@ -367,7 +404,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <td class="text-right">{$fsc->show_numero($value->saldo)}</td>
                                     <td class="text-right">
                                     {if="$value->pagada"}
-                                        <button class="btn btn-sm btn-danger" type="button" onclick="alert('Para eliminar el pago debe hacerlo un contador');">
+                                        <button class="btn btn-sm btn-danger" type="button" onclick="bootbox.alert('Para eliminar el pago debe hacerlo un contador');">
                                            <span class="glyphicon glyphicon-lock"></span> &nbsp; Pagada
                                         </button>
                                     {else}
@@ -466,6 +503,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 <span class="glyphicon glyphicon-print"></span>
                                 <span class="hidden-xs">&nbsp; Imprimir Devolución</span>
                             </button>
+                            {if="$fsc->user->admin AND !$fsc->transporte->liquidado"}
+                            <button type="button" onclick="desconfirmarDevolucion()" title="Desconfirmar Devolución" class="btn btn-sm btn-warning"><i class="fa fa-undo"></i></button>
+                            {/if}
                             {/if}
                         </div>
                         <div class="col-sm-3 text-left">

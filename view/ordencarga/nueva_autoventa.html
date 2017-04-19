@@ -469,7 +469,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 <h4 class="modal-title">Orden de Carga Autoventa Nueva</h4>
             </div>
             <div class="modal-body">
-                <form class="form" role="form" id="f_buscar_facturas" name="f_buscar_facturas" action ="{$fsc->url()}" method="post">
+                <form class="form" role="form" id="f_ordencarga_autoventa" name="f_ordencarga_autoventa" action ="{$fsc->url()}" method="post">
                     <input type="hidden" name="offset" value="O"/>
                     <input type="hidden" name="type" value="buscar_facturas"/>
                     <div class="input-group col-sm-12">
@@ -485,7 +485,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         </div>
                         <div class="col-sm-3"> 
                             <div class="form-group">
-                                <select name="codalmacen" id="codalmacen" data-width="100%" class="selectpicker form-control">
+                                <select name="codalmacen" id="codalmacen_av" data-width="100%" class="selectpicker form-control">
                                     <option value="">Almacén Origen</option>
                                     {loop="$fsc->almacen->all()"}
                                     <option value="{$value->codalmacen}">{$value->nombre}</option>

@@ -172,6 +172,8 @@ class distrib_creacion extends fs_controller {
          $this->confirmar_transporte(TRUE);
       } elseif ($type == 'eliminar-transporte') {
          $this->eliminar_transporte();
+      } elseif ($type == 'eliminar-devolucion') {
+         $this->confirmar_devolucion(FALSE);
       } elseif ($type == 'eliminar-liquidacion') {
          $this->eliminar_liquidacion();
       } elseif ($type == 'eliminar-despacho') {
@@ -377,8 +379,8 @@ class distrib_creacion extends fs_controller {
    public function confirmar_devolucion($confirmado=TRUE){
       $value_transporte = \filter_input(INPUT_GET, 'transporte');
       $lista_transporte = explode(',', $value_transporte);
-      $tipo_mensaje = ($confirmado)?"devolucionado":"eliminado";
-      $mensaje = (count($lista_transporte)>1)?"Transportes ".$tipo_mensaje."s":"Transporte ".$tipo_mensaje;
+      $tipo_mensaje = ($confirmado)?"confirmado":"desconfirmado";
+      $mensaje = (count($lista_transporte)>1)?"Devolución de Transportes ".$tipo_mensaje."s"." correctamente.":"Devolución de Transporte ".$tipo_mensaje." correctamente.";
       foreach ($lista_transporte as $linea) {
          if ($linea) {
             $datos_transporte = explode('-', $linea);

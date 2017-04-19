@@ -293,7 +293,7 @@ class distribucion_lineastransporte extends fs_model {
     public function getOne($idempresa,$idtransporte, $codalmacen, $referencia)
     {
         $data = $this->db->select("SELECT * FROM distribucion_lineastransporte WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen)." AND referencia = ".$this->var2str($referencia).";");
-        
+        $valor_linea = false;
         if($data)
         {
             $valor_linea = new distribucion_lineastransporte($data[0]);

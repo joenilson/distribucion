@@ -41,7 +41,7 @@ class factura_cliente extends FacturaScripts\model\factura_cliente{
     {
        if(parent::save()){
           $sql = "UPDATE ".$this->table_name." SET codruta = ".$this->var2str($this->codruta).
-                " WHERE idfactura = ".$this->var2str($this->idfactura).";";
+                " WHERE idfactura = ".$this->intval($this->idfactura).";";
           return $this->db->exec($sql);
        }
    }
