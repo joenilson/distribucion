@@ -89,6 +89,13 @@ class dashboard_distribucion extends fs_controller {
     public $publicPath;
     public $pdf;
     public $procesado;
+    public $lista_familia;
+    public $lista_fecha;
+    public $lista_referencia;
+    public $suma_familia;
+    public $suma_fecha;
+    public $suma_referencia;
+    public $resumen_familia;
     public function __construct() {
         parent::__construct(__CLASS__,'Dashboard Distribución', 'informes', FALSE, TRUE, FALSE);
     }
@@ -144,6 +151,7 @@ class dashboard_distribucion extends fs_controller {
             switch ($accion){
                 case "buscar":
                     $this->generar_resumen();
+                    $this->cobertura_articulos();
                     $this->top_clientes();
                     $this->top_articulos();
                     $this->procesado = TRUE;
@@ -153,12 +161,70 @@ class dashboard_distribucion extends fs_controller {
     }
     
     public function cobertura_articulos(){
+        $this->lista_familia = array();
+        $this->lista_fecha = array();
+        $this->lista_referencia = array();
+        $this->suma_familia = array();
+        $this->suma_fecha = array();
+        $this->suma_referencia = array();
         $diffdesde = new \DateTime(\date('d-m-Y',strtotime($this->f_desde)));
         $diffhasta = new \DateTime(\date('d-m-Y',strtotime($this->f_hasta)));
-        
+        $lista = array();
         //Buscamos los productos en la fecha dada y los agrupamos por familia
-        $sql = "SELECT familia,referencia,sum(cantidad) as total FROM facturascli WHERE fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."';";
-        
+        $sql = "SELECT a.codfamilia,lf.referencia,fc.fecha,sum(lf.cantidad) as cantidad ".
+                "FROM facturascli AS fc, articulos AS a, familias AS f, lineasfacturascli as lf ". 
+                "WHERE fecha between ".$this->empresa->var2str($this->f_desde)." AND ".$this->empresa->var2str($this->f_hasta)." ".
+                "AND fc.codalmacen = ".$this->empresa->var2str($this->codalmacen)." AND pvptotal != 0 AND fc.idfactura = lf.idfactura ".
+                "AND lf.referencia = a.referencia AND f.codfamilia = a.codfamilia and fc.anulada = FALSE ".
+                "GROUP BY a.codfamilia,lf.referencia,fc.fecha LIMIT 11".
+               ";";
+        //$this->new_advice($sql);
+        $data = $this->db->select($sql);
+        if($data){
+            foreach($data as $d){
+                $arbol = array();
+                if(!empty($d['codfamilia'])){
+                    $this->arbol_familia($d['codfamilia'], $arbol);
+                }                
+                $item = new stdClass();
+                $item->codfamilia = $d['codfamilia'];
+                $item->arbol = $arbol;
+                $item->referencia = $d['referencia'];
+                $item->fecha = $d['fecha'];
+                $item->cantidad = $d['cantidad'];
+                /*
+                $this->lista_familia[$d['codfamilia']][$d['referencia']][] = $item;
+                $this->lista_fecha[$d['fecha']][$d['codfamilia']][] = $item;
+                $this->lista_referencia[$d['referencia']][] = $item;
+                $this->suma_familia[$d['codfamilia']] += $d['cantidad'];
+                $this->suma_fecha[$d['fecha']][$d['codfamilia']] += $d['cantidad'];
+                $this->suma_referencia[$d['fecha']][$d['referencia']] += $d['cantidad'];
+                 * 
+                 */
+            }
+        }
+        //Generamos el listado de familias
+        $this->arbol_familia(FALSE,$this->resumen_familia,'DESC');
+    }
+    
+    
+    /**
+     * Extraemos el arbol de familias para armar un reporte
+     * @param type $codfamilia string
+     * @param type $resultado array
+     * @return array
+     */
+    public function arbol_familia($codfamilia,&$resultado = array(),$orden = 'ASC'){
+        $data = ($orden == 'ASC')?$this->familias->get($codfamilia):$this->familias->hijas($codfamilia);
+        if ($data) {
+            $resultado[] = array('codigo' => $data->codfamilia, 'descripcion' => $data->descripcion);
+            if ($data->madre) {
+                $resultado[] = array('codigo' => $data->codfamilia, 'descripcion' => $data->descripcion);
+                $this->arbol_familia($data->madre, $resultado, $orden);
+            }else{
+                return $resultado;
+            }
+        }
     }
     
     public function generar_resumen(){
@@ -348,6 +414,33 @@ class dashboard_distribucion extends fs_controller {
             }
         }
     }
+
+    
+    //Generamos el listado de los 10 productos mas vendidos
+    public function top_articulos_oferta($cantidad=10,$excluidos=false){
+        $this->articulos_oferta_top_cantidad = array();
+        $this->articulos_oferta_top_valor = array();
+        //Buscamos primero la suma por cantidad
+        $referencias = ($excluidos)?" AND referencia NOT IN (".$excluidos.")":"";
+        $sql1 = "select referencia, descripcion, sum(cantidad) as cantidad from lineasfacturascli ".
+                "WHERE idfactura IN (select idfactura from facturascli ".
+                "where fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' and '".\date('Y-m-d',strtotime($this->f_hasta)).
+                "' and anulada = FALSE) AND pvptotal = 0".
+                " $referencias group by referencia, descripcion order by cantidad DESC limit $cantidad;";
+        $data1 = $this->db->select($sql1);
+        
+        $i=0;
+        if($data1){
+            foreach($data1 as $d){
+                $articulo_top = new stdClass();
+                $articulo_top->referencia = $d['referencia'];
+                $articulo_top->descripcion = $d['descripcion'];
+                $articulo_top->totalventa = $d['cantidad'];
+                $this->articulos_top_cantidad[] = $articulo_top;
+                $i++;
+            }
+        }
+    }    
     
     //Generamos el listado de los 10 productos mas vendidos
     public function top_articulos($cantidad=10,$excluidos=false){
@@ -356,7 +449,9 @@ class dashboard_distribucion extends fs_controller {
         //Buscamos primero la suma por cantidad
         $referencias = ($excluidos)?" AND referencia NOT IN (".$excluidos.")":"";
         $sql1 = "select referencia, descripcion, sum(cantidad) as cantidad from lineasfacturascli ".
-                "WHERE idfactura IN (select idfactura from facturascli where fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' and '".\date('Y-m-d',strtotime($this->f_hasta))."' and anulada = FALSE) ".
+                "WHERE idfactura IN (select idfactura from facturascli ".
+                "where fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' and '".\date('Y-m-d',strtotime($this->f_hasta)).
+                "' and anulada = FALSE) AND pvptotal != 0".
                 " $referencias group by referencia, descripcion order by cantidad DESC limit $cantidad;";
         $data1 = $this->db->select($sql1);
         
@@ -417,5 +512,25 @@ class dashboard_distribucion extends fs_controller {
                 $this->new_error_msg('Error al guardar la extensión ' . $ext['name']);
             }
         }
+    }
+    
+    /**
+     * @url http://snippets.khromov.se/convert-comma-separated-values-to-array-in-php/
+     * @param $string - Input string to convert to array
+     * @param string $separator - Separator to separate by (default: ,)
+     *
+     * @return array
+     */
+    private function comma_separated_to_array($string, $separator = ',') {
+        //Explode on comma
+        $vals = explode($separator, $string);
+
+        //Trim whitespace
+        foreach ($vals as $key => $val) {
+            $vals[$key] = trim($val);
+        }
+        //Return empty array if no items found
+        //http://php.net/manual/en/function.explode.php#114273
+        return array_diff($vals, array(""));
     }
 }
