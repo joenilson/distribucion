@@ -99,7 +99,7 @@ class dashboard_distribucion extends fs_controller {
     public function __construct() {
         parent::__construct(__CLASS__,'Dashboard Distribución', 'informes', FALSE, TRUE, FALSE);
     }
-    
+
     protected function private_core() {
         $this->shared_extensions();
         $this->almacenes = new almacen();
@@ -124,7 +124,7 @@ class dashboard_distribucion extends fs_controller {
             $this->user->codalmacen = $user_almacen->codalmacen;
             $this->user->nombrealmacen = $user_almacen->nombre;
         }
-        
+
         //Creamos o validamos las carpetas para grabar los informes de caja
         $this->fileName = '';
         $basepath = dirname(dirname(dirname(__DIR__)));
@@ -159,7 +159,7 @@ class dashboard_distribucion extends fs_controller {
             }
         }
     }
-    
+
     public function cobertura_articulos(){
         $this->lista_familia = array();
         $this->lista_fecha = array();
@@ -172,7 +172,7 @@ class dashboard_distribucion extends fs_controller {
         $lista = array();
         //Buscamos los productos en la fecha dada y los agrupamos por familia
         $sql = "SELECT a.codfamilia,lf.referencia,fc.fecha,sum(lf.cantidad) as cantidad ".
-                "FROM facturascli AS fc, articulos AS a, familias AS f, lineasfacturascli as lf ". 
+                "FROM facturascli AS fc, articulos AS a, familias AS f, lineasfacturascli as lf ".
                 "WHERE fecha between ".$this->empresa->var2str($this->f_desde)." AND ".$this->empresa->var2str($this->f_hasta)." ".
                 "AND fc.codalmacen = ".$this->empresa->var2str($this->codalmacen)." AND pvptotal != 0 AND fc.idfactura = lf.idfactura ".
                 "AND lf.referencia = a.referencia AND f.codfamilia = a.codfamilia and fc.anulada = FALSE ".
@@ -185,7 +185,7 @@ class dashboard_distribucion extends fs_controller {
                 $arbol = array();
                 if(!empty($d['codfamilia'])){
                     $this->arbol_familia($d['codfamilia'], $arbol);
-                }                
+                }
                 $item = new stdClass();
                 $item->codfamilia = $d['codfamilia'];
                 $item->arbol = $arbol;
@@ -199,34 +199,58 @@ class dashboard_distribucion extends fs_controller {
                 $this->suma_familia[$d['codfamilia']] += $d['cantidad'];
                 $this->suma_fecha[$d['fecha']][$d['codfamilia']] += $d['cantidad'];
                 $this->suma_referencia[$d['fecha']][$d['referencia']] += $d['cantidad'];
-                 * 
+                 *
                  */
             }
         }
         //Generamos el listado de familias
-        $this->arbol_familia(FALSE,$this->resumen_familia,'DESC');
+        $this->resumen_familia = array();
+        foreach($this->familias->madres() as $fam){
+            $this->resumen_familias($fam->codfamilia,$this->resumen_familia);
+        }
+        $this->new_advice(count($this->resumen_familia));
     }
-    
-    
+
+    public function resumen_familias($madre = FALSE, &$lista = array()){
+        if($this->familias->hijas($madre)){
+            foreach($this->familias->hijas($madre) as $fam){
+                //$this->new_advice($fam->codfamilia);
+                $item = new stdClass();
+                $item->codigo = $fam->codfamilia;
+                $item->descripcion = $fam->descripcion;
+                $item->madre = $fam->madre;
+                $lista[] = $item;
+                if($this->familias->hijas($fam->codfamilia)){
+                    $this->resumen_familias($fam->codfamilia, $lista);
+                }else{
+                    return $lista;
+                }
+            }
+        }else{
+            return $lista;
+        }
+    }
+
+
     /**
      * Extraemos el arbol de familias para armar un reporte
      * @param type $codfamilia string
      * @param type $resultado array
      * @return array
      */
-    public function arbol_familia($codfamilia,&$resultado = array(),$orden = 'ASC'){
-        $data = ($orden == 'ASC')?$this->familias->get($codfamilia):$this->familias->hijas($codfamilia);
+    public function arbol_familia($codfamilia,&$resultado = array()){
+        $data = $this->familias->get($codfamilia);
         if ($data) {
             $resultado[] = array('codigo' => $data->codfamilia, 'descripcion' => $data->descripcion);
             if ($data->madre) {
                 $resultado[] = array('codigo' => $data->codfamilia, 'descripcion' => $data->descripcion);
-                $this->arbol_familia($data->madre, $resultado, $orden);
+                $this->arbol_familia($data->madre, $resultado);
             }else{
                 return $resultado;
             }
         }
     }
-    
+
     public function generar_resumen(){
         $diffdesde = new \DateTime(\date('d-m-Y',strtotime($this->f_desde)));
         $diffhasta = new \DateTime(\date('d-m-Y',strtotime($this->f_hasta)));
@@ -260,7 +284,7 @@ class dashboard_distribucion extends fs_controller {
         $this->clientes_grupo = array();
         $clientes_almacen = $this->distribucion_clientes->clientes_almacen($this->empresa->id,$this->codalmacen);
         foreach($clientes_almacen as $cli){
-            $dtalta = new \DateTime(\date('d-m-Y',strtotime($cli->fechaalta))); 
+            $dtalta = new \DateTime(\date('d-m-Y',strtotime($cli->fechaalta)));
             $dtbaja = new \DateTime(\date('d-m-Y',strtotime($cli->fechabaja)));
             if($cli->debaja and $dtbaja>=$diffdesde AND $dtbaja<=$diffhasta){
                 $this->clientes_debaja++;
@@ -269,9 +293,9 @@ class dashboard_distribucion extends fs_controller {
             }elseif(!$cli->debaja and $dtalta>=$diffdesde AND $dtalta<=$diffhasta){
                 $this->clientes_nuevos++;
             }elseif(!$cli->debaja and $dtalta<$diffdesde){
-                $this->clientes_activos++;  
+                $this->clientes_activos++;
         }
-        
+
             //Buscamos la atención de clientes del rango de fechas
             $sql = "SELECT COUNT(*) as count FROM facturascli WHERE codcliente = ".$this->empresa->var2str($cli->codcliente)." and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' AND anulada = FALSE;";
             $data = $this->db->select($sql);
@@ -280,10 +304,10 @@ class dashboard_distribucion extends fs_controller {
             }elseif(!$cli->debaja){
                 $this->clientes_por_visitar++;
             }
-                    
+
             //Guardamos la cantidad total de clientes
             $this->cantidad_clientes++;
-            
+
             //Agrupamos los clientes en sus grupos
             if($cli->codgrupo){
                 if(!isset($this->clientes_grupo[$cli->codgrupo])){
@@ -292,15 +316,15 @@ class dashboard_distribucion extends fs_controller {
                 $this->clientes_grupo[$cli->codgrupo]++;
             }
         }
-        
+
         //Guardamos la cantidad de clientes por cada grupo
         $this->grupos_clientes_lista = array();
         foreach($this->grupos_clientes->all() as $gc){
             $gc->clientes = (isset($this->clientes_grupo[$gc->codgrupo]))?$this->clientes_grupo[$gc->codgrupo]:0;
             $this->grupos_clientes_lista[] = $gc;
         }
-        
-        
+
+
         //Generamos la efectividad de visitas
         //La efectividad es el porcentaje de clientes visitados entre la cantidad de clientes totales
         $this->clientes_rutas = array();
@@ -328,7 +352,7 @@ class dashboard_distribucion extends fs_controller {
             $this->clientes_rutas['mesa_atendidos'][$supervisor->codagente] = 0;
             $this->clientes_rutas['mesa_no_atendidos'][$supervisor->codagente] = 0;
             $this->clientes_rutas['mesa_efectividad'][$supervisor->codagente] = 0;
-        } 
+        }
         foreach($this->vendedores as $vendedor){
             $rutasagente = $this->rutas->all_rutasporagente($this->empresa->id, $this->codalmacen, $vendedor->codagente);
             $this->clientes_rutas['total_rutas'][$vendedor->codagente] = count($rutasagente);
@@ -347,7 +371,7 @@ class dashboard_distribucion extends fs_controller {
                     if(!isset($this->clientes_rutas['no_atendidos'][$ruta->ruta])){
                         $this->clientes_rutas['no_atendidos'][$ruta->ruta] = $clientes_ruta;
                     }
-                    
+
                     //A corregir , se debe generar una consulta join entre facturascli y distribucion_clientes
                     $sql = "SELECT T1.ruta,count(DISTINCT T2.codcliente) as clientes_visitados ".
                         "FROM distribucion_clientes AS T1 ".
@@ -385,7 +409,7 @@ class dashboard_distribucion extends fs_controller {
             $this->clientes_rutas['mesa_atendidos'][$vendedor->codsupervisor] += $this->clientes_rutas['total_atendidos'][$vendedor->codagente];
             $this->clientes_rutas['mesa_no_atendidos'][$vendedor->codsupervisor] += $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente];
         }
-        
+
         //Generamos la estadistica por supervisor
         foreach($this->supervisores as $supervisor){
             $efectividad_supervisor = round(($this->clientes_rutas['mesa_atendidos'][$supervisor->codagente]/$this->clientes_rutas['mesa_clientes'][$supervisor->codagente])*100,0);
@@ -395,7 +419,7 @@ class dashboard_distribucion extends fs_controller {
             $this->clientes_rutas['efectividad_mesa_color'][$supervisor->codagente] = $efectividad_color;
         }
     }
-    
+
     //Generamos el listado de los 10 clientes que más compran
     public function top_clientes($cantidad=10,$excluidos=false){
         $clientes = ($excluidos)?" AND codcliente NOT IN (".$excluidos.")":"";
@@ -415,7 +439,7 @@ class dashboard_distribucion extends fs_controller {
         }
     }
 
-    
+
     //Generamos el listado de los 10 productos mas vendidos
     public function top_articulos_oferta($cantidad=10,$excluidos=false){
         $this->articulos_oferta_top_cantidad = array();
@@ -428,7 +452,7 @@ class dashboard_distribucion extends fs_controller {
                 "' and anulada = FALSE) AND pvptotal = 0".
                 " $referencias group by referencia, descripcion order by cantidad DESC limit $cantidad;";
         $data1 = $this->db->select($sql1);
-        
+
         $i=0;
         if($data1){
             foreach($data1 as $d){
@@ -440,8 +464,8 @@ class dashboard_distribucion extends fs_controller {
                 $i++;
             }
         }
-    }    
-    
+    }
+
     //Generamos el listado de los 10 productos mas vendidos
     public function top_articulos($cantidad=10,$excluidos=false){
         $this->articulos_top_cantidad = array();
@@ -454,7 +478,7 @@ class dashboard_distribucion extends fs_controller {
                 "' and anulada = FALSE) AND pvptotal != 0".
                 " $referencias group by referencia, descripcion order by cantidad DESC limit $cantidad;";
         $data1 = $this->db->select($sql1);
-        
+
         $i=0;
         if($data1){
             foreach($data1 as $d){
@@ -466,13 +490,13 @@ class dashboard_distribucion extends fs_controller {
                 $i++;
             }
         }
-        
+
         //Buscamos la suma por previo de venta total
         $sql2 = "select referencia, descripcion, sum(pvptotal) as total from lineasfacturascli ".
                 "WHERE idfactura IN (select idfactura from facturascli where fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' and '".\date('Y-m-d',strtotime($this->f_hasta))."' and anulada = FALSE) ".
                 " $referencias group by referencia, descripcion order by total DESC limit $cantidad;";
         $data2 = $this->db->select($sql2);
-        
+
         $ii=0;
         if($data2){
             foreach($data2 as $d){
@@ -484,9 +508,9 @@ class dashboard_distribucion extends fs_controller {
                 $ii++;
             }
         }
-        
+
     }
-    
+
     public function shared_extensions(){
         $extensiones = array(
             array(
@@ -505,6 +529,87 @@ class dashboard_distribucion extends fs_controller {
                 'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/z/Chart.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
+            array(
+                'name' => 'css001_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-table.min.css" rel="stylesheet" type="text/css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'css002_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link href="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-table/extensions/group-by-v2/bootstrap-table-group-by.css" rel="stylesheet" type="text/css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js001_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-table/bootstrap-table.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js002_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-table/bootstrap-table-locale-all.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js003_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/tableExport/libs/FileSaver/FileSaver.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js004_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/tableExport/libs/jsPDF/jspdf.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js005_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/tableExport/libs/jsPDF-AutoTable/jspdf.plugin.autotable.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js006_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/tableExport/libs/js-xlsx/xlsx.core.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js007_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/tableExport/tableExport.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js008_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-table/extensions/group-by-v2/bootstrap-table-group-by.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+
         );
         foreach ($extensiones as $ext) {
             $fsext = new fs_extension($ext);
@@ -513,7 +618,7 @@ class dashboard_distribucion extends fs_controller {
             }
         }
     }
-    
+
     /**
      * @url http://snippets.khromov.se/convert-comma-separated-values-to-array-in-php/
      * @param $string - Input string to convert to array

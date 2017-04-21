@@ -16,12 +16,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div role="tabpanel" class="tab-pane" id="articulos">
     {if="$fsc->procesado"}
-    <div class="col-sm-3">
+    <div class="col-sm-5">
         <ul class="list-group">
             <li class="list-group-item active">Familias</li>
             {loop="$fsc->resumen_familia"}
                 <li class="list-group-item">
-                    <h5 class="list-group-item-heading">{$counter+1} {$value->descripcion}</h5>
+                    <h5 class="list-group-item-heading">{$value->codigo} {$value->descripcion} {$value->madre}</h5>
                 </li>
             {/loop}
         </ul>
