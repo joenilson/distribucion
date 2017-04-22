@@ -90,6 +90,10 @@ class dashboard_distribucion extends fs_controller {
     public $pdf;
     public $procesado;
     public $lista_familia;
+    public $cantidad_familia;
+    public $importe_familia;
+    public $cantidad_referencia;
+    public $importe_referencia;
     public $lista_fecha;
     public $lista_referencia;
     public $suma_familia;
@@ -161,17 +165,17 @@ class dashboard_distribucion extends fs_controller {
     }
 
     public function cobertura_articulos(){
-        $this->lista_familia = array();
+        $this->cantidad_familia = array();
+        $this->importe_familia = array();
+        $this->cantidad_referencia = array();
+        $this->importe_referencia = array();
         $this->lista_fecha = array();
         $this->lista_referencia = array();
         $this->suma_familia = array();
         $this->suma_fecha = array();
         $this->suma_referencia = array();
-        $diffdesde = new \DateTime(\date('d-m-Y',strtotime($this->f_desde)));
-        $diffhasta = new \DateTime(\date('d-m-Y',strtotime($this->f_hasta)));
-        $lista = array();
         //Buscamos los productos en la fecha dada y los agrupamos por familia
-        $sql = "SELECT a.codfamilia,lf.referencia,fc.fecha,sum(lf.cantidad) as cantidad ".
+        $sql = "SELECT a.codfamilia,lf.referencia,fc.fecha,sum(lf.cantidad) as cantidad,sum(lf.pvptotal) as importe  ".
                 "FROM facturascli AS fc, articulos AS a, familias AS f, lineasfacturascli as lf ".
                 "WHERE fecha between ".$this->empresa->var2str($this->f_desde)." AND ".$this->empresa->var2str($this->f_hasta)." ".
                 "AND fc.codalmacen = ".$this->empresa->var2str($this->codalmacen)." AND pvptotal != 0 AND fc.idfactura = lf.idfactura ".
@@ -182,16 +186,35 @@ class dashboard_distribucion extends fs_controller {
         $data = $this->db->select($sql);
         if($data){
             foreach($data as $d){
+                /*
                 $arbol = array();
                 if(!empty($d['codfamilia'])){
                     $this->arbol_familia($d['codfamilia'], $arbol);
                 }
+                 * 
+                 */
+                if(empty($d['codfamilia'])){
+                    $d['codfamilia'] = 'NOFAMILIA';
+                }
+                if(!isset($this->cantidad_familia[$d['codfamilia']])){
+                    $this->cantidad_familia[$d['codfamilia']] = 0;
+                    $this->importe_familia[$d['codfamilia']] = 0;
+                }
+                if(!isset($this->cantidad_referencia[$d['referencia']])){
+                    $this->cantidad_referencia[$d['referencia']] = 0;
+                    $this->importe_referencia[$d['referencia']] = 0;
+                }
                 $item = new stdClass();
                 $item->codfamilia = $d['codfamilia'];
-                $item->arbol = $arbol;
+                //$item->arbol = $arbol;
                 $item->referencia = $d['referencia'];
                 $item->fecha = $d['fecha'];
                 $item->cantidad = $d['cantidad'];
+                $item->importe = $d['importe'];
+                $this->cantidad_familia[$d['codfamilia']] += $item->cantidad;
+                $this->importe_familia[$d['codfamilia']] += $item->importe;
+                $this->cantidad_referencia[$d['referencia']] += $item->cantidad;
+                $this->importe_referencia[$d['referencia']] += $item->importe;
                 /*
                 $this->lista_familia[$d['codfamilia']][$d['referencia']][] = $item;
                 $this->lista_fecha[$d['fecha']][$d['codfamilia']][] = $item;
@@ -203,34 +226,151 @@ class dashboard_distribucion extends fs_controller {
                  */
             }
         }
+        
+ 
+        
+        foreach($this->cantidad_familia as $cod=>$importe){
+            /*
+            $familia = $this->familias->get($cod);
+            if($familia->madre){
+                if(!isset($this->cantidad_familia[$familia->madre])){
+                    $this->cantidad_familia[$familia->madre] = 0;
+                    $this->importe_familia[$familia->madre] = 0;
+                }
+                $this->cantidad_familia[$familia->madre] += $this->cantidad_familia[$cod];
+                $this->importe_familia[$familia->madre] += $this->importe_familia[$cod];
+                $this->sumar_valores_familias($familia->madre,$valores_familia);
+            }
+             * 
+             */
+            //$this->sumar_valores_familias($cod,$valores_familia);
+        }
+        
+        //Buscamos en el arbol de familias para agregar los valores de sus hijos y así tener el arbol totalizado
+        $valores_familia = array();
+        foreach($this->suma_referencia as $ref=>$cantidad){
+            $art = $this->articulos->get($ref);
+            $codfamilia = ($art->codfamilia)?$art->codfamilia:'NOFAMILIA';
+            $this->sumar_valores_familias($codfamilia,$valores_familia);
+        }
+        
         //Generamos el listado de familias
         $this->resumen_familia = array();
+        //Agregamos la suma de articulos sin familia
+        $item = new stdClass();
+        $item->codigo = 'NOFAMILIA';
+        $item->descripcion = 'SIN FAMILIA';
+        $item->madre = '';
+        $item->cantidad = (isset($this->cantidad_familia['NOFAMILIA']))?$this->cantidad_familia['NOFAMILIA']:0;
+        $item->importe = (isset($this->importe_familia['NOFAMILIA']))?$this->importe_familia['NOFAMILIA']:0;
+        $item->tipo = "leaf";
+        $this->resumen_familia[] = $item;
+        //Agregamos las sumas de todas las familias
         foreach($this->familias->madres() as $fam){
+            $item = new stdClass();
+            $item->codigo = $fam->codfamilia;
+            $item->descripcion = $fam->descripcion;
+            $item->madre = $fam->madre;
+            $item->cantidad = (isset($this->cantidad_familia[$fam->codfamilia]))?$this->cantidad_familia[$fam->codfamilia]:0;
+            $item->importe = (isset($this->importe_familia[$fam->codfamilia]))?$this->importe_familia[$fam->codfamilia]:0;
+            $item->tipo = ($fam->hijas())?"branch":"leaf";
+            $this->resumen_familia[] = $item;
             $this->resumen_familias($fam->codfamilia,$this->resumen_familia);
+            $this->resumen_articulos($fam->codfamilia,$this->resumen_familia);
         }
-        $this->new_advice(count($this->resumen_familia));
+        
+        //Por ultimo agregamos los productos que no tienen familia
+        //$this->new_advice(count($this->articulos->all()));
+        foreach($this->articulos->all() as $art){
+            if(!$art->codfamilia){
+                $item = new stdClass();
+                $item->codigo = $art->referencia;
+                $item->descripcion = $art->descripcion;
+                $item->madre = 'NOFAMILIA';
+                $item->cantidad = (isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0;
+                $item->importe = (isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0;
+                $item->tipo = 'leaf';
+                $this->resumen_familia[] = $item;
+            }
+        }
+    }
+    
+    /**
+     * Sumamos los valores de cada familia de los productos para así tener
+     * el resumen totalizado por cada familia
+     * @param type $cod
+     * @param type $array
+     * @return type array
+     */
+    public function sumar_valores_familias($cod,&$array = array()){
+        $familia = $this->familias->get($cod);
+        if($familia->madre){
+            if(!isset($this->cantidad_familia[$familia->madre])){
+                $this->cantidad_familia[$familia->madre] = 0;
+                $this->importe_familia[$familia->madre] = 0;
+            }
+            $this->cantidad_familia[$familia->madre] += $this->cantidad_familia[$cod];
+            $this->importe_familia[$familia->madre] += $this->importe_familia[$cod];
+            $this->sumar_valores_familias($familia->madre,$array);
+        }else{
+            return $array;
+        }
     }
 
+    /**
+     * Listamos las familias para llenar un treetable
+     * @param type $madre
+     * @param stdClass $lista
+     * @return \stdClass
+     */
     public function resumen_familias($madre = FALSE, &$lista = array()){
         if($this->familias->hijas($madre)){
             foreach($this->familias->hijas($madre) as $fam){
-                //$this->new_advice($fam->codfamilia);
                 $item = new stdClass();
                 $item->codigo = $fam->codfamilia;
                 $item->descripcion = $fam->descripcion;
                 $item->madre = $fam->madre;
+                $item->cantidad = (isset($this->cantidad_familia[$fam->codfamilia]))?$this->cantidad_familia[$fam->codfamilia]:0;
+                $item->importe = (isset($this->importe_familia[$fam->codfamilia]))?$this->importe_familia[$fam->codfamilia]:0;
+                $item->tipo = ($fam->hijas())?"branch":"leaf";
                 $lista[] = $item;
-                if($this->familias->hijas($fam->codfamilia)){
+                if($fam->hijas()){
                     $this->resumen_familias($fam->codfamilia, $lista);
-                }else{
-                    return $lista;
                 }
             }
+            
         }else{
             return $lista;
         }
     }
-
+    
+    /**
+     * Agregamos al listado de familias cada articulo que le pertenece
+     * @param type $familia
+     * @param type $lista
+     * @return type array
+     */
+    public function resumen_articulos($familia = FALSE, &$lista = array()){
+        if($familia){
+            $fam = $this->familias->get($familia);
+            if($fam->get_articulos()){
+                foreach($fam->get_articulos() as $art){
+                    $item = new stdClass();
+                    $item->codigo = $art->referencia;
+                    $item->descripcion = $art->descripcion;
+                    $item->madre = $art->codfamilia;
+                    $item->cantidad = (isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0;
+                    $item->importe = (isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0;
+                    $item->tipo = 'leaf';
+                    $this->resumen_familia[] = $item;
+                    //$this->resumen_articulos($art->codfamilia, $lista);
+                }
+            }else{
+                return $lista;
+            }
+        }
+        //return $array;
+    }
 
     /**
      * Extraemos el arbol de familias para armar un reporte
@@ -546,6 +686,30 @@ class dashboard_distribucion extends fs_controller {
                 'params' => ''
             ),
             array(
+                'name' => 'css003_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link href="'.FS_PATH.'plugins/distribucion/view/js/pivottable/pivot.min.css" rel="stylesheet" type="text/css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'css004_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link href="'.FS_PATH.'plugins/distribucion/view/js/jquery-treetable/jquery.treetable.min.css" rel="stylesheet" type="text/css"/>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'css005_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link href="'.FS_PATH.'plugins/distribucion/view/js/jquery-treetable/jquery.treetable.theme.default.min.css" rel="stylesheet" type="text/css"/>',
+                'params' => ''
+            ),
+            array(
                 'name' => 'js001_dashboard_distribucion',
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
@@ -607,6 +771,30 @@ class dashboard_distribucion extends fs_controller {
                 'page_to' => __CLASS__,
                 'type' => 'head',
                 'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-table/extensions/group-by-v2/bootstrap-table-group-by.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js009_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/pivottable/pivot.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js010_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/pivottable/pivot.es.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => 'js011_dashboard_distribucion',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/jquery-treetable/jquery.treetable.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
 

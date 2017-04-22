@@ -21,10 +21,45 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <li class="list-group-item active">Familias</li>
             {loop="$fsc->resumen_familia"}
                 <li class="list-group-item">
-                    <h5 class="list-group-item-heading">{$value->codigo} {$value->descripcion} {$value->madre}</h5>
+                    {$value->codigo} {$value->descripcion} {$value->madre}
+                    <span class="badge">{$value->cantidad}</span>
                 </li>
             {/loop}
         </ul>
     </div>
+    <div class="col-sm-4">
+        <div class="table-responsive">
+            <table id="arbol-familias" class="table table-striped">
+                <caption>
+                    <a href="#" onclick="jQuery('#arbol-familias').treetable('expandAll');  return false;">Expandir Todos</a>
+                    <a href="#" onclick="jQuery('#arbol-familias').treetable('collapseAll'); return false;">Minimizar Todos</a>
+                </caption>
+                <thead>
+                    <tr class="text-uppercase text-center">
+                        <th>Familia</th>
+                        <th>Cantidad</th>
+                        <th>Importe</th>
+                    </tr>
+                </thead>
+                {loop="$fsc->resumen_familia"}
+                <tbody>
+                    <tr data-tt-id="{$value->codigo}" data-tt-parent-id="{$value->madre}" data-tt-branch='{$value->tipo}'>
+                        <td class="text-left">{$value->descripcion}</td>
+                        <td class="text-right">{$fsc->show_numero($value->cantidad)}</td>
+                        <td class="text-right">{$fsc->show_numero($value->importe)}</td>
+                    </tr>
+                </tbody>
+                {/loop}
+            </table>
+        </div>
+    </div>
+    <script>
+    // initialize treeTable
+    $("#arbol-familias").treetable({
+        expandable:     true
+        //onNodeExpand:   nodeExpand,
+        //onNodeCollapse: nodeCollapse
+    });
+    </script>
     {/if}
 </div>
