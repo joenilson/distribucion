@@ -14,6 +14,25 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div role="tabpanel" class="tab-pane" id="articulos">
-
+<div role="tabpanel" class="tab-pane" id="tiempo">
+{if="$fsc->procesado"}
+<div id="resultados_tiempo"></div>
+<script>
+$(document).ready(function () {
+    var datos_tiempo = {function="json_encode($fsc->resultados_tiempo)"};
+    $("#resultados_tiempo").pivotUI(
+        datos_tiempo,
+        {
+            rows: ["articulo"],
+            cols: ["fecha"],
+            vals: ["cantidad"],
+            rendererName: "Heatmap",
+            aggregatorName: "Suma de enteros"
+        },
+        true,
+        "es"
+    );
+});
+</script>
+{/if}
 </div>

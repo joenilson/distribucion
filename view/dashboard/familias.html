@@ -1,0 +1,72 @@
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div role="tabpanel" class="tab-pane" id="familias">
+    {if="$fsc->procesado"}
+    <div class="col-sm-8">
+        <div class="table-responsive">
+            <caption>
+                <a class="btn btn-sm btn-link" href="#" onclick="jQuery('#arbol-familias').treetable('expandAll');  return false;">
+                    <span class="fa fa-expand"></span>&nbsp;Expandir Todos
+                </a>
+                <a class="btn btn-sm btn-link" href="#" onclick="jQuery('#arbol-familias').treetable('collapseAll'); return false;">
+                    <span class="fa fa-compress"></span>&nbsp;Minimizar Todos
+                </a>
+                <a class="btn btn-sm btn-primary" href="{$fsc->fileNameXLSArticulos}" role="button">
+                    <span class="fa fa-file-excel-o"></span>&nbsp;Descargar Resumen
+                </a>
+            </caption>
+            <table id="arbol-familias" class="table table-striped">
+                <thead>
+                    <tr class="text-uppercase text-center">
+                        <th>Familia</th>
+                        <th>Cantidad</th>
+                        <th>Importe</th>
+                        <th>% Part. Cantidad</th>
+                        <th>% Part. Importe</th>
+                    </tr>
+                </thead>
+                {loop="$fsc->resumen_familia"}
+                <tbody>
+                    <tr data-tt-id="{$value->codigo}" data-tt-parent-id="{$value->madre}" data-tt-branch='{$value->tipo}'>
+                        <td class="text-left" {if="$value->codigo=='TOTAL'"}style="font-weight: bold;"{/if}>{$value->descripcion}</td>
+                        <td class="text-right" {if="$value->codigo=='TOTAL'"}style="font-weight: bold;"{/if}>{$fsc->show_numero($value->cantidad,0)}</td>
+                        <td class="text-right" {if="$value->codigo=='TOTAL'"}style="font-weight: bold;"{/if}>{$fsc->show_numero($value->importe)}</td>
+                        <td class="text-right" {if="$value->codigo=='TOTAL'"}style="font-weight: bold;"{/if}>
+                            {$fsc->show_numero($value->cantidad_pct,2)}%
+                        </td>
+                        <td class="text-right" {if="$value->codigo=='TOTAL'"}style="font-weight: bold;"{/if}>
+                            {$fsc->show_numero($value->importe_pct,2)}%
+                        </td>
+                    </tr>
+                </tbody>
+                {/loop}
+            </table>
+        </div>
+    </div>
+    <script>
+    // initialize treeTable
+    $("#arbol-familias").treetable({
+        expandable:     true
+    });
+    // Highlight selected row
+    $("#arbol-familias tbody").on("mousedown", "tr", function() {
+      $(".selected").not(this).removeClass("selected");
+      $(this).toggleClass("selected");
+    });
+    </script>
+    {/if}
+</div>

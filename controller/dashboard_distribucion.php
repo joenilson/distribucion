@@ -87,6 +87,8 @@ class dashboard_distribucion extends fs_controller {
     public $documentosDir;
     public $distribucionDir;
     public $publicPath;
+    public $fileNameXLSArticulos;
+    public $pathNameXLSArticulos;
     public $pdf;
     public $procesado;
     public $lista_familia;
@@ -94,12 +96,18 @@ class dashboard_distribucion extends fs_controller {
     public $importe_familia;
     public $cantidad_referencia;
     public $importe_referencia;
+    public $total_cantidad_familia;
+    public $total_importe_familia;
     public $lista_fecha;
     public $lista_referencia;
     public $suma_familia;
     public $suma_fecha;
     public $suma_referencia;
     public $resumen_familia;
+    public $resumen_familia_cabecera;
+    public $resumen_familia_datos;
+    public $resumen_familia_final;
+    public $resultados_tiempo;
     public function __construct() {
         parent::__construct(__CLASS__,'Dashboard Distribución', 'informes', FALSE, TRUE, FALSE);
     }
@@ -169,30 +177,23 @@ class dashboard_distribucion extends fs_controller {
         $this->importe_familia = array();
         $this->cantidad_referencia = array();
         $this->importe_referencia = array();
-        $this->lista_fecha = array();
-        $this->lista_referencia = array();
-        $this->suma_familia = array();
-        $this->suma_fecha = array();
-        $this->suma_referencia = array();
+        $this->total_cantidad_familia = 0;
+        $this->total_importe_familia = 0;
+
+        $this->resumen_familia_cabecera = array('Familia','Cantidad','Importe','% Part Cantidad','% Cantidad Importe');
+
         //Buscamos los productos en la fecha dada y los agrupamos por familia
-        $sql = "SELECT a.codfamilia,lf.referencia,fc.fecha,sum(lf.cantidad) as cantidad,sum(lf.pvptotal) as importe  ".
+        //Esta pendiente sacar la información de ventas por fechas de forma coherente
+        $sql = "SELECT a.codfamilia,lf.referencia,lf.descripcion,fc.fecha,sum(lf.cantidad) as cantidad,sum(lf.pvptotal) as importe  ".
                 "FROM facturascli AS fc, articulos AS a, familias AS f, lineasfacturascli as lf ".
                 "WHERE fecha between ".$this->empresa->var2str($this->f_desde)." AND ".$this->empresa->var2str($this->f_hasta)." ".
                 "AND fc.codalmacen = ".$this->empresa->var2str($this->codalmacen)." AND pvptotal != 0 AND fc.idfactura = lf.idfactura ".
                 "AND lf.referencia = a.referencia AND f.codfamilia = a.codfamilia and fc.anulada = FALSE ".
-                "GROUP BY a.codfamilia,lf.referencia,fc.fecha LIMIT 11".
+                "GROUP BY a.codfamilia,lf.referencia,lf.descripcion,fc.fecha".
                ";";
-        //$this->new_advice($sql);
         $data = $this->db->select($sql);
         if($data){
             foreach($data as $d){
-                /*
-                $arbol = array();
-                if(!empty($d['codfamilia'])){
-                    $this->arbol_familia($d['codfamilia'], $arbol);
-                }
-                 * 
-                 */
                 if(empty($d['codfamilia'])){
                     $d['codfamilia'] = 'NOFAMILIA';
                 }
@@ -204,116 +205,128 @@ class dashboard_distribucion extends fs_controller {
                     $this->cantidad_referencia[$d['referencia']] = 0;
                     $this->importe_referencia[$d['referencia']] = 0;
                 }
-                $item = new stdClass();
-                $item->codfamilia = $d['codfamilia'];
-                //$item->arbol = $arbol;
-                $item->referencia = $d['referencia'];
-                $item->fecha = $d['fecha'];
-                $item->cantidad = $d['cantidad'];
-                $item->importe = $d['importe'];
-                $this->cantidad_familia[$d['codfamilia']] += $item->cantidad;
-                $this->importe_familia[$d['codfamilia']] += $item->importe;
-                $this->cantidad_referencia[$d['referencia']] += $item->cantidad;
-                $this->importe_referencia[$d['referencia']] += $item->importe;
-                /*
-                $this->lista_familia[$d['codfamilia']][$d['referencia']][] = $item;
-                $this->lista_fecha[$d['fecha']][$d['codfamilia']][] = $item;
-                $this->lista_referencia[$d['referencia']][] = $item;
-                $this->suma_familia[$d['codfamilia']] += $d['cantidad'];
-                $this->suma_fecha[$d['fecha']][$d['codfamilia']] += $d['cantidad'];
-                $this->suma_referencia[$d['fecha']][$d['referencia']] += $d['cantidad'];
-                 *
-                 */
+                $this->cantidad_familia[$d['codfamilia']] += $d['cantidad'];
+                $this->importe_familia[$d['codfamilia']] += $d['importe'];
+                $this->cantidad_referencia[$d['referencia']] += $d['cantidad'];
+                $this->importe_referencia[$d['referencia']] += $d['importe'];
+                $this->total_cantidad_familia += $d['cantidad'];
+                $this->total_importe_familia += $d['importe'];
+                //datos para el reporte por fecha
+                $this->resultados_tiempo[] = array('fecha'=>$d['fecha'],'articulo'=>$d['referencia'].' '.$d['descripcion'],'cantidad'=>$d['cantidad'],'importe'=>$d['importe']);
             }
         }
-        
- 
-        
-        foreach($this->cantidad_familia as $cod=>$importe){
-            /*
-            $familia = $this->familias->get($cod);
-            if($familia->madre){
-                if(!isset($this->cantidad_familia[$familia->madre])){
-                    $this->cantidad_familia[$familia->madre] = 0;
-                    $this->importe_familia[$familia->madre] = 0;
-                }
-                $this->cantidad_familia[$familia->madre] += $this->cantidad_familia[$cod];
-                $this->importe_familia[$familia->madre] += $this->importe_familia[$cod];
-                $this->sumar_valores_familias($familia->madre,$valores_familia);
-            }
-             * 
-             */
-            //$this->sumar_valores_familias($cod,$valores_familia);
-        }
-        
+
         //Buscamos en el arbol de familias para agregar los valores de sus hijos y así tener el arbol totalizado
-        $valores_familia = array();
-        foreach($this->suma_referencia as $ref=>$cantidad){
+        foreach($this->cantidad_referencia as $ref=>$cantidad){
             $art = $this->articulos->get($ref);
             $codfamilia = ($art->codfamilia)?$art->codfamilia:'NOFAMILIA';
-            $this->sumar_valores_familias($codfamilia,$valores_familia);
+            $this->sumar_valores_familias($codfamilia,$ref);
         }
-        
+
         //Generamos el listado de familias
         $this->resumen_familia = array();
+
         //Agregamos la suma de articulos sin familia
-        $item = new stdClass();
-        $item->codigo = 'NOFAMILIA';
-        $item->descripcion = 'SIN FAMILIA';
-        $item->madre = '';
-        $item->cantidad = (isset($this->cantidad_familia['NOFAMILIA']))?$this->cantidad_familia['NOFAMILIA']:0;
-        $item->importe = (isset($this->importe_familia['NOFAMILIA']))?$this->importe_familia['NOFAMILIA']:0;
-        $item->tipo = "leaf";
-        $this->resumen_familia[] = $item;
-        //Agregamos las sumas de todas las familias
-        foreach($this->familias->madres() as $fam){
-            $item = new stdClass();
-            $item->codigo = $fam->codfamilia;
-            $item->descripcion = $fam->descripcion;
-            $item->madre = $fam->madre;
-            $item->cantidad = (isset($this->cantidad_familia[$fam->codfamilia]))?$this->cantidad_familia[$fam->codfamilia]:0;
-            $item->importe = (isset($this->importe_familia[$fam->codfamilia]))?$this->importe_familia[$fam->codfamilia]:0;
-            $item->tipo = ($fam->hijas())?"branch":"leaf";
-            $this->resumen_familia[] = $item;
-            $this->resumen_familias($fam->codfamilia,$this->resumen_familia);
-            $this->resumen_articulos($fam->codfamilia,$this->resumen_familia);
-        }
-        
-        //Por ultimo agregamos los productos que no tienen familia
-        //$this->new_advice(count($this->articulos->all()));
-        foreach($this->articulos->all() as $art){
+        $this->agregar_item(array(
+            'codigo'=>'NOFAMILIA',
+            'descripcion'=>'SIN FAMILIA',
+            'madre'=>'',
+            'cantidad'=>(isset($this->cantidad_familia['NOFAMILIA']))?$this->cantidad_familia['NOFAMILIA']:0,
+            'importe'=>(isset($this->importe_familia['NOFAMILIA']))?$this->importe_familia['NOFAMILIA']:0,
+            'tipo'=>'branch'
+        ));
+        //Agregamos los articulos sin familia
+        foreach($this->articulos->all(0,10000) as $art){
             if(!$art->codfamilia){
-                $item = new stdClass();
-                $item->codigo = $art->referencia;
-                $item->descripcion = $art->descripcion;
-                $item->madre = 'NOFAMILIA';
-                $item->cantidad = (isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0;
-                $item->importe = (isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0;
-                $item->tipo = 'leaf';
-                $this->resumen_familia[] = $item;
+                $this->agregar_item(array(
+                    'codigo'=>$art->referencia,
+                    'descripcion'=>$art->referencia.' - '.$art->descripcion,
+                    'madre'=>'NOFAMILIA',
+                    'cantidad'=>(isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0,
+                    'importe'=>(isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0,
+                    'tipo'=>'leaf'
+                ));
             }
         }
+
+
+        //Agregamos las sumas de todas las familias
+        foreach($this->familias->madres() as $fam){
+            $this->agregar_item(array(
+                'codigo'=>$fam->codfamilia,
+                'descripcion'=>$fam->descripcion,
+                'madre'=>$fam->madre,
+                'cantidad'=>(isset($this->cantidad_familia[$fam->codfamilia]))?$this->cantidad_familia[$fam->codfamilia]:0,
+                'importe'=>(isset($this->importe_familia[$fam->codfamilia]))?$this->importe_familia[$fam->codfamilia]:0,
+                'tipo'=>'branch'
+            ));
+            if($fam->get_articulos()){
+                foreach($fam->get_articulos() as $art){
+                    $this->agregar_item(array(
+                        'codigo'=>$art->referencia,
+                        'descripcion'=>$art->referencia.' - '.$art->descripcion,
+                        'madre'=>$art->codfamilia,
+                        'cantidad'=>(isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0,
+                        'importe'=>(isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0,
+                        'tipo'=>'leaf'
+                    ));
+                }
+            }
+            if($fam->hijas()){
+                $this->resumen_familias($fam->codfamilia);
+            }
+        }
+
+        //Agregamos la ultima fila de total
+        $item = new stdClass();
+        $item->codigo = 'TOTAL';
+        $item->descripcion = 'TOTAL GENERAL';
+        $item->madre = '';
+        $item->cantidad = $this->total_cantidad_familia;
+        $item->cantidad_pct = 100;
+        $item->importe = $this->total_importe_familia;
+        $item->importe_pct = 100;
+        $item->tipo = 'leaf';
+        $this->resumen_familia[] = $item;
+
+
     }
-    
+
+    private function agregar_item($data){
+        $item = new stdClass();
+        $item->codigo = $data['codigo'];
+        $item->descripcion = $data['descripcion'];
+        $item->madre = $data['madre'];
+        $item->cantidad = $data['cantidad'];
+        $item->cantidad_pct = ($data['cantidad'])?round(($data['cantidad']/$this->total_cantidad_familia)*100,2):0;
+        $item->importe = $data['importe'];
+        $item->importe_pct = ($data['importe'])?round(($data['importe']/$this->total_importe_familia)*100,2):0;;
+        $item->tipo = $data['tipo'];
+        $this->resumen_familia[] = $item;
+        $this->resumen_familia_datos = array($item->descripcion,$item->cantidad, $item->importe, $item->cantidad_pct, $item->importe_pct);
+    }
+
     /**
      * Sumamos los valores de cada familia de los productos para así tener
      * el resumen totalizado por cada familia
-     * @param type $cod
-     * @param type $array
-     * @return type array
+     * aqui llega el codigo de la familia y el codigo de de donde sacaremos la cantidad a sumar
+     * y se busca la familia madre
+     * @param type $cod codigo de familia
+     * @param type $ref codigo del articulo
+     * @return type boolean
      */
-    public function sumar_valores_familias($cod,&$array = array()){
+    public function sumar_valores_familias($cod,&$ref){
         $familia = $this->familias->get($cod);
         if($familia->madre){
             if(!isset($this->cantidad_familia[$familia->madre])){
                 $this->cantidad_familia[$familia->madre] = 0;
                 $this->importe_familia[$familia->madre] = 0;
             }
-            $this->cantidad_familia[$familia->madre] += $this->cantidad_familia[$cod];
-            $this->importe_familia[$familia->madre] += $this->importe_familia[$cod];
-            $this->sumar_valores_familias($familia->madre,$array);
+            $this->cantidad_familia[$familia->madre] += $this->cantidad_referencia[$ref];
+            $this->importe_familia[$familia->madre] += $this->importe_referencia[$ref];
+            $this->sumar_valores_familias($familia->madre,$ref);
         }else{
-            return $array;
+            return true;
         }
     }
 
@@ -323,57 +336,43 @@ class dashboard_distribucion extends fs_controller {
      * @param stdClass $lista
      * @return \stdClass
      */
-    public function resumen_familias($madre = FALSE, &$lista = array()){
+    public function resumen_familias($madre = FALSE){
         if($this->familias->hijas($madre)){
             foreach($this->familias->hijas($madre) as $fam){
-                $item = new stdClass();
-                $item->codigo = $fam->codfamilia;
-                $item->descripcion = $fam->descripcion;
-                $item->madre = $fam->madre;
-                $item->cantidad = (isset($this->cantidad_familia[$fam->codfamilia]))?$this->cantidad_familia[$fam->codfamilia]:0;
-                $item->importe = (isset($this->importe_familia[$fam->codfamilia]))?$this->importe_familia[$fam->codfamilia]:0;
-                $item->tipo = ($fam->hijas())?"branch":"leaf";
-                $lista[] = $item;
+                $this->agregar_item(array(
+                    'codigo'=>$fam->codfamilia,
+                    'descripcion'=>$fam->descripcion,
+                    'madre'=>$fam->madre,
+                    'cantidad'=>(isset($this->cantidad_familia[$fam->codfamilia]))?$this->cantidad_familia[$fam->codfamilia]:0,
+                    'importe'=>(isset($this->importe_familia[$fam->codfamilia]))?$this->importe_familia[$fam->codfamilia]:0,
+                    'tipo'=>'branch'
+                ));
+                if($fam->get_articulos()){
+                    foreach($fam->get_articulos() as $art){
+                        $this->agregar_item(array(
+                            'codigo'=>$art->referencia,
+                            'descripcion'=>$art->referencia.' - '.$art->descripcion,
+                            'madre'=>$art->codfamilia,
+                            'cantidad'=>(isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0,
+                            'importe'=>(isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0,
+                            'tipo'=>'leaf'
+                        ));
+                    }
+                }
                 if($fam->hijas()){
-                    $this->resumen_familias($fam->codfamilia, $lista);
+                    $this->resumen_familias($fam->codfamilia);
                 }
             }
-            
+
         }else{
             return $lista;
         }
     }
-    
-    /**
-     * Agregamos al listado de familias cada articulo que le pertenece
-     * @param type $familia
-     * @param type $lista
-     * @return type array
-     */
-    public function resumen_articulos($familia = FALSE, &$lista = array()){
-        if($familia){
-            $fam = $this->familias->get($familia);
-            if($fam->get_articulos()){
-                foreach($fam->get_articulos() as $art){
-                    $item = new stdClass();
-                    $item->codigo = $art->referencia;
-                    $item->descripcion = $art->descripcion;
-                    $item->madre = $art->codfamilia;
-                    $item->cantidad = (isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0;
-                    $item->importe = (isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0;
-                    $item->tipo = 'leaf';
-                    $this->resumen_familia[] = $item;
-                    //$this->resumen_articulos($art->codfamilia, $lista);
-                }
-            }else{
-                return $lista;
-            }
-        }
-        //return $array;
-    }
 
     /**
-     * Extraemos el arbol de familias para armar un reporte
+     * Extraemos el arbol de familias para armar la pertenencia de una familia hacia atras
+     * Esto nos sirve cuando queremos saber si la familia a la que pertenece un producto esta
+     * vunculada a otras familias hasta llegar a la familia madre final
      * @param type $codfamilia string
      * @param type $resultado array
      * @return array
@@ -651,6 +650,36 @@ class dashboard_distribucion extends fs_controller {
 
     }
 
+    public function generar_excel($archivo = 'archivo',$cabecera=array(),$datos = array(), $final = array(),$nombre_hoja = 'Reporte FS'){
+        //Revisamos que no haya un archivo ya cargado
+        $pathName = $this->distribucionDir . DIRECTORY_SEPARATOR . $archivo . "_" . $this->user->nick . ".xlsx";
+        $fileName = $this->publicPath . DIRECTORY_SEPARATOR . $archivo . "_" . $this->user->nick . ".xlsx";
+        if (file_exists($fileName)) {
+            unlink($fileName);
+        }
+        //Variables para cada parte del excel
+        $estilo_cabecera = array('border'=>'left,right,top,bottom','font-style'=>'bold');
+        $estilo_cuerpo = array( array('halign'=>'left'),array('halign'=>'right'),array('halign'=>'center'),array('halign'=>'none'));
+        $estilo_pie = array('border'=>'left,right,top,bottom','font-style'=>'bold','color'=>'#FFFFFF','fill'=>'#000000');
+
+        //Inicializamos la clase
+        $this->writer = new XLSXWriter();
+        //Creamos la hoja
+        $this->writer->writeSheetHeader($nombre_hoja, array(), true);
+        //Agregamos la linea de titulo
+        $this->writer->writeSheetRow($nombre_hoja, $cabecera,$estilo_cabecera);
+        //Agregamos cada linea en forma de array
+        foreach($datos as $linea){
+            $this->writer->writeSheetRow($nombre_hoja, $linea,$estilo_cuerpo);
+        }
+        //Agregamos el final
+        $this->writer->writeSheetRow($nombre_hoja, $final,$estilo_pie);
+        //Escribimos
+        $this->writer->writeToFile($pathName);
+        //Devolvemos el nombre del archivo generado
+        return $fileName;
+    }
+
     public function shared_extensions(){
         $extensiones = array(
             array(
@@ -786,7 +815,7 @@ class dashboard_distribucion extends fs_controller {
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/pivottable/pivot.es.min.js" type="text/javascript"></script>',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/pivottable/pivot.es_DO.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
             array(
