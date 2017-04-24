@@ -97,9 +97,9 @@ class distribucion_clientes extends fs_model {
         $datos_direccion = $this->direccion_cliente->get($informacion->iddireccion);
         $datos_cliente = $this->cliente->get($informacion->codcliente);
         $informacion->direccion = ($datos_direccion)?$datos_direccion->direccion:'Completar Información';
-        $informacion->ruta_descripcion = $datos_ruta->descripcion;
-        $informacion->codagente = $datos_ruta->codagente;
-        $informacion->nombre = $datos_ruta->nombre;
+        $informacion->ruta_descripcion = ($datos_ruta)?$datos_ruta->descripcion:'SIN RUTA';
+        $informacion->codagente = ($datos_ruta)?$datos_ruta->codagente:'';
+        $informacion->nombre = ($datos_ruta)?$datos_ruta->nombre:'SIN ASIGNAR';
         $informacion->canal_descripcion = $datos_canal->descripcion;
         $informacion->subcanal_descripcion = $datos_subcanal->descripcion;
         $informacion->nombre_cliente = ($datos_cliente)?$datos_cliente->nombre:'Error de nombre del cliente';

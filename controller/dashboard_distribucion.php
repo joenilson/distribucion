@@ -180,10 +180,17 @@ class dashboard_distribucion extends fs_controller {
         $this->total_cantidad_familia = 0;
         $this->total_importe_familia = 0;
 
+        //generamos un listado de todas las familias para hacer una sola llamada a la db
+        $f = array();
+        $f['NOFAMILIA'] = 'SIN FAMILIA';
+        foreach($this->familias->all() as $familia){
+            $f[$familia->codfamilia] = $familia->descripcion;
+        }
+        
         $this->resumen_familia_cabecera = array('Familia','Cantidad','Importe','% Part Cantidad','% Cantidad Importe');
 
         //Buscamos los productos en la fecha dada y los agrupamos por familia
-        //Esta pendiente sacar la información de ventas por fechas de forma coherente
+        //Esta pendiente sacar la información de ventas por vendedor
         $sql = "SELECT a.codfamilia,lf.referencia,lf.descripcion,fc.fecha,sum(lf.cantidad) as cantidad,sum(lf.pvptotal) as importe  ".
                 "FROM facturascli AS fc, articulos AS a, familias AS f, lineasfacturascli as lf ".
                 "WHERE fecha between ".$this->empresa->var2str($this->f_desde)." AND ".$this->empresa->var2str($this->f_hasta)." ".
@@ -212,7 +219,8 @@ class dashboard_distribucion extends fs_controller {
                 $this->total_cantidad_familia += $d['cantidad'];
                 $this->total_importe_familia += $d['importe'];
                 //datos para el reporte por fecha
-                $this->resultados_tiempo[] = array('fecha'=>$d['fecha'],'articulo'=>$d['referencia'].' '.$d['descripcion'],'cantidad'=>$d['cantidad'],'importe'=>$d['importe']);
+                
+                $this->resultados_tiempo[] = array('familia'=>$f[$d['codfamilia']],'fecha'=>$d['fecha'],'articulo'=>$d['referencia'].' '.$d['descripcion'],'cantidad'=>$d['cantidad'],'importe'=>$d['importe']);
             }
         }
 
@@ -433,7 +441,7 @@ class dashboard_distribucion extends fs_controller {
                 $this->clientes_nuevos++;
             }elseif(!$cli->debaja and $dtalta<$diffdesde){
                 $this->clientes_activos++;
-        }
+            }
 
             //Buscamos la atención de clientes del rango de fechas
             $sql = "SELECT COUNT(*) as count FROM facturascli WHERE codcliente = ".$this->empresa->var2str($cli->codcliente)." and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' AND anulada = FALSE;";

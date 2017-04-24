@@ -28,11 +28,14 @@ class factura_cliente extends FacturaScripts\model\factura_cliente{
      * @var type varchar(10)
      */
     public $codruta;
+    public $codvendedor;
     public function __construct($t = FALSE) {
         if($t){
             $this->codruta = $t['codruta'];
+            $this->codvendedor = $t['codvendedor'];
         }else{
             $this->codruta = null;
+            $this->codvendedor = null;
         }
         parent::__construct($t);
     }
@@ -40,7 +43,9 @@ class factura_cliente extends FacturaScripts\model\factura_cliente{
     public function save()
     {
        if(parent::save()){
-          $sql = "UPDATE ".$this->table_name." SET codruta = ".$this->var2str($this->codruta).
+          $sql = "UPDATE ".$this->table_name." SET ".
+              "codruta = ".$this->var2str($this->codruta).
+              ", codvendedor = ".$this->var2str($this->codvendedor).
                 " WHERE idfactura = ".$this->intval($this->idfactura).";";
           return $this->db->exec($sql);
        }

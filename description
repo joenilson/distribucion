@@ -6,5 +6,11 @@ Plugin de FacturaScripts para manejo de Distribución de productos/articulos.
 <li>Liquidación de transportes con generación de notas de credito</li>
 <li>Generación de Pagos de Facturas al liquidar un transporte</li>
 </ul>
+Para su correcto uso se necesita como requisito los siguientes plugins:
+<ol>
+<li>Facturación Base</li>
+<li>Presupuestos y Pedidos</li>
+<li>Nomina</li>
+</ol>
 <br/>
 Licencia <b>LGPL 3</b>

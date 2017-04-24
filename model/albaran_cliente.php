@@ -28,15 +28,18 @@ class albaran_cliente extends FacturaScripts\model\albaran_cliente{
      * @var type varchar(10)
      */
     public $codruta;
+    public $codvendedor;
     public function __construct($t = FALSE) {
         if($t){
             $this->codruta = $t['codruta'];
+            $this->codvendedor = $t['codvendedor'];
         }else{
             $this->codruta = null;
+            $this->codvendedor = null;
         }
         parent::__construct($t);
     }
-    
+
     /**
     * Guarda los datos en la base de datos
     * @return boolean
@@ -44,7 +47,9 @@ class albaran_cliente extends FacturaScripts\model\albaran_cliente{
    public function save()
    {
       if(parent::save()){
-         $sql = "UPDATE ".$this->table_name." SET codruta = ".$this->var2str($this->codruta).
+         $sql = "UPDATE ".$this->table_name." SET ".
+              "codruta = ".$this->var2str($this->codruta).
+              ",codvendedor = ".$this->var2str($this->codvendedor).
             " WHERE idalbaran = ".$this->intval($this->idalbaran).";";
          return $this->db->exec($sql);
       }
