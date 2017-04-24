@@ -108,6 +108,10 @@ class dashboard_distribucion extends fs_controller {
     public $resumen_familia_datos;
     public $resumen_familia_final;
     public $resultados_tiempo;
+    public $graficos_efectividad_data;
+    public $graficos_fecha_labels;
+    public $graficos_fecha;
+    public $rango_fechas;
     public function __construct() {
         parent::__construct(__CLASS__,'Dashboard Distribución', 'informes', FALSE, TRUE, FALSE);
     }
@@ -158,7 +162,23 @@ class dashboard_distribucion extends fs_controller {
         $this->f_hasta = ($f_hasta)?$f_hasta:\date('d-m-Y');
         $codalmacen = filter_input(INPUT_POST, 'codalmacen');
         $this->codalmacen = (isset($this->user->codalmacen))?$this->user->codalmacen:$codalmacen;
+        
+        
+        //Ragno de fechas según los datos enviados
+        $desde = new DateTime($this->f_desde);
+        $hasta_f = new DateTime($this->f_hasta);
+        $hasta = $hasta_f->modify( '+1 day' );
+        //intervalo de aumento es 1 día
+        $intervalo = new \DateInterval('P1D');
+        $this->rango_fechas = new \DatePeriod($desde, $intervalo, $hasta);
+        
+        //Llenamos el array de fechas para los graficos
+        foreach($this->rango_fechas as $fecha){
+            $this->graficos_fecha_labels[] = $fecha->format('d-m-Y');
+        }
+        
         $accion = filter_input(INPUT_POST, 'accion');
+        
         if($accion){
             switch ($accion){
                 case "buscar":
@@ -444,7 +464,11 @@ class dashboard_distribucion extends fs_controller {
             }
 
             //Buscamos la atención de clientes del rango de fechas
-            $sql = "SELECT COUNT(*) as count FROM facturascli WHERE codcliente = ".$this->empresa->var2str($cli->codcliente)." and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' AND anulada = FALSE;";
+            //@todo se debe sacar para acelerar la carga del reporte
+            $sql = "SELECT COUNT(*) as count FROM facturascli WHERE ".
+                    " codcliente = ".$this->empresa->var2str($cli->codcliente).
+                    " and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta)).
+                    "' AND anulada = FALSE AND idfacturarect IS NULL;";
             $data = $this->db->select($sql);
             if(!empty($data[0]['count'])){
                 $this->clientes_visitados++;
@@ -506,7 +530,18 @@ class dashboard_distribucion extends fs_controller {
             $this->clientes_rutas['total_clientes'][$vendedor->codagente] = 0;
             $this->clientes_rutas['total_atendidos'][$vendedor->codagente] = 0;
             $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] = 0;
+            $this->clientes_rutas['total_cantidad'][$vendedor->codagente] = 0;
+            $this->clientes_rutas['total_importe'][$vendedor->codagente] = 0;
+            $this->clientes_rutas['total_oferta'][$vendedor->codagente] = 0;
             $this->clientes_rutas['mesa'][$vendedor->codsupervisor] = 0;
+            $this->graficos_efectividad_data['fecha'][$vendedor->codagente] = array();
+            foreach($this->rango_fechas as $fecha){
+                $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
+                $this->clientes_rutas['fecha_importe'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
+                $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
+                $this->graficos_efectividad_data['fecha'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
+            }
+            
             if($rutasagente){
                 foreach($rutasagente as $ruta){
                     $clientes_ruta = $this->rutas->cantidad_asignados($this->empresa->id, $this->codalmacen, $ruta->ruta);
@@ -514,6 +549,9 @@ class dashboard_distribucion extends fs_controller {
                     $this->clientes_rutas['total_clientes'][$vendedor->codagente] += $clientes_ruta;
                     if(!isset($this->clientes_rutas['atendidos'][$ruta->ruta])){
                         $this->clientes_rutas['atendidos'][$ruta->ruta] = 0;
+                        $this->clientes_rutas['cantidad'][$ruta->ruta] = 0;
+                        $this->clientes_rutas['importe'][$ruta->ruta] = 0;
+                        $this->clientes_rutas['oferta'][$ruta->ruta] = 0;
                     }
                     if(!isset($this->clientes_rutas['no_atendidos'][$ruta->ruta])){
                         $this->clientes_rutas['no_atendidos'][$ruta->ruta] = $clientes_ruta;
@@ -532,6 +570,7 @@ class dashboard_distribucion extends fs_controller {
                         $this->clientes_rutas['atendidos'][$ruta->ruta] = $data[0]['clientes_visitados'];
                         $this->clientes_rutas['no_atendidos'][$ruta->ruta] -= $data[0]['clientes_visitados'];
                     }
+                    
                     $efectividad = round(($this->clientes_rutas['atendidos'][$ruta->ruta]/$clientes_ruta)*100,0);
                     $this->clientes_rutas['efectividad'][$ruta->ruta] = $efectividad;
                     $efectividad_color = ($efectividad<=30)?'danger':'success';
@@ -539,6 +578,35 @@ class dashboard_distribucion extends fs_controller {
                     $this->clientes_rutas['efectividad_color'][$ruta->ruta] = $efectividad_color;
                     $this->clientes_rutas['total_atendidos'][$vendedor->codagente] += $this->clientes_rutas['atendidos'][$ruta->ruta];
                     $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] += $this->clientes_rutas['no_atendidos'][$ruta->ruta];
+                    
+                    //Generamos la estadistica de ventas cantidad vendida, importe vendido, cantidad bonificada
+                    $sql = "SELECT T1.ruta,fecha,sum(T3.cantidad) as qdad_vendida,sum(T3.pvptotal) as importe_vendido, sum(T4.cantidad) as qdad_oferta ".
+                        "FROM distribucion_clientes AS T1 ".
+                        "LEFT JOIN facturascli as T2 ".
+                        "ON T1.codcliente = T2.codcliente ".
+                        "LEFT JOIN lineasfacturascli as T3 ".
+                        "ON T2.idfactura = T3.idfactura AND T3.dtopor != 100".
+                        "LEFT JOIN lineasfacturascli as T4 ".
+                        "ON T2.idfactura = T4.idfactura AND T4.dtopor = 100".
+                        "WHERE fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' ".
+                        "AND T1.codalmacen = ".$this->empresa->var2str($this->codalmacen)." and ruta = ".$this->empresa->var2str($ruta->ruta)." and anulada = FALSE ".
+                        "GROUP by T1.ruta,fecha;";
+                    $data = $this->db->select($sql);
+                    if($data){
+                        foreach($data as $d){
+                            $this->clientes_rutas['cantidad'][$ruta->ruta] += $d['qdad_vendida'];
+                            $this->clientes_rutas['importe'][$ruta->ruta] += $d['importe_vendido'];
+                            $this->clientes_rutas['oferta'][$ruta->ruta] += $d['qdad_oferta'];
+                            $this->clientes_rutas['total_cantidad'][$vendedor->codagente] += $d['qdad_vendida'];
+                            $this->clientes_rutas['total_importe'][$vendedor->codagente] += $d['importe_vendido'];
+                            $this->clientes_rutas['total_oferta'][$vendedor->codagente] += $d['qdad_oferta'];
+                            $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_vendida'];
+                            $this->clientes_rutas['fecha_importe'][$vendedor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['importe_vendido'];
+                            $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_oferta'];
+                            $this->graficos_efectividad_data['fecha'][$vendedor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_vendida'];
+                        }
+                    }
+                    
                 }
             }
             if($this->clientes_rutas['total_clientes'][$vendedor->codagente]){
