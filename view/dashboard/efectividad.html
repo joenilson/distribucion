@@ -58,13 +58,11 @@ function cargarGraficoEfectividad(componente,tipo_grafico,venta,oferta, labels,o
     new Chart($(componente), {
         type: tipo_grafico,
         data: chartData,
-        options: {
-            height: 200,
-        }
+        options: { }
     });
 }
 </script>
-<div role="tabpanel" class="tab-pane" id="efectividad" style="overflow-y:scroll; height: 600px;">
+<div role="tabpanel" class="tab-pane" id="efectividad">
     {if="$fsc->procesado"}
         <div class="col-sm-8">
             <div class="panel panel-primary">
@@ -78,20 +76,91 @@ function cargarGraficoEfectividad(componente,tipo_grafico,venta,oferta, labels,o
                     <div class="panel-body">
                         <h3>Supervisor: {$value1->nombre} <small>{$fsc->clientes_rutas['mesa_vendedores'][$value1->codagente]} vendedores</small></h3>
                         {if="$fsc->clientes_rutas['mesa_total_cantidad'][$value1->codagente]"}
-                        <canvas height="200" width="600" id="supervisor{$value1->codagente}"></canvas>
+                        <canvas height="150" width="500" id="supervisor{$value1->codagente}"></canvas>
                         <script>
                             cargarGraficoEfectividad('#supervisor{$value1->codagente}','bar',{function="json_encode($fsc->clientes_rutas['mesa_fecha_cantidad'][$value1->codagente])"},{function="json_encode($fsc->clientes_rutas['mesa_fecha_oferta'][$value1->codagente])"},{function="json_encode($fsc->graficos_fecha_labels)"});
                         </script>
                         {else}
                         <div class="well text-warning bg-warning">No hay datos para mostrar un gráfico</div>
                         {/if}
-                    </div>
+                        <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Vendedor</th>
+                                <th class="text-center">Clientes</th>
+                                <th class="text-center">Atendidos</th>
+                                <th class="text-center">No Atendidos</th>
+                                <th class="text-center">% Efectividad</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-center">Importe</th>
+                                <th class="text-center">Oferta</th>
+                                <th class="text-center">Part Cantidad</th>
+                                <th class="text-center">Part Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente)"}
+                            <tr>
+                                <td>{$value2->nombre}</td>
+                                <td class="text-right">{$fsc->clientes_rutas['total_clientes'][$value2->codagente]}</td>
+                                <td class="text-right">{$fsc->clientes_rutas['total_atendidos'][$value2->codagente]}</td>
+                                <td class="text-right">{$fsc->clientes_rutas['total_no_atendidos'][$value2->codagente]}</td>
+                                <td class="text-right">
+                                    <div class="progress" style="margin-bottom: 0 !important; padding: 0px;">
+                                    <div class="progress-bar progress-bar-{$fsc->clientes_rutas['efectividad_vendedor_color'][$value2->codagente]}" role="progressbar" aria-valuenow="{$fsc->clientes_rutas['efectividad_vendedor'][$value2->codagente]}" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width: {$fsc->clientes_rutas['efectividad_vendedor'][$value2->codagente]}%;">
+                                        {$fsc->clientes_rutas['efectividad_vendedor'][$value2->codagente]}%
+                                    </div>
+                                    </div>
+                                </td>
+                                <td class="text-right">{$fsc->clientes_rutas['total_cantidad'][$value2->codagente]}</td>
+                                <td class="text-right">{$fsc->show_numero($fsc->clientes_rutas['total_importe'][$value2->codagente])}</td>
+                                <td class="text-right">{$fsc->clientes_rutas['total_oferta'][$value2->codagente]}</td>
+                                <td class="text-right">
+                                    {$participacion_cantidad=0}
+                                    {if="$fsc->clientes_rutas['mesa_total_cantidad'][$value1->codagente]"}
+                                        {$participacion_cantidad=round(($fsc->clientes_rutas['total_cantidad'][$value2->codagente]/$fsc->clientes_rutas['mesa_total_cantidad'][$value1->codagente])*100,2)}
+                                    {/if}
+                                    {$fsc->show_numero($participacion_cantidad)}%
+                                    &nbsp;<span class="fa fa-circle {if="$participacion_cantidad<30"}text-danger{elseif="$participacion_cantidad>=30 AND $participacion_cantidad<=65"}text-warning{else}text-success{/if}"></span>
+                                </td>
+                                <td class="text-right">
+                                    {$participacion_importe=0}
+                                    {if="$fsc->clientes_rutas['mesa_total_importe'][$value1->codagente]"}
+                                        {$participacion_importe=round(($fsc->clientes_rutas['total_importe'][$value2->codagente]/$fsc->clientes_rutas['mesa_total_importe'][$value1->codagente])*100,2)}
+                                    {/if}
+                                    {$fsc->show_numero($participacion_importe)}%
+                                    &nbsp;<span class="fa fa-circle {if="$participacion_importe<30"}text-danger{elseif="$participacion_importe>=30 AND $participacion_importe<=65"}text-warning{else}text-success{/if}"></span>
+                                </td>
+                            </tr>
+                        {/loop}
+                        </tbody>
+                        <tfoot>
+                            <th>Sumas</th>
+                            <th class="text-right">{$fsc->clientes_rutas['mesa_clientes'][$value1->codagente]}</th>
+                            <th class="text-right">{$fsc->clientes_rutas['mesa_atendidos'][$value1->codagente]}</th>
+                            <th class="text-right">{$fsc->clientes_rutas['mesa_no_atendidos'][$value1->codagente]}</th>
+                            <th class="text-right">
+                                <div class="progress" style="margin-bottom: 0 !important; padding: 0px;">
+                                <div class="progress-bar progress-bar-{$fsc->clientes_rutas['efectividad_mesa_color'][$value1->codagente]}" role="progressbar" aria-valuenow="{$fsc->clientes_rutas['mesa_efectividad'][$value1->codagente]}" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width: {$fsc->clientes_rutas['mesa_efectividad'][$value1->codagente]}%;">
+                                    {$fsc->clientes_rutas['mesa_efectividad'][$value1->codagente]}%
+                                </div>
+                                </div>
+                            </th>
+                            <th class="text-right">{$fsc->clientes_rutas['mesa_total_cantidad'][$value1->codagente]}</th>
+                            <th class="text-right">{$fsc->show_numero($fsc->clientes_rutas['mesa_total_importe'][$value1->codagente])}</th>
+                            <th class="text-right">{$fsc->clientes_rutas['mesa_total_oferta'][$value1->codagente]}</th>
+                            <th class="text-center"></th>
+                            <th class="text-center"></th>
+                        </tfoot>
+                    </table>
+
+                    </div>                    
                     {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente)"}
                     <ul class="list-group">
                         <li class="list-group-item">
                             <h4>Vendedor: {$value2->nombre} <small>{$fsc->clientes_rutas['total_rutas'][$value2->codagente]} Rutas</small></h4>
                             {if="$fsc->clientes_rutas['total_cantidad'][$value2->codagente]"}
-                            <canvas height="200" width="600" id="vendedor{$value2->codagente}"></canvas>
+                            <canvas height="150" width="500" id="vendedor{$value2->codagente}"></canvas>
                             <script>
                                 cargarGraficoEfectividad('#vendedor{$value2->codagente}','bar',{function="json_encode($fsc->clientes_rutas['fecha_cantidad'][$value2->codagente])"},{function="json_encode($fsc->clientes_rutas['fecha_oferta'][$value2->codagente])"},{function="json_encode($fsc->graficos_fecha_labels)"});
                             </script>
@@ -120,7 +189,7 @@ function cargarGraficoEfectividad(componente,tipo_grafico,venta,oferta, labels,o
                                         <td class="text-right">{$fsc->clientes_rutas['total'][$value3->ruta]}</td>
                                         <td class="text-right">{$fsc->clientes_rutas['atendidos'][$value3->ruta]}</td>
                                         <td class="text-right">{$fsc->clientes_rutas['no_atendidos'][$value3->ruta]}</td>
-                                        <td style="vertical-align: middle !important; width: 100%;">
+                                        <td class="text-left">
                                             <div class="progress" style="margin-bottom: 0 !important; padding: 0px;">
                                             <div class="progress-bar progress-bar-{$fsc->clientes_rutas['efectividad_color'][$value3->ruta]}" role="progressbar" aria-valuenow="{$fsc->clientes_rutas['efectividad'][$value3->ruta]}" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width: {$fsc->clientes_rutas['efectividad'][$value3->ruta]}%;">
                                                 {$fsc->clientes_rutas['efectividad'][$value3->ruta]}%
@@ -131,18 +200,20 @@ function cargarGraficoEfectividad(componente,tipo_grafico,venta,oferta, labels,o
                                         <td class="text-right">{$fsc->show_numero($fsc->clientes_rutas['importe'][$value3->ruta])}</td>
                                         <td class="text-right">{$fsc->clientes_rutas['oferta'][$value3->ruta]}</td>
                                         <td class="text-right">
+                                              {$participacion_cantidad=0}
                                             {if="$fsc->clientes_rutas['total_cantidad'][$value2->codagente]"}
-                                                {$fsc->show_numero(round(($fsc->clientes_rutas['cantidad'][$value3->ruta]/$fsc->clientes_rutas['total_cantidad'][$value2->codagente])*100,2))}%
-                                            {else}
-                                                0%
+                                                {$participacion_cantidad=round(($fsc->clientes_rutas['cantidad'][$value3->ruta]/$fsc->clientes_rutas['total_cantidad'][$value2->codagente])*100,2)}
                                             {/if}
+                                            {$fsc->show_numero($participacion_cantidad)}%
+                                            &nbsp;<span class="fa fa-circle {if="$participacion_cantidad<30"}text-danger{elseif="$participacion_cantidad>=30 AND $participacion_cantidad<=65"}text-warning{else}text-success{/if}"></span>
                                         </td>
                                         <td class="text-right">
+                                            {$participacion_importe=0}
                                             {if="$fsc->clientes_rutas['total_importe'][$value2->codagente]"}
-                                                {$fsc->show_numero(round(($fsc->clientes_rutas['importe'][$value3->ruta]/$fsc->clientes_rutas['total_importe'][$value2->codagente])*100,2))}%
-                                            {else}
-                                                0%
+                                                {$participacion_importe=round(($fsc->clientes_rutas['importe'][$value3->ruta]/$fsc->clientes_rutas['total_importe'][$value2->codagente])*100,2)}
                                             {/if}
+                                            {$fsc->show_numero($participacion_importe)}%
+                                            &nbsp;<span class="fa fa-circle {if="$participacion_importe<30"}text-danger{elseif="$participacion_importe>=30 AND $participacion_importe<=65"}text-warning{else}text-success{/if}"></span>                                            
                                         </td>
                                     </tr>
                                     {/loop}
@@ -165,7 +236,7 @@ function cargarGraficoEfectividad(componente,tipo_grafico,venta,oferta, labels,o
                                         <th class="text-right">{$fsc->show_numero($fsc->clientes_rutas['total_clientes'][$value2->codagente]/$fsc->clientes_rutas['total_rutas'][$value2->codagente],0)}</th>
                                         <th class="text-right">{$fsc->show_numero($fsc->clientes_rutas['total_atendidos'][$value2->codagente]/$fsc->clientes_rutas['total_rutas'][$value2->codagente],0)}</th>
                                         <th class="text-right">{$fsc->show_numero($fsc->clientes_rutas['total_no_atendidos'][$value2->codagente]/$fsc->clientes_rutas['total_rutas'][$value2->codagente],0)}</th>
-                                        <th style="vertical-align: middle !important; width: 100%;">
+                                        <th>
                                             <div class="progress" style="margin-bottom: 0 !important; padding: 0px;">
                                             <div class="progress-bar progress-bar-{$fsc->clientes_rutas['efectividad_vendedor_color'][$value2->codagente]}" role="progressbar" aria-valuenow="{$fsc->clientes_rutas['efectividad_vendedor'][$value2->codagente]}" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width: {$fsc->clientes_rutas['efectividad_vendedor'][$value2->codagente]}%;">
                                                 {$fsc->clientes_rutas['efectividad_vendedor'][$value2->codagente]}%

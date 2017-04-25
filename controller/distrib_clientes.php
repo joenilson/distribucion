@@ -266,7 +266,9 @@ class distrib_clientes extends fs_controller {
         $ruta0->domingo = trim($domingo);
         $ruta0->estado = trim($estado);
         $ruta0->usuario_creacion = $this->user->nick;
+        $ruta0->usuario_modificacion = $this->user->nick;
         $ruta0->fecha_creacion = \Date('d-m-Y H:i:s');
+        $ruta0->fecha_modificacion = \Date('d-m-Y H:i:s');
         if($borrar){
             $ruta0->delete();
             $this->new_message("Ruta $ruta0->ruta eliminada correctamente y liberados los clientes.");

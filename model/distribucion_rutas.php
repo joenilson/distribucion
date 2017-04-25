@@ -113,7 +113,6 @@ class distribucion_rutas extends fs_model {
             return $this->db->select("SELECT * FROM distribucion_rutas WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
-                "codagente = ".$this->var2str($this->codagente)." AND ".
                 "ruta = ".$this->var2str($this->ruta).";");
 
         }
@@ -161,7 +160,6 @@ class distribucion_rutas extends fs_model {
                     " WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
-                    "codagente = ".$this->var2str($this->codagente)." AND ".
                     "ruta = ".$this->var2str($this->ruta).";";
             return $this->db->exec($sql);
         }

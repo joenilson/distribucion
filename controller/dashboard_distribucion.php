@@ -524,6 +524,8 @@ class dashboard_distribucion extends fs_controller {
             $this->clientes_rutas['mesa_no_atendidos'][$supervisor->codagente] = 0;
             $this->clientes_rutas['mesa_efectividad'][$supervisor->codagente] = 0;
             $this->clientes_rutas['mesa_total_cantidad'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_total_importe'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_total_oferta'][$supervisor->codagente] = 0;
             foreach($this->rango_fechas as $fecha){
                 $this->clientes_rutas['mesa_fecha_cantidad'][$supervisor->codagente][$fecha->format('d-m-Y')] = 0;
                 $this->clientes_rutas['mesa_fecha_importe'][$supervisor->codagente][$fecha->format('d-m-Y')] = 0;
@@ -608,6 +610,8 @@ class dashboard_distribucion extends fs_controller {
                             $this->clientes_rutas['fecha_importe'][$vendedor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['importe_vendido'];
                             $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_oferta'];
                             $this->clientes_rutas['mesa_total_cantidad'][$supervisor->codagente] += $d['qdad_vendida'];
+                            $this->clientes_rutas['mesa_total_importe'][$supervisor->codagente] += $d['importe_vendido'];
+                            $this->clientes_rutas['mesa_total_oferta'][$supervisor->codagente] += $d['qdad_oferta'];
                             $this->clientes_rutas['mesa_fecha_cantidad'][$supervisor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_vendida'];
                             $this->clientes_rutas['mesa_fecha_importe'][$supervisor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['importe_vendido'];
                             $this->clientes_rutas['mesa_fecha_oferta'][$supervisor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_oferta'];
