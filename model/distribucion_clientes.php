@@ -352,6 +352,21 @@ class distribucion_clientes extends fs_model {
         }
     }
     
+    public function getOne($idempresa,$codcliente,$ruta)
+    {
+        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).
+                " AND ruta =".$this->var2str($ruta).
+                " AND codcliente = ".$this->var2str($codcliente).";");
+        if($data)
+        {
+                $value = new distribucion_clientes($data[0];
+                $info = $this->info_adicional($value);
+            return $info;
+        }else{
+            return false;
+        }
+    }
+    
     public function ruta_cliente($idempresa,$codalmacen,$codcliente,$iddireccion,$ruta)
     {
         $data = $this->db->select("SELECT * FROM ".$this->table_name." WHERE idempresa = ".$idempresa.

@@ -93,7 +93,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         }
     }
     
-    function borrar(objeto, codigo, almacen){
+    function borrar(objeto, codigo, almacen,campo){
         bootbox.dialog({
             message: "Esta seguro que quiere eliminar al "+objeto+"?",
             title: "Eliminar "+objeto,
@@ -106,7 +106,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                             type: 'POST',
                             url: '{$fsc->url()}',
                             async: false,
-                            data: 'type='+objeto.toLowerCase()+'&codagente='+codigo+'&codalmacen='+almacen+'&borrar=TRUE',
+                            data: 'type='+objeto+'&'+campo+'='+codigo+'&codalmacen='+almacen+'&borrar=TRUE',
                             success : function(datos) {
                                  bootbox.alert(datos.mensaje, function() {
                                     window.location.assign("{$fsc->url()}");
