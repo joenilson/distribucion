@@ -359,7 +359,7 @@ class distribucion_clientes extends fs_model {
                 " AND codcliente = ".$this->var2str($codcliente).";");
         if($data)
         {
-                $value = new distribucion_clientes($data[0];
+                $value = new distribucion_clientes($data[0]);
                 $info = $this->info_adicional($value);
             return $info;
         }else{
