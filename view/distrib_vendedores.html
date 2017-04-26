@@ -1,0 +1,197 @@
+{include="header2"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="panel panel-info" id="panel_vendedores">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <div class="btn-group">
+                <a class="btn btn-sm btn-info" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="fa fa-refresh"></span>
+                </a>
+            </div>
+            Vendedores
+        </h3>
+    </div>
+    <div class="panel-body table-responsive">
+        <form name="filtros" method="POST" action="{$fsc->url()}">
+            <table class="table table-bordered">
+                <tr class="filtros">
+                    <th class="col-sm-2">Buscar por:</th>
+                    <th class="col-sm-2">
+                        <select name="b_codalmacen" class="form-control input-sm" onchange="this.form.submit();">
+                            <option value="">Almacén</option>
+                            {loop="$fsc->almacen->all()"}
+                            <option {if="$value->codalmacen==$fsc->codalmacen"}selected{/if} value="{$value->codalmacen}">{$value->nombre}</option>
+                            {/loop}
+                        </select>
+                    </th>
+                    <th class="col-sm-2">
+                        <select name="b_codsupervisor" class="form-control input-sm" onchange="this.form.submit();">
+                            <option value="">Supervisor</option>
+                            {loop="$fsc->supervisores_asignados"}
+                            <option value="{$value->codagente}" {if="$value->codagente==$fsc->codsupervisor"}selected{/if}>{$value->codalmacen} > {$value->nombre}</option>
+                            {/loop}
+                        </select>
+                    </th>
+                    <th class="col-sm-6">
+
+                    </th>
+                </tr>
+            </table>
+        </form>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="text-left"><a href="{$fsc->almacen->url()}">Almacén</a></th>
+                    <th class="text-left">Supervisor Responsable</th>
+                    <th class="text-left">Vendedor</th>
+                    <th class="text-center">Activo</th>
+                    <th width="120"></th>
+                </tr>
+            </thead>
+            <tbody>
+            <form name="n_vendedores" id="n_vendedores" action="{$fsc->url()}" method="post" class="form">
+                <tr class="info">
+                    <td>
+                        <select name="codalmacen" class="form-control">
+                            {loop="$fsc->almacen->all()"}
+                            <option value="{$value->codalmacen}">{$value->nombre}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="codsupervisor" class="form-control">
+                            {loop="$fsc->supervisores_asignados"}
+                            <option value="{$value->codagente}">{$value->nombre}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="codagente" class="form-control">
+                            {loop="$fsc->vendedores_libres"}
+                            <option value="{$value->codagente}">{$value->nombre} {$value->apellidos} {$value->segundo_apellido}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <input type='hidden' name='type' value='vendedor'>
+                        <input type='hidden' name='accion' value='guardar'>
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;document.n_vendedores.submit();" title="Guardar">
+                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                    </td>
+                </tr>
+            </form>
+            {loop="$fsc->vendedores_asignados"}
+            <form name="f_vendedores{$counter}" id="f_vendedores{$counter}" method="POST" action="{$fsc->url()}">
+                <tr{if="!$value1->estado"} class="danger"{/if}>
+                    <td>
+                        <input type='hidden' name='accion' value=''>
+                        <select name="codalmacen" class="form-control input-sm">
+                            {loop="$fsc->almacen->all()"}
+                            {if="$value1->codalmacen==$value2->codalmacen"}
+                            <option value="{$value2->codalmacen}" selected="">{$value2->nombre}</option>
+                            {else}
+                            <option value="{$value2->codalmacen}">{$value2->nombre}</option>
+                            {/if}
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="codsupervisor" class="form-control input-sm">
+                            {loop="$fsc->supervisores_asignados"}
+                            <option value="{$value2->codagente}" {if="$value2->codagente==$value1->codsupervisor"}selected{/if}>{$value2->nombre}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="agente" readonly value="{$value1->nombre}" class="form-control"/>
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                            <label>
+                                {if="$value->estado"}
+                                <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                {else}
+                                <input type="checkbox" name="estado" value="TRUE"/>
+                                {/if}
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group">
+                            <input type='hidden' name='codagente' value='{$value1->codagente}'>
+                            <input type='hidden' name='type' value='vendedor'>
+                            {if="$fsc->allow_delete"}
+                            {if="$value->tiene_rutas_asignadas"}
+                            <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar este Vendedor porque tiene {$value->tiene_rutas_asignadas} rutas asignadas.')">
+                                <span class="glyphicon glyphicon-lock"></span>
+                            </a>
+                            {else}
+                            <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar(this.form)">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </button>
+                            {/if}
+                            {/if}
+                            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.accion.value='guardar';document.f_vendedores{$counter}.submit();" title="Guardar">
+                                <span class="glyphicon glyphicon-floppy-disk"></span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </form>
+            {/loop}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    function borrar(form){
+        bootbox.confirm({
+            title:'Eliminar Vendedor: '+form.agente.value,
+            message: '¿Esta seguro que quiere eliminar este vendedor?, al hacerlo se eliminará la asignación no se borrará el empleado.',
+            buttons: {
+                confirm: {
+                    label: 'Si',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                if(result){
+                    form.accion.value='eliminar';
+                    form.submit();
+                }
+            }
+        });
+    }
+    
+$(document).ready(function () {
+
+});
+</script>
+{include="footer2"}

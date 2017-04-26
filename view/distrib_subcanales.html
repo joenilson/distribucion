@@ -1,0 +1,189 @@
+{include="header2"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="panel panel-info" id="panel_subcanales">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <div class="btn-group">
+                <a class="btn btn-sm btn-info" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="fa fa-refresh"></span>
+                </a>
+            </div>             
+            Subcanales
+        </h3>
+    </div>
+    <div class="panel-body table-responsive">
+        <form name="filtros" method="POST" action="{$fsc->url()}">
+            <table class="table table-bordered">
+                <tr class="filtros">
+                    <th class="col-sm-2">Buscar por:</th>
+                    <th class="col-sm-2">
+                        <select name="b_canales" class="form-control input-sm" onchange="this.form.submit();">
+                            <option value="">Canales</option>
+                            {loop="$fsc->canales_activos"}
+                            <option value="{$value->codigo}" {if="$value->codigo==$fsc->canal"}selected{/if}>{$value->descripcion}</option>
+                            {/loop}
+                        </select>
+                    </th>
+                    <th class="col-sm-2">
+                        
+                    </th>
+                    <th class="col-sm-6">
+
+                    </th>
+                </tr>
+            </table>
+        </form>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="col-sm-2 text-left">Código Canal</th>
+                    <th class="col-sm-2 text-left">Código Subcanal</th>
+                    <th class="col-sm-3 text-left">Descripción Subcanal</th>
+                    <th class="col-sm-1 text-left">Clientes</th>
+                    <th class="col-sm-1 text-center">Tarifa Asignada</th>
+                    <th class="col-sm-1 text-center">Activo</th>
+                    <th class="col-sm-1" width="120"></th>
+                </tr>
+            </thead>
+            <tbody>
+            <form name="n_subcanales" id="n_subcanales" action="{$fsc->url()}" method="POST" class="form">
+                <tr class="info">
+                    <td>
+                        <select name="canal" class="form-control">
+                            {loop="$fsc->canales_activos"}
+                            <option value="{$value->codigo}">{$value->descripcion}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+
+                    </td>                    
+                    <td>
+                        <input type="text" name="descripcion" class="form-control"/>
+                    </td>
+                    <td>
+
+                    </td>                    
+                    <td class="text-center">
+                        Proximamente
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <input type='hidden' name='type' value='subcanal'>
+                        <input type='hidden' name='accion' value='guardar'>
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();" title="Guardar">
+                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                    </td>
+                </tr>
+            </form>
+            {loop="$fsc->subcanales"}
+            <form name="f_subcanales{$counter}" id="f_subcanales{$counter}" method="POST" action="{$fsc->url()}" class="form">
+                <tr{if="!$value->estado"} class="danger"{/if}>
+                    <td>
+                        <select name="canal" class="form-control">
+                            {loop="$fsc->canales"}
+                            <option value="{$value2->codigo}" {if="$value1->codigo_padre==$value2->codigo"}selected{/if}>{$value2->descripcion}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="subcanal" readonly value="{$value1->codigo}" class="form-control"/>
+                    </td>
+                    <td>
+                        <input type="text" name="descripcion" value="{$value1->descripcion}" class="form-control"/>
+                    </td>
+                    <td class="text-center">
+                        {$value->tiene_asignados}
+                    </td>
+                    <td class="text-center">
+                        Proximamente
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                            <label>
+                                {if="$value->estado"}
+                                <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                                {else}
+                                <input type="checkbox" name="estado" value="TRUE"/>
+                                {/if}
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group">
+                            <input type='hidden' name='type' value='subcanal'>
+                            <input type='hidden' name='accion' value=''>
+                            {if="$fsc->allow_delete"}
+                                {if="$value->tiene_asignados"}
+                                <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar este Subcanal porque tiene {$value->tiene_asignados} clientes asignados.')">
+                                    <span class="glyphicon glyphicon-lock"></span>
+                                </a>
+                                {else}
+                                <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar(this.form)">
+                                    <span class="glyphicon glyphicon-trash"></span>
+                                </button>
+                                {/if}
+                            {/if}
+                            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.accion.value='guardar';this.form.submit();" title="Guardar">
+                                <span class="glyphicon glyphicon-floppy-disk"></span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </form>
+            {/loop}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    function borrar(form){
+        bootbox.confirm({
+            title:'Eliminar Subcanal: '+form.descripcion.value,
+            message: '¿Esta seguro que quiere eliminar este subcanal?, puede perder historicos de información de clientes desi hace esto.',
+            buttons: {
+                confirm: {
+                    label: 'Si',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                if(result){
+                    form.accion.value='eliminar';
+                    form.submit();
+                }
+            }
+        });
+    }
+    
+$(document).ready(function () {
+
+});
+</script>
+{include="footer2"}

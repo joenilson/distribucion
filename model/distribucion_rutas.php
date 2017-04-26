@@ -112,7 +112,6 @@ class distribucion_rutas extends fs_model {
         }else{
             return $this->db->select("SELECT * FROM distribucion_rutas WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
-                "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "ruta = ".$this->var2str($this->ruta).";");
 
         }
@@ -134,7 +133,7 @@ class distribucion_rutas extends fs_model {
         $data_supervisor = (!empty($data_organizacion->codsupervisor))?$this->agente->get($data_organizacion->codsupervisor):null;
         $res->codsupervisor = ($data_supervisor != null)?$data_supervisor->codagente:null;
         $res->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-        $res->tiene_asignados = $this->tiene_asignados($res->idempresa, $res->codalmacen, $res->codagente);
+        $res->tiene_asignados = $this->tiene_asignados($res->idempresa, $res->codalmacen, $res->ruta);
         $res->tipo_ruta = (!empty($res->codruta))?$this->tiporuta->get($res->codruta)->descripcion:"";
         return $res;
     }
@@ -159,7 +158,6 @@ class distribucion_rutas extends fs_model {
                     "estado = ".$this->var2str($this->estado).
                     " WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
-                    "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                     "ruta = ".$this->var2str($this->ruta).";";
             return $this->db->exec($sql);
         }
@@ -398,13 +396,17 @@ class distribucion_rutas extends fs_model {
     public function search($almacen,$query){
         $lista = array();
         $sql = "SELECT * FROM ".$this->table_name." WHERE ";
-        $sql .= "codalmacen = ".$this->var2str($almacen);
+        if($almacen){
+            $sql .= "codalmacen = ".$this->var2str($almacen);
+        }else{
+            $sql .= "codalmacen != ''";
+        }
         if(is_numeric($query)){
             $sql.= " AND CAST(codruta as CHAR) like '%".$query."%'";
             $sql.= " OR ruta like '%".$query."%'";
             $sql.="ORDER BY codalmacen, codruta";
         }else{
-            $sql.= " OR lower(ruta) like '%".$query."%'";
+            $sql.= " AND lower(ruta) like '%".$query."%'";
             $sql.= " OR lower(descripcion) like '%".$query."%'";
             $sql.=" ORDER BY codalmacen, codruta";
         }

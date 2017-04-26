@@ -77,6 +77,16 @@ class distribucion_organizacion extends fs_model {
     protected function install() {
         return "";
     }
+    
+    public function info_adicional($value){
+        $data_agente = $this->agente->get($value->codagente);
+        $value->nombre = $data_agente->nombre." ".$data_agente->apellidos." ".$data_agente->segundo_apellido;
+        $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
+        $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+        $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
+        $value->tiene_rutas_asignadas = $this->tiene_rutas_asignadas($value->idempresa, $value->codagente);
+        return $value;
+    }
 
     public function exists() {
         $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE ".
@@ -164,13 +174,8 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
-                $value->tiene_rutas_asignadas = $this->tiene_rutas_asignadas($value->idempresa, $value->codagente);
-                $lista[] = $value;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -186,11 +191,8 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -206,13 +208,8 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
-                $value->tiene_rutas_asignadas = $this->tiene_rutas_asignadas($value->idempresa, $value->codagente);
-                $lista[] = $value;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -228,13 +225,8 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
-                $value->tiene_rutas_asignadas = $this->tiene_rutas_asignadas($value->idempresa, $value->codagente);
-                $lista[] = $value;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -250,11 +242,8 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -267,15 +256,32 @@ class distribucion_organizacion extends fs_model {
         if($data)
         {
             $value = new distribucion_organizacion($data[0]);
-            $data_agente = $this->agente->get($value->codagente);
-            $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-            $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-            $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-            return $value;
+            $info = $this->info_adicional($value);
+            return $info;
         }else{
             return false;
         }
 
+    }
+    
+    public function get_noasignados_all($idempresa,$cargos,$tipoagente){
+        $cargos_valor = (is_array($cargos))?"('".implode("','", $cargos)."')":$this->var2str($cargos);
+        $signo_cargos = (is_array($cargos))?" IN ":" = ";
+        $lista = array();
+        $sql = "SELECT * FROM agentes".
+                " WHERE ".
+                " codagente NOT IN (select codagente from ".$this->table_name." where idempresa = ".$this->intval($idempresa)." AND tipoagente=".$this->var2str($tipoagente).") and f_baja IS NULL ".
+                " AND codcargo $signo_cargos $cargos_valor".
+                " ORDER BY nombre, apellidos";
+        $data = $this->db->select($sql);
+        if($data){
+            foreach($data as $d){
+                $lista[] = new agente($d);
+            }
+            return $lista;
+        }else{
+            return false;
+        }
     }
 
     public function get_asignados($idempresa,$codagente)
@@ -287,11 +293,8 @@ class distribucion_organizacion extends fs_model {
         {
             foreach($data as $d){
                 $value = new distribucion_organizacion($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-                $lista[] = $value;
+                $info = $this->info_adicional($value);
+                $lista[] = $info;
                 
             }
             return $lista;

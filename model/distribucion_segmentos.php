@@ -183,10 +183,7 @@ class distribucion_segmentos extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_segmentos($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-                $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+                $value->tiene_asignados = $this->tiene_asignados($idempresa, $tiposegmento, $value->codigo);
                 $lista[] = $value;
             }
         }
@@ -277,10 +274,10 @@ class distribucion_segmentos extends fs_model {
 
     public function tiene_asignados($idempresa,$tiposegmento, $codigo){
         $sql = ($tiposegmento == 'CANAL')?" AND canal = ".$this->var2str($codigo):" AND subcanal = ".$this->var2str($codigo);
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).$sql.";");
+        $data = $this->db->select("SELECT count(*) as total FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).$sql.";");
         if($data)
         {
-            return true;
+            return $data[0]['total'];
         }else{
             return false;
         }

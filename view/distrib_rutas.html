@@ -1,0 +1,270 @@
+{include="header2"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="panel panel-info" id="panel_rutas">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <div class="btn-group">
+                <a class="btn btn-sm btn-info" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="fa fa-refresh"></span>
+                </a>
+            </div>
+            Rutas
+        </h3>
+    </div>
+    <div class="table-responsive">
+        <form name="filtros" method="POST" action="{$fsc->url()}">
+            <table class="table table-bordered">
+                <tr class="filtros">
+                    <th>Buscar por:</th>
+                    <th>
+                        <select name="b_codalmacen" class="form-control input-sm" onchange="this.form.submit();">
+                            <option value="">Almacén</option>
+                            {loop="$fsc->almacen->all()"}
+                            <option {if="$value->codalmacen==$fsc->codalmacen"}selected{/if} value="{$value->codalmacen}">{$value->nombre}</option>
+                            {/loop}
+                        </select>
+                    </th>
+                    <th>
+                        <select name="b_codagente" class="form-control input-sm" onchange="this.form.submit();">
+                            <option value="">Vendedor</option>
+                            {loop="$fsc->vendedores_asignados"}
+                            <option value="{$value->codagente}" {if="$value->codagente==$fsc->codagente"}selected{/if}>{$value->codalmacen} > {$value->nombre}</option>
+                            {/loop}
+                        </select>
+                    </th>
+                    <th>
+                        <span class="input-group">
+                            <input type="text" class="form-control input-sm" name="b_ruta" autocomplete="off" value="" placeholder="Codigo o Descripcion de Ruta">
+                            <span class="input-group-btn"><button class="btn btn-sm btn-default" type="submit"><span class="fa fa-search"></span></button></span>
+                        </span>
+                    </th>
+                </tr>
+            </table>
+        </form>
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th class="text-left col-sm-2">Almacén</th>
+                    <th class="text-left col-sm-2">Vendedor</th>
+                    <th class="text-left col-sm-2">Tipo Ruta</th>
+                    <th class="text-left col-sm-1">Código</th>
+                    <th class="text-left col-sm-1">Descripción Ruta</th>
+                    <th class="text-center">Días de Visita</th>
+                    <th class="text-center">Activo</th>
+                    <th width="120"></th>
+                </tr>
+            </thead>
+            <tbody class="contenido">
+            <form name="n_rutas" id="n_rutas" action="{$fsc->url()}" method="POST" class="form">
+                <tr class="info">
+                    <td></td>
+                    <td>
+                        <select name="codagente" class="form-control input-sm">
+                            {loop="$fsc->vendedores_asignados"}
+                            <option value="{$value->codagente}">{$value->codalmacen} > {$value->nombre}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="codruta" class="form-control input-sm">
+                            <option value="" required>-----------</option>
+                            {loop="$fsc->tiporuta->all()"}
+                            <option value="{$value->id}">{$value->descripcion}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        
+                    </td>
+                    <td>
+                        <input type="text" name="descripcion" class="form-control input-sm"/>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group" data-toggle="buttons">
+                            <label id="nlunes" class="btn btn-sm btn-default">
+                                <input name="lunes" var="n" type="checkbox" autocomplete="off"> Lu
+                            </label>
+                            <label id="nmartes" class="btn btn-sm btn-default">
+                                <input name="martes" var="n" type="checkbox" autocomplete="off"> Ma
+                            </label>
+                            <label id="nmiercoles" class="btn btn-sm btn-default">
+                                <input name="miercoles" var="n" type="checkbox" autocomplete="off"> Mi
+                            </label>
+                            <label id="njueves" class="btn btn-sm btn-default">
+                                <input name="jueves" var="n" type="checkbox" autocomplete="off"> Ju
+                            </label>
+                            <label id="nviernes" class="btn btn-sm btn-default">
+                                <input name="viernes" var="n" type="checkbox" autocomplete="off"> Vi
+                            </label>
+                            <label id="nsabado" class="btn btn-sm btn-default">
+                                <input name="sabado" var="n" type="checkbox" autocomplete="off"> Sa
+                            </label>
+                            <label id="ndomingo" class="btn btn-sm btn-default">
+                                <input name="domingo" var="n" type="checkbox" autocomplete="off"> Do
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <input type='hidden' name='accion' value='guardar'>
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;document.n_rutas.submit();" title="Guardar">
+                            <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                    </td>
+                </tr>
+            </form>
+            {loop="$fsc->rutas"}
+            <form name="f_rutas{$value1->ruta}" id="f_rutas{$value1->ruta}" method="POST" action="{$fsc->url()}" class="form">
+                <input type='hidden' name='accion' value=''>
+                <tr{if="!$value->estado"} class="danger"{/if}>
+                    <td>
+                        <select name="codalmacen" class="form-control input-sm" readonly>
+                            {loop="$fsc->almacen->all()"}
+                            <option {if="$value1->codalmacen==$value2->codalmacen"}selected{/if} value="{$value2->codalmacen}">{$value2->nombre}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="codagente" class="form-control input-sm">
+                            {loop="$fsc->vendedores_asignados"}
+                            <option {if="$value1->codagente==$value2->codagente"}selected{/if} value="{$value2->codagente}">{$value2->nombre}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="codruta" class="form-control input-sm">
+                            <option value="" {if="$value->codruta==''"}selected{/if}>-----------</option>
+                            {loop="$fsc->tiporuta->all()"}
+                            <option {if="$value1->codruta==$value2->id"}selected{/if} value="{$value2->id}">{$value2->descripcion}</option>
+                            {/loop}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="ruta" readonly value="{$value1->ruta}" class="form-control input-sm"/>
+                    </td>
+                    <td>
+                        <input type="text" name="descripcion" value="{$value1->descripcion}" class="form-control input-sm"/>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" data-toggle="buttons">
+                            <label id="lunes{$value->ruta}" class="btn btn-sm btn-default {if="$value->lunes"}active{/if}">
+                                <input name="lunes" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->lunes"}checked{/if} onchange="checkboxAction(this)"> Lu
+                            </label>
+                            <label id="martes{$value->ruta}" class="btn btn-sm btn-default {if="$value->martes"}active{/if}">
+                                <input name="martes" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->martes"}checked{/if} onchange="checkboxAction(this)"> Ma
+                            </label>
+                            <label id="miercoles{$value->ruta}" class="btn btn-sm btn-default {if="$value->miercoles"}active{/if}">
+                                <input name="miercoles" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->miercoles"}checked{/if} onchange="checkboxAction(this)"> Mi
+                            </label>
+                            <label id="jueves{$value->ruta}" class="btn btn-sm btn-default {if="$value->jueves"}active{/if}">
+                                <input name="jueves" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->jueves"}checked{/if} onchange="checkboxAction(this)"> Ju
+                            </label>
+                            <label id="viernes{$value->ruta}" class="btn btn-sm btn-default {if="$value->viernes"}active{/if}">
+                                <input name="viernes" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->viernes"}checked{/if} onchange="checkboxAction(this)"> Vi
+                            </label>
+                            <label id="sabado{$value->ruta}" class="btn btn-sm btn-default {if="$value->sabado"}active{/if}">
+                                <input name="sabado" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->sabado"}checked{/if} onchange="checkboxAction(this)"> Sa
+                            </label>
+                            <label id="domingo{$value->ruta}" class="btn btn-sm btn-default {if="$value->domingo"}active{/if}">
+                                <input name="domingo" ruta="{$value->ruta}" type="checkbox" autocomplete="off" {if="$value->domingo"}checked{/if} onchange="checkboxAction(this)"> Do
+                            </label>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="checkbox">
+                        <label>
+                        {if="$value->estado"}
+                            <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                        {else}
+                            <input type="checkbox" name="estado" value="TRUE"/>
+                        {/if}
+                        </label>
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group">
+                        {if="$fsc->allow_delete"}
+                            {if="$value->tiene_asignados"}
+                            <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar esta Ruta porque tiene clientes asignados.')">
+                                <span class="glyphicon glyphicon-lock"></span>
+                            </a>
+                            {else}
+                            <button class="btn btn-sm btn-danger" type="button" title="Eliminar" onclick="borrar(this.form)">
+                                <span class="fa fa-trash"></span>
+                            </button>
+                            {/if}
+                        {/if}
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.accion.value='guardar';this.form.submit();" title="Guardar">
+                            <span class="fa fa-floppy-o"></span>
+                        </button>
+                        </div>
+                    </td>
+                </tr>
+            </form>
+            {/loop}
+            </tbody>
+       </table>
+    </div>
+</div>
+<script>
+    function borrar(form){
+        bootbox.confirm({
+            title:'Eliminar Ruta '+form.ruta.value,
+            message: '¿Esta seguro que quiere eliminar esta ruta?',
+            buttons: {
+                confirm: {
+                    label: 'Si',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                if(result){
+                    form.accion.value='eliminar';
+                    form.submit();
+                }
+            }
+        });
+    }
+    
+    function checkboxAction(element) {
+        var elementType = element.getAttribute("var");
+        var elementRuta = element.getAttribute("ruta");
+        var idElement = (elementType === null) ? '#' + element.name : '#' + elementType + element.name + elementRuta;
+        if (element.checked) {
+            $(idElement).removeClass('btn-default');
+            $(idElement).addClass('btn-primary');
+        } else {
+            $(idElement).removeClass('btn-primary');
+            $(idElement).addClass('btn-default');
+        }
+    }
+$(document).ready(function () {
+
+});
+</script>
+{include="footer2"}

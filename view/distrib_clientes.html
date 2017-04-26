@@ -16,55 +16,104 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
 
 -->
 {include="header"}
-<style>
-.active { background-color: #006687 !important; border-color: #004b63 !important; color: #fff !important; }    
-</style>
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <h3 class="panel-title">
-            <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
-                <span class="glyphicon glyphicon-refresh"></span>
-            </a>
-            Configuración de Datos Maestros
-        </h3>
-    </div>
-    <div class="panel-body">
-        <div class="col-md-2 col-sm-3">
-            <div class="btn-group-vertical" role="group" aria-label="...">
-                <button type="button" id="b_supervisores" value="panel_supervisores" onclick="botonActivo(this)" role="button" class="btn btn-default">
-                    <span class="glyphicon glyphicon-sunglasses pull-left"></span><span class="pull-left">  &nbsp; Supervisores</span>
-                </button>             
-                <button type="button" id="b_vendedores" value="panel_vendedores" onclick="botonActivo(this)" role="button" class="btn btn-default">
-                    <span class="glyphicon glyphicon-user pull-left"></span><span class="pull-left">  &nbsp; Vendedores</span>
-                </button>
-                <button type="button" id="b_rutas" value="panel_rutas" onclick="botonActivo(this)" role="button" class="btn btn-default">
-                    <span class="glyphicon glyphicon-road pull-left"></span><span class="pull-left">  &nbsp; Rutas</span>
-                </button>
-                <button type='button' id="b_canales" value="panel_canales" onclick="botonActivo(this)" role="button" class="btn btn-default">
-                    <span class="glyphicon glyphicon-align-justify pull-left"></span><span class="pull-left"> &nbsp; Canales</span>
-                </button>
-                <button type="button" id="b_subcanales" value="panel_subcanales" onclick="botonActivo(this)" role="button" class="btn btn-default">
-                    <span class="glyphicon glyphicon-list pull-left"></span><span class="pull-left">  &nbsp; Subcanales</span>
-                </button>
+<div class="container-fluid">
+    <div class="row" style="margin-bottom: 10px;">
+        <div class="col-xs-1 col-sm-1">
+            <div class="btn-group">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
             </div>
         </div>
+        <div class="col-sm-11 col-xs-11 text-left">
+            <h3 style="margin-top: 0px;">
+                Configuración de Datos Maestros de Distribución
+            </h3>
+        </div>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div class="col-md-2 col-sm-3">
+            <ul class="nav nav-pills nav-stacked" role="tablist">
+                <li role="presentation" class="active">
+                    <a href="#general" aria-controls="general" role="tab" data-toggle="tab">
+                        <span class="fa fa-info"></span> &nbsp; Información
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a href="#supervisores" aria-controls="supervisores" role="tab" data-toggle="tab">
+                        <span class="fa fa-eye"></span> &nbsp; Supervisores
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a href="#vendedores" aria-controls="vendedores" role="tab" data-toggle="tab">
+                        <span class="fa fa-user"></span> &nbsp; Vendedores
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a href="#rutas" aria-controls="rutas" role="tab" data-toggle="tab">
+                        <span class="fa fa-road"></span> &nbsp; Rutas
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a href="#canales" aria-controls="canales" role="tab" data-toggle="tab">
+                        <span class="fa fa-reorder"></span> &nbsp; Canales
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a href="#subcanales" aria-controls="subcanales" role="tab" data-toggle="tab">
+                        <span class="fa fa-list"></span> &nbsp; Subcanales
+                    </a>
+                </li>
+                {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                        <li>
+                            <a id="b_{$value->from}" href="index.php?page={$value->from}{$value->params}&codagente={$fsc->agente->codagente}">
+                                {$value->text}
+                            </a>
+                        </li>
+                    {elseif="$value->type=='tab'"}
+                        <li role="presentation">
+                            <a href="#ext_{$key}" aria-controls="ext_{$key}" role="tab" data-toggle="tab">
+                                {$value->text}
+                            </a>
+                        </li>
+                    {/if}
+                {/loop}
+            </ul>
+        </div>
         <div class="col-md-10 col-sm-9">
-            <div class="panel panel-info" id="panel_central">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Datos maestros de distribución para los clientes</h3>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="general">
+                    <div class="panel panel-info" id="panel_central">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Datos maestros de distribución para los clientes</h3>
+                        </div>
+                        <div class="panel-body">
+                            <p align="justify">Para el correcto uso del módulo de distribución para los clientes se debe crear como mínimo un Supervisor, un vendedor, una ruta, un canal y un subcanal, para ser asignado al cliente.</p>
+                            <p align="justify">Si adicional a esto se quiere utilizar el plugin de geolocalización de clientes, se debe agregar en la data maestra de los clientes las coordenadas de los mismos.</p>
+                            <p align="justify">A continuación seleccione una opción del menú de la izquierda para agregar la información básica.</p>
+                            <div class="alert alert-warning">Es necesario que configure como mínimo un empleado con cargo <b>Supervisor</b> y uno con cargo <b>Vendedor</b></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="panel-body">
-                    <p align="justify">Para el correcto uso del módulo de distribución para los clientes se debe crear como mínimo un Supervisor, un vendedor, una ruta, un canal y un subcanal, para ser asignado al cliente.</p>
-                    <p align="justify">Si adicional a esto se quiere utilizar el plugin de geolocalización de clientes, se debe agregar en la data maestra de los clientes las coordenadas de los mismos.</p>
-                    <p align="justify">A continuación seleccione una opción del menú de la izquierda para agregar la información básica.</p>
-                    <div class="alert alert-warning">Es necesario que configure como mínimo un empleado con cargo <b>Supervisor</b> y uno con cargo <b>Vendedor</b></div>
+                <div role="tabpanel" class="tab-pane" id="supervisores">
+                    <iframe src="index.php?page=distrib_supervisores" width="100%" height="800" frameborder="0"></iframe>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="vendedores">
+                    <iframe src="index.php?page=distrib_vendedores" width="100%" height="800" frameborder="0"></iframe>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="rutas">
+                    <iframe src="index.php?page=distrib_rutas" width="100%" height="800" frameborder="0"></iframe>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="canales">
+                    <iframe src="index.php?page=distrib_segmentos&segmento=canales" width="100%" height="800" frameborder="0"></iframe>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="subcanales">
+                    <iframe src="index.php?page=distrib_segmentos&segmento=subcanales" width="100%" height="800" frameborder="0"></iframe>
                 </div>
             </div>
-            {include="distrib_clientes/supervisores"}
-            {include="distrib_clientes/vendedores"}
-            {include="distrib_clientes/rutas"}
-            {include="distrib_clientes/canales"}
-            {include="distrib_clientes/subcanales"}
         </div>
     </div>
 </div>
@@ -129,42 +178,5 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         });
     }
 
-    function checkboxAction(element) {
-        var elementType = element.getAttribute("var");
-        var elementRuta = element.getAttribute("ruta");
-        var idElement = (elementType === null) ? '#' + element.name : '#' + elementType + element.name + elementRuta;
-        if (element.checked) {
-            $(idElement).removeClass('btn-default');
-            $(idElement).addClass('btn-primary');
-        } else {
-            $(idElement).removeClass('btn-primary');
-            $(idElement).addClass('btn-default');
-        }
-    }
-    
-    if ($('#menu_activo').val() !== '') {
-        $('#panel_central').hide();
-        if ($('#menu_activo').val() === 'ruta') {
-            $('#b_rutas').removeClass("btn-default");
-            $('#b_rutas').addClass("btn-primary");
-            $('#panel_rutas').removeClass('hidden');
-        } else if ($('#menu_activo').val() === 'supervisor') {
-            $('#b_supervisores').removeClass("btn-default");
-            $('#b_supervisores').addClass("btn-primary");
-            $('#panel_supervisores').removeClass('hidden');
-        } else if ($('#menu_activo').val() === 'vendedor') {
-            $('#b_vendedores').removeClass("btn-default");
-            $('#b_vendedores').addClass("btn-primary");
-            $('#panel_vendedores').removeClass('hidden');
-        } else if ($('#menu_activo').val() === 'canal') {
-            $('#b_canales').removeClass("btn-default");
-            $('#b_canales').addClass("btn-primary");
-            $('#panel_canales').removeClass('hidden');
-        } else if ($('#menu_activo').val() === 'subcanal') {
-            $('#b_subcanales').removeClass("btn-default");
-            $('#b_subcanales').addClass("btn-primary");
-            $('#panel_subcanales').removeClass('hidden');
-        }
-    }
 </script>
 {include="footer"}
