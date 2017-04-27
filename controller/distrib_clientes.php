@@ -84,17 +84,7 @@ class distrib_clientes extends fs_controller {
 
         $type = (isset($type_p))?$type_p:$type_g;
         $this->type = $type;
-        if($type=='supervisor'){
-            $this->tratar_supervisor();
-        }elseif($type=='vendedor'){
-            $this->tratar_vendedor();
-        }elseif($type=='ruta'){
-            $this->tratar_ruta();
-        }elseif($type=='canal'){
-            $this->tratar_canal();
-        }elseif($type=='subcanal'){
-            $this->tratar_subcanal();
-        }elseif($type == 'distrib_cliente'){
+        if($type == 'distrib_cliente'){
             $this->tab_activa = 'p_rutas';
             $this->tratar_cliente();
         }elseif($type == 'direccion_cliente'){
@@ -153,33 +143,6 @@ class distrib_clientes extends fs_controller {
         }
     }
 
-    public function tratar_supervisor(){
-        $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
-        $codagente = \filter_input(INPUT_POST, 'codagente');
-        $estado_val = \filter_input(INPUT_POST, 'estado');
-        $borrar = \filter_input(INPUT_POST, 'borrar');
-        $estado = (isset($estado_val))?true:false;
-        $tipoagente = $this->agente->get($codagente);
-        $agente0 = new distribucion_organizacion();
-        $agente0->idempresa = $this->empresa->id;
-        $agente0->codalmacen = $codalmacen;
-        $agente0->codagente = $codagente;
-        $agente0->tipoagente = 'SUPERVISOR';
-        $agente0->estado = $estado;
-        $agente0->usuario_creacion = $this->user->nick;
-        $agente0->fecha_creacion = \Date('d-m-Y H:i:s');
-        if($borrar){
-            $agente0->delete();
-            $this->new_message("$agente0->tipoagente eliminado correctamente.");
-        }else{
-            if($agente0->save()){
-                $this->new_message("$agente0->tipoagente asignado correctamente.");
-            } else {
-                $this->new_error_msg("¡Imposible tratar los datos del ".$agente0->tipoagente."!");
-            }
-        }
-    }
-
     public function rutas_libres(){
         if($this->distrib_cliente){
             $ruta_tomada = array();
@@ -193,148 +156,6 @@ class distrib_clientes extends fs_controller {
             }
         }
         return $this->rutas;
-    }
-
-    public function tratar_vendedor(){
-        $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
-        $codsupervisor = \filter_input(INPUT_POST, 'codsupervisor');
-        $codagente = \filter_input(INPUT_POST, 'codagente');
-        $estado_val = \filter_input(INPUT_POST, 'estado');
-        $borrar = \filter_input(INPUT_POST, 'borrar');
-        $estado = (isset($estado_val))?true:false;
-        $tipoagente = $this->agente->get($codagente);
-        $agente0 = new distribucion_organizacion();
-        $agente0->idempresa = $this->empresa->id;
-        $agente0->codalmacen = $codalmacen;
-        $agente0->codagente = $codagente;
-        $agente0->codsupervisor = $codsupervisor;
-        $agente0->tipoagente = "VENDEDOR";
-        $agente0->estado = $estado;
-        $agente0->usuario_creacion = $this->user->nick;
-        $agente0->fecha_creacion = \Date('d-m-Y H:i:s');
-        if($borrar){
-            $this->template = FALSE;
-            $agente0->delete();
-            header('Content-Type: application/json');
-            echo json_encode( array('success' => true, 'mensaje' => "$agente0->tipoagente eliminado correctamente.") );
-        }else{
-            if($agente0->save()){
-                $this->new_message("$agente0->tipoagente asignado correctamente.");
-            } else {
-                $this->new_error_msg("¡Imposible tratar los datos del ".$agente0->tipoagente."!");
-            }
-        }
-    }
-
-    public function tratar_ruta(){
-        $codagente = \filter_input(INPUT_POST, 'codagente');
-        $codruta = \filter_input(INPUT_POST, 'codruta');
-        $ruta = \filter_input(INPUT_POST, 'ruta');
-        $descripcion = \filter_input(INPUT_POST, 'descripcion');
-        $data_agente = $this->distribucion_organizacion->get($this->empresa->id, $codagente);
-        $codalmacen = $data_agente->codalmacen;
-        $lunes_val = \filter_input(INPUT_POST, 'lunes');
-        $martes_val = \filter_input(INPUT_POST, 'martes');
-        $miercoles_val = \filter_input(INPUT_POST, 'miercoles');
-        $jueves_val = \filter_input(INPUT_POST, 'jueves');
-        $viernes_val = \filter_input(INPUT_POST, 'viernes');
-        $sabado_val = \filter_input(INPUT_POST, 'sabado');
-        $domingo_val = \filter_input(INPUT_POST, 'domingo');
-        $estado_val = \filter_input(INPUT_POST, 'estado');
-        $lunes = (isset($lunes_val))?1:0;
-        $martes = (isset($martes_val))?1:0;
-        $miercoles = (isset($miercoles_val))?1:0;
-        $jueves = (isset($jueves_val))?1:0;
-        $viernes = (isset($viernes_val))?1:0;
-        $sabado = (isset($sabado_val))?1:0;
-        $domingo = (isset($domingo_val))?1:0;
-        $estado = (isset($estado_val))?true:false;
-        $borrar = \filter_input(INPUT_POST, 'borrar');
-        $ruta0 = new distribucion_rutas();
-        $ruta0->idempresa = $this->empresa->id;
-        $ruta0->codalmacen = $codalmacen;
-        $ruta0->codagente = $codagente;
-        $ruta0->codruta = $codruta;
-        $ruta0->ruta = $ruta;
-        $ruta0->descripcion = trim($descripcion);
-        $ruta0->lunes = trim($lunes);
-        $ruta0->martes = trim($martes);
-        $ruta0->miercoles = trim($miercoles);
-        $ruta0->jueves = trim($jueves);
-        $ruta0->viernes = trim($viernes);
-        $ruta0->sabado = trim($sabado);
-        $ruta0->domingo = trim($domingo);
-        $ruta0->estado = trim($estado);
-        $ruta0->usuario_creacion = $this->user->nick;
-        $ruta0->usuario_modificacion = $this->user->nick;
-        $ruta0->fecha_creacion = \Date('d-m-Y H:i:s');
-        $ruta0->fecha_modificacion = \Date('d-m-Y H:i:s');
-        if($borrar){
-            $ruta0->delete();
-            $this->new_message("Ruta $ruta0->ruta eliminada correctamente y liberados los clientes.");
-        }else{
-            if($ruta0->save()){
-                $this->new_message("Ruta $ruta0->ruta tratada correctamente.");
-            }else{
-                $this->new_error_msg("¡Imposible tratar la ruta con los datos seleccionados!");
-            }
-        }
-    }
-
-    public function tratar_canal(){
-        $canal = \filter_input(INPUT_POST, 'canal');
-        $descripcion = \filter_input(INPUT_POST, 'descripcion');
-        $tiposegmento = strtoupper($this->type);
-        $estado_val = \filter_input(INPUT_POST, 'estado');
-        $estado = (isset($estado_val))?true:false;
-        $borrar = \filter_input(INPUT_POST, 'borrar');
-        $canal0 = new distribucion_segmentos();
-        $canal0->idempresa = $this->empresa->id;
-        $canal0->codigo = $canal;
-        $canal0->descripcion = $descripcion;
-        $canal0->tiposegmento = $tiposegmento;
-        $canal0->estado = $estado;
-        $canal0->usuario_creacion = $this->user->nick;
-        $canal0->fecha_creacion = \Date('d-m-Y H:i:s');
-        if($borrar){
-            $canal0->delete();
-            $this->new_message("Canal $canal0->codigo $canal0->descripcion eliminada correctamente y liberados los clientes.");
-        }else{
-            if($canal0->save()){
-                $this->new_message("Canal $canal0->codigo $canal0->descripcion tratado correctamente.");
-            }else{
-                $this->new_error_msg("¡Imposible tratar los datos ingresados!");
-            }
-        }
-    }
-
-    public function tratar_subcanal(){
-        $canal = \filter_input(INPUT_POST, 'canal');
-        $subcanal = \filter_input(INPUT_POST, 'subcanal');
-        $tiposegmento = strtoupper($this->type);
-        $descripcion = \filter_input(INPUT_POST, 'descripcion');
-        $estado_val = \filter_input(INPUT_POST, 'estado');
-        $estado = (isset($estado_val))?true:false;
-        $borrar = \filter_input(INPUT_POST, 'borrar');
-        $subcanal0 = new distribucion_segmentos();
-        $subcanal0->idempresa = $this->empresa->id;
-        $subcanal0->codigo = $subcanal;
-        $subcanal0->codigo_padre = $canal;
-        $subcanal0->descripcion = $descripcion;
-        $subcanal0->tiposegmento = $tiposegmento;
-        $subcanal0->estado = $estado;
-        $subcanal0->usuario_creacion = $this->user->nick;
-        $subcanal0->fecha_creacion = \Date('d-m-Y H:i:s');
-        if($borrar){
-            $subcanal0->delete();
-            $this->new_message("Subcanal $subcanal0->codigo $subcanal0->descripcion eliminada correctamente y liberados los clientes.");
-        }else{
-            if($subcanal0->save()){
-                $this->new_message("Subcanal $subcanal0->codigo $subcanal0->descripcion tratado correctamente.");
-            }else{
-                $this->new_error_msg("¡Imposible tratar los datos ingresados!");
-            }
-        }
     }
 
     public function tratar_cliente(){
@@ -469,7 +290,7 @@ class distrib_clientes extends fs_controller {
                 'params' => ''
             ),
             array(
-                'name' => '009_treeview_distribucion_js',
+                'name' => '009_distribucion_clientes_js',
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
@@ -477,7 +298,7 @@ class distrib_clientes extends fs_controller {
                 'params' => ''
             ),
             array(
-                'name' => 'treeview_distribucion_css',
+                'name' => '001_distribucion_clientes_css',
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
@@ -485,7 +306,7 @@ class distrib_clientes extends fs_controller {
                 'params' => ''
             ),
         );
-        foreach ($extensiones as $ext) {
+        foreach ($extensiones2 as $ext) {
             $fsext0 = new fs_extension($ext);
             if (!$fsext0->save()) {
                 $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
