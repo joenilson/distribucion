@@ -60,8 +60,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <div class="col-sm-3">
                             <label for="codalmacen" class="control-label">Almacén</label>
                             <select name="codalmacen" class="form-control">
-                                <option value="">Elija un Almacen</option>
                                 {if="$fsc->user->admin"}
+                                    <option value="">Todos los almacenes</option>
                                     {loop="$fsc->almacenes->all()"}
                                     <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
                                     {/loop}
@@ -122,9 +122,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <li role="presentation" class="active"><a href="#resumen" aria-controls="resumen" role="tab" data-toggle="tab"><span class="fa fa-th-large"></span>&nbsp;Resumen</a></li>
                 <li role="presentation"><a href="#familias" aria-controls="familias" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Familias</a></li>
                 <li role="presentation"><a href="#articulos" aria-controls="articulos" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Artículos</a></li>
-                <li role="presentation"><a href="#cobertura" aria-controls="cobertura" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Cobertura</a></li>
                 <li role="presentation"><a href="#efectividad" aria-controls="efectividad" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Efectividad de Venta</a></li>
-                <li role="presentation"><a href="#distribucion" aria-controls="distribucion" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Distribución</a></li>
                 <li role="presentation"><a href="#tiempo" aria-controls="tiempo" role="tab" data-toggle="tab"><span class="fa fa-th-list"></span>&nbsp;Ventas por día</a></li>
             </ul>
             <!-- Tab panes -->
@@ -132,9 +130,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 {include="dashboard/resumen"}
                 {include="dashboard/familias"}
                 {include="dashboard/articulos"}
-                {include="dashboard/cobertura"}
                 {include="dashboard/efectividad"}
-                {include="dashboard/distribucion"}
                 {include="dashboard/tiempo"}
             </div>
         </div>

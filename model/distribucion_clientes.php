@@ -272,6 +272,30 @@ class distribucion_clientes extends fs_model {
         return $lista;
     }
     
+    public function clientes_totales($idempresa)
+    {
+        $sql = "SELECT c.*, dc.* FROM clientes as c, distribucion_clientes as dc ".
+                " WHERE idempresa = ".$this->intval($idempresa).
+                " AND c.codcliente = dc.codcliente ".
+                " ORDER BY ruta, c.codcliente;";
+        $lista = array();
+        $data = $this->db->select($sql);
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $info = new cliente($d);
+                $info->codalmacen = $d['codalmacen'];
+                $info->iddireccion = $d['iddireccion'];
+                $info->ruta = $d['ruta'];
+                $info->canal = $d['canal'];
+                $info->subcanal = $d['subcanal'];
+                $lista[] = $info;
+            }
+        }
+        return $lista;
+    }
+    
     public function clientes_ruta($idempresa,$codalmacen, $ruta)
     {
         $sql = "SELECT * FROM distribucion_clientes ".
