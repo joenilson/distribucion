@@ -21,9 +21,8 @@ require_model('cliente.php');
 require_model('distribucion_clientes.php');
 require_model('distribucion_rutas.php');
 require_model('distribucion_organizacion.php');
-
 require_once ('plugins/distribucion/vendors/tcpdf/tcpdf.php');
-
+require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
 /**
  * Description of impresion_rutas
  *
@@ -47,7 +46,12 @@ class impresion_rutas extends fs_controller{
     public $distribucion_rutas;
     public $distribucion_clientes;
     public $distribucion_organizacion;
+    public $ArchivoRutasXLSX;
+    public $ArchivoRutasXLSXPath;
     public $pdf;
+    public $documentosDir;
+    public $distribucionDir;
+    public $publicPath;    
     public function __construct() {
         parent::__construct(__CLASS__, '8 - Impresión de Rutas', 'distribucion', FALSE, TRUE, TRUE);
     }
@@ -59,6 +63,19 @@ class impresion_rutas extends fs_controller{
         $this->distribucion_rutas = new distribucion_rutas();
         $this->distribucion_clientes = new distribucion_clientes();
         $this->distribucion_organizacion = new distribucion_organizacion();
+
+        $basepath = dirname(dirname(dirname(__DIR__)));
+        $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
+        $this->distribucionDir = $this->documentosDir . DIRECTORY_SEPARATOR . "distribucion";
+        $this->publicPath = FS_PATH . FS_MYDOCS . 'documentos' . DIRECTORY_SEPARATOR . 'distribucion';
+
+        if (!is_dir($this->documentosDir)) {
+            mkdir($this->documentosDir);
+        }
+
+        if (!is_dir($this->distribucionDir)) {
+            mkdir($this->distribucionDir);
+        }
         
         $codalmacen = filter_input(INPUT_POST, 'codalmacen');
         $codvendedor = filter_input(INPUT_POST, 'vendedores');
@@ -205,9 +222,9 @@ class impresion_rutas extends fs_controller{
             $info = $this->distribucion_rutas->get($this->empresa->id, $this->codalmacen, $valor);
             $info->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $this->codalmacen, $valor);
             $lista[] = $info;
-            
         }
         $this->rutas_listadas = $lista;
+        $this->generar_excel();
     }
 
     public function buscar_clientes(){
@@ -222,6 +239,40 @@ class impresion_rutas extends fs_controller{
         
         header('Content-Type: application/json');
         echo json_encode(array('rows'=>$lista_clientes,'cabecera'=>$cabecera));
+    }
+    
+    public function generar_excel(){
+        //Revisamos que no haya un archivo ya cargado
+        $archivo = 'ListaRutas';
+        $this->ArchivoRutasXLSX = $this->distribucionDir . DIRECTORY_SEPARATOR . $archivo . "_" . $this->user->nick . ".xlsx";
+        $this->ArchivoRutasXLSXPath = $this->publicPath . DIRECTORY_SEPARATOR . $archivo . "_" . $this->user->nick . ".xlsx";
+        if (file_exists($this->ArchivoRutasXLSX)) {
+            unlink($this->ArchivoRutasXLSX);
+        }
+        //Variables para cada parte del excel
+        $estilo_cabecera = array('border'=>'left,right,top,bottom','font-style'=>'bold');
+        $estilo_cuerpo = array( array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'));
+        
+        //Inicializamos la clase
+        $this->writer = new XLSXWriter();
+        //Creamos la hoja con todos los clientes organizados por ruta
+        $nombre_hoja = "Clientes por ruta";
+        $this->writer->writeSheetHeader($nombre_hoja, array(), true);
+        //Agregamos la linea de titulo
+        $cabecera = array('Almacén','Ruta','Vendedor','Codigo','Cliente','Razon Social',FS_CIFNIF,'Dirección','Canal','Subcanal');
+        $this->writer->writeSheetRow($nombre_hoja, $cabecera,$estilo_cabecera);
+        //Agregamos cada linea en forma de array
+        foreach($this->rutas_listadas as $ruta){
+            $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $ruta->codalmacen, $ruta->ruta);
+            if($lista_clientes){
+                foreach($lista_clientes as $cliente){
+                    $linea = array($ruta->codalmacen,$ruta->ruta,$ruta->nombre,$cliente->codcliente,$cliente->nombre_cliente,$cliente->razonsocial,$cliente->cifnif,$cliente->direccion,$cliente->canal_descripcion,$cliente->subcanal_descripcion);
+                    $this->writer->writeSheetRow($nombre_hoja, $linea, $estilo_cuerpo);
+                }
+            }
+        }
+        //Escribimos
+        $this->writer->writeToFile($this->ArchivoRutasXLSXPath);
     }
     
     public function dias_atencion($datos, $formato = "HTML"){

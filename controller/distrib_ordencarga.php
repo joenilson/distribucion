@@ -107,75 +107,48 @@ class distrib_ordencarga extends fs_controller {
         $type = \filter_input(INPUT_GET, 'type');
         $type_post = \filter_input(INPUT_POST, 'type');
         $buscar_fecha = \filter_input(INPUT_GET, 'buscar_fecha');
-        $buscar_conductor = \filter_input(INPUT_GET, 'buscar_conductor');
-        $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
-        $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
         $rutas = \filter_input(INPUT_GET, 'rutas');
         $codtrans = \filter_input(INPUT_GET, 'codtrans');
         $offset = \filter_input(INPUT_GET, 'offset');
+        $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
+        $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
+        $this->codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
         $desde_p = \filter_input(INPUT_POST, 'desde');
-        $hasta_p = \filter_input(INPUT_POST, 'hasta');
         $desde_g = \filter_input(INPUT_GET, 'desde');
+        $this->desde = ($desde_p)?$desde_p:$desde_g;
+        $hasta_p = \filter_input(INPUT_POST, 'hasta');
         $hasta_g = \filter_input(INPUT_GET, 'hasta');
+        $this->hasta = ($hasta_p)?$hasta_p:$hasta_g;
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
         $order = \filter_input(INPUT_GET, 'order');
         $conductor_p = \filter_input(INPUT_POST, 'conductor');
         $conductor_g = \filter_input(INPUT_GET, 'conductor');
-
+        $conductor = ($conductor_p)?$conductor_p:$conductor_g;
         $this->mostrar = (isset($mostrar)) ? $mostrar : "todo";
         $this->order = (isset($order)) ? str_replace('_', ' ', $order) : "fecha DESC";
         $this->offset = (isset($offset))?$offset:0;
-
-        if(isset($desde_p)){
-            $desde = $desde_p;
-        }elseif(isset($desde_g)){
-            $desde = $desde_g;
-        }
-
-        if(isset($hasta_p)){
-            $hasta = $hasta_p;
-        }elseif(isset($hasta_g)){
-            $hasta = $hasta_g;
-        }
-
-        if(isset($codalmacen_p)){
-            $codalmacen = $codalmacen_p;
-        }elseif(isset($codalmacen_g)){
-            $codalmacen = $codalmacen_g;
-        }
-
-        if(isset($conductor_p)){
-            $conductor = $conductor_p;
-        }elseif(isset($conductor_g)){
-            $conductor = $conductor_g;
-        }
-
-        $this->desde = (isset($desde))?$desde:'';
-        $this->hasta = (isset($hasta))?$hasta:'';
-
+       
+        $buscar_conductor = \filter_input(INPUT_GET, 'buscar_conductor');
         if(isset($buscar_conductor)){
             $this->buscar_conductor();
         }
 
         $data_conductor = false;
-
         if (isset($conductor) AND ! empty($conductor)) {
-            $data_conductor = $this->distrib_conductores->get_by_id($conductor);
+            $data_conductor = $this->distrib_conductores->get($this->empresa->id,$conductor);
         }
         $this->conductor = $data_conductor;
 
-        $this->codalmacen = (isset($codalmacen))?$codalmacen:"";
-
         if ($type === 'buscar_facturas') {
-            $this->buscar_facturas($buscar_fecha, $codalmacen, $rutas, $offset);
+            $this->buscar_facturas($buscar_fecha, $this->codalmacen, $rutas, $offset);
         } elseif ($type === 'select-rutas') {
-            $this->lista_rutas($this->empresa->id, $codalmacen);
+            $this->lista_rutas($this->empresa->id, $this->codalmacen);
         } elseif ($type === 'buscar-rutas') {
             $this->buscar_rutas();
         } elseif ($type === 'select-unidad') {
-            $this->lista_unidades($this->empresa->id, $codtrans, $codalmacen);
+            $this->lista_unidades($this->empresa->id, $codtrans, $this->codalmacen);
         }elseif ($type === 'select-conductor') {
-            $this->lista_conductores($this->empresa->id, $codtrans, $codalmacen);
+            $this->lista_conductores($this->empresa->id, $codtrans, $this->codalmacen);
         } elseif ($type === 'crear-carga') {
             $dataInicialCarga['almacenorig'] = \filter_input(INPUT_GET, 'almacenorig');
             $dataInicialCarga['almacendest'] = \filter_input(INPUT_GET, 'almacendest');
@@ -222,17 +195,6 @@ class distrib_ordencarga extends fs_controller {
         $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes();
     }
 
-
-
-
-        public function LoadDatos(){
-
-         $this->prueba = $this->articulo_unidadmedida->all();
-
-        }
-
-
-
     public function buscador(){
         $datos_busqueda = array();
         if($this->conductor){
@@ -257,11 +219,11 @@ class distrib_ordencarga extends fs_controller {
         $json = array();
         foreach($con0->search($this->empresa->id, $_REQUEST['buscar_conductor']) as $con)
         {
-           $json[] = array('value' => $con->nombre, 'data' => $con->id);
+           $json[] = array('label' => $con->nombre, 'value' => $con->licencia);
         }
 
         header('Content-Type: application/json');
-        echo json_encode( array('query' => $_REQUEST['buscar_conductor'], 'suggestions' => $json) );
+        echo json_encode( $json );
     }
 
     public function crear_transporte($lista) {
@@ -278,26 +240,28 @@ class distrib_ordencarga extends fs_controller {
                 $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
                 if (($ordencarga[0]->cargado) AND ( !$ordencarga[0]->despachado)) {
                     $array_facturas = $this->distrib_ordenescarga_facturas->all_almacen_ordencarga($this->empresa->id, $codalmacen, $idordencarga);
-                    foreach ($array_facturas as $linea) {
-                        if ($linea) {
+                    if($array_facturas){
+                        foreach ($array_facturas as $linea) {
                             $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($linea->idfactura);
+                        }
+                        
+                        foreach ($lineas_factura as $linea_factura) {
+                            foreach ($linea_factura as $key => $values) {
+                                if (!isset($importe_resumen[$values->referencia])) {
+                                    $importe_resumen[$values->referencia] = 0;
+                                }
+                                if (!isset($data_resumen[$values->referencia])) {
+                                    $data_resumen[$values->referencia] = array();
+                                }
+                                $valor_venta = $values->pvptotal + ($values->pvptotal * ($values->iva / 100));
+                                $importe_resumen[$values->referencia] += $valor_venta;
+                                $data_resumen[$values->referencia] = array('referencia' => $values->referencia, 'producto' => $values->descripcion, 'importe' => $importe_resumen[$values->referencia]);
+                                $suma_importe += $valor_venta;
+                            }
                         }
                     }
 
-                    foreach ($lineas_factura as $linea_factura) {
-                        foreach ($linea_factura as $key => $values) {
-                            if (!isset($importe_resumen[$values->referencia])) {
-                                $importe_resumen[$values->referencia] = 0;
-                            }
-                            if (!isset($data_resumen[$values->referencia])) {
-                                $data_resumen[$values->referencia] = array();
-                            }
-                            $valor_venta = $values->pvptotal + ($values->pvptotal * ($values->iva / 100));
-                            $importe_resumen[$values->referencia] += $valor_venta;
-                            $data_resumen[$values->referencia] = array('referencia' => $values->referencia, 'producto' => $values->descripcion, 'importe' => $importe_resumen[$values->referencia]);
-                            $suma_importe += $valor_venta;
-                        }
-                    }
+                    
                     $trans0 = new distribucion_transporte();
                     $trans0->idempresa = $ordencarga[0]->idempresa;
                     $trans0->idordencarga = $ordencarga[0]->idordencarga;
@@ -507,10 +471,12 @@ class distrib_ordencarga extends fs_controller {
     public function paginas() {
         $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga();
 
+        $conductor = ($this->conductor)?$this->conductor->licencia:'';
+        
         $url = $this->url()."&mostrar=".$this->mostrar
             ."&query=".$this->query
             ."&codalmacen=".$this->codalmacen
-            ."&conductor=".$this->conductor
+            ."&conductor=".$conductor
             ."&desde=".$this->desde
             ."&hasta=".$this->hasta;
 

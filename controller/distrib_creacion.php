@@ -102,9 +102,9 @@ class distrib_creacion extends fs_controller {
       $this->tesoreria = FALSE;
       //revisamos si esta el plugin de tesoreria
       $disabled = array();
-      if( defined('FS_DISABLED_PLUGINS') )
+      if(defined('FS_DISABLED_PLUGINS'))
       {
-         foreach( explode(',', FS_DISABLED_PLUGINS) as $aux )
+         foreach(explode(',', FS_DISABLED_PLUGINS) as $aux)
          {
             $disabled[] = $aux;
          }
@@ -224,6 +224,7 @@ class distrib_creacion extends fs_controller {
         if($this->codalmacen){
             $datos_busqueda['codalmacen'] = $this->codalmacen;
         }
+        
         if(!empty($datos_busqueda) OR !empty($this->desde)){
             $busqueda = $this->distrib_transporte->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
             $this->resultados = $busqueda['resultados'];
@@ -234,10 +235,14 @@ class distrib_creacion extends fs_controller {
    public function paginas() {
       $this->total_resultados = $this->distrib_transporte->total_transportes($this->empresa->id);
 
+      $conductor = ($this->conductor)?$this->conductor->licencia:'';
+      
       $url = $this->url()."&mostrar=".$this->mostrar
          ."&query=".$this->query
          ."&desde=".$this->desde
          ."&hasta=".$this->hasta
+         ."&conductor=".$conductor
+         ."&codalmacen=".$this->codalmacen
          ."&offset=".$this->offset;
 
       $paginas = array();
@@ -320,11 +325,11 @@ class distrib_creacion extends fs_controller {
       $json = array();
       foreach($con0->search($this->empresa->id, $_REQUEST['buscar_conductor']) as $con)
       {
-         $json[] = array('value' => $con->nombre, 'data' => $con->licencia);
+         $json[] = array('label' => $con->nombre, 'value' => $con->licencia);
       }
 
       header('Content-Type: application/json');
-      echo json_encode( array('query' => $_REQUEST['buscar_conductor'], 'suggestions' => $json) );
+      echo json_encode( $json );
    }
    
    public function imprimir_devolucion(){

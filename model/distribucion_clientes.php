@@ -100,9 +100,11 @@ class distribucion_clientes extends fs_model {
         $informacion->ruta_descripcion = ($datos_ruta)?$datos_ruta->descripcion:'SIN RUTA';
         $informacion->codagente = ($datos_ruta)?$datos_ruta->codagente:'';
         $informacion->nombre = ($datos_ruta)?$datos_ruta->nombre:'SIN ASIGNAR';
-        $informacion->canal_descripcion = $datos_canal->descripcion;
-        $informacion->subcanal_descripcion = $datos_subcanal->descripcion;
+        $informacion->canal_descripcion = ($datos_canal)?$datos_canal->descripcion:'';
+        $informacion->subcanal_descripcion = ($datos_subcanal)?$datos_subcanal->descripcion:'';
         $informacion->nombre_cliente = ($datos_cliente)?$datos_cliente->nombre:'Error de nombre del cliente';
+        $informacion->razonsocial = ($datos_cliente)?$datos_cliente->razonsocial:'Error de nombre del cliente';
+        $informacion->cifnif = ($datos_cliente)?$datos_cliente->cifnif:'Error de nombre del cliente';
         $informacion->fechaalta = ($datos_cliente)?$datos_cliente->fechaalta:'Error de fechaalta del cliente';
         $informacion->fechabaja = ($datos_cliente)?$datos_cliente->fechabaja:'Error de fechabaja del cliente';
         $informacion->debaja = ($datos_cliente)?$datos_cliente->debaja:'Error de fechabaja del cliente';

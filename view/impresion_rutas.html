@@ -41,12 +41,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             });
             
             if(checkboxValues.length === 0 && almacen !== undefined){
-               alert('¡Debe elegir una ruta a Imprimir!');
+               bootbox.alert('¡Debe elegir una ruta a Imprimir!');
                seguir = false;
                
             }else if(checkboxValues.length === 0 && almacen === undefined){
                 seguir = false;
-                alert('¡Error de informacion enviada a procesar, no hay un almacen seleccionado ni rutas elegidas!');
+                bootbox.alert('¡Error de informacion enviada a procesar, no hay un almacen seleccionado ni rutas elegidas!');
             }
             
             if(seguir){
@@ -126,7 +126,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <span class="fa fa-angle-right"></span>
                     Los clientes deben estar colocados en Rutas para poder mostrar este listado correctamente y la Ruta debe poseer un Vendedor asignado, que no es un agente.
                 </p>
-                <hr>
+                <div class="divider"></div>
             </div>
         </div>
 
@@ -183,20 +183,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </form>
     </div>
     <div class="row">
-        <div class="col-sm-1">
-            <button id="f_imprimir_rutas_btn" class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-print"></span>&nbsp; Imprimir</button>
+        <div class="col-sm-6">
+            {if="$fsc->rutas_listadas"}
+            <div class="btn-group">
+                <button id="f_imprimir_rutas_btn" class="btn btn-sm btn-primary"><span class="fa fa-print"></span>&nbsp; Imprimir</button>
+                {if="$fsc->ArchivoRutasXLSX"}
+                <a href="{$fsc->ArchivoRutasXLSXPath}" class="btn btn-sm btn-warning"><span class="fa fa-file-excel-o"></span>&nbsp; Descargar Listado</a>
+                {/if}
+            </div>
+            {/if}
         </div>
     </div>
-    <div class="row" style="margin-top: 10px">
-        <table class="table table-responsive">
+    <div class="row table-responsive" style="margin-top: 10px">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th>
                         <input type="checkbox">
                     </th>
-                    <th>Codigo</th>
+                    <th>Código</th>
                     <th>Ruta</th>
-                    <th>Dias de visita</th>
+                    <th>Días de visita</th>
                     <th>Vendedor</th>
                     <th>Almacen</th>
                     <th class="text-center">Clientes</th>

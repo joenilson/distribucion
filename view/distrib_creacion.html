@@ -284,20 +284,32 @@
         document.f_custom_search.query.focus();
       {/if}
 
+
       $("#ac_conductor").autocomplete({
-         serviceUrl: '{$fsc->url()}',
-         paramName: 'buscar_conductor',
-         onSelect: function (suggestion) {
-            if(suggestion)
+         source: function(request, response) {
+                $.ajax({
+                   url: "{$fsc->url()}",
+                   dataType: "json",
+                   data: {
+                      'buscar_conductor': request.term
+                   },
+                   success: function(data) {
+                      response(data);
+                   }
+                });
+         },
+         select: function( event, ui ) {
+            if(ui.item)
             {
-               if(document.f_custom_search.conductor.value != suggestion.data && suggestion.data != '')
+               if(document.f_custom_search.conductor.value != ui.item.value && ui.item.value != '')
                {
-                  document.f_custom_search.conductor.value = suggestion.data;
+                  document.f_custom_search.conductor.value = ui.item.value;
                   document.f_custom_search.submit();
                }
             }
          }
       });
+
       $('table').tablecheckbox();
    });
 </script>
