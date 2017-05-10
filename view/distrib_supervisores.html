@@ -122,6 +122,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <div class="btn-group">
                             <input type='hidden' name='codagente' value='{$value1->codagente}'>
                             <input type='hidden' name='type' value='supervisor'>
+                            <input type='hidden' name='accion' value=''>
                             {if="$fsc->allow_delete"}
                                 {if="$value->tiene_asignados"}
                                 <a class="btn btn-sm btn-warning pull-left" onclick="bootbox.alert('No puedes eliminar este Supervisor porque tiene vendedores asignados.')">
@@ -133,7 +134,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 </button>
                                 {/if}
                             {/if}
-                            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();" title="Guardar">
+                            <button class="btn btn-sm btn-primary" type="submit" onclick="this.form.accion.value='guardar';this.disabled = true;this.form.submit();" title="Guardar">
                                 <span class="glyphicon glyphicon-floppy-disk"></span>
                             </button>
                         </div>

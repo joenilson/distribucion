@@ -74,6 +74,8 @@ class distrib_vendedores extends fs_controller{
         $array_cargos_vendedores = $this->listado_cargos('VEN','array');
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');
         
+        $this->vendedores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'VENDEDOR');
+        
         if($this->codalmacen){
             $this->vendedores_asignados = $this->distribucion_organizacion->all_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'VENDEDOR');
         }
@@ -81,6 +83,7 @@ class distrib_vendedores extends fs_controller{
         if($this->codsupervisor){
             $this->vendedores_asignados = $this->distribucion_organizacion->get_asignados($this->empresa->id, $this->codsupervisor);
         }
+        
         $this->vendedores_libres = $this->distribucion_organizacion->get_noasignados_all($this->empresa->id,$array_cargos_vendedores,'VENDEDOR');
     }
     
