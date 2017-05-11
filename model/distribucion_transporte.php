@@ -73,9 +73,9 @@ class distribucion_transporte extends fs_model {
             $this->conductor = $t['conductor'];
             $this->tipolicencia = $t['tipolicencia'];
             $this->totalcantidad = $t['totalcantidad'];
-            $this->totalimporte = $t['totalimporte'];
-            $this->liquidacion_importe = $t['liquidacion_importe'];
-            $this->liquidacion_faltante = $t['liquidacion_faltante'];
+            $this->totalimporte = floatval($t['totalimporte']);
+            $this->liquidacion_importe = floatval($t['liquidacion_importe']);
+            $this->liquidacion_faltante = floatval($t['liquidacion_faltante']);
             $this->totalpeso = $t['totalpeso'];
             $this->estado = $this->str2bool($t['estado']);
             $this->despachado = $this->str2bool($t['despachado']);
@@ -173,6 +173,8 @@ class distribucion_transporte extends fs_model {
                     "conductor = ".$this->var2str($this->conductor).", ".
                     "tipolicencia = ".$this->var2str($this->tipolicencia).", ".
                     "totalimporte = ".$this->var2str($this->totalimporte).", ".
+                    "liquidacion_importe = ".$this->var2str($this->liquidacion_importe).", ".
+                    "liquidacion_faltante = ".$this->var2str($this->liquidacion_faltante).", ".
                     "totalpeso = ".$this->var2str($this->totalpeso).", ".
                     "fecha = ".$this->var2str($this->fecha).", ".
                     "fechad = ".$this->var2str($this->fechad).", ".
@@ -357,35 +359,7 @@ class distribucion_transporte extends fs_model {
         $resultados['resultados'] = $lista;
         return $resultados;
     }
-    /*
-    public function search($query, $offset=0)
-    {
-      $translist = array();
-      $query = strtolower( $this->no_html($query) );
 
-      $consulta = "SELECT * FROM ".$this->table_name." WHERE ";
-      if( is_numeric($query) )
-      {
-         $consulta .= "licencia LIKE '%".$query."%' OR codtrans LIKE '%".$query."%'";
-      }
-      else
-      {
-         $consulta .= "lower(licencia) LIKE '%".$query."%' OR lower(nombre) LIKE '%".$query."%' "
-                 . "OR lower(codtrans) LIKE '%".str_replace(' ', '%', $query)."%'";
-      }
-      $consulta .= " ORDER BY codtrans DESC, nombre DESC";
-
-      $data = $this->db->select_limit($consulta, FS_ITEM_LIMIT, $offset);
-      if($data)
-      {
-         foreach($data as $f){
-            $translist[] = new distribucion_conductores($f);
-         }
-      }
-
-      return $translist;
-    }
-    */
     public function total_transportes($idempresa){
         $sql = "SELECT count(*) as total FROM ".$this->table_name." where idempresa = ".$this->intval($idempresa).";";
         $data = $this->db->select($sql);
