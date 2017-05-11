@@ -309,6 +309,14 @@
             }
          }
       });
+      
+      $("#desde").datepicker({
+        dateFormat: 'yy-mm-dd'
+      });
+      
+      $("#hasta").datepicker({
+        dateFormat: 'yy-mm-dd'
+      });
 
       $('table').tablecheckbox();
    });
@@ -425,12 +433,12 @@
          </div>
          <div class="col-sm-2">
             <div class="form-group">
-               <input type="text" name="desde" value="{$fsc->desde}" class="form-control datepicker" placeholder="Desde" autocomplete="off" onchange="this.form.submit()"/>
+               <input type="text" id="desde" name="desde" value="{$fsc->desde}" class="form-control" placeholder="Desde" autocomplete="off" onchange="this.form.submit()"/>
             </div>
          </div>
          <div class="col-sm-2">
             <div class="form-group">
-               <input type="text" name="hasta" value="{$fsc->hasta}" class="form-control datepicker" placeholder="Hasta" autocomplete="off" onchange="this.form.submit()"/>
+               <input type="text" id="hasta" name="hasta" value="{$fsc->hasta}" class="form-control" placeholder="Hasta" autocomplete="off" onchange="this.form.submit()"/>
             </div>
          </div>
       </div>

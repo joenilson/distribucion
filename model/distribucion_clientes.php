@@ -298,6 +298,53 @@ class distribucion_clientes extends fs_model {
         return $lista;
     }
     
+    public function clientes_totales_estado($codalmacen,$desde,$hasta)
+    {
+        $clientes = array();
+        $clientes['activos'] = 0;
+        $clientes['debaja'] = 0;
+        $clientes['inactivos'] = 0;
+        $clientes['nuevos'] = 0;
+        $sql_almacen = '';
+        if($codalmacen)
+        {
+            $sql_almacen = " and dc.codalmacen = ".$this->var2str($codalmacen);
+        }
+        $sql = "SELECT ( ".
+            " SELECT count(c.codcliente) AS activos  ".
+            " FROM clientes AS c, distribucion_clientes as dc  ".
+            " WHERE fechabaja IS NULL and fechaalta < ".$this->var2str($desde)." and dc.codcliente = c.codcliente ".
+            $sql_almacen.
+            " ) as activos, ".
+            " ( ".
+            " SELECT count(c.codcliente) AS debaja  ".
+            " FROM clientes AS c, distribucion_clientes as dc  ".
+            " WHERE fechabaja IS NOT NULL and fechabaja between ".$this->var2str($desde)." and ".$this->var2str($hasta)." and dc.codcliente = c.codcliente ".
+            $sql_almacen.
+            " ) as debaja, ".
+            " ( ".
+            " SELECT count(c.codcliente) AS inactivos ".
+            " FROM clientes AS c, distribucion_clientes as dc  ".
+            " WHERE fechabaja IS NOT NULL and fechaalta between ".$this->var2str($desde)." and ".$this->var2str($hasta)." and dc.codcliente = c.codcliente ".
+            $sql_almacen.
+            " ) as inactivos, ".
+            " ( ".
+            " SELECT count(c.codcliente) AS nuevos ".
+            " FROM clientes AS c, distribucion_clientes as dc  ".
+            " WHERE fechabaja IS NULL and fechaalta between ".$this->var2str($desde)." and ".$this->var2str($hasta)." and dc.codcliente = c.codcliente ".
+            $sql_almacen.
+            " ) as nuevos;";
+        $data = $this->db->select($sql);
+        if($data)
+        {
+            $clientes['activos'] = $data[0]['activos'];
+            $clientes['debaja'] = $data[0]['debaja'];
+            $clientes['inactivos'] = $data[0]['inactivos'];
+            $clientes['nuevos'] = $data[0]['nuevos'];
+        }
+        return $clientes;
+    }
+    
     public function clientes_ruta($idempresa,$codalmacen, $ruta)
     {
         $sql = "SELECT * FROM distribucion_clientes ".

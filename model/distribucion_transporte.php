@@ -330,13 +330,14 @@ class distribucion_transporte extends fs_model {
             $contador++;
         }
 
-        if(!empty($hasta)){
-            $where.=" AND fecha BETWEEN ".$this->var2str($desde)." AND ".$this->var2str($hasta);
-        }else{
-            if(!empty($desde)){
-                $where.=" AND fecha >= ".$this->var2str($desde);
-            }
+        if($desde){
+            $where.=" AND fecha >= ".$this->var2str($desde);
         }
+        
+        if($hasta){
+            $where.=" AND fecha <= ".$this->var2str($desde);
+        }
+        
         $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
         $conteo = $this->db->select($sql_count);
         $resultados['cantidad'] = $conteo[0]['total'];

@@ -203,7 +203,7 @@ class distrib_ordencarga extends fs_controller {
         if($this->codalmacen){
             $datos_busqueda['codalmacen'] = $this->codalmacen;
         }
-        if(!empty($datos_busqueda) OR !empty($this->desde)){
+        if(!empty($datos_busqueda)){
             $busqueda = $this->distrib_ordenescarga->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
             $this->resultados = $busqueda['resultados'];
             $this->num_resultados = $busqueda['cantidad'];

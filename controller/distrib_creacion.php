@@ -162,6 +162,14 @@ class distrib_creacion extends fs_controller {
             $this->conductor = $cli0->get($this->empresa->id, $_REQUEST['conductor']);
          }
       }
+      
+      $desde_p = \filter_input(INPUT_POST, 'desde');
+      $desde_g = \filter_input(INPUT_GET, 'desde');
+      $this->desde = ($desde_p)?$desde_p:$desde_g;
+      $hasta_p = \filter_input(INPUT_POST, 'hasta');
+      $hasta_g = \filter_input(INPUT_GET, 'hasta');
+      $this->hasta = ($hasta_p)?$hasta_p:$hasta_g;
+
 
       $this->num_resultados = 0;
       if ($type === 'imprimir-transporte') {
@@ -208,12 +216,6 @@ class distrib_creacion extends fs_controller {
       {
         $this->buscar_conductor();
       }
-
-      if( isset($_REQUEST['desde']) )
-      {
-         $this->desde = $_REQUEST['desde'];
-         $this->hasta = $_REQUEST['hasta'];
-      }
    }
 
    public function buscador(){
@@ -225,7 +227,7 @@ class distrib_creacion extends fs_controller {
             $datos_busqueda['codalmacen'] = $this->codalmacen;
         }
         
-        if(!empty($datos_busqueda) OR !empty($this->desde)){
+        if(!empty($datos_busqueda)){
             $busqueda = $this->distrib_transporte->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
             $this->resultados = $busqueda['resultados'];
             $this->num_resultados = $busqueda['cantidad'];

@@ -25,6 +25,7 @@ require_model('distribucion_clientes.php');
 require_model('distribucion_transportes.php');
 require_model('distribucion_conductores.php');
 require_model('distribucion_unidades.php');
+require_model('distribucion_facturas.php');
 require_model('distribucion_faltantes.php');
 require_model('distribucion_organizacion.php');
 require_model('distribucion_rutas.php');
@@ -66,6 +67,7 @@ class dashboard_distribucion extends fs_controller {
     public $conductores;
     public $unidades;
     public $distribucion_clientes;
+    public $distribucion_facturas;
     public $organizacion;
     public $supervisores;
     public $vendedores;
@@ -124,6 +126,7 @@ class dashboard_distribucion extends fs_controller {
         $this->facturascli = new factura_cliente();
         $this->facturaspro = new factura_proveedor();
         $this->distribucion_clientes = new distribucion_clientes();
+        $this->distribucion_facturas = new distribucion_facturas();
         $this->organizacion = new distribucion_organizacion();
         $this->faltantes = new distribucion_faltantes();
         $this->unidades = new distribucion_unidades();
@@ -132,8 +135,10 @@ class dashboard_distribucion extends fs_controller {
         $this->grupos_clientes = new grupo_clientes();
         $this->resultados_formas_pago = false;
         $this->procesado = false;
-        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        if(!$this->user->admin){
+        
+        //Si el usuario es admin puede ver todos los almacenes, pero sino, solo su almacén designado
+        if(!$this->user->admin)
+        {
             $this->agente = new agente();
             $cod = $this->agente->get($this->user->codagente);
             $user_almacen = $this->almacenes->get($cod->codalmacen);
@@ -141,7 +146,7 @@ class dashboard_distribucion extends fs_controller {
             $this->user->nombrealmacen = $user_almacen->nombre;
         }
 
-        //Creamos o validamos las carpetas para grabar los informes de caja
+        //Creamos o validamos las carpetas para grabar los reportes generados
         $this->fileName = '';
         $basepath = dirname(dirname(dirname(__DIR__)));
         $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
@@ -162,7 +167,6 @@ class dashboard_distribucion extends fs_controller {
         $this->f_hasta = ($f_hasta)?$f_hasta:\date('d-m-Y');
         $codalmacen = filter_input(INPUT_POST, 'codalmacen');
         $this->codalmacen = (isset($this->user->codalmacen))?$this->user->codalmacen:$codalmacen;
-
 
         //Ragno de fechas según los datos enviados
         $desde = new DateTime($this->f_desde);
@@ -185,7 +189,6 @@ class dashboard_distribucion extends fs_controller {
         }
 
         $accion = filter_input(INPUT_POST, 'accion');
-
         if($accion){
             switch ($accion){
                 case "buscar":
@@ -251,7 +254,6 @@ class dashboard_distribucion extends fs_controller {
                 $this->total_cantidad_familia += $d['cantidad'];
                 $this->total_importe_familia += $d['importe'];
                 //datos para el reporte por fecha
-
                 $this->resultados_tiempo[] = array('familia'=>$f[$d['codfamilia']],'fecha'=>$d['fecha'],'articulo'=>$d['referencia'].' '.$d['descripcion'],'cantidad'=>$d['cantidad'],'importe'=>$d['importe']);
             }
         }
@@ -332,6 +334,10 @@ class dashboard_distribucion extends fs_controller {
 
     }
 
+    /**
+     * Funcion para controlar la información a ser procesada del resultado por familias de artículos
+     * @param type $data
+     */
     private function agregar_item($data){
         $item = new stdClass();
         $item->codigo = $data['codigo'];
@@ -340,7 +346,7 @@ class dashboard_distribucion extends fs_controller {
         $item->cantidad = $data['cantidad'];
         $item->cantidad_pct = ($data['cantidad'])?round(($data['cantidad']/$this->total_cantidad_familia)*100,2):0;
         $item->importe = $data['importe'];
-        $item->importe_pct = ($data['importe'])?round(($data['importe']/$this->total_importe_familia)*100,2):0;;
+        $item->importe_pct = ($data['importe'])?round(($data['importe']/$this->total_importe_familia)*100,2):0;
         $item->tipo = $data['tipo'];
         $this->resumen_familia[] = $item;
         $this->resumen_familia_datos = array($item->descripcion,$item->cantidad, $item->importe, $item->cantidad_pct, $item->importe_pct);
@@ -431,10 +437,10 @@ class dashboard_distribucion extends fs_controller {
     }
 
     public function generar_resumen(){
+        //Inicializamos las fechas para tratamiento de comparación
         $diffdesde = new \DateTime(\date('d-m-Y',strtotime($this->f_desde)));
         $diffhasta = new \DateTime(\date('d-m-Y',strtotime($this->f_hasta)));
         //Obtenemos la información de los supervisores
-        
         //Verificamos el codigo de almacen para supervisores
         if($this->codalmacen){
             $this->supervisores = $this->organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'SUPERVISOR');
@@ -451,6 +457,7 @@ class dashboard_distribucion extends fs_controller {
             $vendedores = $this->organizacion->get_asignados($this->empresa->id, $sup->codagente);
             $this->mesa_trabajo[$sup->codagente] = $vendedores;
         }
+        
         //Obtenemos la información de los vendedores
         //Verificamos el codigo de almacen para vendedores
         if($this->codalmacen){
@@ -473,68 +480,39 @@ class dashboard_distribucion extends fs_controller {
                 $this->cantidad_articulos++;
             }
         }
+        
         //Obtenemos la información de los Clientes
-        $this->clientes_activos = 0;
-        $this->clientes_inactivos = 0;
-        $this->clientes_nuevos = 0;
-        $this->clientes_debaja = 0;
-        $this->clientes_visitados = 0;
-        $this->clientes_por_visitar = 0;
-        $this->clientes_grupo = array();
         if($this->codalmacen){
             $clientes_distribucion = $this->distribucion_clientes->clientes_almacen($this->empresa->id,$this->codalmacen);
         }else{
             $clientes_distribucion = $this->distribucion_clientes->clientes_totales($this->empresa->id);
         }
-        foreach($clientes_distribucion as $cli){
-            $dtalta = new \DateTime(\date('d-m-Y',strtotime($cli->fechaalta)));
-            $dtbaja = new \DateTime(\date('d-m-Y',strtotime($cli->fechabaja)));
-            if($cli->debaja and $dtbaja>=$diffdesde AND $dtbaja<=$diffhasta){
-                $this->clientes_debaja++;
-            }elseif($cli->debaja and $dtbaja<$diffdesde){
-                $this->clientes_inactivos++;
-            }elseif(!$cli->debaja and $dtalta>=$diffdesde AND $dtalta<=$diffhasta){
-                $this->clientes_nuevos++;
-            }elseif(!$cli->debaja and $dtalta<$diffdesde){
-                $this->clientes_activos++;
-            }
-
-            //Buscamos la atención de clientes del rango de fechas
-            //@todo se debe sacar para acelerar la carga del reporte
-            
-            $sql_almacen = ($this->codalmacen)?" AND codalmacen = ".$this->empresa->var2str($this->codalmacen):"";
-            
-            $sql = "SELECT COUNT(*) as count FROM facturascli WHERE ".
-                    " codcliente = ".$this->empresa->var2str($cli->codcliente).
-                    $sql_almacen.
-                    " and fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta)).
-                    "' AND anulada = FALSE AND idfacturarect IS NULL;";
-            $data = $this->db->select($sql);
-            if(!empty($data[0]['count'])){
-                $this->clientes_visitados++;
-            }elseif(!$cli->debaja){
-                $this->clientes_por_visitar++;
-            }
-
-            //Guardamos la cantidad total de clientes
-            $this->cantidad_clientes++;
-
-            //Agrupamos los clientes en sus grupos
-            if($cli->codgrupo){
-                if(!isset($this->clientes_grupo[$cli->codgrupo])){
-                    $this->clientes_grupo[$cli->codgrupo]=0;
-                }
-                $this->clientes_grupo[$cli->codgrupo]++;
-            }
-        }
+        //Inicializamos los contadores de informacion
+        $clientes_estado = $this->distribucion_clientes->clientes_totales_estado($this->codalmacen,$this->f_desde,$this->f_hasta);
+        $this->clientes_activos = $clientes_estado['activos'];
+        $this->clientes_inactivos = $clientes_estado['inactivos'];
+        $this->clientes_nuevos = $clientes_estado['nuevos'];
+        $this->clientes_debaja = $clientes_estado['debaja'];        
+        $this->clientes_visitados = $this->distribucion_facturas->clientes_visitados($this->codalmacen, FALSE, $this->f_desde, $this->f_hasta);
+        $this->clientes_por_visitar = $this->clientes_activos-$this->clientes_visitados;
+        $this->cantidad_clientes = $this->clientes_activos;
+        $this->clientes_grupo = array();
 
         //Guardamos la cantidad de clientes por cada grupo
         $this->grupos_clientes_lista = array();
         foreach($this->grupos_clientes->all() as $gc){
-            $gc->clientes = (isset($this->clientes_grupo[$gc->codgrupo]))?$this->clientes_grupo[$gc->codgrupo]:0;
+            $gc->clientes = $gc->cantidad_clientes_total();            
             $this->grupos_clientes_lista[] = $gc;
         }
-
+        
+        if($this->grupos_clientes->cantidad_clientes_singrupo())
+        {
+            $singrupo = new grupo_clientes();
+            $singrupo->codgrupo = 'SG';
+            $singrupo->nombre = 'Clientes in Grupo';
+            $singrupo->clientes = $singrupo->cantidad_clientes_singrupo();
+            $this->grupos_clientes_lista[] = $singrupo;
+        }
 
         //Generamos la efectividad de visitas
         //La efectividad es el porcentaje de clientes visitados entre la cantidad de clientes totales
@@ -609,23 +587,14 @@ class dashboard_distribucion extends fs_controller {
                         $this->clientes_rutas['importe'][$ruta->ruta] = 0;
                         $this->clientes_rutas['oferta'][$ruta->ruta] = 0;
                     }
+                    
                     if(!isset($this->clientes_rutas['no_atendidos'][$ruta->ruta])){
                         $this->clientes_rutas['no_atendidos'][$ruta->ruta] = $clientes_ruta;
                     }
+                    
+                    $this->clientes_rutas['atendidos'][$ruta->ruta] = $this->distribucion_facturas->clientes_visitados($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
+                    $this->clientes_rutas['no_atendidos'][$ruta->ruta] -= $this->clientes_rutas['atendidos'][$ruta->ruta];
 
-                    //A corregir , se debe generar una consulta join entre facturascli y distribucion_clientes
-                    $sql = "SELECT T1.ruta,count(DISTINCT T2.codcliente) as clientes_visitados ".
-                        "FROM distribucion_clientes AS T1 ".
-                        "LEFT JOIN facturascli as T2 ".
-                        "ON T1.codcliente = T2.codcliente ".
-                        "WHERE fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' ".
-                        "AND T1.codalmacen = ".$this->empresa->var2str($ruta->codalmacen)." and ruta = ".$this->empresa->var2str($ruta->ruta)." and anulada = FALSE ".
-                        "GROUP by T1.ruta;";
-                    $data = $this->db->select($sql);
-                    if($data){
-                        $this->clientes_rutas['atendidos'][$ruta->ruta] = $data[0]['clientes_visitados'];
-                        $this->clientes_rutas['no_atendidos'][$ruta->ruta] -= $data[0]['clientes_visitados'];
-                    }
                     $efectividad = ($clientes_ruta)?round(($this->clientes_rutas['atendidos'][$ruta->ruta]/$clientes_ruta)*100,0):0;
                     $this->clientes_rutas['efectividad'][$ruta->ruta] = $efectividad;
                     $efectividad_color = ($efectividad<=30)?'danger':'success';
@@ -634,42 +603,31 @@ class dashboard_distribucion extends fs_controller {
                     $this->clientes_rutas['total_atendidos'][$vendedor->codagente] += $this->clientes_rutas['atendidos'][$ruta->ruta];
                     $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] += $this->clientes_rutas['no_atendidos'][$ruta->ruta];
 
-                    //Generamos la estadistica de ventas cantidad vendida, importe vendido, cantidad bonificada
-                    $sql = "SELECT T1.ruta,fecha,sum(T3.cantidad) as qdad_vendida,sum(T3.pvptotal) as importe_vendido, sum(T4.cantidad) as qdad_oferta ".
-                        "FROM distribucion_clientes AS T1 ".
-                        "LEFT JOIN facturascli as T2 ".
-                        "ON T1.codcliente = T2.codcliente ".
-                        "LEFT JOIN lineasfacturascli as T3 ".
-                        "ON T2.idfactura = T3.idfactura AND T3.dtopor != 100".
-                        "LEFT JOIN lineasfacturascli as T4 ".
-                        "ON T2.idfactura = T4.idfactura AND T4.dtopor = 100".
-                        "WHERE fecha between '".\date('d-m-Y',strtotime($this->f_desde))."' AND '".\date('d-m-Y',strtotime($this->f_hasta))."' ".
-                        "AND T1.codalmacen = ".$this->empresa->var2str($ruta->codalmacen)." and ruta = ".$this->empresa->var2str($ruta->ruta)." and anulada = FALSE ".
-                        "GROUP by T1.ruta,fecha;";
-                    $data = $this->db->select($sql);
-                    if($data){
-                        foreach($data as $d){
-                            $this->clientes_rutas['cantidad'][$ruta->ruta] += $d['qdad_vendida'];
-                            $this->clientes_rutas['importe'][$ruta->ruta] += $d['importe_vendido'];
-                            $this->clientes_rutas['oferta'][$ruta->ruta] += $d['qdad_oferta'];
-                            $this->clientes_rutas['total_cantidad'][$vendedor->codagente] += $d['qdad_vendida'];
-                            $this->clientes_rutas['total_importe'][$vendedor->codagente] += $d['importe_vendido'];
-                            $this->clientes_rutas['total_oferta'][$vendedor->codagente] += $d['qdad_oferta'];
-                            $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_vendida'];
-                            $this->clientes_rutas['fecha_importe'][$vendedor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['importe_vendido'];
-                            $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_oferta'];
-                            $this->clientes_rutas['mesa_total_cantidad'][$vendedor->codsupervisor] += $d['qdad_vendida'];
-                            $this->clientes_rutas['mesa_total_importe'][$vendedor->codsupervisor] += $d['importe_vendido'];
-                            $this->clientes_rutas['mesa_total_oferta'][$vendedor->codsupervisor] += $d['qdad_oferta'];
-                            $this->clientes_rutas['mesa_fecha_cantidad'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_vendida'];
-                            $this->clientes_rutas['mesa_fecha_importe'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d['fecha']))] += $d['importe_vendido'];
-                            $this->clientes_rutas['mesa_fecha_oferta'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_oferta'];
-                            $this->clientes_rutas['general_fecha_cantidad'][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_vendida'];
-                            $this->clientes_rutas['general_fecha_importe'][\date('d-m-Y',strtotime($d['fecha']))] += $d['importe_vendido'];
-                            $this->clientes_rutas['general_fecha_oferta'][\date('d-m-Y',strtotime($d['fecha']))] += $d['qdad_oferta'];
-                            $this->clientes_rutas['general_total_cantidad'] += $d['qdad_vendida'];
-                            $this->clientes_rutas['general_total_importe'] += $d['importe_vendido'];
-                            $this->clientes_rutas['general_total_oferta'] += $d['qdad_oferta'];
+                    //Generamos la estadistica de ventas cantidad vendida, importe vendido, cantidad bonificada y devoluciones
+                    $ventas_ruta = $this->distribucion_facturas->ventas_ruta($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
+                    if($ventas_ruta){
+                        foreach($ventas_ruta as $d){
+                            $this->clientes_rutas['cantidad'][$ruta->ruta] += $d->qdad_vendida;
+                            $this->clientes_rutas['importe'][$ruta->ruta] += $d->importe_vendido;
+                            $this->clientes_rutas['oferta'][$ruta->ruta] += $d->qdad_oferta;
+                            $this->clientes_rutas['total_cantidad'][$vendedor->codagente] += $d->qdad_vendida;
+                            $this->clientes_rutas['total_importe'][$vendedor->codagente] += $d->importe_vendido;
+                            $this->clientes_rutas['total_oferta'][$vendedor->codagente] += $d->qdad_oferta;
+                            $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
+                            $this->clientes_rutas['fecha_importe'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
+                            $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
+                            $this->clientes_rutas['mesa_total_cantidad'][$vendedor->codsupervisor] += $d->qdad_vendida;
+                            $this->clientes_rutas['mesa_total_importe'][$vendedor->codsupervisor] += $d->importe_vendido;
+                            $this->clientes_rutas['mesa_total_oferta'][$vendedor->codsupervisor] += $d->qdad_oferta;
+                            $this->clientes_rutas['mesa_fecha_cantidad'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
+                            $this->clientes_rutas['mesa_fecha_importe'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
+                            $this->clientes_rutas['mesa_fecha_oferta'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
+                            $this->clientes_rutas['general_fecha_cantidad'][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
+                            $this->clientes_rutas['general_fecha_importe'][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
+                            $this->clientes_rutas['general_fecha_oferta'][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
+                            $this->clientes_rutas['general_total_cantidad'] += $d->qdad_vendida;
+                            $this->clientes_rutas['general_total_importe'] += $d->importe_vendido;
+                            $this->clientes_rutas['general_total_oferta'] += $d->qdad_oferta;
                         }
                     }
 
@@ -696,7 +654,11 @@ class dashboard_distribucion extends fs_controller {
 
         //Generamos la estadistica por supervisor
         foreach($this->supervisores as $supervisor){
-            $efectividad_supervisor = round(($this->clientes_rutas['mesa_atendidos'][$supervisor->codagente]/$this->clientes_rutas['mesa_clientes'][$supervisor->codagente])*100,0);
+            $efectividad_supervisor = 0;
+            if($this->clientes_rutas['mesa_clientes'][$supervisor->codagente])
+            {
+                $efectividad_supervisor = round(($this->clientes_rutas['mesa_atendidos'][$supervisor->codagente]/$this->clientes_rutas['mesa_clientes'][$supervisor->codagente])*100,0);
+            }
             $this->clientes_rutas['mesa_efectividad'][$supervisor->codagente] = $efectividad_supervisor;
             $efectividad_color = ($efectividad_supervisor<=30)?'danger':'success';
             $efectividad_color = ($efectividad_supervisor>30 AND $efectividad_supervisor<65)?'warning':$efectividad_color;
@@ -748,9 +710,9 @@ class dashboard_distribucion extends fs_controller {
         $referencias = ($excluidos)?" AND referencia NOT IN (".$excluidos.")":"";
         $sql1 = "select referencia, descripcion, sum(cantidad) as cantidad from lineasfacturascli ".
                 "WHERE idfactura IN (select idfactura from facturascli ".
-                "where fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' and '".\date('Y-m-d',strtotime($this->f_hasta)).
+                "where fecha between ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->f_desde)))." and ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->f_hasta))).
                 $sql_almacen.
-                "' and anulada = FALSE) AND pvptotal = 0".
+                " and anulada = FALSE) AND pvptotal = 0".
                 " $referencias group by referencia, descripcion order by cantidad DESC limit $cantidad;";
         $data1 = $this->db->select($sql1);
 
@@ -776,9 +738,10 @@ class dashboard_distribucion extends fs_controller {
         $referencias = ($excluidos)?" AND referencia NOT IN (".$excluidos.")":"";
         $sql1 = "select referencia, descripcion, sum(cantidad) as cantidad from lineasfacturascli ".
                 "WHERE idfactura IN (select idfactura from facturascli ".
-                "where fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' and '".\date('Y-m-d',strtotime($this->f_hasta)).
+                "where fecha between ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->f_desde)))." and ".
+                $this->empresa->var2str(\date('Y-m-d',strtotime($this->f_hasta))).
                 $sql_almacen.
-                "' and anulada = FALSE) AND pvptotal != 0".
+                " and anulada = FALSE) AND pvptotal != 0".
                 " $referencias group by referencia, descripcion order by cantidad DESC limit $cantidad;";
         $data1 = $this->db->select($sql1);
 
@@ -796,7 +759,10 @@ class dashboard_distribucion extends fs_controller {
 
         //Buscamos la suma por previo de venta total
         $sql2 = "select referencia, descripcion, sum(pvptotal) as total from lineasfacturascli ".
-                "WHERE idfactura IN (select idfactura from facturascli where $sql_almacen fecha between '".\date('Y-m-d',strtotime($this->f_desde))."' and '".\date('Y-m-d',strtotime($this->f_hasta))."' and anulada = FALSE) ".
+                "WHERE idfactura IN (select idfactura from facturascli where ".
+                " fecha between ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->f_desde)))." and "
+                .$this->empresa->var2str(\date('Y-m-d',strtotime($this->f_hasta))).
+                $sql_almacen." and anulada = FALSE) ".
                 " $referencias group by referencia, descripcion order by total DESC limit $cantidad;";
         $data2 = $this->db->select($sql2);
 
@@ -846,20 +812,13 @@ class dashboard_distribucion extends fs_controller {
 
     public function shared_extensions(){
         $extensiones = array(
-            array(
-                'name' => 'dashboard_distribucion_momentjs',
-                'page_from' => __CLASS__,
-                'page_to' => __CLASS__,
-                'type' => 'head',
-                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/moment-with-locales.min.js" type="text/javascript"></script>',
-                'params' => ''
-            ),
+            
             array(
                 'name' => 'dashboard_distribucion_chartjs',
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/z/Chart.min.js" type="text/javascript"></script>',
+                'text' => '<script src="'.FS_PATH.'view/js/chart.bundle.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
             array(
@@ -996,6 +955,23 @@ class dashboard_distribucion extends fs_controller {
             $fsext = new fs_extension($ext);
             if (!$fsext->save()) {
                 $this->new_error_msg('Error al guardar la extensión ' . $ext['name']);
+            }
+        }
+        
+        $extensiones2 = array(
+        array(
+                'name' => 'dashboard_distribucion_momentjs',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/moment-with-locales.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+        );
+        foreach ($extensiones2 as $ext) {
+            $fsext = new fs_extension($ext);
+            if (!$fsext->delete()) {
+                $this->new_error_msg('Error al eliminar la extensión ' . $ext['name']);
             }
         }
     }

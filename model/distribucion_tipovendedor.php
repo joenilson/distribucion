@@ -61,7 +61,7 @@ class distribucion_tipovendedor extends fs_model {
     
     protected function install() {
         return "INSERT INTO ".$this->table_name." (descripcion, estado, fecha_creacion, usuario_creacion) VALUES ".
-            "('VENDEDOR DETALLISTA',TRUE, '".\date('d-m-Y H:i:s')."','system');";
+            "('VENDEDOR DETALLISTA',TRUE, '".\date('Y-m-d H:i:s')."','system');";
     }
     
     public function exists() {

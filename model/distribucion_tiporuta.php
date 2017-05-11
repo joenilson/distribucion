@@ -62,7 +62,7 @@ class distribucion_tiporuta extends fs_model {
     
     protected function install() {
         return "INSERT INTO ".$this->table_name." (descripcion, estado, fecha_creacion, usuario_creacion) VALUES ".
-            "('RUTA GENERICA',TRUE, '".\date('d-m-Y H:i:s')."','system');";
+            "('RUTA GENERICA',TRUE, '".\date('Y-m-d H:i:s')."','system');";
     }
     
     public function exists() {
