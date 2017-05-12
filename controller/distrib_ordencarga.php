@@ -191,8 +191,8 @@ class distrib_ordencarga extends fs_controller {
             }
         }
 
-        $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga();
-        $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes();
+        $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga($this->empresa->id, $this->codalmacen, $this->desde, $this->hasta, $conductor);
+        $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes($this->empresa->id, 'cargado', $this->codalmacen, $this->desde, $this->hasta, $conductor);
     }
 
     public function buscador(){
@@ -469,10 +469,9 @@ class distrib_ordencarga extends fs_controller {
     }
 
     public function paginas() {
-        $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga();
-
         $conductor = ($this->conductor)?$this->conductor->licencia:'';
-        
+        $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga($this->empresa->id,$this->codalmacen,$this->desde,$this->hasta,$conductor);
+
         $url = $this->url()."&mostrar=".$this->mostrar
             ."&query=".$this->query
             ."&codalmacen=".$this->codalmacen
@@ -520,7 +519,8 @@ class distrib_ordencarga extends fs_controller {
     }
 
     public function total_pendientes(){
-        return $this->distrib_ordenescarga->total_pendientes();
+        $conductor = ($this->conductor)?$this->conductor->licencia:false;
+        return $this->distrib_ordenescarga->total_pendientes($this->empresa->id,'cargado', $this->codalmacen, $this->desde, $this->hasta, $conductor);
     }
     
     public function buscar_rutas(){

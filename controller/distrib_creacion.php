@@ -227,18 +227,15 @@ class distrib_creacion extends fs_controller {
             $datos_busqueda['codalmacen'] = $this->codalmacen;
         }
         
-        if(!empty($datos_busqueda)){
-            $busqueda = $this->distrib_transporte->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
-            $this->resultados = $busqueda['resultados'];
-            $this->num_resultados = $busqueda['cantidad'];
-        }
+        $busqueda = $this->distrib_transporte->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
+        $this->resultados = $busqueda['resultados'];
+        $this->num_resultados = $busqueda['cantidad'];
+        
     }
 
    public function paginas() {
-      $this->total_resultados = $this->distrib_transporte->total_transportes($this->empresa->id);
-
       $conductor = ($this->conductor)?$this->conductor->licencia:'';
-      
+      $this->total_resultados = $this->distrib_transporte->total_transportes($this->empresa->id,$this->codalmacen,$this->desde,$this->hasta);
       $url = $this->url()."&mostrar=".$this->mostrar
          ."&query=".$this->query
          ."&desde=".$this->desde
@@ -291,7 +288,7 @@ class distrib_creacion extends fs_controller {
    }
 
    public function total_pendientes($tipo) {
-      return $this->distrib_transporte->total_pendientes($this->empresa->id, $tipo);
+      return $this->distrib_transporte->total_pendientes($this->empresa->id, $tipo,$this->codalmacen,$this->desde,$this->hasta);
    }
 
    public function url($busqueda = FALSE)

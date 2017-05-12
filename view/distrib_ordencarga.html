@@ -399,7 +399,7 @@
       <a href="{$fsc->url()}&mostrar=pendientes">
          <span class="glyphicon glyphicon-time"></span>
          <span class="hidden-xs">&nbsp; Pendientes</span>
-         <span class="hidden-xs badge">{$fsc->total_pendientes()}</span>
+         <span class="hidden-xs badge">{$fsc->total_pendientes}</span>
       </a>
    </li>
    <li{if="$fsc->mostrar=='buscar'"} class="active"{/if}>
@@ -443,7 +443,7 @@
                   <input class="form-control" type="text" name="ac_conductor" id="ac_conductor" placeholder="Cualquier conductor" autocomplete="off"/>
                   {/if}
                   <span class="input-group-btn">
-                     <button class="btn btn-default" type="button" onclick="clean_datos()">
+                     <button class="btn btn-default" type="button" onclick="clean_datos();this.form.submit();">
                         <span class="glyphicon glyphicon-remove"></span>
                      </button>
                   </span>

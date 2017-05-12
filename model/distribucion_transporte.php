@@ -226,6 +226,9 @@ class distribucion_transporte extends fs_model {
     public function info_adicional($t){
         $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
         $t->conductor_nombre = (!empty($con0->nombre))?$con0->nombre:'';
+        $t->liquidado_desc = ($t->liquidado)?"SI":"NO";
+        $t->devolucionado_desc = ($t->devolucionado)?"SI":"NO";
+        $t->despachado_desc = ($t->despachado)?"SI":"NO";
         return $t;
     }
 
@@ -360,8 +363,24 @@ class distribucion_transporte extends fs_model {
         return $resultados;
     }
 
-    public function total_transportes($idempresa){
-        $sql = "SELECT count(*) as total FROM ".$this->table_name." where idempresa = ".$this->intval($idempresa).";";
+    public function total_transportes($idempresa, $codalmacen, $desde, $hasta){
+        $query = '';
+        if($codalmacen)
+        {
+            $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
+        }
+        
+        if($desde)
+        {
+            $query .= ' AND fecha >= '.$this->var2str($desde);
+        }
+        
+        if($hasta)
+        {
+            $query .= ' AND fecha <= '.$this->var2str($hasta);
+        }
+        
+        $sql = "SELECT count(*) as total FROM ".$this->table_name." where idempresa = ".$this->intval($idempresa).$query.";";
         $data = $this->db->select($sql);
         if($data){
             return $data[0]['total'];
@@ -370,14 +389,59 @@ class distribucion_transporte extends fs_model {
         }
     }
 
-    public function total_pendientes($idempresa,$tipo){
-        $sql = "SELECT count(*) as total FROM ".$this->table_name." where idempresa = ".$this->intval($idempresa)." AND ".strip_tags(trim($tipo))." = FALSE;";
+    public function total_pendientes($idempresa, $tipo, $codalmacen, $desde, $hasta){
+        $query = '';
+        if($codalmacen)
+        {
+            $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
+        }
+        
+        if($desde)
+        {
+            $query .= ' AND fecha >= '.$this->var2str($desde);
+        }
+        
+        if($hasta)
+        {
+            $query .= ' AND fecha <= '.$this->var2str($hasta);
+        }
+        $sql = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query." AND ".strip_tags(trim($tipo))." = FALSE;";
         $data = $this->db->select($sql);
         if($data){
             return $data[0]['total'];
         }else{
             return 0;
         }
+    }
+    
+    public function pendientes($idempresa, $tipo, $codalmacen, $desde, $hasta){
+        $lista = array();
+        $query = '';
+        if($codalmacen)
+        {
+            $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
+        }
+        
+        if($desde)
+        {
+            $query .= ' AND fecha >= '.$this->var2str($desde);
+        }
+        
+        if($hasta)
+        {
+            $query .= ' AND fecha <= '.$this->var2str($hasta);
+        }
+        $sql = "SELECT * FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY codalmacen ASC, fecha ASC, idtransporte ASC, codtrans;";
+        $data = $this->db->select($sql);
+        if($data){
+            foreach($data as $d)
+            {
+                $valor = new distribucion_transporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
+            }
+        }
+        return $lista;
     }
 
     public function all($idempresa, $offset = 0)

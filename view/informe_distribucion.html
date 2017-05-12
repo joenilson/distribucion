@@ -1,0 +1,257 @@
+{include="header"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-6 col-sm-6">
+            <div class="btn-group col-sm-3">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="fa fa-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="Marcada como página de inicio (pulsa de nuevo para desmarcar)">
+                    <i class="fa fa-bookmark" aria-hidden="true"></i>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="Marcar como página de inicio">
+                    <i class="fa fa-bookmark-o" aria-hidden="true"></i>
+                </a>
+                {/if}
+            </div>
+            <form name="f_buscar" method="POST" action="{$fsc->url()}">
+                <div class="form-group col-sm-3">
+                    <select name="codalmacen" class="form-control input-sm">
+                        {if="count($fsc->almacen->all())>1"}
+                        <option value="">Todos los almacenes</option>
+                        {/if}
+                        {loop="$fsc->almacen->all()"}
+                        <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
+                        {/loop}
+                    </select>
+                </div>
+                <div class="form-group col-sm-2">
+                    <input type="text" name="desde" value="{$fsc->desde}" placeholder="Desde" class="form-control input-sm datepicker">
+                </div>
+                <div class="form-group col-sm-2">
+                    <input type="text" name="hasta" value="{$fsc->hasta}" placeholder="Hasta" class="form-control input-sm datepicker">
+                </div>
+                <div class="form-group col-sm-1">
+                    <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
+                        <span class="fa fa-search"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="col-xs-6 col-sm-6 text-right">
+            <h2 style="margin-top: 0px;">
+                <span class="fa fa-truck"></span>&nbsp;Distribución
+            </h2>
+        </div>
+    </div>
+    <div class="row">
+
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active"><a href="#resumen" aria-controls="resumen" role="tab" data-toggle="tab">Resumen</a></li>
+            <li role="presentation"><a href="#ordenescarga" aria-controls="ordenescarga" role="tab" data-toggle="tab">Ordenes de Carga</a></li>
+            <li role="presentation"><a href="#transportes" aria-controls="transportes" role="tab" data-toggle="tab">Transportes</a></li>
+            <li role="presentation"><a href="#facturas" aria-controls="facturas" role="tab" data-toggle="tab">Facturas</a></li>
+            <li role="presentation"><a href="#albaranes" aria-controls="albaranes" role="tab" data-toggle="tab">{#FS_ALBARANES#}</a></li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="resumen" style="padding: 10px;">
+                <div class="col-sm-2">
+                    <ul class="list-group">
+                        <li class="list-group-item active">Resumen Ordenes de Carga</li>
+                        <li class="list-group-item">
+                            Por cargar
+                            <span class="badge">{$fsc->total_ordenescarga_no_cargada}</span>
+                        </li>
+                        <li class="list-group-item">
+                            Por confirmar
+                            <span class="badge">{$fsc->total_ordenescarga_no_confirmada}</span>
+                        </li>
+                        <li class="list-group-item">
+                            Completados
+                            <span class="badge">{$fsc->total_ordenescarga}</span>
+                        </li>
+                    </ul>
+                    <ul class="list-group">
+                        <li class="list-group-item active">Resumen Transportes</li>
+                        <li class="list-group-item">
+                            Por confirmar
+                            <span class="badge">{$fsc->total_transportes_no_despacho}</span>
+                        </li>
+                        <li class="list-group-item">
+                            Por devolucionar
+                            <span class="badge">{$fsc->total_transportes_no_devolucion}</span>
+                        </li>
+                        <li class="list-group-item">
+                            Por liquidar
+                            <span class="badge">{$fsc->total_transportes_no_liquidacion}</span>
+                        </li>
+                        <li class="list-group-item">
+                            Completados
+                            <span class="badge">{$fsc->total_transportes}</span>
+                        </li>
+                    </ul>
+                    <ul class="list-group">
+                        <li class="list-group-item active">Resumen Conduces y Facturas</li>
+                        <li class="list-group-item">
+                            Conduces sin Factura
+                            <span class="badge">{$fsc->total_albaranes}</span>
+                        </li>
+                        <li class="list-group-item">
+                            Facturas sin cobrar
+                            <span class="badge">{$fsc->total_facturas}</span>
+                        </li>
+                        <li class="list-group-item">
+                            Facturas sin transporte
+                            <span class="badge">{$fsc->total_facturas_sin_transporte}</span>
+                        </li>
+                    </ul>
+                </div>
+                
+            </div>
+            <div role="tabpanel" class="tab-pane" id="ordenescarga" style="padding: 10px;">
+                <div class="table-responsive">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th>Almacén</th>
+                                <th>Fecha</th>
+                                <th>Documento</th>
+                                <th>Conductor</th>
+                                <th>Cargada</th>
+                                <th>Confirmada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loop="$fsc->ordenescarga_no_cargada"}
+                                <tr>
+                                    <td>{$value->codalmacen}</td>
+                                    <td>{$value->fecha}</td>
+                                    <td>{$value->idordencarga}</td>
+                                    <td>{$value->conductor_nombre}</td>
+                                    <td>{$value->cargado}</td>
+                                    <td>{$value->confirmado}</td>
+                                </tr>
+                            {else}
+                            <tr>
+                                <td colspan="6" class="text-warning bg-warning">No hay pendientes de Carga</td>
+                            </tr>
+                            {/loop}
+                            {loop="$fsc->ordenescarga_no_confirmada"}
+                                <tr>
+                                    <td>{$value->codalmacen}</td>
+                                    <td>{$value->fecha}</td>
+                                    <td>{$value->idordencarga}</td>
+                                    <td>{$value->conductor_nombre}</td>
+                                    <td>{$value->cargado}</td>
+                                    <td>{$value->confirmado}</td>
+                                </tr>
+                            {else}
+                            <tr>
+                                <td colspan="6" class="text-warning bg-warning">No hay pendientes de Confirmar</td>
+                            </tr>
+                            {/loop}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="transportes" style="padding: 10px;">
+                <div class="table-responsive">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th>Almacén</th>
+                                <th>Fecha</th>
+                                <th>Documento</th>
+                                <th>Conductor</th>
+                                <th>Confirmada</th>
+                                <th>Devolucionada</th>
+                                <th>Liquidada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-info bg-info text-uppercase text-center">pendientes de Confirmar</td>
+                            </tr>
+                            {loop="$fsc->transportes_no_despacho"}
+                                <tr>
+                                    <td>{$value->codalmacen}</td>
+                                    <td>{$value->fecha}</td>
+                                    <td><a href="{$value->url()}">{$value->idtransporte}</a></td>
+                                    <td>{$value->conductor_nombre}</td>
+                                    <td class="text-center {if="$value->despachado"}bg-success{else}bg-danger{/if}">{$value->despachado_desc}</td>
+                                    <td class="text-center {if="$value->devolucionado"}bg-success{else}bg-danger{/if}">{$value->devolucionado_desc}</td>
+                                    <td class="text-center {if="$value->liquidado"}bg-success{else}bg-danger{/if}">{$value->liquidado_desc}</td>
+                                </tr>
+                            {else}
+                            <tr>
+                                <td colspan="7" class="text-warning bg-warning">No hay pendientes de Despacho</td>
+                            </tr>
+                            {/loop}
+                            <tr>
+                                <td colspan="7" class="text-info bg-info text-uppercase text-center">pendientes de Devolucionar</td>
+                            </tr>
+                            {loop="$fsc->transportes_no_devolucion"}
+                                <tr>
+                                    <td>{$value->codalmacen}</td>
+                                    <td>{$value->fecha}</td>
+                                    <td><a href="{$value->url()}">{$value->idtransporte}</a></td>
+                                    <td>{$value->conductor_nombre}</td>
+                                    <td class="text-center {if="$value->despachado"}bg-success{else}bg-danger{/if}">{$value->despachado_desc}</td>
+                                    <td class="text-center {if="$value->devolucionado"}bg-success{else}bg-danger{/if}">{$value->devolucionado_desc}</td>
+                                    <td class="text-center {if="$value->liquidado"}bg-success{else}bg-danger{/if}">{$value->liquidado_desc}</td>
+                                </tr>
+                            {else}
+                            <tr>
+                                <td colspan="7" class="text-warning bg-warning">No hay pendientes de Devolucionar</td>
+                            </tr>
+                            {/loop}
+                            <tr>
+                                <td colspan="7" class="text-info bg-info text-uppercase text-center">pendientes de Liquidar</td>
+                            </tr>
+                            {loop="$fsc->transportes_no_liquidacion"}
+                                <tr>
+                                    <td>{$value->codalmacen}</td>
+                                    <td>{$value->fecha}</td>
+                                    <td><a href="{$value->url()}">{$value->idtransporte}</a></td>
+                                    <td>{$value->conductor_nombre}</td>
+                                    <td class="text-center {if="$value->despachado"}bg-success{else}bg-danger{/if}">{$value->despachado_desc}</td>
+                                    <td class="text-center {if="$value->devolucionado"}bg-success{else}bg-danger{/if}">{$value->devolucionado_desc}</td>
+                                    <td class="text-center {if="$value->liquidado"}bg-success{else}bg-danger{/if}">{$value->liquidado_desc}</td>
+                                </tr>
+                            {else}
+                            <tr>
+                                <td colspan="7" class="text-warning bg-warning">No hay pendientes de Liquidar</td>
+                            </tr>
+                            {/loop}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="facturas" style="padding: 10px;">Facturas</div>
+            <div role="tabpanel" class="tab-pane" id="albaranes" style="padding: 10px;">Albaranes</div>
+        </div>
+
+    </div>
+</div>
+{include="footer"}

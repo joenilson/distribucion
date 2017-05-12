@@ -263,8 +263,29 @@ class distribucion_ordenescarga extends fs_model {
         }
     }
 
-    public function total_ordenescarga(){
-        $sql = "SELECT count(*) as total FROM ".$this->table_name.";";
+    public function total_ordenescarga($idempresa=false, $codalmacen=false, $desde=false, $hasta=false, $conductor=false){
+        $query = '';
+        if($codalmacen)
+        {
+            $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
+        }
+        
+        if($desde)
+        {
+            $query .= ' AND fecha >= '.$this->var2str($desde);
+        }
+        
+        if($hasta)
+        {
+            $query .= ' AND fecha <= '.$this->var2str($hasta);
+        }
+        
+        if($conductor)
+        {
+            $query .= ' AND conductor = '.$this->var2str($conductor);
+        }
+        
+        $sql = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query.";";
         $data = $this->db->select($sql);
         if($data){
             return $data[0]['total'];
@@ -273,14 +294,71 @@ class distribucion_ordenescarga extends fs_model {
         }
     }
 
-    public function total_pendientes(){
-        $sql = "SELECT count(*) as total FROM ".$this->table_name." WHERE cargado = false;";
+    public function total_pendientes($idempresa, $tipo='cargado', $codalmacen, $desde, $hasta){
+        $query = '';
+        if($codalmacen)
+        {
+            $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
+        }
+        
+        if($desde)
+        {
+            $query .= ' AND fecha >= '.$this->var2str($desde);
+        }
+        
+        if($hasta)
+        {
+            $query .= ' AND fecha <= '.$this->var2str($hasta);
+        }
+        
+        if(!$tipo)
+        {
+            $tipo = 'cargado';
+        }
+        
+        $sql = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query." AND ".strip_tags(trim($tipo))." = FALSE;";
         $data = $this->db->select($sql);
         if($data){
             return $data[0]['total'];
         }else{
             return 0;
         }
+    }
+    
+    public function pendientes($idempresa, $tipo='cargado', $codalmacen, $desde, $hasta){
+        $lista = array();
+        $query = '';
+        if($codalmacen)
+        {
+            $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
+        }
+        
+        if($desde)
+        {
+            $query .= ' AND fecha >= '.$this->var2str($desde);
+        }
+        
+        if($hasta)
+        {
+            $query .= ' AND fecha <= '.$this->var2str($hasta);
+        }
+        
+        if(!$tipo)
+        {
+            $tipo = 'cargado';
+        }
+        
+        $sql = "SELECT *  FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY codalmacen,fecha,idordencarga;";
+        $data = $this->db->select($sql);
+        if($data){
+            foreach($data as $d)
+            {
+                $item = new distribucion_ordenescarga($d);
+                $this->info_adicional($item);
+                $lista[] = $item;
+            }
+        }
+        return $lista;
     }
 
     public function info_adicional($t){
@@ -312,7 +390,7 @@ class distribucion_ordenescarga extends fs_model {
         
         if($hasta)
         {
-            $where.=" AND fecha <= ".$this->var2str($desde);
+            $where.=" AND fecha <= ".$this->var2str($hasta);
         }
 
         $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
