@@ -147,12 +147,12 @@ class informe_distribucion extends fs_controller
             $query .= ' AND codalmacen = '.$this->almacen->var2str($this->codalmacen);
         }
         
-        if($this->desde)
+        if($this->f_desde)
         {
             $query .= ' AND fecha >= '.$this->almacen->var2str($this->f_desde);
         }
         
-        if($this->hasta)
+        if($this->f_hasta)
         {
             $query .= ' AND fecha <= '.$this->almacen->var2str($this->f_hasta);
         }
@@ -186,13 +186,13 @@ class informe_distribucion extends fs_controller
             $query2 .= ' AND doc.codalmacen = '.$this->almacen->var2str($this->codalmacen);
         }
         
-        if($this->desde)
+        if($this->f_desde)
         {
             $query .= ' AND fecha >= '.$this->almacen->var2str($this->f_desde);
             $query_2 .= ' AND doc.fecha >= '.$this->almacen->var2str($this->f_desde);
         }
         
-        if($this->hasta)
+        if($this->f_hasta)
         {
             $query .= ' AND fecha <= '.$this->almacen->var2str($this->f_hasta);
             $query_2 .= ' AND doc.fecha <= '.$this->almacen->var2str($this->f_hasta);

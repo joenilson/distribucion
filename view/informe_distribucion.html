@@ -70,7 +70,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <li role="presentation"><a href="#ordenescarga" aria-controls="ordenescarga" role="tab" data-toggle="tab">Ordenes de Carga</a></li>
             <li role="presentation"><a href="#transportes" aria-controls="transportes" role="tab" data-toggle="tab">Transportes</a></li>
             <li role="presentation"><a href="#facturas" aria-controls="facturas" role="tab" data-toggle="tab">Facturas</a></li>
-            <li role="presentation"><a href="#albaranes" aria-controls="albaranes" role="tab" data-toggle="tab">{#FS_ALBARANES#}</a></li>
+            <li role="presentation"><a href="#albaranes" aria-controls="albaranes" role="tab" data-toggle="tab">{#FS_ALBARANES#} sin factura</a></li>
         </ul>
 
         <!-- Tab panes -->
@@ -197,7 +197,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <tr>
                                     <td>{$value->codalmacen}</td>
                                     <td>{$value->fecha}</td>
-                                    <td><a href="{$value->url()}">{$value->idtransporte}</a></td>
+                                    <td><a target="_blank" href="{$value->url()}">{$value->idtransporte}</a></td>
                                     <td>{$value->conductor_nombre}</td>
                                     <td class="text-center {if="$value->despachado"}bg-success{else}bg-danger{/if}">{$value->despachado_desc}</td>
                                     <td class="text-center {if="$value->devolucionado"}bg-success{else}bg-danger{/if}">{$value->devolucionado_desc}</td>
@@ -215,7 +215,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <tr>
                                     <td>{$value->codalmacen}</td>
                                     <td>{$value->fecha}</td>
-                                    <td><a href="{$value->url()}">{$value->idtransporte}</a></td>
+                                    <td><a target="_blank" href="{$value->url()}">{$value->idtransporte}</a></td>
                                     <td>{$value->conductor_nombre}</td>
                                     <td class="text-center {if="$value->despachado"}bg-success{else}bg-danger{/if}">{$value->despachado_desc}</td>
                                     <td class="text-center {if="$value->devolucionado"}bg-success{else}bg-danger{/if}">{$value->devolucionado_desc}</td>
@@ -233,7 +233,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <tr>
                                     <td>{$value->codalmacen}</td>
                                     <td>{$value->fecha}</td>
-                                    <td><a href="{$value->url()}">{$value->idtransporte}</a></td>
+                                    <td><a target="_blank" href="{$value->url()}">{$value->idtransporte}</a></td>
                                     <td>{$value->conductor_nombre}</td>
                                     <td class="text-center {if="$value->despachado"}bg-success{else}bg-danger{/if}">{$value->despachado_desc}</td>
                                     <td class="text-center {if="$value->devolucionado"}bg-success{else}bg-danger{/if}">{$value->devolucionado_desc}</td>
@@ -248,8 +248,88 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </table>
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane" id="facturas" style="padding: 10px;">Facturas</div>
-            <div role="tabpanel" class="tab-pane" id="albaranes" style="padding: 10px;">Albaranes</div>
+            <div role="tabpanel" class="tab-pane" id="facturas" style="padding: 10px;">
+                <div class="table-responsive">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th>Almacén</th>
+                                <th>Fecha Factura</th>
+                                <th>Fecha Vencimiento</th>
+                                <th>Código + {#FS_NUMERO2#}</th>
+                                <th>Cliente</th>
+                                <th>Ruta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-info bg-info text-uppercase text-center">pendientes de cobro o devolución</td>
+                            </tr>
+                            {loop="$fsc->facturas_sin_cobrar"}
+                                <tr>
+                                    <td>{$value->codalmacen}</td>
+                                    <td>{$value->fecha}</td>
+                                    <td>{$value->vencimiento}</td>
+                                    <td><a target="_blank" href="{$value->url()}">{$value->codigo} - {$value->numero2}</a></td>
+                                    <td>{$value->nombrecliente}</td>
+                                    <td>{$value->codruta}</td>
+                                </tr>
+                            {else}
+                            <tr>
+                                <td colspan="5" class="text-warning bg-warning">No hay Facturas pendientes de cobro o devolución</td>
+                            </tr>
+                            {/loop}                           
+                            <tr>
+                                <td colspan="5" class="text-info bg-info text-uppercase text-center">sin transporte asociado</td>
+                            </tr>
+                            {loop="$fsc->facturas_sin_transporte"}
+                                <tr>
+                                    <td>{$value->codalmacen}</td>
+                                    <td>{$value->fecha}</td>
+                                    <td>{$value->vencimiento}</td>
+                                    <td><a target="_blank" href="{$value->url()}">{$value->codigo} - {$value->numero2}</a></td>
+                                    <td>{$value->nombrecliente}</td>
+                                    <td>{$value->codruta}</td>
+                                </tr>
+                            {else}
+                            <tr>
+                                <td colspan="5" class="text-warning bg-warning">No hay Facturas sin transporte asociado</td>
+                            </tr>
+                            {/loop}                          
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="albaranes" style="padding: 10px;">
+                <div class="table-responsive">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th>Almacén</th>
+                                <th>Fecha</th>
+                                <th>Ruta</th>
+                                <th>{#FS_ALBARAN#}</th>
+                                <th>Cliente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loop="$fsc->albaranes"}
+                                <tr>
+                                    <td>{$value->codalmacen}</td>
+                                    <td>{$value->fecha}</td>
+                                    <td>{$value->codruta}</td>
+                                    <td><a target="_blank" href="{$value->url()}">{$value->codigo}</a></td>
+                                    <td>{$value->nombrecliente}</td>
+                                </tr>
+                            {else}
+                            <tr>
+                                <td colspan="4" class="text-warning bg-warning">No hay {#FS_ALBARANES#} sin factura</td>
+                            </tr>
+                            {/loop}                           
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
     </div>
