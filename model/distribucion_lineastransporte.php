@@ -82,11 +82,26 @@ class distribucion_lineastransporte extends fs_model {
     }
     
     public function url(){
-        return "index.php?page=distrib_ordencarga";
+        if($this->idtransporte AND $this->codalmacen)
+        {
+            return "index.php?page=distrib_creacion&type=liquidar-transporte&transporte=".$this->idtransporte."-".$this->codalmacen;
+        }
+        else
+        {
+            return "index.php?page=distrib_creacion";
+        }
     }
     
     protected function install() {
         return "";
+    }
+    
+    public function info_adicional($valor_linea)
+    {
+        $descripcion_producto = $this->articulo->get($valor_linea->referencia);
+        $valor_linea->descripcion = $descripcion_producto->descripcion;
+        $valor_linea->url_producto = $descripcion_producto->url();
+        return $valor_linea;
     }
     
     public function exists() {
@@ -152,6 +167,86 @@ class distribucion_lineastransporte extends fs_model {
         return $this->db->exec($sql);
     }
     
+    public function search($idempresa, $datos, $desde, $hasta, $offset=0)
+    {
+        $resultados = array();
+        $contador = 1;
+        $where = (!empty($datos))?" AND ":"";
+        foreach($datos as $k=>$v){
+            $and = (count($datos) > $contador)?" AND ":"";
+            $value = (is_string($v))?$this->var2str($v):$this->intval($v);
+            $where.=" $k = ".$value.$and;
+            $contador++;
+        }
+
+        if($desde){
+            $where.=" AND fecha >= ".$this->var2str($desde);
+        }
+        
+        if($hasta){
+            $where.=" AND fecha <= ".$this->var2str($hasta);
+        }
+        
+        $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
+        $conteo = $this->db->select($sql_count);
+        $resultados['cantidad'] = $conteo[0]['total'];
+        $sql = "SELECT * FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where ORDER BY fecha DESC, referencia ASC";
+        $lista = array();
+        $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
+
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $valor = new distribucion_lineastransporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
+            }
+        }
+        $resultados['resultados'] = $lista;
+        return $resultados;
+    }
+    
+    public function lista($idempresa, $datos, $desde, $hasta, $offset=0)
+    {
+        $resultados = array();
+        $contador = 1;
+        $where = (!empty($datos))?" AND ":"";
+        foreach($datos as $k=>$v){
+            $and = (count($datos) > $contador)?" AND ":"";
+            $value = (is_string($v))?$this->var2str($v):$this->intval($v);
+            $where.=" $k = ".$value.$and;
+            $contador++;
+        }
+
+        if($desde){
+            $where.=" AND fecha >= ".$this->var2str($desde);
+        }
+        
+        if($hasta){
+            $where.=" AND fecha <= ".$this->var2str($hasta);
+        }
+        
+        $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
+        $conteo = $this->db->select($sql_count);
+        $resultados['cantidad'] = $conteo[0]['total'];
+        $sql = "SELECT * FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where ORDER BY referencia, fecha, idtransporte";
+        $lista = array();
+        $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
+
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $valor = new distribucion_lineastransporte($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
+            }
+        }
+        $resultados['resultados'] = $lista;
+        return $resultados;
+    }
+    
     public function all($idempresa)
     {
         $lista = array();
@@ -161,7 +256,9 @@ class distribucion_lineastransporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_lineastransporte($d);
+                $valor = new distribucion_lineastransporte($d);
+                $item = $this->info_adicional($valor);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -176,7 +273,10 @@ class distribucion_lineastransporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_lineastransporte($d);
+                $valor = new distribucion_lineastransporte($d);
+                $item = $this->info_adicional($valor);
+                $lista[] = $item;
+
             }
         }
         return $lista;
@@ -191,7 +291,10 @@ class distribucion_lineastransporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_lineastransporte($d);
+                $valor = new distribucion_lineastransporte($d);
+                $item = $this->info_adicional($valor);
+                $lista[] = $item;
+
             }
         }
         return $lista;
@@ -206,7 +309,10 @@ class distribucion_lineastransporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_lineastransporte($d);
+                $valor = new distribucion_lineastransporte($d);
+                $item = $this->info_adicional($valor);
+                $lista[] = $item;
+
             }
         }
         return $lista;
@@ -221,7 +327,10 @@ class distribucion_lineastransporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_lineastransporte($d);
+                $valor = new distribucion_lineastransporte($d);
+                $item = $this->info_adicional($valor);
+                $lista[] = $item;
+
             }
         }
         return $lista;
@@ -236,7 +345,10 @@ class distribucion_lineastransporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_lineastransporte($d);
+                $valor = new distribucion_lineastransporte($d);
+                $item = $this->info_adicional($valor);
+                $lista[] = $item;
+
             }
         }
         return $lista;
@@ -251,7 +363,10 @@ class distribucion_lineastransporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_lineastransporte($d);
+                $valor = new distribucion_lineastransporte($d);
+                $item = $this->info_adicional($valor);
+                $lista[] = $item;
+
             }
         }
         return $lista;
@@ -266,7 +381,10 @@ class distribucion_lineastransporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $lista[] = new distribucion_lineastransporte($d);
+                $valor = new distribucion_lineastransporte($d);
+                $item = $this->info_adicional($valor);
+                $lista[] = $item;
+
             }
         }
         return $lista;
@@ -281,10 +399,9 @@ class distribucion_lineastransporte extends fs_model {
         {
             foreach($data as $d)
             {
-                $valor_linea = new distribucion_lineastransporte($d);
-                $descripcion_producto = $this->articulo->get($valor_linea->referencia);
-                $valor_linea->descripcion = $descripcion_producto->descripcion;
-                $lista[] = $valor_linea;
+                $valor = new distribucion_lineastransporte($d);
+                $item = $this->info_adicional($valor);
+                $lista[] = $item;
             }
         }
         return $lista;
@@ -296,9 +413,8 @@ class distribucion_lineastransporte extends fs_model {
         $valor_linea = false;
         if($data)
         {
-            $valor_linea = new distribucion_lineastransporte($data[0]);
-            $descripcion_producto = $this->articulo->get($valor_linea->referencia);
-            $valor_linea->descripcion = $descripcion_producto->descripcion;
+                $valor = new distribucion_lineastransporte($data[0]);
+                $valor_linea = $this->info_adicional($valor);
         }
         return $valor_linea;
     }

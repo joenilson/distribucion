@@ -17,8 +17,8 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-require_model('distribucion_conductores');
-require_model('distribucion_unidades');
+require_model('distribucion_conductores.php');
+require_model('distribucion_unidades.php');
 /**
  * Description of distribucion_ordenescarga
  *

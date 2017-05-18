@@ -16,8 +16,8 @@
  *  * You should have received a copy of the GNU Lesser General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('factura_cliente');
-require_model('cliente');
+require_model('factura_cliente.php');
+require_model('cliente.php');
 require_model('ncf_rango.php');
 require_model('ncf_ventas.php');
 require_model('ncf_rango.php');

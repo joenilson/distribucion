@@ -17,7 +17,7 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-require_model('model/agente.php');
+require_model('agente.php');
 require_model('distribucion_rutas.php');
 /**
  * Description of distribucion_organizacion

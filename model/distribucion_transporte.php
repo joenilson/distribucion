@@ -17,8 +17,9 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-require_model('distribucion_conductores');
-require_model('distribucion_unidades');
+require_model('distribucion_conductores.php');
+require_model('distribucion_unidades.php');
+require_model('articulo.php');
 /**
  * Description of distribucion_transporte
  *
@@ -54,7 +55,7 @@ class distribucion_transporte extends fs_model {
 
     public $distribucion_conductores;
     public $distribucion_unidades;
-
+    public $articulo;
     public function __construct($t = false) {
         parent::__construct('distribucion_transporte','plugins/distribucion/');
         if($t)
@@ -119,6 +120,7 @@ class distribucion_transporte extends fs_model {
 
         $this->distribucion_conductores = new distribucion_conductores();
         $this->distribucion_unidades = new distribucion_unidades();
+        $this->articulo = new articulo();
     }
 
     public function url(){
@@ -340,7 +342,7 @@ class distribucion_transporte extends fs_model {
         }
         
         if($hasta){
-            $where.=" AND fecha <= ".$this->var2str($desde);
+            $where.=" AND fecha <= ".$this->var2str($hasta);
         }
         
         $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
@@ -361,6 +363,41 @@ class distribucion_transporte extends fs_model {
         }
         $resultados['resultados'] = $lista;
         return $resultados;
+    }
+    
+    public function get_lineas()
+    {
+        $lista = array();
+        $sql = "SELECT * FROM distribucion_lineastransporte where idtransporte = ".$this->intval($this->idtransporte)
+                ." AND codalmacen = ".$this->var2str($this->codalmacen)." AND idempresa = ".$this->intval($this->idempresa);
+        $data = $this->db->select($sql);
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $item = new distribucion_lineastransporte($d);
+                $articulo = $this->articulo->get($item->referencia);
+                $item->descripcion = $articulo->descripcion;
+                $lista[] = $item;
+            }
+        }
+        return $lista;
+    }
+    
+    public function get_facturas()
+    {
+        $lista = array();
+        $sql = "SELECT * FROM distribucion_ordenescarga_facturas where idtransporte = ".$this->intval($this->idtransporte)
+                ." AND codalmacen = ".$this->var2str($this->codalmacen)." AND idempresa = ".$this->intval($this->idempresa);
+        $data = $this->db->select($sql);
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $lista[] = new distribucion_ordenescarga_facturas($d);
+            }
+        }
+        return $lista;
     }
 
     public function total_transportes($idempresa, $codalmacen, $desde, $hasta){

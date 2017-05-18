@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('model/agente.php');
+require_model('agente.php');
 /**
 * Agregado para buscar por campos de los agentes por cargo sobre todo
  */

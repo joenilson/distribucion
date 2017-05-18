@@ -1,0 +1,335 @@
+{include="header"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-6 col-sm-6">
+            <div class="btn-group col-sm-3">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="fa fa-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="Marcada como página de inicio (pulsa de nuevo para desmarcar)">
+                    <i class="fa fa-bookmark" aria-hidden="true"></i>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="Marcar como página de inicio">
+                    <i class="fa fa-bookmark-o" aria-hidden="true"></i>
+                </a>
+                {/if}
+            </div>
+            <form id="f_buscar" name="f_buscar" method="POST" action="{$fsc->url()}">
+                <div class="form-group col-sm-3">
+                    <select name="codalmacen" class="form-control input-sm">
+                        {if="count($fsc->almacen->all())>1"}
+                        <option value="">Todos los almacenes</option>
+                        {/if}
+                        {loop="$fsc->almacen->all()"}
+                        <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
+                        {/loop}
+                    </select>
+                </div>
+                <div class="form-group col-sm-2">
+                    <input type="text" name="desde" value="{$fsc->desde}" placeholder="Desde" class="form-control input-sm datepicker">
+                </div>
+                <div class="form-group col-sm-2">
+                    <input type="text" name="hasta" value="{$fsc->hasta}" placeholder="Hasta" class="form-control input-sm datepicker">
+                </div>
+                <div class="form-group col-sm-1">
+                    <div class="form-group">
+                    <button class="btn btn-sm btn-primary" type="submit" id="b_generar_reporte" name="buscar">
+                        Generar
+                    </button>
+                    <button id="generando" class="btn btn-sm btn-info" disabled="" style="display: none;">
+                        <i class="fa fa-spinner fa-pulse fa-fw"></i>
+                        <span>Generando Reporte</span>
+                    </button>
+                    <a href='{$fsc->fileName}' class="btn btn-sm btn-success" id="b_descargar_reporte" style='display: none;'>
+                        Descargar Reporte
+                    </a>
+                </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-xs-6 col-sm-6 text-right">
+            <h2 style="margin-top: 0px;">
+                <span class="fa fa-tasks"></span>&nbsp;Movimiento de Almacén
+            </h2>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-sm-12">
+            <div id="movimiento-resultados">
+                <table id="grid_movimientos"></table>
+                <div id="grid_movimientos_pager"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12 table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>Almacén</th>
+                        <th>Fecha</th>
+                        <th>Transporte</th>
+                        <th>Referencia</th>
+                        <th>Descripcion</th>
+                        <th class="text-center">Salida</th>
+                        <th class="text-center">Devolución</th>
+                        <th class="text-center">Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {loop="$fsc->resultados"}
+                    <tr>
+                        <td>{$value->codalmacen}</td>
+                        <td>{$value->fecha}</td>
+                        <td><a href="{$value->url()}" target="_blank">{$value->idtransporte}</a></td>
+                        <td><a href="{$value->url_producto}" target="_blank">{$value->referencia}</a></td>
+                        <td>{$value->descripcion}</td>
+                        <td class="text-right">{$fsc->show_numero($value->cantidad)}</td>
+                        <td class="text-right">{$fsc->show_numero($value->devolucion)}</td>
+                        <td class="text-right">{$fsc->show_numero($value->cantidad+$value->devolucion)}</td>
+                        <td></td>
+                    </tr>
+                    {else}
+                    <tr>
+                        <td colspan="9" class="text-warning bg-warning">No hay Transportes con los datos de almacén y fechas indicados.</td>
+                    </tr>
+                    {/loop}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="{#FS_PATH#}plugins/distribucion/view/css/ui.jqgrid.css">
+<link rel="stylesheet" href="{#FS_PATH#}plugins/distribucion/view/css/ui.jqgrid-bootstrap.css">
+<script src="{#FS_PATH#}plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>
+<script src="{#FS_PATH#}plugins/distribucion/view/js/plugins/ajax-bootstrap-select.min.js" type="text/javascript"></script>
+<script src="{#FS_PATH#}plugins/distribucion/view/js/locale/ajax-bootstrap-select.es-ES.min.js" type="text/javascript"></script>
+<script src="{#FS_PATH#}plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>
+<script src="{#FS_PATH#}plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>
+<script>
+    $.fn.selectpicker.defaults = {
+        selectAllText: 'Marcar Todo',
+        deselectAllText: 'Desmarcar',
+        noneSelectedText: 'Nada seleccionado',
+        countSelectedText: "{0} de {1} seleccionados",
+        selectedTextFormat: 'count'
+    };
+    
+    var options = {
+        ajax      : {
+            url     : '{$fsc->url()}&type=buscar-articulos',
+            type    : 'POST',
+            dataType: 'json',
+            // Use "{{{q}}}" as a placeholder and Ajax Bootstrap Select will
+            // automatically replace it with the value of the search query.
+            data    : {
+                q: '{{{q}}}'
+            }
+        },
+        locale        : {
+            emptyTitle: 'Busque y seleccione...'
+        },
+        log           : 3,
+        preprocessData: function (data) {
+            var i, l = data.length, array = [];
+            if (l) {
+                for (i = 0; i < l; i++) {
+                    array.push($.extend(true, data[i], {
+                        text : data[i].descripcion,
+                        value: data[i].referencia
+                    }));
+                }
+            }
+            // You must always return a valid array when processing data. The
+            // data argument passed is a clone and cannot be modified directly.
+            return array;
+        }
+        
+    };
+    $('#referencia').selectpicker().filter('.with-ajax').ajaxSelectPicker(options);
+    $('#referencia').trigger('change');
+
+    $.jgrid.defaults.width = '100%';
+    $.jgrid.defaults.responsive = true;
+    $.jgrid.defaults.styleUI = 'Bootstrap';
+
+    function last_stock(val, name, record) {
+        return parseFloat(record[name] || 0);
+    }
+    
+    function get_movimientos() {
+        $('#b_descargar_reporte').hide();
+        $('#b_generar_reporte').hide();
+        $('#generando').show();
+        var inicio = $('#inicio').val();
+        var fin = $('#fin').val();
+        var almacen = $('#codalmacen').val();
+        var articulo = $('#referencia').val();
+        $.ajax({
+            type: 'POST',
+            url: '{$fsc->url()}',
+            async: false,
+            data: 'procesar-reporte=true&inicio=' + inicio + '&fin=' + fin + '&almacen=' + almacen + '&articulo=' + articulo,
+            success: function (datos) {
+                $("#grid_movimientos").jqGrid('clearGridData');
+                $("#grid_movimientos")[0].grid.beginReq();
+                $('#grid_movimientos').jqGrid()
+                .setGridParam({
+                    data: datos.rows,
+                    datatype: "local"
+                });
+                $("#grid_movimientos")[0].grid.endReq();
+                $('#grid_movimientos').jqGrid().trigger("reloadGrid",[{current:true}]);
+                if (datos.rows.length !== 0) {
+                    $('#b_descargar_reporte').attr('href', datos.filename);
+                    $('#b_descargar_reporte').show();
+                    $('#b_generar_reporte').show();
+                    $('#generando').hide();
+                }
+            }
+        });
+    }
+
+    function runningFormatter(value, row, index) {
+        return index;
+    }
+
+    function totalFormatter(data) {
+        return data.length + ' Documentos';
+    }
+
+    function totalTextFormatter(data) {
+        return 'Total';
+    }
+
+    function numberFormatter(value, row, index) {
+        return parseFloat(value).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+    }
+
+    function sumFormatter(data) {
+        field = this.field;
+        return parseFloat(data.reduce(function (sum, row) {
+            return sum + (+row[field]);
+        }, 0)).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+    }
+
+    function sumNormalFormatter(data) {
+        field = this.field;
+        return parseFloat(data.reduce(function (sum, row) {
+            return sum + (+row[field]);
+        }, 0)).toFixed(2);
+    }
+
+$(document).ready(function () {
+    $('#f_buscar').submit(function (event) {
+        event.preventDefault();
+        get_movimientos();
+    });
+    
+    
+    $("#grid_movimientos").jqGrid('clearGridData');
+    $("#grid_movimientos").jqGrid({
+        datatype: "local",
+        colModel: [
+            {label: 'Almacen', name: 'nombre', width: 80},
+            {label: 'Fecha', name: 'fecha', width: 50},
+            {label: 'Transporte', name: 'idtransporte', width: 70},
+            {label: 'Referencia', name: 'referencia', width: 50},
+            {label: 'Descripcion', name: 'descripcion', width: 90},
+            {
+                label: 'Salida',
+                name: 'cantidad',
+                width: 60,
+                summaryTpl: "<b>{0}</b>",
+                formatter: 'number', align: 'right', summaryType: 'sum',
+                formatoptions: {decimalSeparator: ".", decimalPlaces: 2, thousandsSeparator: ","}
+            },
+            {
+                label: 'Devolucion',
+                name: 'devolucion',
+                width: 70,
+                summaryTpl: "<b>{0}</b>",
+                formatter: 'number', align: 'right', summaryType: 'sum',
+                formatoptions: {decimalSeparator: ".", decimalPlaces: 2, thousandsSeparator: ","}
+            },
+            {
+                label: 'Total',
+                name: 'total_final',
+                width: 60,
+                summaryTpl: "<b>{0}</b>",
+                formatter: 'number', align: 'right', summaryType: 'sum',
+                formatoptions: {decimalSeparator: ".", decimalPlaces: 2, thousandsSeparator: ","}
+            }
+        ],
+        loadonce: false,
+        viewrecords: true,
+        rowList: [100, 150, 200, 250, 500, 1000, 1500, 2000, 5000],
+        headertitles: true,
+        autowidth: true,
+        height: 550,
+        rowNum: 1000,
+        sortname: 'fecha',
+        pager: "#grid_movimientos_pager",
+        grouping: true,
+        hoverrows: true,
+        groupingView: {
+            groupField: ["nombre", "descripcion"],
+            groupColumnShow: [true, true, true],
+            groupText: [
+                "<b>{0}</b>",
+                "<b>{0}</b>",
+                "<b>{0}</b>"
+            ],
+            groupOrder: ["asc", "asc", "asc"],
+            groupSummary: [true, true, true],
+            groupSummaryPos: ['footer', 'footer', 'header'],
+            groupCollapse: false,
+            showSummaryOnHide: true
+        },
+        loadComplete : function(){
+            var grouppingOptions = {
+                groupingView: {
+                    groupField: ["nombre", "descripcion"],
+                    groupColumnShow: [true, true, true],
+                    groupText: [
+                        "<b>{0}</b>",
+                        "<b>{0}</b>",
+                        "<b>{0}</b>"
+                    ],
+                    groupOrder: ["asc", "asc", "asc"],
+                    groupSummary: [true, true, true],
+                    groupSummaryPos: ['footer', 'footer', 'header'],
+                    groupCollapse: true
+                }
+            };
+        },
+    });
+
+
+    $('#grid_movimientos').navGrid(
+        '#grid_movimientos_pager',
+        { edit: false, add: false, del: false, search: true, refresh: true, view: true, position: "left", cloneToTop: true }
+    );
+});
+</script>
+{include="footer"}
