@@ -100,6 +100,7 @@ class distribucion_lineastransporte extends fs_model {
     {
         $descripcion_producto = $this->articulo->get($valor_linea->referencia);
         $valor_linea->descripcion = $descripcion_producto->descripcion;
+        $valor_linea->total_final = $valor_linea->cantidad+$valor_linea->devolucion;
         $valor_linea->url_producto = $descripcion_producto->url();
         return $valor_linea;
     }
@@ -207,7 +208,7 @@ class distribucion_lineastransporte extends fs_model {
         return $resultados;
     }
     
-    public function lista($idempresa, $datos, $desde, $hasta, $offset=0)
+    public function lista($idempresa, $datos, $desde, $hasta)
     {
         $resultados = array();
         $contador = 1;
@@ -232,7 +233,7 @@ class distribucion_lineastransporte extends fs_model {
         $resultados['cantidad'] = $conteo[0]['total'];
         $sql = "SELECT * FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where ORDER BY referencia, fecha, idtransporte";
         $lista = array();
-        $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
+        $data = $this->db->select($sql);
 
         if($data)
         {

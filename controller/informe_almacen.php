@@ -23,6 +23,7 @@ require_model('distribucion_conductores.php');
 require_model('distribucion_transporte.php');
 require_model('distribucion_lineastransporte.php');
 require_model('distribucion_ordenescarga_facturas.php');
+require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
 /**
  * Description of informe_despachos
  *
@@ -42,10 +43,14 @@ class informe_almacen extends fs_controller{
     public $distribucion_lineastransporte;
     public $distribucion_ordenescarga_facturas;
     public $total_resultados;
+    public $referencia;
     public $resultados;
     public $offset;
     public $fileName;
     public $fileNamePath;
+    public $documentosDir;
+    public $distribucionDir;
+    public $publicPath;    
     public function __construct() {
         parent::__construct(__CLASS__, 'Movimientos de Almacén', 'informes', FALSE, TRUE, FALSE);
     }
@@ -59,6 +64,19 @@ class informe_almacen extends fs_controller{
         $this->distribucion_transporte = new distribucion_transporte();
         $this->distribucion_lineastransporte = new distribucion_lineastransporte();
         $this->distribucion_ordenescarga_facturas = new distribucion_ordenescarga_facturas();
+
+        $basepath = dirname(dirname(dirname(__DIR__)));
+        $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
+        $this->distribucionDir = $this->documentosDir . DIRECTORY_SEPARATOR . "distribucion";
+        $this->publicPath = FS_PATH . FS_MYDOCS . 'documentos' . DIRECTORY_SEPARATOR . 'distribucion';
+
+        if (!is_dir($this->documentosDir)) {
+            mkdir($this->documentosDir);
+        }
+
+        if (!is_dir($this->distribucionDir)) {
+            mkdir($this->distribucionDir);
+        }
         
         $desde_p = \filter_input(INPUT_POST, 'desde');
         $desde_g = \filter_input(INPUT_GET, 'desde');
@@ -77,6 +95,11 @@ class informe_almacen extends fs_controller{
         $codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
         $this->codalmacen = ($codalmacen)?$codalmacen:false;
         
+        $referencia_p = \filter_input(INPUT_POST, 'referencia');
+        $referencia_g = \filter_input(INPUT_GET, 'referencia');
+        $referencia = ($referencia_p)?$referencia_p:$referencia_g;
+        $this->referencia = ($referencia)?$referencia:false;
+        
         $accion_p = \filter_input(INPUT_POST, 'accion');
         $accion_g = \filter_input(INPUT_GET, 'accion');
         $accion = ($accion_p)?$accion_p:$accion_g;
@@ -84,28 +107,90 @@ class informe_almacen extends fs_controller{
         {
             $this->buscar();
         }
+        elseif($accion == 'buscar-articulos')
+        {
+            $this->buscar_articulo();
+        }
         
     }
     
+    public function buscar_articulo()
+    {
+        $articulos = new articulo();
+        $query = \filter_input(INPUT_GET, 'q');
+        $data = $articulos->search($query);
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    }
+            
+    
     public function buscar()
     {
+        $this->template = false;
         $this->resultados = array();
         $datos = array();
         if($this->codalmacen){
             $datos['codalmacen'] = $this->codalmacen;
         }
+        
+        if($this->referencia){
+            $datos['referencia'] = $this->referencia;
+        }
+        
         $lineas_transportes = $this->distribucion_lineastransporte->lista($this->empresa->id, $datos, $this->f_desde, $this->f_hasta);
         $this->resultados = $lineas_transportes['resultados'];
         $this->total_resultados = $lineas_transportes['cantidad'];
-
+        $this->generar_excel();
+        $data['rows'] = $lineas_transportes['resultados'];
+        $data['filename'] = $this->fileNamePath;
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    }
+    
+    public function generar_excel(){
+        //Revisamos que no haya un archivo ya cargado
+        $archivo = 'MovimientoAlmacen';
+        $this->fileName = $this->distribucionDir . DIRECTORY_SEPARATOR . $archivo . "_" . $this->user->nick . ".xlsx";
+        $this->fileNamePath = $this->publicPath . DIRECTORY_SEPARATOR . $archivo . "_" . $this->user->nick . ".xlsx";
+        if (file_exists($this->fileName)) {
+            unlink($this->fileName);
+        }
+        //Variables para cada parte del excel
+        $estilo_cabecera = array('border'=>'left,right,top,bottom','font-style'=>'bold');
+        $estilo_cuerpo = array( array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'));
+        
+        //Inicializamos la clase
+        $this->writer = new XLSXWriter();
+        //Verificamos si es un solo almacén o si son todos
+        $nombre_hoja = 'Movimiento General';
+        if($this->codalmacen)
+        {
+            $almacen = $this->almacen->get($this->codalmacen);
+            $nombre_hoja = $almacen->nombre;
+        }
+        $this->writer->writeSheetHeader($nombre_hoja, array(), true);
+        //Agregamos la linea de titulo
+        $cabecera = array('Almacén','Fecha','Transporte','Referencia','Descripción','Salida','Devolución','Total');
+        $this->writer->writeSheetRow($nombre_hoja, $cabecera,$estilo_cabecera);
+        //Agregamos cada linea en forma de array
+        foreach($this->resultados as $linea){
+            $item = array();
+            $item[] = $linea->codalmacen;
+            $item[] = $linea->fecha;
+            $item[] = $linea->idtransporte;
+            $item[] = $linea->referencia;
+            $item[] = $linea->descripcion;
+            $item[] = $linea->cantidad;
+            $item[] = $linea->devolucion;
+            $item[] = $linea->total_final;
+            $this->writer->writeSheetRow($nombre_hoja, $item, $estilo_cuerpo);
+        }
+        //Escribimos
+        $this->writer->writeToFile($this->fileNamePath);
     }
     
     public function shared_extensions()
-    {
-        
-    }
-    
-    public function paginas()
     {
         
     }

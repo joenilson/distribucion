@@ -32,7 +32,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </a>
                 {/if}
             </div>
-            <form id="f_buscar" name="f_buscar" method="POST" action="{$fsc->url()}">
+        </div>
+        <div class="col-xs-6 col-sm-6 text-right">
+            <h2 style="margin-top: 0px;">
+                <span class="fa fa-tasks"></span>&nbsp;Movimiento de Almacén
+            </h2>
+        </div>
+        <form id="f_buscar" name="f_buscar" method="POST" action="{$fsc->url()}">
                 <div class="form-group col-sm-3">
                     <select name="codalmacen" class="form-control input-sm">
                         {if="count($fsc->almacen->all())>1"}
@@ -49,7 +55,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <div class="form-group col-sm-2">
                     <input type="text" name="hasta" value="{$fsc->hasta}" placeholder="Hasta" class="form-control input-sm datepicker">
                 </div>
-                <div class="form-group col-sm-1">
+                <div class="form-group col-sm-3">
+                    <select class="form-control input-sm selectpicker with-ajax" name="referencia" data-live-search="true" id="referencia" data-style="btn-default" data-actions-box="true">
+                    </select>
+                </div>
+                <div class="form-group col-sm-2">
                     <div class="form-group">
                     <button class="btn btn-sm btn-primary" type="submit" id="b_generar_reporte" name="buscar">
                         Generar
@@ -64,12 +74,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 </div>
             </form>
-        </div>
-        <div class="col-xs-6 col-sm-6 text-right">
-            <h2 style="margin-top: 0px;">
-                <span class="fa fa-tasks"></span>&nbsp;Movimiento de Almacén
-            </h2>
-        </div>
     </div>
     <hr>
     <div class="row">
@@ -80,47 +84,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-sm-12 table-responsive">
-            <table class="table table-hover table-striped">
-                <thead>
-                    <tr>
-                        <th>Almacén</th>
-                        <th>Fecha</th>
-                        <th>Transporte</th>
-                        <th>Referencia</th>
-                        <th>Descripcion</th>
-                        <th class="text-center">Salida</th>
-                        <th class="text-center">Devolución</th>
-                        <th class="text-center">Total</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {loop="$fsc->resultados"}
-                    <tr>
-                        <td>{$value->codalmacen}</td>
-                        <td>{$value->fecha}</td>
-                        <td><a href="{$value->url()}" target="_blank">{$value->idtransporte}</a></td>
-                        <td><a href="{$value->url_producto}" target="_blank">{$value->referencia}</a></td>
-                        <td>{$value->descripcion}</td>
-                        <td class="text-right">{$fsc->show_numero($value->cantidad)}</td>
-                        <td class="text-right">{$fsc->show_numero($value->devolucion)}</td>
-                        <td class="text-right">{$fsc->show_numero($value->cantidad+$value->devolucion)}</td>
-                        <td></td>
-                    </tr>
-                    {else}
-                    <tr>
-                        <td colspan="9" class="text-warning bg-warning">No hay Transportes con los datos de almacén y fechas indicados.</td>
-                    </tr>
-                    {/loop}
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
-<link rel="stylesheet" href="{#FS_PATH#}plugins/distribucion/view/css/ui.jqgrid.css">
+
 <link rel="stylesheet" href="{#FS_PATH#}plugins/distribucion/view/css/ui.jqgrid-bootstrap.css">
+<link rel="stylesheet" href="{#FS_PATH#}plugins/distribucion/view/css/bootstrap-select.min.css">
 <script src="{#FS_PATH#}plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>
 <script src="{#FS_PATH#}plugins/distribucion/view/js/plugins/ajax-bootstrap-select.min.js" type="text/javascript"></script>
 <script src="{#FS_PATH#}plugins/distribucion/view/js/locale/ajax-bootstrap-select.es-ES.min.js" type="text/javascript"></script>
@@ -137,8 +104,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
     var options = {
         ajax      : {
-            url     : '{$fsc->url()}&type=buscar-articulos',
-            type    : 'POST',
+            url     : '{$fsc->url()}&accion=buscar-articulos',
+            type    : 'GET',
             dataType: 'json',
             // Use "{{{q}}}" as a placeholder and Ajax Bootstrap Select will
             // automatically replace it with the value of the search query.
@@ -163,9 +130,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             // You must always return a valid array when processing data. The
             // data argument passed is a clone and cannot be modified directly.
             return array;
-        }
+        },
+        preserveSelected: false
         
     };
+    
     $('#referencia').selectpicker().filter('.with-ajax').ajaxSelectPicker(options);
     $('#referencia').trigger('change');
 
@@ -181,18 +150,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         $('#b_descargar_reporte').hide();
         $('#b_generar_reporte').hide();
         $('#generando').show();
-        var inicio = $('#inicio').val();
-        var fin = $('#fin').val();
-        var almacen = $('#codalmacen').val();
-        var articulo = $('#referencia').val();
+        var inicio = document.f_buscar.desde.value;
+        var fin = document.f_buscar.hasta.value;
+        var almacen = document.f_buscar.codalmacen.value;
+        var referencia = document.f_buscar.referencia.value;
+        // show loading message
+        $("#grid_movimientos").jqGrid('clearGridData');
+        $("#grid_movimientos")[0].grid.beginReq();
         $.ajax({
             type: 'POST',
             url: '{$fsc->url()}',
             async: false,
-            data: 'procesar-reporte=true&inicio=' + inicio + '&fin=' + fin + '&almacen=' + almacen + '&articulo=' + articulo,
+            data: 'accion=buscar&desde=' + inicio + '&hasta=' + fin + '&codalmacen=' + almacen + '&referencia=' + referencia,
             success: function (datos) {
-                $("#grid_movimientos").jqGrid('clearGridData');
-                $("#grid_movimientos")[0].grid.beginReq();
                 $('#grid_movimientos').jqGrid()
                 .setGridParam({
                     data: datos.rows,
@@ -251,7 +221,7 @@ $(document).ready(function () {
     $("#grid_movimientos").jqGrid({
         datatype: "local",
         colModel: [
-            {label: 'Almacen', name: 'nombre', width: 80},
+            {label: 'Almacen', name: 'codalmacen', width: 80},
             {label: 'Fecha', name: 'fecha', width: 50},
             {label: 'Transporte', name: 'idtransporte', width: 70},
             {label: 'Referencia', name: 'referencia', width: 50},
@@ -286,39 +256,38 @@ $(document).ready(function () {
         rowList: [100, 150, 200, 250, 500, 1000, 1500, 2000, 5000],
         headertitles: true,
         autowidth: true,
-        height: 550,
+        height: 450,
         rowNum: 1000,
         sortname: 'fecha',
         pager: "#grid_movimientos_pager",
         grouping: true,
         hoverrows: true,
         groupingView: {
-            groupField: ["nombre", "descripcion"],
-            groupColumnShow: [true, true, true],
+            groupField: ["codalmacen", "descripcion"],
+            groupColumnShow: [true, true],
             groupText: [
-                "<b>{0}</b>",
                 "<b>{0}</b>",
                 "<b>{0}</b>"
             ],
-            groupOrder: ["asc", "asc", "asc"],
-            groupSummary: [true, true, true],
-            groupSummaryPos: ['footer', 'footer', 'header'],
+            groupOrder: ["asc", "asc"],
+            groupSummary: [true, true],
+            groupSummaryPos: ['footer', 'footer'],
             groupCollapse: false,
             showSummaryOnHide: true
         },
         loadComplete : function(){
             var grouppingOptions = {
                 groupingView: {
-                    groupField: ["nombre", "descripcion"],
-                    groupColumnShow: [true, true, true],
+                    groupField: ["codalmacen", "descripcion"],
+                    groupColumnShow: [true, true],
                     groupText: [
                         "<b>{0}</b>",
                         "<b>{0}</b>",
                         "<b>{0}</b>"
                     ],
-                    groupOrder: ["asc", "asc", "asc"],
-                    groupSummary: [true, true, true],
-                    groupSummaryPos: ['footer', 'footer', 'header'],
+                    groupOrder: ["asc", "asc"],
+                    groupSummary: [true, true],
+                    groupSummaryPos: ['footer', 'footer'],
                     groupCollapse: true
                 }
             };

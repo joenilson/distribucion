@@ -95,6 +95,7 @@ class informes_caja extends fs_controller {
             $this->user->codalmacen = $user_almacen->codalmacen;
             $this->user->nombrealmacen = $user_almacen->nombre;
         }
+        
         //revisamos si esta el plugin de tesoreria
         $this->tesoreria = FALSE;
         $disabled = array();
