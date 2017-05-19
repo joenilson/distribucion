@@ -39,8 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </h2>
         </div>
         <form id="f_buscar" name="f_buscar" method="POST" action="{$fsc->url()}">
-                <div class="form-group col-sm-3">
-                    <select name="codalmacen" class="form-control input-sm">
+                <div class="form-group-sm col-sm-3">
+                    <select name="codalmacen" class="form-control selectpicker input-sm">
                         {if="count($fsc->almacen->all())>1"}
                         <option value="">Todos los almacenes</option>
                         {/if}
@@ -55,9 +55,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <div class="form-group col-sm-2">
                     <input type="text" name="hasta" value="{$fsc->hasta}" placeholder="Hasta" class="form-control input-sm datepicker">
                 </div>
-                <div class="form-group col-sm-3">
+                <div class="form-group-sm col-sm-3">
+                    <div class="input-group">
                     <select class="form-control input-sm selectpicker with-ajax" name="referencia" data-live-search="true" id="referencia" data-style="btn-default" data-actions-box="true">
                     </select>
+                        <div class="input-group-btn">
+                            <button class="btn btn-sm btn-default" id="b_clear_referencia" type="button"><span class="fa fa-times"></span></button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group col-sm-2">
                     <div class="form-group">
@@ -114,9 +119,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             }
         },
         locale        : {
-            emptyTitle: 'Busque y seleccione...'
+            emptyTitle: 'Elija un articulo...'
         },
-        log           : 3,
+        log           : 0,
         preprocessData: function (data) {
             var i, l = data.length, array = [];
             if (l) {
@@ -163,19 +168,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             async: false,
             data: 'accion=buscar&desde=' + inicio + '&hasta=' + fin + '&codalmacen=' + almacen + '&referencia=' + referencia,
             success: function (datos) {
-                $('#grid_movimientos').jqGrid()
-                .setGridParam({
-                    data: datos.rows,
-                    datatype: "local"
-                });
-                $("#grid_movimientos")[0].grid.endReq();
-                $('#grid_movimientos').jqGrid().trigger("reloadGrid",[{current:true}]);
-                if (datos.rows.length !== 0) {
-                    $('#b_descargar_reporte').attr('href', datos.filename);
-                    $('#b_descargar_reporte').show();
-                    $('#b_generar_reporte').show();
-                    $('#generando').hide();
+                if(datos.rows)
+                {
+                    $('#grid_movimientos').jqGrid()
+                    .setGridParam({
+                        data: datos.rows,
+                        datatype: "local"
+                    });
+                    $("#grid_movimientos")[0].grid.endReq();
+                    $('#grid_movimientos').jqGrid().trigger("reloadGrid",[{current:true}]);
+                    if (datos.rows.length !== 0) {
+                        $('#b_descargar_reporte').attr('href', datos.filename);
+                        $('#b_descargar_reporte').show();
+                    }
                 }
+                else
+                {
+                    $("#grid_movimientos")[0].grid.endReq();    
+                    bootbox.alert('Hubo un error en el servidor, intentelo nuevamente revisando los datos que envió.');
+                }
+                $('#b_generar_reporte').show();
+                $('#generando').hide();
+            },
+            error: function(datos)
+            {
+                $("#grid_movimientos")[0].grid.endReq();
+                $('#b_generar_reporte').show();
+                $('#generando').hide();
+                bootbox.alert('Hubo un error en el servidor, intentelo nuevamente revisando los datos que envió.');
             }
         });
     }
@@ -216,6 +236,9 @@ $(document).ready(function () {
         get_movimientos();
     });
     
+    $('#b_clear_referencia').click(function(){
+        $('#referencia').val('').selectpicker('refresh');
+    });
     
     $("#grid_movimientos").jqGrid('clearGridData');
     $("#grid_movimientos").jqGrid({
@@ -243,11 +266,26 @@ $(document).ready(function () {
                 formatoptions: {decimalSeparator: ".", decimalPlaces: 2, thousandsSeparator: ","}
             },
             {
-                label: 'Total',
+                label: 'Salida Neta',
                 name: 'total_final',
                 width: 60,
                 summaryTpl: "<b>{0}</b>",
                 formatter: 'number', align: 'right', summaryType: 'sum',
+                formatoptions: {decimalSeparator: ".", decimalPlaces: 2, thousandsSeparator: ","}
+            },
+            {
+                label: 'Ingresos',
+                name: 'ingresos',
+                width: 60,
+                summaryTpl: "<b>{0}</b>",
+                formatter: 'number', align: 'right', summaryType: 'sum',
+                formatoptions: {decimalSeparator: ".", decimalPlaces: 2, thousandsSeparator: ","}
+            },
+            {
+                label: 'Saldo',
+                name: 'saldo',
+                width: 60,
+                formatter: 'number', align: 'right',
                 formatoptions: {decimalSeparator: ".", decimalPlaces: 2, thousandsSeparator: ","}
             }
         ],
