@@ -244,6 +244,7 @@ $(document).ready(function () {
     $("#grid_movimientos").jqGrid({
         datatype: "local",
         colModel: [
+            {label: 'id', name: 'fecha_creacion', width: 10, hidden: true},
             {label: 'Almacen', name: 'codalmacen', width: 80},
             {label: 'Fecha', name: 'fecha', width: 50},
             {label: 'Transporte', name: 'idtransporte', width: 70},
@@ -282,7 +283,7 @@ $(document).ready(function () {
                 formatoptions: {decimalSeparator: ".", decimalPlaces: 2, thousandsSeparator: ","}
             },
             {
-                label: 'Saldo',
+                label: 'Movimiento',
                 name: 'saldo',
                 width: 60,
                 formatter: 'number', align: 'right',
@@ -296,7 +297,7 @@ $(document).ready(function () {
         autowidth: true,
         height: 450,
         rowNum: 1000,
-        sortname: 'fecha',
+        sortname: 'fecha_creacion',
         pager: "#grid_movimientos_pager",
         grouping: true,
         hoverrows: true,

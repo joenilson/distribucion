@@ -619,6 +619,7 @@ class informes_caja extends fs_controller {
                         require_model('recibo_cliente.php');
                         require_model('recibo_factura.php');
                         $recibos = new recibo_cliente();
+                        /*
                         $recibos_factura = new recibo_factura();
                         $rec0 = $recibos->all_from_factura($factura->idfactura);
                         foreach($rec0 as $r){
@@ -626,18 +627,21 @@ class informes_caja extends fs_controller {
 
                             }
                         }
-                        $recibos = $recibos->all_from_factura($factura->idfactura);
-                        $pago_venta = ($recibos)?$recibos[0]:FALSE;
+                         *
+                         */
+                        $recibo_pago = $recibos->all_from_factura($factura->idfactura);
+                        $pago_venta = ($recibo_pago)?$recibo_pago[0]:FALSE;
                     }else{
                         $pago_venta = $factura->get_asiento_pago();
                     }
                     if($pago_venta){
-                        if(\date('Y-m-d',strtotime($pago_venta->fecha))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($pago_venta->fecha))<=\date('Y-m-d',strtotime($this->f_hasta))){
+                        $fecha_pago = ($this->tesoreria)?$pago_venta->fechap:$pago_venta->fecha;
+                        if(\date('Y-m-d',strtotime($fecha_pago))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($fecha_pagop))<=\date('Y-m-d',strtotime($this->f_hasta))){
                             //Esta pagada a la fecha buscada
                             $this->total_cobros += $factura->total;
                             $this->pagadas['ventas'] += $factura->total;
                             $this->cobros_condpago[$factura->codpago] += $factura->total;
-                            $factura->fecha_pago = ($this->tesoreria)?$pago_venta->fechap:$pago_venta->fecha;
+                            $factura->fecha_pago = $fecha_pago;
                             $factura->abonos = $factura->total;
                         }else{
                             //Esta pendiente a la fecha buscada

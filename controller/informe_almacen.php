@@ -153,18 +153,20 @@ class informe_almacen extends fs_controller{
                 $saldo_ini = $this->saldo_articulo($art->referencia, $almacen->codalmacen);
                 $linea_nueva = new StdClass();
                 $linea_nueva->codalmacen = $almacen->codalmacen;
-                $linea_nueva->idtransporte = 'Saldo Inicial';
+                $linea_nueva->idtransporte = '0 Saldo Inicial';
                 $linea_nueva->referencia = $art->referencia;
                 $linea_nueva->descripcion = $art->descripcion;
                 $linea_nueva->fecha = $this->f_desde;
+                $linea_nueva->hora = '01:00:00';
+                $linea_nueva->fecha_creacion = strtotime($this->f_desde.' '.'00:00:00');
                 $linea_nueva->cantidad = 0;
                 $linea_nueva->devolucion = 0;
                 $linea_nueva->total_final = 0;
                 $linea_nueva->ingresos = 0;
                 $linea_nueva->saldo = $saldo_ini;
-                if(!isset($resultado[$this->f_desde]))
+                if(!isset($resultado[$linea_nueva->fecha_creacion]))
                 {
-                    $resultado[$this->f_desde] = array();
+                    $resultado[$linea_nueva->fecha_creacion] = array();
                     $saldo[$this->f_desde] = array();
                 }
                 if(!isset($saldo[$this->f_desde][$almacen->codalmacen]))
@@ -176,7 +178,7 @@ class informe_almacen extends fs_controller{
                     $saldo[$this->f_desde][$almacen->codalmacen][$art->referencia] = 0;
                 }
                 $saldo[$this->f_desde][$almacen->codalmacen][$art->referencia] = $saldo_ini;
-                $resultado[$this->f_desde][] = $linea_nueva;
+                $resultado[$linea_nueva->fecha_creacion][] = $linea_nueva;
             }
         }
         
@@ -184,13 +186,40 @@ class informe_almacen extends fs_controller{
         if($lineas_ingresos){
             foreach($lineas_ingresos as $linea)
             {
-                if(!isset($resultado[$linea->fecha]))
+                if(!isset($resultado[$linea->fecha_creacion]))
                 {
-                    $resultado[$linea->fecha] = array();
+                    $resultado[$linea->fecha_creacion] = array();
                 }
                 $linea->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]+$linea->ingresos:0;
-                $resultado[$linea->fecha][] = $linea;
+                $resultado[$linea->fecha_creacion][] = $linea;
                 $saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] += $linea->ingresos;
+            }
+        }
+        
+        $lineas_transportes = $this->distribucion_lineastransporte->lista($this->empresa->id, $datos, $this->f_desde, $this->f_hasta);
+        if($lineas_transportes){
+            foreach($lineas_transportes['resultados'] as $linea)
+            {
+                $hora = \date('H:i:s',strtotime($linea->fecha_creacion));
+                if(!isset($resultado[strtotime($linea->fecha.' '.$hora)]))
+                {
+                    $resultado[strtotime($linea->fecha.' '.$hora)] = array();
+                }
+                $linea_nueva = new StdClass();
+                $linea_nueva->codalmacen = $linea->codalmacen;
+                $linea_nueva->idtransporte = $linea->idtransporte;
+                $linea_nueva->referencia = $linea->referencia;
+                $linea_nueva->descripcion = $linea->descripcion;
+                $linea_nueva->fecha = $linea->fecha;
+                $linea_nueva->hora = $hora;
+                $linea_nueva->fecha_creacion = strtotime($linea->fecha.' '.$hora);
+                $linea_nueva->cantidad = $linea->cantidad;
+                $linea_nueva->devolucion = $linea->devolucion;
+                $linea_nueva->total_final = $linea->total_final;
+                $linea_nueva->ingresos = 0;
+                $linea_nueva->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
+                $resultado[$linea_nueva->fecha_creacion][] = $linea_nueva;
+                $saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
             }
         }
         
@@ -202,42 +231,28 @@ class informe_almacen extends fs_controller{
                 {
                     $resultado[$linea->fecha] = array();
                 }
-                $linea->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
-                $resultado[$linea->fecha][] = $linea;
+                $fecha = strtotime($linea->fecha.' '.$linea->hora);
+                //$linea->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
+                $resultado[$linea->fecha_creacion][] = $linea;
                 $saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
             }
         }
-        
-        $lineas_transportes = $this->distribucion_lineastransporte->lista($this->empresa->id, $datos, $this->f_desde, $this->f_hasta);
-        if($lineas_transportes){
-            foreach($lineas_transportes['resultados'] as $linea)
-            {
-                if(!isset($resultado[$linea->fecha]))
-                {
-                    $resultado[$linea->fecha] = array();
-                }
-                $linea_nueva = new StdClass();
-                $linea_nueva->codalmacen = $linea->codalmacen;
-                $linea_nueva->idtransporte = $linea->idtransporte;
-                $linea_nueva->referencia = $linea->referencia;
-                $linea_nueva->descripcion = $linea->descripcion;
-                $linea_nueva->fecha = $linea->fecha;
-                $linea_nueva->cantidad = $linea->cantidad;
-                $linea_nueva->devolucion = $linea->devolucion;
-                $linea_nueva->total_final = $linea->total_final;
-                $linea_nueva->ingresos = 0;
-                $linea_nueva->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
-                $resultado[$linea->fecha][] = $linea_nueva;
-                $saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
-            }
-        }        
 
-        sort($resultado);
+        ksort($resultado);
+        $saldo_anterior = array();
         foreach($resultado as $fecha=>$linea)
         {
+            foreach($linea as $lin)
+            {
+                if(!isset($saldo_anterior[$lin->referencia]))
+                {
+                    $saldo_anterior[$lin->referencia] = $lin->saldo;
+                }
+                $lin->saldo = $saldo_anterior[$lin->referencia]+($lin->ingresos-$lin->total_final);
+                $saldo_anterior[$lin->referencia] += ($lin->ingresos-$lin->total_final);
+            }
             $this->resultados = array_merge($linea,$this->resultados);
         }
-        
         $this->generar_excel();
         $data['rows'] = $this->resultados;
         $data['filename'] = $this->fileNamePath;
@@ -279,11 +294,11 @@ class informe_almacen extends fs_controller{
         }
         $movimientos = array();
         //Facturas de compra sin albaran
-        $sql_compras1 = "SELECT codalmacen,codigo,fecha,referencia,descripcion,cantidad FROM lineasfacturasprov as lfp".
+        $sql_compras1 = "SELECT codalmacen,codigo,fecha,hora,referencia,descripcion,cantidad FROM lineasfacturasprov as lfp".
                 " JOIN facturasprov as fp on (fp.idfactura = lfp.idfactura)".
                 " WHERE anulada = FALSE and idalbaran IS NULL ".
                 " AND fecha between ".$this->empresa->var2str($this->f_desde).' AND '.$this->empresa->var2str($this->f_hasta).$sql_aux.
-                " ORDER BY fecha,codalmacen,referencia,fp.idfactura";
+                " ORDER BY fecha,hora,codalmacen,referencia,fp.idfactura";
         $data_Compras1 = $this->db->select($sql_compras1);
         if($data_Compras1)
         {
@@ -295,6 +310,8 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->referencia = $item['referencia'];
                 $linea_nueva->descripcion = $item['descripcion'];
                 $linea_nueva->fecha = $item['fecha'];
+                $linea_nueva->hora = $item['hora'];
+                $linea_nueva->fecha_creacion = strtotime($item['fecha'].' '.$item['hora']);
                 $linea_nueva->cantidad = 0;
                 $linea_nueva->devolucion = 0;
                 $linea_nueva->total_final = 0;
@@ -304,10 +321,10 @@ class informe_almacen extends fs_controller{
         }
         
         //Albaranes de compra
-        $sql_compras2 = "SELECT codalmacen,codigo,fecha,referencia, descripcion, cantidad FROM lineasalbaranesprov as lap".
+        $sql_compras2 = "SELECT codalmacen,codigo,fecha,hora,referencia, descripcion, cantidad FROM lineasalbaranesprov as lap".
                 " JOIN albaranesprov as ap on (ap.idalbaran = lap.idalbaran)".
                 " WHERE fecha between ".$this->empresa->var2str($this->f_desde).' AND '.$this->empresa->var2str($this->f_hasta).$sql_aux.
-                " ORDER BY fecha,ap.idalbaran";
+                " ORDER BY fecha,hora,ap.idalbaran";
         $data_Compras2 = $this->db->select($sql_compras2);
         if($data_Compras2)
         {
@@ -319,6 +336,8 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->referencia = $item['referencia'];
                 $linea_nueva->descripcion = $item['descripcion'];
                 $linea_nueva->fecha = $item['fecha'];
+                $linea_nueva->hora = $item['hora'];
+                $linea_nueva->fecha_creacion = strtotime($item['fecha'].' '.$item['hora']);
                 $linea_nueva->cantidad = 0;
                 $linea_nueva->devolucion = 0;
                 $linea_nueva->total_final = 0;
@@ -332,10 +351,10 @@ class informe_almacen extends fs_controller{
             /*
              * Generamos la informacion de las transferencias por ingresos entre almacenes que se hayan hecho a los stocks
              */
-            $sql_transstock1 = "select codalmacen,ls.referencia,a.descripcion,l.idtrans,fecha,cantidad FROM lineastransstock AS ls".
+            $sql_transstock1 = "select codalmacen,ls.referencia,a.descripcion,l.idtrans,fecha,hora,cantidad FROM lineastransstock AS ls".
             " JOIN transstock as l ON(ls.idtrans = l.idtrans) JOIN articulos as a ON (l.referencia = a.referencia) ".
             " WHERE fecha between ".$this->empresa->var2str($this->f_desde).' AND '.$this->empresa->var2str($this->f_hasta).$sql_aux2.
-            " ORDER BY fecha,l.idtrans";
+            " ORDER BY fecha,hora,l.idtrans";
             $data_transstock1 = $this->db->select($sql_transstock1);
             if ($data_transstock1) {
                 foreach($data_transstock1 as $item)
@@ -346,6 +365,8 @@ class informe_almacen extends fs_controller{
                     $linea_nueva->referencia = $item['referencia'];
                     $linea_nueva->descripcion = $item['descripcion'];
                     $linea_nueva->fecha = $item['fecha'];
+                    $linea_nueva->hora = $item['hora'];
+                    $linea_nueva->fecha_creacion = strtotime($item['fecha'].' '.$item['hora']);
                     $linea_nueva->cantidad = 0;
                     $linea_nueva->devolucion = 0;
                     $linea_nueva->total_final = 0;
@@ -371,10 +392,10 @@ class informe_almacen extends fs_controller{
         $movimientos = array();
         //Si existe esta tabla se genera la información de las regularizaciones de stock y se agrega como salida el resultado
         if ($this->db->table_exists('lineasregstocks', $this->tablas)) {
-            $sql_regstocks = "select codalmacen,a.referencia,descripcion,ls.id,fecha,(cantidadini-cantidadfin) as cantidad from lineasregstocks AS ls ".
+            $sql_regstocks = "select codalmacen,a.referencia,descripcion,ls.id,fecha,hora,(cantidadini-cantidadfin) as cantidad from lineasregstocks AS ls ".
             " JOIN stocks as l ON(ls.idstock = l.idstock) JOIN articulos as a ON (l.referencia = a.referencia) ".
             " WHERE fecha between ".$this->empresa->var2str($this->f_desde).' AND '.$this->empresa->var2str($this->f_hasta).$sql_aux.
-            " ORDER BY fecha,referencia,ls.id";
+            " ORDER BY fecha,hora,referencia,ls.id";
             $data_regstocks = $this->db->select($sql_regstocks);
             if ($data_regstocks) {
                 foreach($data_regstocks as $item)
@@ -385,6 +406,8 @@ class informe_almacen extends fs_controller{
                     $linea_nueva->referencia = $item['referencia'];
                     $linea_nueva->descripcion = $item['descripcion'];
                     $linea_nueva->fecha = $item['fecha'];
+                    $linea_nueva->hora = $item['hora'];
+                    $linea_nueva->fecha_creacion = strtotime($item['fecha'].' '.$item['hora']);
                     $linea_nueva->cantidad = 0;
                     $linea_nueva->devolucion = 0;
                     $linea_nueva->total_final = $item['cantidad'];
