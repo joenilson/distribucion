@@ -153,32 +153,36 @@ class informe_almacen extends fs_controller{
                 $saldo_ini = $this->saldo_articulo($art->referencia, $almacen->codalmacen);
                 $linea_nueva = new StdClass();
                 $linea_nueva->codalmacen = $almacen->codalmacen;
-                $linea_nueva->idtransporte = '0 Saldo Inicial';
+                $linea_nueva->idtransporte = 'Saldo Inicial';
                 $linea_nueva->referencia = $art->referencia;
                 $linea_nueva->descripcion = $art->descripcion;
                 $linea_nueva->fecha = $this->f_desde;
-                $linea_nueva->hora = '01:00:00';
+                $linea_nueva->hora = '00:00:00';
                 $linea_nueva->fecha_creacion = strtotime($this->f_desde.' '.'00:00:00');
                 $linea_nueva->cantidad = 0;
                 $linea_nueva->devolucion = 0;
                 $linea_nueva->total_final = 0;
                 $linea_nueva->ingresos = 0;
                 $linea_nueva->saldo = $saldo_ini;
-                if(!isset($resultado[$linea_nueva->fecha_creacion]))
+                if(!isset($resultado[$art->referencia][$linea_nueva->fecha_creacion]))
                 {
-                    $resultado[$linea_nueva->fecha_creacion] = array();
-                    $saldo[$this->f_desde] = array();
+                    $resultado[$art->referencia][$linea_nueva->fecha_creacion] = array();
+                    //$saldo[$this->f_desde] = array();
                 }
+                /*
                 if(!isset($saldo[$this->f_desde][$almacen->codalmacen]))
                 {
-                    $saldo[$this->f_desde][$almacen->codalmacen] = array();
+                    //$saldo[$this->f_desde][$almacen->codalmacen] = array();
                 }
                 if(!isset($saldo[$this->f_desde][$almacen->codalmacen][$art->referencia]))
                 {
-                    $saldo[$this->f_desde][$almacen->codalmacen][$art->referencia] = 0;
+                    //$saldo[$this->f_desde][$almacen->codalmacen][$art->referencia] = 0;
                 }
-                $saldo[$this->f_desde][$almacen->codalmacen][$art->referencia] = $saldo_ini;
-                $resultado[$linea_nueva->fecha_creacion][] = $linea_nueva;
+                 * 
+                 */
+                //$saldo[$this->f_desde][$almacen->codalmacen][$art->referencia] = $saldo_ini;
+                //echo $art->referencia.' - '.$linea_nueva->fecha_creacion.' : '.$linea_nueva->saldo."\n";
+                $resultado[$art->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
             }
         }
         
@@ -186,13 +190,18 @@ class informe_almacen extends fs_controller{
         if($lineas_ingresos){
             foreach($lineas_ingresos as $linea)
             {
-                if(!isset($resultado[$linea->fecha_creacion]))
+                if(!isset($resultado[$linea->referencia][$linea->fecha_creacion]))
                 {
-                    $resultado[$linea->fecha_creacion] = array();
+                    $resultado[$linea->referencia][$linea->fecha_creacion] = array();
                 }
-                $linea->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]+$linea->ingresos:0;
-                $resultado[$linea->fecha_creacion][] = $linea;
-                $saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] += $linea->ingresos;
+                $linea->saldo = 0;
+                //if(!isset($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]))
+                //{
+                //    $saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] = 0;
+                //}
+                //$linea->saldo = (isset($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]))?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]+$linea->ingresos:0;
+                $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
+                //$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] += $linea->ingresos;
             }
         }
         
@@ -201,9 +210,9 @@ class informe_almacen extends fs_controller{
             foreach($lineas_transportes['resultados'] as $linea)
             {
                 $hora = \date('H:i:s',strtotime($linea->fecha_creacion));
-                if(!isset($resultado[strtotime($linea->fecha.' '.$hora)]))
+                if(!isset($resultado[$linea->referencia][strtotime($linea->fecha.' '.$hora)]))
                 {
-                    $resultado[strtotime($linea->fecha.' '.$hora)] = array();
+                    $resultado[$linea->referencia][strtotime($linea->fecha.' '.$hora)] = array();
                 }
                 $linea_nueva = new StdClass();
                 $linea_nueva->codalmacen = $linea->codalmacen;
@@ -217,9 +226,10 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->devolucion = $linea->devolucion;
                 $linea_nueva->total_final = $linea->total_final;
                 $linea_nueva->ingresos = 0;
-                $linea_nueva->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
-                $resultado[$linea_nueva->fecha_creacion][] = $linea_nueva;
-                $saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
+                $linea_nueva->saldo = 0;
+                //$linea_nueva->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
+                $resultado[$linea->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
+                //$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
             }
         }
         
@@ -227,31 +237,63 @@ class informe_almacen extends fs_controller{
         if($lineas_regularizaciones){
             foreach($lineas_regularizaciones as $linea)
             {
-                if(!isset($resultado[$linea->fecha]))
+                if(!isset($resultado[$linea->referencia][$linea->fecha]))
                 {
-                    $resultado[$linea->fecha] = array();
+                    $resultado[$linea->referencia][$linea->fecha] = array();
                 }
                 $fecha = strtotime($linea->fecha.' '.$linea->hora);
+                $linea->saldo = 0;
                 //$linea->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
-                $resultado[$linea->fecha_creacion][] = $linea;
-                $saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
+                $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
+                //$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
             }
         }
 
-        ksort($resultado);
-        $saldo_anterior = array();
-        foreach($resultado as $fecha=>$linea)
+        //ksort($resultado);
+        foreach($resultado as $referencia=>$datos)
         {
-            foreach($linea as $lin)
+            ksort($datos);
+            $saldo_anterior = array();
+            $listado_final = array();
+            foreach($datos as $fecha=>$lineas)
             {
-                if(!isset($saldo_anterior[$lin->referencia]))
+                /*
+                if($fecha==1495166400)
                 {
-                    $saldo_anterior[$lin->referencia] = $lin->saldo;
+                    print_r($lineas);
                 }
-                $lin->saldo = $saldo_anterior[$lin->referencia]+($lin->ingresos-$lin->total_final);
-                $saldo_anterior[$lin->referencia] += ($lin->ingresos-$lin->total_final);
+                */
+                foreach($lineas as $lin)
+                {
+                    if(!isset($saldo_anterior[$referencia]))
+                    {
+                        $saldo_anterior[$referencia] = $lin->saldo;
+                    }
+                    $lin->saldo = $saldo_anterior[$referencia]+($lin->ingresos-$lin->total_final);
+                    $saldo_anterior[$referencia] += ($lin->ingresos-$lin->total_final);
+                    $descripcion = $lin->descripcion;
+                    $almacen = $lin->codalmacen;
+                }
+                $listado_final = array_merge($lineas,$listado_final);
             }
-            $this->resultados = array_merge($linea,$this->resultados);
+            $linea_nueva = new StdClass();
+            $linea_nueva->codalmacen = $almacen;
+            $linea_nueva->idtransporte = 'Saldo Final';
+            $linea_nueva->referencia = $referencia;
+            $linea_nueva->descripcion = $descripcion;
+            $linea_nueva->fecha = $this->f_hasta;
+            $linea_nueva->hora = '23:59:59';
+            $linea_nueva->fecha_creacion = strtotime($this->f_hasta.' '.'23:59:59');
+            $linea_nueva->cantidad = 0;
+            $linea_nueva->devolucion = 0;
+            $linea_nueva->total_final = 0;
+            $linea_nueva->ingresos = 0;
+            $linea_nueva->saldo = $saldo_anterior[$referencia];
+            $listado_final[] = $linea_nueva;
+            $this->resultados = array_merge($listado_final,$this->resultados);
+            
+            
+
         }
         $this->generar_excel();
         $data['rows'] = $this->resultados;
