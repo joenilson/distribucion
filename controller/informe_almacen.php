@@ -479,7 +479,7 @@ class informe_almacen extends fs_controller{
         //Albaranes de compra
         $sql_compras2 = "SELECT sum(cantidad) as total FROM lineasalbaranesprov as lap".
                 " JOIN albaranesprov as ap on (ap.idalbaran = lap.idalbaran)".
-                " WHERE fecha <= ".$this->empresa->var2str($this->f_desde).
+                " WHERE fecha < ".$this->empresa->var2str($this->f_desde).
                 " AND codalmacen = ".$this->empresa->var2str($almacen).
                 " AND referencia = ".$this->empresa->var2str($ref);
         $data_Compras2 = $this->db->select($sql_compras2);
