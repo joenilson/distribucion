@@ -269,22 +269,22 @@ class distribucion_ordenescarga extends fs_model {
         {
             $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
         }
-        
+
         if($desde)
         {
             $query .= ' AND fecha >= '.$this->var2str($desde);
         }
-        
+
         if($hasta)
         {
             $query .= ' AND fecha <= '.$this->var2str($hasta);
         }
-        
+
         if($conductor)
         {
             $query .= ' AND conductor = '.$this->var2str($conductor);
         }
-        
+
         $sql = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query.";";
         $data = $this->db->select($sql);
         if($data){
@@ -300,22 +300,22 @@ class distribucion_ordenescarga extends fs_model {
         {
             $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
         }
-        
+
         if($desde)
         {
             $query .= ' AND fecha >= '.$this->var2str($desde);
         }
-        
+
         if($hasta)
         {
             $query .= ' AND fecha <= '.$this->var2str($hasta);
         }
-        
+
         if(!$tipo)
         {
             $tipo = 'cargado';
         }
-        
+
         $sql = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query." AND ".strip_tags(trim($tipo))." = FALSE;";
         $data = $this->db->select($sql);
         if($data){
@@ -324,7 +324,7 @@ class distribucion_ordenescarga extends fs_model {
             return 0;
         }
     }
-    
+
     public function pendientes($idempresa, $tipo='cargado', $codalmacen, $desde, $hasta){
         $lista = array();
         $query = '';
@@ -332,22 +332,22 @@ class distribucion_ordenescarga extends fs_model {
         {
             $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
         }
-        
+
         if($desde)
         {
             $query .= ' AND fecha >= '.$this->var2str($desde);
         }
-        
+
         if($hasta)
         {
             $query .= ' AND fecha <= '.$this->var2str($hasta);
         }
-        
+
         if(!$tipo)
         {
             $tipo = 'cargado';
         }
-        
+
         $sql = "SELECT *  FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY codalmacen,fecha,idordencarga;";
         $data = $this->db->select($sql);
         if($data){
@@ -362,12 +362,12 @@ class distribucion_ordenescarga extends fs_model {
     }
 
     public function info_adicional($t){
-        
+
         $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
-         
+
         if(!empty($con0 )){
         $t->conductor_nombre = $con0->nombre;
-        
+
         }
         return $t;
     }
@@ -387,7 +387,7 @@ class distribucion_ordenescarga extends fs_model {
         {
             $where.=" AND fecha >= ".$this->var2str($desde);
         }
-        
+
         if($hasta)
         {
             $where.=" AND fecha <= ".$this->var2str($hasta);
@@ -431,9 +431,13 @@ class distribucion_ordenescarga extends fs_model {
         return $lista;
     }
 
-    public function all_pendientes($idempresa, $offset = 0)
+    public function all_pendientes($idempresa, $codalmacen=false, $offset = 0)
     {
-        $sql = "SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND cargado = FALSE ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans";
+        if($codalmacen)
+        {
+            $sql_extra = " AND codalmacen = ".$this->var2str($codalmacen);
+        }
+        $sql = "SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa).$sql_extra." AND cargado = FALSE ORDER BY fecha DESC, idordencarga ASC, codalmacen ASC";
         $lista = array();
         $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
 
@@ -449,10 +453,14 @@ class distribucion_ordenescarga extends fs_model {
         return $lista;
     }
 
-    public function all_almacen($idempresa,$codalmacen)
+    public function all_almacen($idempresa,$codalmacen,$offset = 0)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
+        $sql = "SELECT * FROM distribucion_ordenescarga ".
+               " WHERE idempresa = ".$this->intval($idempresa).
+               " AND codalmacen = ".$this->var2str($codalmacen).
+               " ORDER BY fecha DESC, idordencarga DESC";
+        $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
 
         if($data)
         {

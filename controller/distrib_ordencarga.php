@@ -16,9 +16,10 @@
  *  * You should have received a copy of the GNU Lesser General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('factura_cliente');
-require_model('linea_factura_cliente');
-require_model('almacen');
+require_model('factura_cliente.php');
+require_model('linea_factura_cliente.php');
+require_model('almacen.php');
+require_model('agente.php');
 require_model('agencia_transporte.php');
 require_model('distribucion_clientes.php');
 require_model('distribucion_rutas.php');
@@ -102,7 +103,15 @@ class distrib_ordencarga extends fs_controller {
         $this->articulo_unidadmedida = new articulo_unidadmedida();
         $this->share_extensions();
 
-        //$this ->LoadDatos();
+        //Si el usuario es admin o no tiene usuario asignado puede ver todo, pero sino, solo su almacén designado
+        if(!$this->user->admin){
+            $this->agente = new agente();
+            $cod = $this->agente->get($this->user->codagente);
+            $user_almacen = $this->almacen->get($cod->codalmacen);
+            $this->user->codalmacen = $user_almacen->codalmacen;
+            $this->user->nombrealmacen = $user_almacen->nombre;
+        }
+
         //Leemos las variables que nos manda el view
         $type = \filter_input(INPUT_GET, 'type');
         $type_post = \filter_input(INPUT_POST, 'type');
@@ -112,7 +121,8 @@ class distrib_ordencarga extends fs_controller {
         $offset = \filter_input(INPUT_GET, 'offset');
         $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
         $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
-        $this->codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
+        $codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
+        $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:$codalmacen;
         $desde_p = \filter_input(INPUT_POST, 'desde');
         $desde_g = \filter_input(INPUT_GET, 'desde');
         $this->desde = ($desde_p)?$desde_p:$desde_g;
@@ -127,7 +137,7 @@ class distrib_ordencarga extends fs_controller {
         $this->mostrar = (isset($mostrar)) ? $mostrar : "todo";
         $this->order = (isset($order)) ? str_replace('_', ' ', $order) : "fecha DESC";
         $this->offset = (isset($offset))?$offset:0;
-       
+
         $buscar_conductor = \filter_input(INPUT_GET, 'buscar_conductor');
         if(isset($buscar_conductor)){
             $this->buscar_conductor();
@@ -182,9 +192,16 @@ class distrib_ordencarga extends fs_controller {
 
         } else {
             if($this->mostrar == 'todo'){
-                $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id,$this->offset);
+                if($this->codalmacen)
+                {
+                    $this->resultados = $this->distrib_ordenescarga->all_almacen($this->empresa->id, $this->codalmacen,$this->offset);
+                }
+                else
+                {
+                    $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id,$this->offset);
+                }
             }elseif($this->mostrar == 'pendientes'){
-                $this->resultados = $this->distrib_ordenescarga->all_pendientes($this->empresa->id, $this->offset);
+                $this->resultados = $this->distrib_ordenescarga->all_pendientes($this->empresa->id, $this->codalmacen, $this->offset);
             }elseif($this->mostrar == 'buscar'){
                 $this->num_resultados = 0;
                 $this->buscador();
@@ -244,7 +261,7 @@ class distrib_ordencarga extends fs_controller {
                         foreach ($array_facturas as $linea) {
                             $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($linea->idfactura);
                         }
-                        
+
                         foreach ($lineas_factura as $linea_factura) {
                             foreach ($linea_factura as $key => $values) {
                                 if (!isset($importe_resumen[$values->referencia])) {
@@ -261,7 +278,7 @@ class distrib_ordencarga extends fs_controller {
                         }
                     }
 
-                    
+
                     $trans0 = new distribucion_transporte();
                     $trans0->idempresa = $ordencarga[0]->idempresa;
                     $trans0->idordencarga = $ordencarga[0]->idordencarga;
@@ -522,7 +539,7 @@ class distrib_ordencarga extends fs_controller {
         $conductor = ($this->conductor)?$this->conductor->licencia:false;
         return $this->distrib_ordenescarga->total_pendientes($this->empresa->id,'cargado', $this->codalmacen, $this->desde, $this->hasta, $conductor);
     }
-    
+
     public function buscar_rutas(){
         $rutas = new distribucion_rutas();
         $query = \filter_input(INPUT_POST, 'q');
@@ -853,7 +870,7 @@ class distrib_ordencarga extends fs_controller {
                 $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
             }
         }
-        
+
         $extensiones2 = array(
             array(
                 'name' => '001_ordencarga_js',
@@ -878,7 +895,7 @@ class distrib_ordencarga extends fs_controller {
                 'type' => 'head',
                 'text' => '<script type="text/javascript" src="'.FS_PATH.'plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
                 'params' => ''
-            ),            
+            ),
             array(
                 'name' => '004_ordencarga_js',
                 'page_from' => __CLASS__,

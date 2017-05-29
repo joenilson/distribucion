@@ -112,40 +112,46 @@ class distrib_creacion extends fs_controller {
       if(in_array('tesoreria',$GLOBALS['plugins']) and !in_array('tesoreria',$disabled)){
           $this->tesoreria = TRUE;
       }
-      
+
+      //Si el usuario es admin o no tiene usuario asignado puede ver todo, pero sino, solo su almacén designado
+      if(!$this->user->admin){
+         $this->agente = new agente();
+         $cod = $this->agente->get($this->user->codagente);
+         $user_almacen = $this->almacen->get($cod->codalmacen);
+         $this->user->codalmacen = $user_almacen->codalmacen;
+         $this->user->nombrealmacen = $user_almacen->nombre;
+      }
+
       $type = \filter_input(INPUT_GET, 'type');
       $mostrar = \filter_input(INPUT_GET, 'mostrar');
       $cliente = \filter_input(INPUT_GET, 'codcliente');
       $offset = \filter_input(INPUT_GET, 'offset');
       $this->mostrar = "todo";
       $this->offset = (isset($offset))?$offset:0;
-      
+
+      $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
+      $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
+      $codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
+      $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:$codalmacen;
+
       $this->cuenta_banco = new cuenta_banco();
       $this->codsubcuenta_pago = FALSE;
       if(\filter_input(INPUT_GET,'codsubcuenta'))
       {
          $this->codsubcuenta_pago = \filter_input(INPUT_GET,'codsubcuenta');
-      }  
+      }
       $this->fecha_pago = $this->today();
       if(\filter_input(INPUT_GET,'fecha_pago'))
       {
          $this->fecha_pago = \filter_input(INPUT_GET,'fecha_pago');
       }
-      
+
       if(isset($mostrar)){
          $this->mostrar = $mostrar;
          setcookie('distrib_transporte_mostrar', $this->mostrar, time()+FS_COOKIES_EXPIRE);
       }elseif(isset($_COOKIE['distrib_transporte_mostrar']))
       {
          $this->mostrar = $_COOKIE['distrib_transporte_mostrar'];
-      }
-
-      if( isset($_REQUEST['codalmacen']) )
-      {
-         if($_REQUEST['codalmacen'] != '')
-         {
-             $this->codalmacen = $_REQUEST['codalmacen'];
-         }
       }
 
       if (isset($cliente) AND ! empty($cliente)) {
@@ -162,7 +168,7 @@ class distrib_creacion extends fs_controller {
             $this->conductor = $cli0->get($this->empresa->id, $_REQUEST['conductor']);
          }
       }
-      
+
       $desde_p = \filter_input(INPUT_POST, 'desde');
       $desde_g = \filter_input(INPUT_GET, 'desde');
       $this->desde = ($desde_p)?$desde_p:$desde_g;
@@ -202,11 +208,18 @@ class distrib_creacion extends fs_controller {
          $this->crear_faltante();
       }
       if($this->mostrar == 'todo'){
-         $this->resultados = $this->distrib_transporte->all($this->empresa->id, $this->offset);
+         if($this->codalmacen)
+         {
+             $this->resultados = $this->distrib_transporte->all_almacen($this->empresa->id, $this->codalmacen, $this->offset);
+         }
+         else
+         {
+            $this->resultados = $this->distrib_transporte->all($this->empresa->id, $this->offset);
+         }
       }elseif($this->mostrar == 'por_despachar'){
-         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'despachado', $this->offset);
+         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'despachado', $this->codalmacen, $this->offset);
       }elseif($this->mostrar == 'por_liquidar'){
-         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'liquidado', $this->offset);
+         $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'liquidado', $this->codalmacen, $this->offset);
       }elseif($this->mostrar == 'buscar'){
          setcookie('distrib_transportes_mostrar', $this->mostrar, time()+FS_COOKIES_EXPIRE);
          $this->buscador();
@@ -226,11 +239,11 @@ class distrib_creacion extends fs_controller {
         if($this->codalmacen){
             $datos_busqueda['codalmacen'] = $this->codalmacen;
         }
-        
+
         $busqueda = $this->distrib_transporte->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
         $this->resultados = $busqueda['resultados'];
         $this->num_resultados = $busqueda['cantidad'];
-        
+
     }
 
    public function paginas() {
@@ -330,7 +343,7 @@ class distrib_creacion extends fs_controller {
       header('Content-Type: application/json');
       echo json_encode( $json );
    }
-   
+
    public function imprimir_devolucion(){
       $this->template = false;
       $this->helper_transportes = new helper_transportes();
@@ -513,7 +526,7 @@ class distrib_creacion extends fs_controller {
                 }
             }
         }
-        
+
         foreach($lineastransporte as $linea){
             $linea->devolucion = (isset($articulo[$linea->referencia]))?$articulo[$linea->referencia]:0;
         }
@@ -543,7 +556,7 @@ class distrib_creacion extends fs_controller {
       header('Content-Type: application/json');
       echo json_encode($data);
    }
-   
+
    public function eliminar_liquidacion(){
        $idtransporte = \filter_input(INPUT_GET, 'transporte');
        $codalmacen = \filter_input(INPUT_GET, 'almacen');
@@ -631,7 +644,7 @@ class distrib_creacion extends fs_controller {
          if ($factura) {
             if($this->tesoreria){
                 $recibos = $rec0->all_from_factura($factura->idfactura);
-                
+
                 foreach($recibos as $recibo){
                    if($recibo->estado != 'Pagado'){
                       if(!$ref0->nuevo_pago_cli($recibo, $this->codsubcuenta_pago, 'Pago', $this->fecha_pago) ){
@@ -716,11 +729,11 @@ class distrib_creacion extends fs_controller {
       header('Content-Type: application/json');
       echo json_encode($data);
    }
-   
+
    public function get_subcuentas_pago()
    {
       $subcuentas_pago = array();
-      
+
       $eje0 = new ejercicio();
       $ejercicio = $eje0->get_by_fecha($this->today());
       if($ejercicio)
@@ -738,9 +751,9 @@ class distrib_creacion extends fs_controller {
             }
          }
       }
-      
+
       return $subcuentas_pago;
-   }   
+   }
 
    public function share_extensions() {
       $extensiones = array(
@@ -864,7 +877,7 @@ class distrib_creacion extends fs_controller {
             $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
          }
       }
-      
+
       $extensiones2 = array(
           array(
             'name' => '001_ordencarga_jqueryui_js',
@@ -881,7 +894,7 @@ class distrib_creacion extends fs_controller {
             'type' => 'head',
             'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
             'params' => ''
-         ),          
+         ),
           array(
             'name' => '003_distribucion_gridlocale_js',
             'page_from' => __CLASS__,
@@ -922,7 +935,7 @@ class distrib_creacion extends fs_controller {
             'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/defaults-es_CL.min.js" type="text/javascript"></script>',
             'params' => ''
          ),
-         
+
          array(
             'name' => 'ordencarga_jqueryui_css1',
             'page_from' => __CLASS__,

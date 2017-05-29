@@ -306,7 +306,7 @@ class distribucion_transporte extends fs_model {
             return false;
         }
     }
-    
+
     public function confirmar_liquidada(){
         $sql = "UPDATE distribucion_transporte SET ".
                     "liquidacion_importe = ".$this->var2str($this->liquidacion_importe).", ".
@@ -340,11 +340,11 @@ class distribucion_transporte extends fs_model {
         if($desde){
             $where.=" AND fecha >= ".$this->var2str($desde);
         }
-        
+
         if($hasta){
             $where.=" AND fecha <= ".$this->var2str($hasta);
         }
-        
+
         $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
         $conteo = $this->db->select($sql_count);
         $resultados['cantidad'] = $conteo[0]['total'];
@@ -364,7 +364,7 @@ class distribucion_transporte extends fs_model {
         $resultados['resultados'] = $lista;
         return $resultados;
     }
-    
+
     public function get_lineas()
     {
         $lista = array();
@@ -383,7 +383,7 @@ class distribucion_transporte extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get_facturas()
     {
         $lista = array();
@@ -406,17 +406,17 @@ class distribucion_transporte extends fs_model {
         {
             $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
         }
-        
+
         if($desde)
         {
             $query .= ' AND fecha >= '.$this->var2str($desde);
         }
-        
+
         if($hasta)
         {
             $query .= ' AND fecha <= '.$this->var2str($hasta);
         }
-        
+
         $sql = "SELECT count(*) as total FROM ".$this->table_name." where idempresa = ".$this->intval($idempresa).$query.";";
         $data = $this->db->select($sql);
         if($data){
@@ -432,12 +432,12 @@ class distribucion_transporte extends fs_model {
         {
             $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
         }
-        
+
         if($desde)
         {
             $query .= ' AND fecha >= '.$this->var2str($desde);
         }
-        
+
         if($hasta)
         {
             $query .= ' AND fecha <= '.$this->var2str($hasta);
@@ -450,7 +450,7 @@ class distribucion_transporte extends fs_model {
             return 0;
         }
     }
-    
+
     public function pendientes($idempresa, $tipo, $codalmacen, $desde, $hasta){
         $lista = array();
         $query = '';
@@ -458,12 +458,12 @@ class distribucion_transporte extends fs_model {
         {
             $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
         }
-        
+
         if($desde)
         {
             $query .= ' AND fecha >= '.$this->var2str($desde);
         }
-        
+
         if($hasta)
         {
             $query .= ' AND fecha <= '.$this->var2str($hasta);
@@ -498,10 +498,14 @@ class distribucion_transporte extends fs_model {
         return $lista;
     }
 
-    public function all_pendientes($idempresa, $tipo, $offset = 0)
+    public function all_pendientes($idempresa, $tipo, $codalmacen=false, $offset = 0)
     {
+        if($codalmacen)
+        {
+            $sql_extra = " AND codalmacen = ".$this->var2str($codalmacen);
+        }
         $lista = array();
-        $data = $this->db->select_limit("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans ", FS_ITEM_LIMIT, $offset);
+        $data = $this->db->select_limit("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa).$sql_extra." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC, codtrans ", FS_ITEM_LIMIT, $offset);
 
         if($data)
         {
@@ -518,7 +522,7 @@ class distribucion_transporte extends fs_model {
     public function all_almacen($idempresa,$codalmacen, $offset = 0)
     {
         $lista = array();
-        $data = $this->db->select_limit("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans ",FS_ITEM_LIMIT, $offset);
+        $data = $this->db->select_limit("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY fecha DESC, idtransporte DESC, codalmacen ASC",FS_ITEM_LIMIT, $offset);
 
         if($data)
         {

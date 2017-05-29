@@ -123,7 +123,7 @@
             });
         }
     }
-    
+
     function eliminarLiquidacion(id,almacen){
         bootbox.dialog({
             message: "Esta seguro que quiere eliminar la liquidación a este transporte?, esto solo borrará la liquidación realizada y los recibos por faltantes generados, no tocara las facturas de devolucion de productos.",
@@ -159,7 +159,7 @@
             }
         });
     }
-    
+
     function quitarDespacho(id,almacen){
         bootbox.dialog({
             message: "Esta seguro que quiere quitar el despacho a este transporte?, esto significa que el transporte no salió del almacén y no será liquidado.",
@@ -309,11 +309,11 @@
             }
          }
       });
-      
+
       $("#desde").datepicker({
         dateFormat: 'yy-mm-dd'
       });
-      
+
       $("#hasta").datepicker({
         dateFormat: 'yy-mm-dd'
       });
@@ -425,9 +425,13 @@
             <div class="form-group">
                 <select name="codalmacen" required class="selectpicker form-control" onchange="this.form.submit();">
                     <option value="">--------</option>
+                    {if="$fsc->user->admin OR !$fsc->user->codalmacen"}
                     {loop="$fsc->almacen->all()"}
                     <option value="{$value->codalmacen}" {if="$fsc->codalmacen==$value->codalmacen"}selected{/if}>{$value->nombre}</option>
                     {/loop}
+                    {else}
+                    <option value="{$fsc->user->codalmacen}" {if="$fsc->user->codalmacen==$fsc->codalmacen"}selected{/if}>{$fsc->user->nombrealmacen}</option>
+                    {/if}
                 </select>
             </div>
          </div>
