@@ -132,7 +132,7 @@ class distrib_creacion extends fs_controller {
       $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
       $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
       $codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
-      $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:$codalmacen;
+      $this->codalmacen = (isset($this->user->codalmacen))?$this->user->codalmacen:$codalmacen;
 
       $this->cuenta_banco = new cuenta_banco();
       $this->codsubcuenta_pago = FALSE;

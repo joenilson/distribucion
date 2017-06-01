@@ -433,6 +433,7 @@ class distribucion_ordenescarga extends fs_model {
 
     public function all_pendientes($idempresa, $codalmacen=false, $offset = 0)
     {
+        $sql_extra = "";
         if($codalmacen)
         {
             $sql_extra = " AND codalmacen = ".$this->var2str($codalmacen);
@@ -452,6 +453,7 @@ class distribucion_ordenescarga extends fs_model {
         }
         return $lista;
     }
+    
 
     public function all_almacen($idempresa,$codalmacen,$offset = 0)
     {

@@ -500,6 +500,7 @@ class distribucion_transporte extends fs_model {
 
     public function all_pendientes($idempresa, $tipo, $codalmacen=false, $offset = 0)
     {
+        $sql_extra = "";
         if($codalmacen)
         {
             $sql_extra = " AND codalmacen = ".$this->var2str($codalmacen);
