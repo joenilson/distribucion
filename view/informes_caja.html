@@ -270,6 +270,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <tr>
                                     <th class='text-center'>Factura</th>
                                     <th class='text-center'>{#FS_NUMERO2#}</th>
+                                    <th class='text-center'>Transporte</th>
                                     <th class='text-center'>Cliente</th>
                                     <th class='text-center'>Pagada</th>
                                     <th class='text-center'>Importe</th>
@@ -277,6 +278,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <th class='text-center'>Abonos</th>
                                     <th class='text-center'>Saldo</th>
                                     <th class='text-center'>Fecha Factura</th>
+                                    <th class='text-center'>Vencimiento</th>
                                     <th class='text-center'>Fecha Pago</th>
                                 </tr>
                             </thead>
@@ -289,15 +291,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 !-->
                                 {loop="$fsc->detalle['ventas']"}
                                 <tr>
-                                    <td><a href='{$value->url()}'>{$value->idfactura}</a></td>
+                                    <td><a href='{$value->url()}'>{$value->codigo}</a></td>
                                     <td class="text-center">{$value->numero2}</td>
+                                    <td class="text-center">{$value->transporte}</td>
                                     <td class="text-left">{$value->nombrecliente}</td>
                                     <td class="text-center">{if="$value->pagada"}Pagada{else}Pendiente{/if}</td>
                                     <td class="text-right">{$fsc->show_precio($value->total,$fsc->empresa->coddivisa)}</td>
                                     <td class="text-right">{$fsc->show_precio($value->rectificativa,$fsc->empresa->coddivisa)}</td>
-                                    <td class="text-right">{$fsc->show_precio(($value->abonos),$fsc->empresa->coddivisa)}</td>
-                                    <td class="text-right">{$fsc->show_precio((($value->total+$value->rectificativa)-$value->abonos),$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->abonos,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->saldo,$fsc->empresa->coddivisa)}</td>
                                     <td class="text-center">{$value->fecha}</td>
+                                    <td class="text-center">{$value->vencimiento}</td>
                                     <td class="text-center {if="$value->fecha!=$value->fecha_pago"}warning{/if}">{if="$value->fecha_pago"}{$value->fecha_pago}{/if}</td>
                                 </tr>
                                 <!--
@@ -308,17 +312,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 !-->
                                 {/loop}
                                 <tr>
-                                    <th colspan="4">Total Ingresos</th>
+                                    <th colspan="5">Total Ingresos</th>
                                     <th class="text-right">{$fsc->show_precio($totalImporte,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalRectificativas,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalAbonos,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalSaldo,$fsc->empresa->coddivisa)}</th>
                                     <th></th>
                                     <th></th>
+                                    <th></th>
                                 </tr>
                                 <tr>
-                                    <th colspan="6"></th>
+                                    <th colspan="7"></th>
                                     <th colspan="2" class="text-right info">{$fsc->show_precio($totalAbonos+$totalSaldo,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                 </tr>
@@ -347,23 +353,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 !-->
                                 {/loop}
                                 <tr>
-                                    <th colspan="4">Total Faltantes</th>
+                                    <th colspan="5">Total Faltantes</th>
                                     <th class="text-right">{$fsc->show_precio($totalImporteFaltante,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right"></th>
                                     <th class="text-right">{$fsc->show_precio($totalAbonosFaltante,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
                                     <th></th>
                                     <th></th>
+                                    <th></th>
                                 </tr>
                                 <tr>
-                                    <th colspan="6"></th>
+                                    <th colspan="7"></th>
                                     <th colspan="2" class="text-right warning">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
                                     <th></th>
                                     <th></th>
+                                    <th></th>
                                 </tr>
                                 <tr>
-                                    <th colspan="6">Total Ingreso Neto</th>
+                                    <th colspan="7">Total Ingreso Neto</th>
                                     <th colspan="2" class="text-right active">{$fsc->show_precio(($totalAbonos+$totalSaldo)-$totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                 </tr>
@@ -376,7 +385,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th colspan="87" class="text-center">Listado de Documentos</th>
+                                    <th colspan="10" class="text-center">Listado de Documentos</th>
                                 </tr>
                                 <tr>
                                     <th class='text-center'>Factura</th>
@@ -442,10 +451,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <th class="text-right">{$fsc->show_precio($totalSaldo,$fsc->empresa->coddivisa)}</th>
                                     <th></th>
                                     <th></th>
+                                    <th></th>
                                 </tr>
                                 <tr>
                                     <th colspan="6"></th>
                                     <th colspan="2" class="text-right info">{$fsc->show_precio($totalAbonos+$totalSaldo,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                 </tr>
@@ -497,16 +508,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <th class="text-right">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
                                     <th></th>
                                     <th></th>
+                                    <th></th>
                                 </tr>
                                 <tr>
                                     <th colspan="6"></th>
                                     <th colspan="2" class="text-right warning">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
                                     <th></th>
                                     <th></th>
+                                    <th></th>
                                 </tr>
                                 <tr>
                                     <th colspan="6">Total Ingreso Neto</th>
                                     <th colspan="2" class="text-right active">{$fsc->show_precio(($totalAbonos+$totalSaldo)-$totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                 </tr>
