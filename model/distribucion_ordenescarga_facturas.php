@@ -262,4 +262,15 @@ class distribucion_ordenescarga_facturas extends fs_model {
         }
         return $lista;
     }
+    
+    public function get_transporte_factura($idempresa,$idfactura,$codalmacen)
+    {
+        $transporte = false;
+        $data = $this->db->select("SELECT idtransporte FROM distribucion_ordenescarga_facturas WHERE idempresa = ".$this->intval($idempresa)." AND idfactura = ".$this->intval($idfactura)." AND codalmacen = ".$this->var2str($codalmacen).";");
+        if($data)
+        {
+            $transporte = $data[0]['idtransporte'];
+        }
+        return $transporte;
+    }
 }
