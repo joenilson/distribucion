@@ -180,6 +180,8 @@ class distrib_creacion extends fs_controller {
       $this->num_resultados = 0;
       if ($type === 'imprimir-transporte') {
          $this->imprimir_transporte();
+      } elseif ($type === 'imprimir-hojadevolucion') {
+         $this->imprimir_hojadevolucion();
       } elseif ($type == 'confirmar-devolucion') {
          $this->confirmar_devolucion(TRUE);
       } elseif ($type == 'confirmar-transporte') {
@@ -388,6 +390,28 @@ class distrib_creacion extends fs_controller {
             $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
             $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
             $pdfFile->pdf_pagina($this->helper_transportes->cabecera_transporte($transporte), $this->helper_transportes->contenido_transporte($lineastransporte), $this->helper_transportes->pie_transporte($transporte));
+         }
+      }
+      $pdfFile->pdf_mostrar();
+   }
+
+   public function imprimir_hojadevolucion(){
+      $this->template = false;
+      $this->helper_transportes = new helper_transportes();
+      $value_transporte = \filter_input(INPUT_GET, 'transporte');
+      $lista_transporte = explode(',', $value_transporte);
+      $contador_transporte = 0;
+      $pdfFile = new asgard_PDFHandler();
+      $pdfFile->pdf_create();
+      foreach ($lista_transporte as $linea) {
+         if (!empty($linea)) {
+            $datos_transporte = explode('-', $linea);
+            $idtransporte = $datos_transporte[0];
+            $codalmacen = $datos_transporte[1];
+            $contador_transporte++;
+            $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
+            $pdfFile->pdf_pagina($this->helper_transportes->cabecera_hojadevolucion($transporte), $this->helper_transportes->contenido_hojadevolucion($lineastransporte), $this->helper_transportes->pie_hojadevolucion($transporte));
          }
       }
       $pdfFile->pdf_mostrar();

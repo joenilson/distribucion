@@ -243,7 +243,8 @@
    }
 
    $(document).ready(function() {
-        $('#b_imprimir_seleccion').click(function (event) {
+       bootbox.setLocale('es');
+        $('#b_imprimir_transporte').click(function (event) {
             var checkboxValues = [];
             $('input[name=imprimir]:checked').map(function() {
                 checkboxValues.push($(this).val());
@@ -257,6 +258,8 @@
                         label: "Imprimir",
                         className: "btn-success",
                         callback: function() {
+                            $('#modal_impresion_titulo').html('');
+                            $('#modal_impresion_titulo').html('Impresión de Transporte');
                             $('#modal_impresion_transporte').modal('show');
                             $("#imprimir_transporte").detach();
                             $("<iframe id='imprimir_transporte' />")
@@ -276,7 +279,124 @@
                     }
                 });
             }else{
-                alert('Debe seleccionar un transporte!');
+                bootbox.alert('Debe seleccionar un transporte!');
+            }
+        });
+
+        $('#b_imprimir_hojadevolucion').click(function (event) {
+            var checkboxValues = [];
+            $('input[name=imprimir]:checked').map(function() {
+                checkboxValues.push($(this).val());
+            });
+            if(checkboxValues.length !== 0){
+                bootbox.dialog({
+                    message: "Esta seguro que quiere imprimir las hojas de devolución de los transportes seleccionados?",
+                    title: "Imprimir Hojas de Devolución",
+                    buttons: {
+                      success: {
+                        label: "Imprimir",
+                        className: "btn-success",
+                        callback: function() {
+                            $('#modal_impresion_titulo').html('');
+                            $('#modal_impresion_titulo').html('Impresión de Hoja de Devolución');
+                            $('#modal_impresion_transporte').modal('show');
+                            $("#imprimir_transporte").detach();
+                            $("<iframe id='imprimir_transporte' />")
+                              .attr('src', '{$fsc->url()}&type=imprimir-hojadevolucion&transporte='+checkboxValues)
+                              .attr('width', '100%')
+                              .attr('height', '500')
+                              .appendTo('#modal_body_impresion_transporte');
+                        }
+                      },
+                      danger: {
+                        label: "Cancelar",
+                        className: "btn-danger",
+                        callback: function() {
+                          this.hide();
+                        }
+                      }
+                    }
+                });
+            }else{
+                bootbox.alert('Debe seleccionar un transporte!');
+            }
+        });
+
+        $('#b_imprimir_liquidacion').click(function (event) {
+            var checkboxValues = [];
+            $('input[name=imprimir]:checked').map(function() {
+                checkboxValues.push($(this).val());
+            });
+            if(checkboxValues.length !== 0){
+                bootbox.dialog({
+                    message: "Esta seguro que quiere imprimir la liquidación de los transportes seleccionados?",
+                    title: "Imprimir Liquidación",
+                    buttons: {
+                      success: {
+                        label: "Imprimir",
+                        className: "btn-success",
+                        callback: function() {
+                            $('#modal_impresion_titulo').html('');
+                            $('#modal_impresion_titulo').html('Impresión de Liquidación');
+                            $('#modal_impresion_transporte').modal('show');
+                            $("#imprimir_transporte").detach();
+                            $("<iframe id='imprimir_transporte' />")
+                              .attr('src', '{$fsc->url()}&type=imprimir-liquidacion&transporte='+checkboxValues)
+                              .attr('width', '100%')
+                              .attr('height', '500')
+                              .appendTo('#modal_body_impresion_transporte');
+                        }
+                      },
+                      danger: {
+                        label: "Cancelar",
+                        className: "btn-danger",
+                        callback: function() {
+                          this.hide();
+                        }
+                      }
+                    }
+                });
+            }else{
+                bootbox.alert('Debe seleccionar un transporte!');
+            }
+        });
+
+        $('#b_imprimir_devolucion').click(function (event) {
+            var checkboxValues = [];
+            $('input[name=imprimir]:checked').map(function() {
+                checkboxValues.push($(this).val());
+            });
+            if(checkboxValues.length !== 0){
+                bootbox.dialog({
+                    message: "Esta seguro que quiere imprimir las devoluciones confirmadas de los transportes seleccionados?",
+                    title: "Imprimir Devolución Confirmada",
+                    buttons: {
+                      success: {
+                        label: "Imprimir",
+                        className: "btn-success",
+                        callback: function() {
+                            $('#modal_impresion_titulo').html('');
+                            $('#modal_impresion_titulo').html('Impresión de Devolución Confirmada');
+                            $('#modal_impresion_transporte').modal('show');
+                            $("#imprimir_transporte").detach();
+                            $("<iframe id='imprimir_transporte' />")
+                              .attr('src', '{$fsc->url()}&type=imprimir-devolucion&transporte='+checkboxValues)
+                              .attr('width', '100%')
+                              .attr('height', '500')
+                              .appendTo('#modal_body_impresion_transporte');
+                        }
+                      },
+                      danger: {
+                        label: "Cancelar",
+                        className: "btn-danger",
+                        callback: function() {
+                          this.hide();
+                        }
+                      }
+                    }
+                });
+            }else{
+                bootbox.alert('Debe seleccionar un transporte!');
             }
         });
 
@@ -342,6 +462,41 @@
                     {/if}
                 </div>
                 <div class="btn-group">
+                    <div class="btn-group">
+                        <div class="dropdown">
+                            <button id="dLabel" class="btn btn-sm btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="fa fa-print"></span>&nbsp;Imprimir&nbsp;
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dLabel">
+                                <li class="dropdown">
+                                    <a id="b_imprimir_transporte" class="dropdown-toggle" role="button">
+                                        <span class="fa fa-print"></span>&nbsp;Imprimir Transporte
+                                    </a>
+                                </li>
+                                <li class="dropdown">
+                                    <a id="b_imprimir_hojadevolucion" class="dropdown-toggle" role="button">
+                                        <span class="fa fa-print"></span>&nbsp;Imprimir Hoja de Devolución
+                                    </a>
+                                </li>
+                                <li class="dropdown">
+                                    <a id="b_imprimir_liquidacion" class="dropdown-toggle" role="button">
+                                        <span class="fa fa-print"></span>&nbsp;Imprimir Liquidación
+                                    </a>
+                                </li>
+                                <li class="dropdown">
+                                    <a id="b_imprimir_devolucion" class="dropdown-toggle" role="button">
+                                        <span class="fa fa-print"></span>&nbsp;Imprimir Devolución Ingresada
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-primary" type="button" data-toggle="tooltip" data-placement="top" id="b_confirmar_transportes" onClick="confirmarTransporte()" title="Confirmar despacho de transportes Seleccionados">
+                            <span class="glyphicon glyphicon-ok"></span>&nbsp;Confirmar Transporte(s)
+                        </button>
+                    </div>
                     {loop="$fsc->extensions"}
                     {if="$value->type=='button'"}
                     <a href="index.php?page={$value->from}{$value->params}" class="btn btn-sm btn-default">{$value->text}</a>
