@@ -57,7 +57,7 @@
           checkboxValues.push(id+'-'+almacen);
        }else if(checkboxValues.length === 0 && id === undefined && almacen === undefined){
            seguir = false;
-           alert('Error de informacion enviada a procesar!');
+           bootbox.alert('¡No se ha seleccionado ningún documento a confirmar!');
        }
        if(seguir){
         var frase = (checkboxValues.length===1)?"del transporte seleccionado":"de los transportes seleccionados";
