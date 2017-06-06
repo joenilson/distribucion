@@ -49,6 +49,8 @@ class informes_caja extends fs_controller {
     public $resultados_pendientes;
     public $resultados_ingresos;
     public $resultados_egresos;
+    public $resultados_pendientes_anteriores;
+    public $resultados_cobros_anteriores;
     public $resultados_egresos_formas_pago;
     public $resultados_formas_pago;
     public $resultados_faltantes_cobrados;
@@ -56,6 +58,8 @@ class informes_caja extends fs_controller {
     public $total_ingresos;
     public $total_cobros;
     public $total_pendientes_cobro;
+    public $total_pendientes_anteriores;
+    public $total_cobros_anteriores;
     public $total_egresos;
     public $total_pagos;
     public $total_pendientes_pago;
@@ -65,7 +69,9 @@ class informes_caja extends fs_controller {
     public $total_faltantes_compras;
     public $total_compras;
     public $pagadas;
+    public $pagadas_anteriores;
     public $pendientes;
+    public $pendientes_anteriores;
     public $fp;
     public $detalle;
     public $tesoreria;
@@ -144,6 +150,8 @@ class informes_caja extends fs_controller {
                     $this->generar_formas_pago();
                     $this->total_general = 0;
                     $this->ingresos();
+                    $this->cobros_anteriores();
+                    $this->pendientes_anteriores();
                     $this->egresos();
                     $this->generar_excel();
                     $this->generar_pdf();
@@ -232,6 +240,20 @@ class informes_caja extends fs_controller {
         
         $this->writer->writeSheetRow('Ventas', array('Total Montos Faltantes', '','', '', '', $totalImporteFaltantes, 0, $totalAbonosFaltantes, $totalSaldoFaltantes, '', '',''), $estilo_cabecera);
         $this->writer->writeSheetRow('Ventas', array('Total Faltantes', '', '', '','', 0, 0, 0, ($totalSaldoFaltantes), '',''), $estilo_cabecera);
+        
+        foreach($this->detalle['cobros_anteriores'] as $factura){
+            //$factura->saldo = ($factura->total+$factura->rectificativa)-$factura->abonos;
+            $this->writer->writeSheetRow('Ventas', array($factura->codigo, $factura->numero2, $factura->transporte, $factura->nombrecliente, ($factura->pagada)?'Pagada':'Pendiente', $factura->total, $factura->rectificativa, $factura->abonos, $factura->saldo, \date('Y-m-d',strtotime($factura->fecha)),\date('Y-m-d',strtotime($factura->vencimiento)), ($factura->fecha_pago)?\date('Y-m-d',strtotime($factura->fecha_pago)):''));
+            $totalImporteCA+=$factura->total;
+            $totalRectificativasCA+=$factura->rectificativa;
+            $totalAbonosCA+=$factura->abonos;
+            $totalSaldoCA+=$factura->saldo;
+            $totalAbonos+=$factura->abonos;
+            $totalSaldo+=$factura->saldo;
+        }
+        $this->writer->writeSheetRow('Ventas', array('Total Cobros Anteriores', '','', '', '', $totalImporteCA, $totalRectificativasCA, $totalAbonosCA, $totalSaldoCA, '','',''), $estilo_cabecera);
+        $this->writer->writeSheetRow('Ventas', array('Total Facturas Anteriores', '','', '', '', 0, 0, 0, ($totalAbonosCA+$totalSaldoCA), '','',''), $estilo_cabecera);
+        
         $this->writer->writeSheetRow('Ventas', array('Total Ingreso Neto', '', '', '', '', 0, 0, 0, (($totalAbonos+$totalSaldo)-$totalSaldoFaltantes), '','',''), $estilo_cabecera);
         
         //Hoja de Cuadre contable de Documentos
@@ -274,7 +296,7 @@ class informes_caja extends fs_controller {
         $this->writer->writeSheetRow('Cuadre Ventas', array('Total Montos Faltantes','', '', '', '', $totalImporteFaltantes2, 0, $totalAbonosFaltantes2, $totalSaldoFaltantes2, '',''));
         $this->writer->writeSheetRow('Cuadre Ventas', array('Total Faltantes', '','', '', '', 0, 0, 0, ($totalSaldoFaltantes2), '',''));
         $this->writer->writeSheetRow('Cuadre Ventas', array('Total Ingreso Neto','', '', '', '', 0, 0, 0, (($totalAbonos2+$totalSaldo2)-$totalSaldoFaltantes2), '',''));
-        
+
         //Hoja de Detalle de Compras
         $this->writer->writeSheetHeader('Compras', $cabeceraDetalleVenta);
         $totalImporteCompras=0;
@@ -626,16 +648,6 @@ class informes_caja extends fs_controller {
                         require_model('recibo_cliente.php');
                         require_model('recibo_factura.php');
                         $recibos = new recibo_cliente();
-                        /*
-                        $recibos_factura = new recibo_factura();
-                        $rec0 = $recibos->all_from_factura($factura->idfactura);
-                        foreach($rec0 as $r){
-                            if(\date('Y-m-d',strtotime($r->fecha))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($r->fecha))<=\date('Y-m-d',strtotime($this->f_hasta))){
-
-                            }
-                        }
-                         *
-                         */
                         $recibo_pago = $recibos->all_from_factura($factura->idfactura);
                         $pago_venta = ($recibo_pago)?$recibo_pago[0]:FALSE;
                     }else{
@@ -683,22 +695,6 @@ class informes_caja extends fs_controller {
                                 }
                             }
                         }
-                        /*
-                        else
-                        {
-                            
-                            //Si no estan en fecha las restamos del total de cobros y las sumamos a los pendientes,
-                            //Como esta en valor negativo en total cobros se suma y en pendientes se resta
-                            $factura->abonos += $rectificativa->total;
-                            $factura->fecha_pago = '';
-                            $this->pagadas['ventas'] += $rectificativa->total;
-                            $this->total_cobros += $rectificativa->total;
-                            $this->cobros_condpago[$rectificativa->codpago] += $rectificativa->total;
-                            $this->total_pendientes_cobro -= $rectificativa->total;
-                            $this->pendientes['ventas'] -= $rectificativa->total;
-                        }
-                         * 
-                         */
                     }
                     $factura->rectificativa = $total_rectificativas;
                 }
@@ -735,6 +731,172 @@ class informes_caja extends fs_controller {
             $this->ingresos_condpago['CONT'] += $faltante->importe;
         }
     }
+    
+    /**
+     * Comparamos las fechas de los documentos para saber si estan dentro de un
+     * determinado rango de fechas o fuera del mismo
+     * @param type $fecha
+     * @param type $tipo
+     * @return boolean
+     */
+    public function comparar_fechas($fecha,$tipo='dentro')
+    {
+        $respuesta = false;
+        if($tipo == 'dentro')
+        {
+            if(\date('Y-m-d',strtotime($fecha))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($fecha))<=\date('Y-m-d',strtotime($this->f_hasta)))
+            {
+                $respuesta = true;
+            }
+        }
+        elseif($tipo == 'fuera')
+        {
+            if(\date('Y-m-d',strtotime($fecha))<\date('Y-m-d',strtotime($this->f_desde)))
+            {
+                $respuesta = true;
+            }
+        }
+        return $respuesta;
+    }
+
+    /**
+     * Obtenemos los abonos de una factura
+     * @param factura_cliente $f
+     * @return int
+     */
+    public function factura_abonos(factura_cliente $f)
+    {
+        $abonos = 0;
+        //Si se tiene el plugin tesorería se revisa si tiene abonos por recibos
+        if($this->tesoreria)
+        {
+            require_model('recibo_cliente.php');
+            require_model('recibo_factura.php');
+            $recibos = new recibo_cliente();
+            $recibo_pago = $recibos->all_from_factura($f->idfactura);
+            foreach($recibo_pago as $r)
+            {
+                $recibos->fecha;
+                $recibos->fechap;
+                $r->importe;
+            }
+            $pago_venta = ($recibo_pago)?$recibo_pago[0]:FALSE;
+        }
+        else
+        {
+            $pago_venta = $f->get_asiento_pago();
+        }
+        
+        if($pago_venta){
+            $fecha_pago = ($this->tesoreria)?$pago_venta->fechap:$pago_venta->fecha;
+            if(\date('Y-m-d',strtotime($fecha_pago))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($fecha_pago))<=\date('Y-m-d',strtotime($this->f_hasta))){
+                //Esta pagada a la fecha buscada
+                //$this->total_cobros += $f->total;
+                //$this->pagadas['ventas'] += $f->total;
+                //$this->cobros_condpago[$f->codpago] += $f->total;
+                //$f->fecha_pago = $fecha_pago;
+                $abonos = $f->total;
+            }else{
+                //Esta pendiente a la fecha buscada
+                //$this->total_pendientes_cobro += $f->total;
+                //$this->pendientes['ventas'] += $f->total;
+            }
+        }
+        return $abonos;
+    }
+    
+    
+    /**
+     * Obtenemos los montos de facturas rectificativas de una factura
+     * @param factura_cliente $f
+     * @return int
+     */
+    public function factura_rectificativa(factura_cliente $f)
+    {
+        $total_rectificativas = 0;
+        $rectificativas = $f->get_rectificativas();
+        if($rectificativas){
+            foreach($rectificativas as $rectificativa){
+                if($this->comparar_fechas($rectificativa->fecha,'dentro')){
+                    //$this->total_cobros += $rectificativa->total;
+                    //$this->pagadas['ventas'] += $rectificativa->total;
+                    //$this->cobros_condpago[$rectificativa->codpago] += $rectificativa->total;
+                    $total_rectificativas += $rectificativa->total;
+                    $f->fecha_pago = $rectificativa->fecha;
+                    if(round($rectificativa->total+$f->total,0) == 0){
+                        $f->abonos = 0;
+                    }else{
+                        if($f->pagada)
+                        {
+                            $f->abonos += $rectificativa->total;
+                        }
+                    }
+                }
+            }
+        }
+        return $total_rectificativas;
+    }
+    
+    
+    /**
+     * Buscamos las facturas que están pendientes de pago antes de la fecha desde en el reporte
+     */
+    public function pendientes_anteriores()
+    {
+        $this->resultados_pendientes_anteriores = array();
+        $this->pendientes['anteriores'] = 0;
+        $sql = "SELECT * FROM facturascli WHERE pagada = false AND anulada = false and idfacturarect is null ".
+            " AND codalmacen = ".$this->empresa->var2str($this->codalmacen).
+            " AND fecha < ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->f_desde))).
+            " ORDER BY fecha,idfactura";
+        $data = $this->db->select($sql);
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $f = new factura_cliente($d);
+                $f->transporte = $this->distribucion_ordenescarga_factura->get_transporte_factura($this->empresa->id, $f->idfactura, $f->codalmacen);
+                $f->abonos = $this->factura_abonos($f);
+                $f->rectificativa = $this->factura_rectificativa($f);
+                $f->saldo = ($f->total+$f->rectificativa)-$f->abonos;
+                $this->resultados_pendientes_anteriores[] = $f;
+                $this->pendientes['anteriores'] += $f->saldo;
+                $this->total_pendientes_cobro += $f->saldo;
+            }
+        }
+    }
+    
+    /**
+     * buscamos las facturas de fechas anteriores que han sido pagadas en esta fecha
+     */
+    public function cobros_anteriores()
+    {
+        $this->detalle['cobros_anteriores'] = array();
+        $this->pagadas['anteriores']=0;
+        if($this->tesoreria)
+        {
+        $sql = "SELECT facturascli.*,reciboscli.fechap as fechap ".
+               " FROM facturascli,reciboscli ".
+               " WHERE fechap = ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->f_desde))).
+                " AND facturascli.fecha < ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->f_desde))).
+                " and reciboscli.idfactura = facturascli.idfactura and codalmacen = ".$this->empresa->var2str($this->codalmacen);
+        }
+        $data = $this->db->select($sql);
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $f = new factura_cliente($d);
+                $f->transporte = $this->distribucion_ordenescarga_factura->get_transporte_factura($this->empresa->id, $f->idfactura, $f->codalmacen);
+                $f->abonos = $this->factura_abonos($f);
+                $f->rectificativa = $this->factura_rectificativa($f);
+                $f->saldo = ($f->total+$f->rectificativa)-$f->abonos;
+                $f->fecha_pago = $d['fechap'];
+                $this->detalle['cobros_anteriores'][] = $f;
+                $this->pagadas['anteriores'] += $f->abonos;
+            }
+        }
+    }
 
     private function egresos(){
         $this->total_egresos = 0;
@@ -762,6 +924,7 @@ class informes_caja extends fs_controller {
                 $factura->rectificativa = 0;
                 $factura->abonos = 0;
                 $factura->fecha_pago = 0;
+                $factura->vencimiento = false;
                 if($factura->pagada and $factura->idfacturarect == ''){
                     $pago_compra = $factura->get_asiento_pago();
                     if($pago_compra){

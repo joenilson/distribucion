@@ -150,6 +150,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         <td class="text-right">{$fsc->show_precio($fsc->pendientes['ventas'],$fsc->empresa->coddivisa)}</td>
                                     </tr>
                                     <tr>
+                                        <td><b>Cobros Anteriores</b></td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->total_pendientes_anteriores,$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pagadas['anteriores'],$fsc->empresa->coddivisa)}</td>
+                                        <td class="text-right">{$fsc->show_precio($fsc->pendientes['anteriores'],$fsc->empresa->coddivisa)}</td>
+                                    </tr>
+                                    <tr>
                                         <td><b>Faltantes</b></td>
                                         <td class="text-right">{$fsc->show_precio($fsc->total_faltantes_ventas,$fsc->empresa->coddivisa)}</td>
                                         <td class="text-right">{$fsc->show_precio($fsc->pagadas['faltantes_ventas'],$fsc->empresa->coddivisa)}</td>
@@ -265,7 +271,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th colspan="87" class="text-center">Detalle de Documentos</th>
+                                    <th colspan="12" class="text-center">Detalle de Documentos</th>
                                 </tr>
                                 <tr>
                                     <th class='text-center'>Factura</th>
@@ -365,6 +371,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <tr>
                                     <th colspan="7"></th>
                                     <th colspan="2" class="text-right warning">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="12" class="text-center">Cobros Anteriores</th>
+                                </tr>
+                                {loop="$fsc->detalle['cobros_anteriores']"}
+                                <tr>
+                                    <td><a href='{$value->url()}'>{$value->codigo}</a></td>
+                                    <td class="text-center">{$value->numero2}</td>
+                                    <td class="text-center">{$value->transporte}</td>
+                                    <td class="text-left">{$value->nombrecliente}</td>
+                                    <td class="text-center">{if="$value->pagada"}Pagada{else}Pendiente{/if}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->total,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->rectificativa,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->abonos,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->saldo,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-center">{$value->fecha}</td>
+                                    <td class="text-center">{$value->vencimiento}</td>
+                                    <td class="text-center {if="$value->fecha!=$value->fecha_pago"}warning{/if}">{if="$value->fecha_pago"}{$value->fecha_pago}{/if}</td>
+                                </tr>
+                                <!--
+                                {$totalImporteCA+=$value->total}
+                                {$totalRectificativasCA+=$value->rectificativa}
+                                {$totalAbonosCA+=$value->abonos}
+                                {$totalSaldoCA+=($value->total+$value->rectificativa)-$value->abonos}
+                                !-->
+                                {/loop}
+                                <tr>
+                                    <th colspan="5">Total Cobros Anteriores</th>
+                                    <th class="text-right">{$fsc->show_precio($totalImporteCA,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right"></th>
+                                    <th class="text-right">{$fsc->show_precio($totalAbonosCA,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalSaldoCA,$fsc->empresa->coddivisa)}</th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
