@@ -264,7 +264,7 @@ class informes_caja extends fs_controller {
         $totalRectificativasPC = 0;
         $totalAbonosPC = 0;
         $totalSaldoPC = 0;
-        foreach($this->pendientes['anteriores'] as $factura){
+        foreach($this->detalle['anteriores'] as $factura){
             //$factura->saldo = ($factura->total+$factura->rectificativa)-$factura->abonos;
             $this->writer->writeSheetRow('Ventas', array($factura->codigo, $factura->numero2, $factura->transporte, $factura->nombrecliente, ($factura->pagada)?'Pagada':'Pendiente', $factura->total, $factura->rectificativa, $factura->abonos, $factura->saldo, \date('Y-m-d',strtotime($factura->fecha)),\date('Y-m-d',strtotime($factura->vencimiento)), ($factura->fecha_pago)?\date('Y-m-d',strtotime($factura->fecha_pago)):''));
             $totalImportePC+=$factura->total;
@@ -874,8 +874,10 @@ class informes_caja extends fs_controller {
                 $f->abonos = $this->factura_abonos($f);
                 $f->rectificativa = $this->factura_rectificativa($f);
                 $f->saldo = ($f->total+$f->rectificativa)-$f->abonos;
+                $f->fecha_pago = '';
                 $this->resultados_pendientes_anteriores[] = $f;
                 $this->pendientes['anteriores'] += $f->saldo;
+                $this->detalle['anteriores'][] = $f;
                 $this->total_pendientes_cobro += $f->saldo;
             }
         }

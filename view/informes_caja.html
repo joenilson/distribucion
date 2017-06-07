@@ -436,7 +436,7 @@ $(document).ready(function () {
                                 </tr>
                                 <tr>
                                     <th colspan="7">Total Ingreso Neto</th>
-                                    <th colspan="2" class="text-right active">{$fsc->show_precio(($totalAbonos+$totalSaldo)-$totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
+                                    <th colspan="2" class="text-right active">{$fsc->show_precio(($totalAbonos+$totalSaldo+$totalAbonosCA)-$totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
@@ -450,7 +450,7 @@ $(document).ready(function () {
                                 {$totalAbonosPC=0}
                                 {$totalSaldoPC=0}
                                 !-->
-                                {loop="$fsc->pendientes['anteriores']"}
+                                {loop="$fsc->detalle['anteriores']"}
                                 <tr>
                                     <td><a href='{$value->url()}'>{$value->codigo}</a></td>
                                     <td class="text-center">{$value->numero2}</td>
