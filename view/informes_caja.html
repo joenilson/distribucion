@@ -15,6 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
+<script>
+$(document).ready(function () {
+    $('#f_buscar').submit(function (event) {
+        $('#generar').hide();
+        $('#generando').show();
+    });
+});
+</script>
 <div class="container-fluid">
     <section class="col-sm-12">
         <div class="page-header">
@@ -41,7 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </span>
             </h3>
             <div class="pull-right">
-                <form class="form-horizontal" role="form" action="{$fsc->url()}" name="f_buscar" method="POST">
+                <form class="form-horizontal" role="form" action="{$fsc->url()}" id="f_buscar" name="f_buscar" method="POST">
                     <div class="form-group">
                         <div class="col-sm-3">
                             <label for="f_desde" class="control-label">Desde</label>
@@ -72,13 +80,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </div>
                         <div class="col-sm-3">
                             <div class="btn-group" role="group" aria-label="..." style="margin-top: 25px;">
-                                <button type="submit" name="accion" value="buscar" class="btn btn-sm btn-primary">
+                                <button type="submit" name="accion" id="generar" value="buscar" class="btn btn-sm btn-primary">
                                     <span class="fa fa-search"></span>&nbsp;Generar
+                                </button>
+                                <button id="generando" class="btn btn-sm btn-info" disabled="" style="display: none;">
+                                    <i class="fa fa-spinner fa-pulse fa-fw"></i>
+                                    <span>Generando</span>
                                 </button>
                                 <a href="{$fsc->fileNameXLS}" id="b_descargar" class="btn btn-sm btn-link" role="button">
                                     <span class="fa fa-download"></span>&nbsp;XLS
                                 </a>
-                                <a href="{$fsc->fileNamePDF}" id="b_descargar" download class="btn btn-sm btn-link" role="button">
+                                <a href="{$fsc->fileNamePDF}" id="b_descargar" download class="btn btn-sm btn-link hidden" role="button">
                                     <span class="fa fa-download"></span>&nbsp;PDF
                                 </a>
                             </div>
@@ -295,6 +307,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 {$totalAbonos=0}
                                 {$totalSaldo=0}
                                 !-->
+                                {if="count($fsc->detalle['ventas'])<1000"}
                                 {loop="$fsc->detalle['ventas']"}
                                 <tr>
                                     <td><a href='{$value->url()}'>{$value->codigo}</a></td>
@@ -327,6 +340,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <th></th>
                                     <th></th>
                                 </tr>
+                                {else}
+                                <tr>
+                                    <th colspan="12" class="text-center">Hay demasiados documentos para mostrar, descarga el archivo Excel para mejor tratamiento</th>
+                                </tr>
+                                {/if}
                                 <tr>
                                     <th colspan="7"></th>
                                     <th colspan="2" class="text-right info">{$fsc->show_precio($totalAbonos+$totalSaldo,$fsc->empresa->coddivisa)}</th>
@@ -378,6 +396,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <tr>
                                     <th colspan="12" class="text-center">Cobros Anteriores</th>
                                 </tr>
+                                <!--
+                                {$totalImporteCA=0}
+                                {$totalRectificativasCA=0}
+                                {$totalAbonosCA=0}
+                                {$totalSaldoCA=0}
+                                !-->
                                 {loop="$fsc->detalle['cobros_anteriores']"}
                                 <tr>
                                     <td><a href='{$value->url()}'>{$value->codigo}</a></td>
@@ -417,6 +441,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <th></th>
                                     <th></th>
                                 </tr>
+                                <tr>
+                                    <th colspan="12" class="text-center">Pendientes de Cobro Anteriores</th>
+                                </tr>
+                                <!--
+                                {$totalImportePC=0}
+                                {$totalRectificativasPC=0}
+                                {$totalAbonosPC=0}
+                                {$totalSaldoPC=0}
+                                !-->
+                                {loop="$fsc->pendientes['anteriores']"}
+                                <tr>
+                                    <td><a href='{$value->url()}'>{$value->codigo}</a></td>
+                                    <td class="text-center">{$value->numero2}</td>
+                                    <td class="text-center">{$value->transporte}</td>
+                                    <td class="text-left">{$value->nombrecliente}</td>
+                                    <td class="text-center">{if="$value->pagada"}Pagada{else}Pendiente{/if}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->total,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->rectificativa,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->abonos,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-right">{$fsc->show_precio($value->saldo,$fsc->empresa->coddivisa)}</td>
+                                    <td class="text-center">{$value->fecha}</td>
+                                    <td class="text-center">{$value->vencimiento}</td>
+                                    <td class="text-center {if="$value->fecha!=$value->fecha_pago"}warning{/if}">{if="$value->fecha_pago"}{$value->fecha_pago}{/if}</td>
+                                </tr>
+                                <!--
+                                {$totalImportePC+=$value->total}
+                                {$totalRectificativasPC+=$value->rectificativa}
+                                {$totalAbonosPC+=$value->abonos}
+                                {$totalSaldoPC+=($value->total+$value->rectificativa)-$value->abonos}
+                                !-->
+                                {/loop}
+                                <tr>
+                                    <th colspan="5">Total Pendientes Anteriores</th>
+                                    <th class="text-right">{$fsc->show_precio($totalImportePC,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right"></th>
+                                    <th class="text-right">{$fsc->show_precio($totalAbonosPC,$fsc->empresa->coddivisa)}</th>
+                                    <th class="text-right">{$fsc->show_precio($totalSaldoPC,$fsc->empresa->coddivisa)}</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -448,6 +513,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 {$totalAbonos=0}
                                 {$totalSaldo=0}
                                 !-->
+                                {if="count($fsc->detalle['ventas'])<1000"}
                                 {loop="$fsc->detalle['ventas']"}
                                 <tr>
                                     <td class="text-left"><a href='{$value->url()}'>{$value->idfactura}</a></td>
@@ -506,6 +572,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 {$totalAbonosFaltante=0}
                                 {$totalSaldoFaltante=0}
                                 !-->
+                                {else}
+                                <tr>
+                                    <th colspan="12" class="text-center">Hay demasiados documentos para mostrar, descarga el archivo Excel para mejor tratamiento</th>
+                                </tr>
+                                {/if}
                                 {loop="$fsc->detalle['faltantes']"}
                                 <tr>
                                     <td><a href='{$value->url()}'>{$value->idrecibo}</a></td>
