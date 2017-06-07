@@ -157,6 +157,7 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->referencia = $art->referencia;
                 $linea_nueva->descripcion = $art->descripcion;
                 $linea_nueva->fecha = $this->f_desde;
+                $linea_nueva->fechal = '';
                 $linea_nueva->hora = '00:00:00';
                 $linea_nueva->fecha_creacion = strtotime($this->f_desde.' '.'00:00:00');
                 $linea_nueva->cantidad = 0;
@@ -167,21 +168,7 @@ class informe_almacen extends fs_controller{
                 if(!isset($resultado[$art->referencia][$linea_nueva->fecha_creacion]))
                 {
                     $resultado[$art->referencia][$linea_nueva->fecha_creacion] = array();
-                    //$saldo[$this->f_desde] = array();
                 }
-                /*
-                if(!isset($saldo[$this->f_desde][$almacen->codalmacen]))
-                {
-                    //$saldo[$this->f_desde][$almacen->codalmacen] = array();
-                }
-                if(!isset($saldo[$this->f_desde][$almacen->codalmacen][$art->referencia]))
-                {
-                    //$saldo[$this->f_desde][$almacen->codalmacen][$art->referencia] = 0;
-                }
-                 * 
-                 */
-                //$saldo[$this->f_desde][$almacen->codalmacen][$art->referencia] = $saldo_ini;
-                //echo $art->referencia.' - '.$linea_nueva->fecha_creacion.' : '.$linea_nueva->saldo."\n";
                 $resultado[$art->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
             }
         }
@@ -195,13 +182,7 @@ class informe_almacen extends fs_controller{
                     $resultado[$linea->referencia][$linea->fecha_creacion] = array();
                 }
                 $linea->saldo = 0;
-                //if(!isset($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]))
-                //{
-                //    $saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] = 0;
-                //}
-                //$linea->saldo = (isset($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]))?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]+$linea->ingresos:0;
                 $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
-                //$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] += $linea->ingresos;
             }
         }
         
@@ -220,6 +201,7 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->referencia = $linea->referencia;
                 $linea_nueva->descripcion = $linea->descripcion;
                 $linea_nueva->fecha = $linea->fecha;
+                $linea_nueva->fechal = $linea->fechal;
                 $linea_nueva->hora = $hora;
                 $linea_nueva->fecha_creacion = strtotime($linea->fecha.' '.$hora);
                 $linea_nueva->cantidad = $linea->cantidad;
@@ -243,6 +225,7 @@ class informe_almacen extends fs_controller{
                 }
                 $fecha = strtotime($linea->fecha.' '.$linea->hora);
                 $linea->saldo = 0;
+                $linea->fechal = '';
                 //$linea->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
                 $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
                 //$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
@@ -257,12 +240,6 @@ class informe_almacen extends fs_controller{
             $listado_final = array();
             foreach($datos as $fecha=>$lineas)
             {
-                /*
-                if($fecha==1495166400)
-                {
-                    print_r($lineas);
-                }
-                */
                 foreach($lineas as $lin)
                 {
                     if(!isset($saldo_anterior[$referencia]))
@@ -282,6 +259,7 @@ class informe_almacen extends fs_controller{
             $linea_nueva->referencia = $referencia;
             $linea_nueva->descripcion = $descripcion;
             $linea_nueva->fecha = $this->f_hasta;
+            $linea_nueva->fechal = '';
             $linea_nueva->hora = '23:59:59';
             $linea_nueva->fecha_creacion = strtotime($this->f_hasta.' '.'23:59:59');
             $linea_nueva->cantidad = 0;
@@ -570,7 +548,7 @@ class informe_almacen extends fs_controller{
         }
         //Variables para cada parte del excel
         $estilo_cabecera = array('border'=>'left,right,top,bottom','font-style'=>'bold');
-        $estilo_cuerpo = array( array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'));
+        $estilo_cuerpo = array( array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'));
         
         //Inicializamos la clase
         $this->writer = new XLSXWriter();
@@ -583,13 +561,14 @@ class informe_almacen extends fs_controller{
         }
         $this->writer->writeSheetHeader($nombre_hoja, array(), true);
         //Agregamos la linea de titulo
-        $cabecera = array('Almacén','Fecha','Transporte','Referencia','Descripción','Salida','Devolución','Salida Neta','Ingresos','Saldo');
+        $cabecera = array('Almacén','Fecha','Liquidado en','Transporte','Referencia','Descripción','Salida','Devolución','Salida Neta','Ingresos','Saldo');
         $this->writer->writeSheetRow($nombre_hoja, $cabecera,$estilo_cabecera);
         //Agregamos cada linea en forma de array
         foreach($this->resultados as $linea){
             $item = array();
             $item[] = $linea->codalmacen;
             $item[] = $linea->fecha;
+            $item[] = $linea->fechal;
             $item[] = $linea->idtransporte;
             $item[] = $linea->referencia;
             $item[] = $linea->descripcion;

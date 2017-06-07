@@ -657,8 +657,10 @@ class informes_caja extends fs_controller {
         {
             //Obtenemos las ventas que no estén anuladas y sacamos las que estén o no pagadas
             $sql_ventas = "SELECT recli.fechap,recli.abonos,fr.rectificativa,dof.idtransporte,f.* FROM facturascli as f ".
-                " left outer join (select idfactura,max(fechap) as fechap,sum(importe) as abonos from reciboscli as rc where estado = 'Pagado' group by idfactura) as recli ON (recli.idfactura = f.idfactura)".
-                " left outer join (select idfacturarect,max(fecha) as fechar,sum(total) as rectificativa from facturascli as f2 where anulada = false group by idfacturarect) as fr ON (fr.idfacturarect = f.idfactura) ".
+                " left outer join (select idfactura,max(fechap) as fechap,sum(importe) as abonos from reciboscli as rc where estado = 'Pagado' and fecha >= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_desde)))
+                ." AND fecha <= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_hasta)))." group by idfactura) as recli ON (recli.idfactura = f.idfactura)".
+                " left outer join (select idfacturarect,max(fecha) as fechar,sum(total) as rectificativa from facturascli as f2 where anulada = false and fecha >= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_desde)))
+                ." AND fecha <= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_hasta)))." group by idfacturarect) as fr ON (fr.idfacturarect = f.idfactura) ".
                 " left outer join distribucion_ordenescarga_facturas as dof ON (dof.idfactura = f.idfactura)".
                 " WHERE $query_ventas ORDER BY f.fecha,f.idfactura";
         }
@@ -666,8 +668,10 @@ class informes_caja extends fs_controller {
         {
             //Obtenemos las ventas que no estén anuladas y sacamos las que estén o no pagadas
             $sql_ventas = "SELECT ca.fecha as fechap,f.total as abonos,fr.rectificativa,dof.idtransporte,f.* FROM facturascli as f ".
-                " left outer join co_asientos as ca ON (ca.documento = f.codigo AND ca.idasiento = f.idasientop and ca.codejercicio = f.codejercicio) ".
-                " left outer join (select idfacturarect,max(fecha) as fechar,sum(total) as rectificativa from facturascli as f2 where anulada = false group by idfacturarect) as fr ON (fr.idfacturarect = f.idfactura) ".
+                " left outer join co_asientos as ca ON (ca.documento = f.codigo AND ca.idasiento = f.idasientop and ca.codejercicio = f.codejercicio and fecha >= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_desde)))
+                ." AND fecha <= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_hasta))).") ".
+                " left outer join (select idfacturarect,max(fecha) as fechar,sum(total) as rectificativa from facturascli as f2 where anulada = falseand fecha >= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_desde)))
+                ." AND fecha <= ".$this->facturascli->var2str(\date('Y-m-d',strtotime($this->f_hasta)))." group by idfacturarect) as fr ON (fr.idfacturarect = f.idfactura) ".
                 " left outer join distribucion_ordenescarga_facturas as dof ON (dof.idfactura = f.idfactura) ".
                 " WHERE $query_ventas ORDER BY f.fecha,f.idfactura";
         }
@@ -859,6 +863,7 @@ class informes_caja extends fs_controller {
     public function pendientes_anteriores()
     {
         $this->resultados_pendientes_anteriores = array();
+        $this->detalle['anteriores'] = array();
         $this->pendientes['anteriores'] = 0;
         $sql = "SELECT * FROM facturascli WHERE pagada = false AND anulada = false and idfacturarect is null ".
             " AND codalmacen = ".$this->empresa->var2str($this->codalmacen).

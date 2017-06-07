@@ -216,22 +216,24 @@ class distribucion_lineastransporte extends fs_model {
         foreach($datos as $k=>$v){
             $and = (count($datos) > $contador)?" AND ":"";
             $value = (is_string($v))?$this->var2str($v):$this->intval($v);
-            $where.=" $k = ".$value.$and;
+            $where.=" dl.$k = ".$value.$and;
             $contador++;
         }
 
         if($desde){
-            $where.=" AND fecha >= ".$this->var2str($desde);
+            $where.=" AND dl.fecha >= ".$this->var2str($desde);
         }
         
         if($hasta){
-            $where.=" AND fecha <= ".$this->var2str($hasta);
+            $where.=" AND dl.fecha <= ".$this->var2str($hasta);
         }
         
-        $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
+        $sql_count = "SELECT count(*) as total FROM ".$this->table_name." as dl WHERE dl.idempresa = ".$this->intval($idempresa)." $where;";
         $conteo = $this->db->select($sql_count);
         $resultados['cantidad'] = $conteo[0]['total'];
-        $sql = "SELECT * FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where ORDER BY referencia, fecha, idtransporte";
+        $sql = "SELECT dt.fechal,dl.* FROM ".$this->table_name." as dl ".
+            " left join distribucion_transporte as dt ON (dl.idtransporte = dt.idtransporte AND dt.codalmacen = dl.codalmacen) ".
+            " WHERE dl.idempresa = ".$this->intval($idempresa)." $where ORDER BY referencia, dl.fecha, dl.idtransporte";
         $lista = array();
         $data = $this->db->select($sql);
 
@@ -241,6 +243,7 @@ class distribucion_lineastransporte extends fs_model {
             {
                 $valor = new distribucion_lineastransporte($d);
                 $linea = $this->info_adicional($valor);
+                $linea->fechal = $d['fechal'];
                 $lista[] = $linea;
             }
         }
