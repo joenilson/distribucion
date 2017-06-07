@@ -912,6 +912,7 @@ class informes_caja extends fs_controller {
                 $this->detalle['cobros_anteriores'][] = $f;
                 $this->pagadas['anteriores'] += $f->abonos;
                 $this->total_cobros += $f->abonos;
+                $this->cobros_condpago[$f->codpago] += $f->abonos;
             }
         }
     }
