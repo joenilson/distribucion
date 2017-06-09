@@ -23,5 +23,28 @@ require_once 'plugins/facturacion_base/model/core/linea_albaran_proveedor.php';
  * @author Joe Nilson <joenilson at gmail.com>
  */
 class linea_albaran_proveedor extends FacturaScripts\model\linea_albaran_proveedor{
-    //put your code here
+   public $cantidad_um;
+   public $codum;
+
+   public function __construct($t = FALSE) {
+       if($t){
+           $this->cantidad_um = $t['cantidad_um'];
+           $this->codum = $t['codum'];
+       }else{
+           $this->cantidad_um = 0;
+           $this->codum = NULL;
+       }
+       parent::__construct($t);
+   }
+
+   public function save()
+   {
+      if(parent::save()){
+         $sql = "UPDATE ".$this->table_name." SET ".
+              "cantidad_um = ".$this->var2str($this->cantidad_um).
+              ",codum = ".$this->var2str($this->codum).
+            " WHERE idlinea = ".$this->intval($this->idlinea).";";
+         return $this->db->exec($sql);
+      }
+   }
 }

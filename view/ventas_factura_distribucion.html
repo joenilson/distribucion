@@ -44,6 +44,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <div class="col-sm-2">
                     <input type="text" readonly class="form-control" id="liquidado" value="{if="$fsc->informacion->liquidado"}SI{else}NO{/if}">
                 </div>
+                <label for="fliquidado" class="col-sm-2 control-label">Liquidado en</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="fliquidado" value="{$fsc->informacion->fechal_transporte}">
+                </div>
+                <label for="fdevolucion" class="col-sm-2 control-label">Devolución el</label>
+                <div class="col-sm-2">
+                    <input type="text" readonly class="form-control" id="fdevolucion" value="{$fsc->informacion->fechad_transporte}">
+                </div>
                 <label for="ruta" class="col-sm-2 control-label">Ruta</label>
                 <div class="col-sm-2">
                     <input type="text" readonly class="form-control" id="ruta" value="{$fsc->informacion->ruta}">

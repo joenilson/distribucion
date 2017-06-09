@@ -158,6 +158,7 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->descripcion = $art->descripcion;
                 $linea_nueva->fecha = $this->f_desde;
                 $linea_nueva->fechal = '';
+                $linea_nueva->fechad = '';
                 $linea_nueva->hora = '00:00:00';
                 $linea_nueva->fecha_creacion = strtotime($this->f_desde.' '.'00:00:00');
                 $linea_nueva->cantidad = 0;
@@ -202,6 +203,7 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->descripcion = $linea->descripcion;
                 $linea_nueva->fecha = $linea->fecha;
                 $linea_nueva->fechal = $linea->fechal;
+                $linea_nueva->fechad = $linea->fechad;
                 $linea_nueva->hora = $hora;
                 $linea_nueva->fecha_creacion = strtotime($linea->fecha.' '.$hora);
                 $linea_nueva->cantidad = $linea->cantidad;
@@ -209,9 +211,7 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->total_final = $linea->total_final;
                 $linea_nueva->ingresos = 0;
                 $linea_nueva->saldo = 0;
-                //$linea_nueva->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
                 $resultado[$linea->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
-                //$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
             }
         }
         
@@ -226,9 +226,7 @@ class informe_almacen extends fs_controller{
                 $fecha = strtotime($linea->fecha.' '.$linea->hora);
                 $linea->saldo = 0;
                 $linea->fechal = '';
-                //$linea->saldo = ($saldo[$this->f_desde][$linea->codalmacen][$linea->referencia])?$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia]-$linea->total_final:0;
                 $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
-                //$saldo[$this->f_desde][$linea->codalmacen][$linea->referencia] -= $linea->total_final;
             }
         }
 
@@ -260,6 +258,7 @@ class informe_almacen extends fs_controller{
             $linea_nueva->descripcion = $descripcion;
             $linea_nueva->fecha = $this->f_hasta;
             $linea_nueva->fechal = '';
+            $linea_nueva->fechad = '';
             $linea_nueva->hora = '23:59:59';
             $linea_nueva->fecha_creacion = strtotime($this->f_hasta.' '.'23:59:59');
             $linea_nueva->cantidad = 0;
@@ -302,15 +301,18 @@ class informe_almacen extends fs_controller{
     {
         $sql_aux = '';
         $sql_aux2 = '';
+        $sql_aux3 = '';
         if($this->codalmacen)
         {
             $sql_aux .= 'AND codalmacen = '.$this->empresa->var2str($this->codalmacen);
             $sql_aux2 .= 'AND codalmacen = '.$this->empresa->var2str($this->codalmacen);
+            $sql_aux3 .= 'AND codalmadestino = '.$this->empresa->var2str($this->codalmacen);
         }
         if($this->referencia)
         {
             $sql_aux .= 'AND referencia = '.$this->empresa->var2str($this->referencia);
             $sql_aux2 .= 'AND a.referencia = '.$this->empresa->var2str($this->referencia);
+            $sql_aux3 .= 'AND a.referencia = '.$this->empresa->var2str($this->referencia);
         }
         $movimientos = array();
         //Facturas de compra sin albaran
@@ -371,9 +373,9 @@ class informe_almacen extends fs_controller{
             /*
              * Generamos la informacion de las transferencias por ingresos entre almacenes que se hayan hecho a los stocks
              */
-            $sql_transstock1 = "select codalmacen,ls.referencia,a.descripcion,l.idtrans,fecha,hora,cantidad FROM lineastransstock AS ls".
-            " JOIN transstock as l ON(ls.idtrans = l.idtrans) JOIN articulos as a ON (l.referencia = a.referencia) ".
-            " WHERE fecha between ".$this->empresa->var2str($this->f_desde).' AND '.$this->empresa->var2str($this->f_hasta).$sql_aux2.
+            $sql_transstock1 = "select codalmadestino as codalmacen,ls.referencia,a.descripcion,l.idtrans,fecha,hora,cantidad FROM lineastransstock AS ls".
+            " JOIN transstock as l ON(ls.idtrans = l.idtrans) JOIN articulos as a ON (ls.referencia = a.referencia) ".
+            " WHERE fecha between ".$this->empresa->var2str($this->f_desde).' AND '.$this->empresa->var2str($this->f_hasta).$sql_aux3.
             " ORDER BY fecha,hora,l.idtrans";
             $data_transstock1 = $this->db->select($sql_transstock1);
             if ($data_transstock1) {
@@ -548,7 +550,7 @@ class informe_almacen extends fs_controller{
         }
         //Variables para cada parte del excel
         $estilo_cabecera = array('border'=>'left,right,top,bottom','font-style'=>'bold');
-        $estilo_cuerpo = array( array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'));
+        $estilo_cuerpo = array( array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'));
         
         //Inicializamos la clase
         $this->writer = new XLSXWriter();
@@ -561,7 +563,7 @@ class informe_almacen extends fs_controller{
         }
         $this->writer->writeSheetHeader($nombre_hoja, array(), true);
         //Agregamos la linea de titulo
-        $cabecera = array('Almacén','Fecha','Liquidado en','Transporte','Referencia','Descripción','Salida','Devolución','Salida Neta','Ingresos','Saldo');
+        $cabecera = array('Almacén','Fecha','Liquidado en','Devolucionado en','Transporte','Referencia','Descripción','Salida','Devolución','Salida Neta','Ingresos','Saldo');
         $this->writer->writeSheetRow($nombre_hoja, $cabecera,$estilo_cabecera);
         //Agregamos cada linea en forma de array
         foreach($this->resultados as $linea){
@@ -569,6 +571,7 @@ class informe_almacen extends fs_controller{
             $item[] = $linea->codalmacen;
             $item[] = $linea->fecha;
             $item[] = $linea->fechal;
+            $item[] = $linea->fechad;
             $item[] = $linea->idtransporte;
             $item[] = $linea->referencia;
             $item[] = $linea->descripcion;

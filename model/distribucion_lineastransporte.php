@@ -231,7 +231,7 @@ class distribucion_lineastransporte extends fs_model {
         $sql_count = "SELECT count(*) as total FROM ".$this->table_name." as dl WHERE dl.idempresa = ".$this->intval($idempresa)." $where;";
         $conteo = $this->db->select($sql_count);
         $resultados['cantidad'] = $conteo[0]['total'];
-        $sql = "SELECT dt.fechal,dl.* FROM ".$this->table_name." as dl ".
+        $sql = "SELECT dt.fechal,dt.fechad,dl.* FROM ".$this->table_name." as dl ".
             " left join distribucion_transporte as dt ON (dl.idtransporte = dt.idtransporte AND dt.codalmacen = dl.codalmacen) ".
             " WHERE dl.idempresa = ".$this->intval($idempresa)." $where ORDER BY referencia, dl.fecha, dl.idtransporte";
         $lista = array();
@@ -244,6 +244,7 @@ class distribucion_lineastransporte extends fs_model {
                 $valor = new distribucion_lineastransporte($d);
                 $linea = $this->info_adicional($valor);
                 $linea->fechal = $d['fechal'];
+                $linea->fechad = $d['fechad'];
                 $lista[] = $linea;
             }
         }

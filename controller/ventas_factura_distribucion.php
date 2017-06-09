@@ -87,6 +87,8 @@ class ventas_factura_distribucion extends fs_controller {
         $this->informacion->transporte = ($transporte_info)?'<a href=\''.$transporte_info->url().'\'>'.$transporte_info->idtransporte.'</a>':'';
         $this->informacion->ordencarga = ($transporte_info)?$transporte_info->idordencarga:'';
         $this->informacion->fecha_transporte = ($transporte_info)?$transporte_info->fecha:'';
+        $this->informacion->fechal_transporte = ($transporte_info)?$transporte_info->fechal:'';
+        $this->informacion->fechad_transporte = ($transporte_info)?$transporte_info->fechad:'';
         $this->informacion->liquidado = ($transporte_info)?$transporte_info->liquidado:'';
         $this->informacion->conductor_nombre = ($transporte_info)?$transporte_info->conductor_nombre:'';
         $this->informacion->unidad_transporte = ($transporte_info)?$transporte_info->unidad:'';

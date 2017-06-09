@@ -21,10 +21,22 @@ require_once 'plugins/presupuestos_y_pedidos/model/core/linea_pedido_cliente.php
 
 class linea_pedido_cliente extends FacturaScripts\model\linea_pedido_cliente
 {
-   public $cantidad_um;
-   public $codum;
-   
-   public function __construct($t = FALSE) {
+    /**
+     * Especifica si la linea es de Venta "V" o de Oferta "O", 
+     * @var type char(1)
+     */
+    public $posicion;
+    /**
+     * La cantidad en la unidad de medida destino
+     * @var type integer
+     */
+    public $cantidad_um;
+    /**
+     * La unidad de medida destino
+     * @var type varchar(10)
+     */
+    public $codum;   
+    public function __construct($t = FALSE) {
        if($t){
            $this->cantidad_um = $t['cantidad_um'];
            $this->codum = $t['codum'];
@@ -37,67 +49,12 @@ class linea_pedido_cliente extends FacturaScripts\model\linea_pedido_cliente
    
    public function save()
    {
-      if( $this->test() )
-      {
-         if( $this->exists() )
-         {
-            $sql = "UPDATE ".$this->table_name." SET cantidad = ".$this->var2str($this->cantidad)
-                    .", cantidad_um = ".$this->var2str($this->cantidad_um)
-                    .", codum = ".$this->var2str($this->codum)
-                    .", codimpuesto = ".$this->var2str($this->codimpuesto)
-                    .", descripcion = ".$this->var2str($this->descripcion)
-                    .", dtopor = ".$this->var2str($this->dtopor)
-                    .", idpedido = ".$this->var2str($this->idpedido)
-                    .", idlineapresupuesto = ".$this->var2str($this->idlineapresupuesto)
-                    .", idpresupuesto = ".$this->var2str($this->idpresupuesto)
-                    .", irpf = ".$this->var2str($this->irpf)
-                    .", iva = ".$this->var2str($this->iva)
-                    .", pvpsindto = ".$this->var2str($this->pvpsindto)
-                    .", pvptotal = ".$this->var2str($this->pvptotal)
-                    .", pvpunitario = ".$this->var2str($this->pvpunitario)
-                    .", recargo = ".$this->var2str($this->recargo)
-                    .", referencia = ".$this->var2str($this->referencia)
-                    .", orden = ".$this->var2str($this->orden)
-                    .", mostrar_cantidad = ".$this->var2str($this->mostrar_cantidad)
-                    .", mostrar_precio = ".$this->var2str($this->mostrar_precio)
-                    ."  WHERE idlinea = ".$this->var2str($this->idlinea).";";
-            
-            return $this->db->exec($sql);
-         }
-         else
-         {
-            $sql = "INSERT INTO ".$this->table_name." (cantidad,cantidad_um,codum,codimpuesto,descripcion,dtopor,idpedido,
-               irpf,iva,pvpsindto,pvptotal,pvpunitario,recargo,referencia,idlineapresupuesto,idpresupuesto,
-               orden,mostrar_cantidad,mostrar_precio) VALUES (".$this->var2str($this->cantidad)
-                    .",".$this->var2str($this->cantidad_um)
-                    .",".$this->var2str($this->codum)
-                    .",".$this->var2str($this->codimpuesto)
-                    .",".$this->var2str($this->descripcion)
-                    .",".$this->var2str($this->dtopor)
-                    .",".$this->var2str($this->idpedido)
-                    .",".$this->var2str($this->irpf)
-                    .",".$this->var2str($this->iva)
-                    .",".$this->var2str($this->pvpsindto)
-                    .",".$this->var2str($this->pvptotal)
-                    .",".$this->var2str($this->pvpunitario)
-                    .",".$this->var2str($this->recargo)
-                    .",".$this->var2str($this->referencia)
-                    .",".$this->var2str($this->idlineapresupuesto)
-                    .",".$this->var2str($this->idpresupuesto)
-                    .",".$this->var2str($this->orden)
-                    .",".$this->var2str($this->mostrar_cantidad)
-                    .",".$this->var2str($this->mostrar_precio).");";
-            
-            if( $this->db->exec($sql) )
-            {
-               $this->idlinea = $this->db->lastval();
-               return TRUE;
-            }
-            else
-               return FALSE;
-         }
+      if(parent::save()){
+         $sql = "UPDATE ".$this->table_name." SET ".
+              "cantidad_um = ".$this->var2str($this->cantidad_um).
+              ",codum = ".$this->var2str($this->codum).
+            " WHERE idlinea = ".$this->intval($this->idlinea).";";
+         return $this->db->exec($sql);
       }
-      else
-         return FALSE;
    }
 }
