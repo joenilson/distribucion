@@ -332,6 +332,8 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->referencia = $item['referencia'];
                 $linea_nueva->descripcion = $item['descripcion'];
                 $linea_nueva->fecha = $item['fecha'];
+                $linea_nueva->fechal = '';
+                $linea_nueva->fechad = '';
                 $linea_nueva->hora = $item['hora'];
                 $linea_nueva->fecha_creacion = strtotime($item['fecha'].' '.$item['hora']);
                 $linea_nueva->cantidad = 0;
@@ -358,6 +360,8 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->referencia = $item['referencia'];
                 $linea_nueva->descripcion = $item['descripcion'];
                 $linea_nueva->fecha = $item['fecha'];
+                $linea_nueva->fechal = '';
+                $linea_nueva->fechad = '';
                 $linea_nueva->hora = $item['hora'];
                 $linea_nueva->fecha_creacion = strtotime($item['fecha'].' '.$item['hora']);
                 $linea_nueva->cantidad = 0;
@@ -428,6 +432,8 @@ class informe_almacen extends fs_controller{
                     $linea_nueva->referencia = $item['referencia'];
                     $linea_nueva->descripcion = $item['descripcion'];
                     $linea_nueva->fecha = $item['fecha'];
+                    $linea_nueva->fechal = '';
+                    $linea_nueva->fechad = '';
                     $linea_nueva->hora = $item['hora'];
                     $linea_nueva->fecha_creacion = strtotime($item['fecha'].' '.$item['hora']);
                     $linea_nueva->cantidad = 0;

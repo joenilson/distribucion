@@ -118,8 +118,8 @@ class distrib_creacion extends fs_controller {
          $this->agente = new agente();
          $cod = $this->agente->get($this->user->codagente);
          $user_almacen = $this->almacen->get($cod->codalmacen);
-         $this->user->codalmacen = $user_almacen->codalmacen;
-         $this->user->nombrealmacen = $user_almacen->nombre;
+         $this->user->codalmacen = (isset($user_almacen->codalmacen))?$user_almacen->codalmacen:false;
+         $this->user->nombrealmacen = (isset($user_almacen->nombre))?$user_almacen->nombre:false;
       }
 
       $type = \filter_input(INPUT_GET, 'type');
@@ -223,7 +223,6 @@ class distrib_creacion extends fs_controller {
       }elseif($this->mostrar == 'por_liquidar'){
          $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id,'liquidado', $this->codalmacen, $this->offset);
       }elseif($this->mostrar == 'buscar'){
-         setcookie('distrib_transportes_mostrar', $this->mostrar, time()+FS_COOKIES_EXPIRE);
          $this->buscador();
       }
 
@@ -244,8 +243,7 @@ class distrib_creacion extends fs_controller {
 
         $busqueda = $this->distrib_transporte->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
         $this->resultados = $busqueda['resultados'];
-        $this->num_resultados = $busqueda['cantidad'];
-
+        $this->num_resultados = $busqueda['cantidad'];        
     }
 
    public function paginas() {

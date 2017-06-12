@@ -491,11 +491,12 @@ $(document).ready(function () {
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th colspan="10" class="text-center">Listado de Documentos</th>
+                                    <th colspan="11" class="text-center">Listado de Documentos</th>
                                 </tr>
                                 <tr>
                                     <th class='text-center'>Factura</th>
                                     <th class='text-center'>{#FS_NUMERO2#}</th>
+                                    <th class='text-center'>Transporte</th>
                                     <th class='text-center'>Cliente</th>
                                     <th class='text-center'>Pagada</th>
                                     <th class='text-center'>Importe</th>
@@ -518,6 +519,7 @@ $(document).ready(function () {
                                 <tr>
                                     <td class="text-left"><a href='{$value->url()}'>{$value->idfactura}</a></td>
                                     <td class="text-center">{$value->numero2}</td>
+                                    <td class="text-center">{$value->transporte}</td>
                                     <td class="text-left">{$value->nombrecliente}</td>
                                     <td class="text-center">{if="$value->pagada"}Pagada{else}Pendiente{/if}</td>
                                     <td class="text-right">{$fsc->show_precio($value->total,$fsc->empresa->coddivisa)}</td>
@@ -532,6 +534,7 @@ $(document).ready(function () {
                                     <tr>
                                         <td class="text-right"><a href='{$value->url()}'>{$value2->idfactura}</a></td>
                                         <td class="text-center">{$value2->numero2}</td>
+                                        <td class="text-center">{$value1->transporte}</td>
                                         <td class="text-left text-uppercase">{#FS_FACTURA_RECTIFICATIVA#}</td>
                                         <td class="text-center">{if="$value2->anulada"}Anulada{else}Activa{/if}</td>
                                         <td class="text-right"></td>
@@ -551,12 +554,11 @@ $(document).ready(function () {
                                 !-->
                                 {/loop}
                                 <tr>
-                                    <th colspan="4">Total Ingresos</th>
+                                    <th colspan="5">Total Ingresos</th>
                                     <th class="text-right">{$fsc->show_precio($totalImporte,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalRectificativas,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalAbonos,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalSaldo,$fsc->empresa->coddivisa)}</th>
-                                    <th></th>
                                     <th></th>
                                     <th></th>
                                 </tr>
@@ -581,6 +583,7 @@ $(document).ready(function () {
                                 <tr>
                                     <td><a href='{$value->url()}'>{$value->idrecibo}</a></td>
                                     <td class="text-center"></td>
+                                    <td class="text-center"></td>
                                     <td class="text-left">{$value->conductor_nombre}</td>
                                     <td class="text-center">{$value->estado|ucfirst}</td>
                                     <td class="text-right">{$fsc->show_precio($value->importe,$fsc->empresa->coddivisa)}</td>
@@ -595,6 +598,7 @@ $(document).ready(function () {
                                     <tr>
                                         <td><a href='{$value->url()}'>{$value->idrecibo}</a></td>
                                         <td class="text-center"></td>
+                                        <td class="text-left"></td>
                                         <td class="text-left"></td>
                                         <td class="text-center">{$value->estado|ucfirst}</td>
                                         <td class="text-right"></td>
@@ -613,9 +617,8 @@ $(document).ready(function () {
                                 !-->
                                 {/loop}
                                 <tr>
-                                    <th colspan="4">Total Faltantes</th>
+                                    <th colspan="5">Total Faltantes</th>
                                     <th class="text-right">{$fsc->show_precio($totalImporteFaltante,$fsc->empresa->coddivisa)}</th>
-                                    <th class="text-right"></th>
                                     <th class="text-right">{$fsc->show_precio($totalAbonosFaltante,$fsc->empresa->coddivisa)}</th>
                                     <th class="text-right">{$fsc->show_precio($totalSaldoFaltante,$fsc->empresa->coddivisa)}</th>
                                     <th></th>

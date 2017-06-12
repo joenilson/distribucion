@@ -287,7 +287,7 @@ class informes_caja extends fs_controller {
             $this->writer->writeSheetRow('Cuadre Ventas', array($factura->idfactura, $factura->numero2, $factura->transporte, $factura->nombrecliente, ($factura->pagada)?'Pagada':'Pendiente', $factura->total, $factura->rectificativa, $factura->abonos, $factura->saldo, \date('Y-m-d',strtotime($factura->fecha)), \date('Y-m-d',strtotime($factura->vencimiento)), ($factura->fecha_pago)?\date('Y-m-d',strtotime($factura->fecha_pago)):''));
             if($factura->get_rectificativas()){
                 foreach($factura->get_rectificativas() as $rectificativa){
-                    $this->writer->writeSheetRow('Cuadre Ventas', array($rectificativa->idfactura, $rectificativa->numero2, '', ucfirst(FS_FACTURA_RECTIFICATIVA), ($rectificativa->anulada)?'Anulada':'Activa', 0, $rectificativa->total, 0, 0, \date('Y-m-d',strtotime($rectificativa->fecha)), '', ''));
+                    $this->writer->writeSheetRow('Cuadre Ventas', array($rectificativa->idfactura, $rectificativa->numero2, $factura->transporte, ucfirst(FS_FACTURA_RECTIFICATIVA), ($rectificativa->anulada)?'Anulada':'Activa', 0, $rectificativa->total, 0, 0, \date('Y-m-d',strtotime($rectificativa->fecha)), '', ''));
                 }
             }
             $totalImporte2+=$factura->total;
