@@ -666,7 +666,10 @@ class distrib_creacion extends fs_controller {
          if ($factura) {
             if($this->tesoreria){
                 $recibos = $rec0->all_from_factura($factura->idfactura);
-
+                if(!$recibos){
+                    $this->nuevo_recibo($factura);
+                    $recibos = $rec0->all_from_factura($factura->idfactura);
+                }
                 foreach($recibos as $recibo){
                    if($recibo->estado != 'Pagado'){
                       if(!$ref0->nuevo_pago_cli($recibo, $this->codsubcuenta_pago, 'Pago', $this->fecha_pago) ){
@@ -708,6 +711,41 @@ class distrib_creacion extends fs_controller {
       header('Content-Type: application/json');
       echo json_encode($data);
    }
+   
+   private function nuevo_recibo($factura){
+        $recibo = new recibo_cliente();
+        $recibo->apartado = $factura->apartado;
+        $recibo->cifnif = $factura->cifnif;
+        $recibo->ciudad = $factura->ciudad;
+        $recibo->codcliente = $factura->codcliente;
+        $recibo->coddir = $factura->coddir;
+        $recibo->coddivisa = $factura->coddivisa;
+        $recibo->tasaconv = $factura->tasaconv;
+        $recibo->codpago = $factura->codpago;
+        $recibo->codserie = $factura->codserie;
+        $recibo->numero = $recibo->new_numero($factura->idfactura);
+        $recibo->codigo = $factura->codigo . '-' . sprintf('%02s', $recibo->numero);
+        $recibo->codpais = $factura->codpais;
+        $recibo->codpostal = $factura->codpostal;
+        $recibo->direccion = $factura->direccion;
+        $recibo->estado = 'Emitido';
+        $recibo->fecha = $factura->fecha;
+        $recibo->fechav = $factura->vencimiento;
+        $recibo->idfactura = $factura->idfactura;
+        $recibo->importe = floatval($factura->total);
+        $recibo->nombrecliente = $factura->nombrecliente;
+        $recibo->provincia = $factura->provincia;
+
+        $cbc = new cuenta_banco_cliente();
+        foreach ($cbc->all_from_cliente($factura->codcliente) as $cuenta) {
+            if (is_null($recibo->codcuenta) OR $cuenta->principal) {
+                $recibo->codcuenta = $cuenta->codcuenta;
+                $recibo->iban = $cuenta->iban;
+                $recibo->swift = $cuenta->swift;
+            }
+        }
+        $recibo->save();
+    }
 
    public function crear_faltante(){
       $idtransporte = \filter_input(INPUT_GET, 'idtransporte');
