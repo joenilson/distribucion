@@ -540,7 +540,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                               <button class="btn btn-sm btn-primary" type="button" data-toggle="modal" data-target="#modal_opciones_pago">
                                  <span class="glyphicon glyphicon-ok"></span> &nbsp; Marcar como pagadas
                               </button>
-                                {if="$fsc->user->admin"}
+                                {if="$fsc->allow_delete"}
                                 <button type="button" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modal_corregir_pagos">
                                     <span class="fa fa-wrench"></span>&nbsp; Corregir Pagos
                                 </button>
