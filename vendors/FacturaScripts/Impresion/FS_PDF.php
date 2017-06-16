@@ -18,7 +18,7 @@
  */
 
 namespace FacturaScripts\Impresion;
-require '../../vendors/FacturaScripts/fpdf181/fpdf.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/fpdf181/fpdf.php';
 /**
  * Description of FS_PDF
  *
