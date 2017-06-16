@@ -830,13 +830,13 @@ class informes_caja extends fs_controller {
      * @param factura_cliente $f
      * @return int
      */
-    public function factura_rectificativa(factura_cliente $f)
+    public function factura_rectificativa(factura_cliente $f, $modo = 'adentro')
     {
         $total_rectificativas = 0;
         $rectificativas = $f->get_rectificativas();
         if($rectificativas){
             foreach($rectificativas as $rectificativa){
-                if($this->comparar_fechas($rectificativa->fecha,'dentro')){
+                if($this->comparar_fechas($rectificativa->fecha,$modo)){
                     //$this->total_cobros += $rectificativa->total;
                     //$this->pagadas['ventas'] += $rectificativa->total;
                     //$this->cobros_condpago[$rectificativa->codpago] += $rectificativa->total;
@@ -877,7 +877,7 @@ class informes_caja extends fs_controller {
                 $f = new factura_cliente($d);
                 $f->transporte = $this->distribucion_ordenescarga_factura->get_transporte_factura($this->empresa->id, $f->idfactura, $f->codalmacen);
                 $f->abonos = $this->factura_abonos($f);
-                $f->rectificativa = $this->factura_rectificativa($f);
+                $f->rectificativa = $this->factura_rectificativa($f, 'fuera');
                 $f->saldo = ($f->total+$f->rectificativa)-$f->abonos;
                 $f->fecha_pago = '';
                 $this->resultados_pendientes_anteriores[] = $f;
@@ -911,7 +911,7 @@ class informes_caja extends fs_controller {
                 $f = new factura_cliente($d);
                 $f->transporte = $this->distribucion_ordenescarga_factura->get_transporte_factura($this->empresa->id, $f->idfactura, $f->codalmacen);
                 $f->abonos = $this->factura_abonos($f);
-                $f->rectificativa = $this->factura_rectificativa($f);
+                $f->rectificativa = $this->factura_rectificativa($f, 'fuera');
                 $f->saldo = ($f->total+$f->rectificativa)-$f->abonos;
                 $f->fecha_pago = $d['fechap'];
                 $this->detalle['cobros_anteriores'][] = $f;

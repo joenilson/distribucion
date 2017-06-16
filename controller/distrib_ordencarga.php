@@ -35,6 +35,10 @@ require_model('cliente.php');
 require_model('articulo.php');
 require_model('articulo_unidadmedida.php');
 require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
+
+require_once 'plugins/distribucion/vendors/FacturaScripts/PrinterManager.php';
+use FacturaScripts\PrinterManager;
+
 require_once 'helper_ordencarga.php';
 require_once 'helper_transportes.php';
 
@@ -108,8 +112,8 @@ class distrib_ordencarga extends fs_controller {
             $this->agente = new agente();
             $cod = $this->agente->get($this->user->codagente);
             $user_almacen = $this->almacen->get($cod->codalmacen);
-            $this->user->codalmacen = $user_almacen->codalmacen;
-            $this->user->nombrealmacen = $user_almacen->nombre;
+            $this->user->codalmacen = (isset($user_almacen->codalmacen))?$user_almacen->codalmacen:false;
+            $this->user->nombrealmacen = (isset($user_almacen->nombre))?$user_almacen->nombre:false;
         }
 
         //Leemos las variables que nos manda el view
@@ -622,6 +626,37 @@ class distrib_ordencarga extends fs_controller {
             $this->guardar_facturas_ordencarga($ordenCarga0, $carga_facturas);
             $this->guardar_lineas_ordencarga($ordenCarga0, $resultados_facturas['resultados']);
         }
+    }
+
+    public function imprimir_carga_new() {
+        $this->template = false;
+        $this->helper_ordencarga = new helper_ordencarga();
+        $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
+        $lista_ordenescargar = explode(',', $value_ordencarga);
+        $contador_ordenescarga = 0;
+
+        $conf = array();
+        $pdf_doc = new PrinterManager($conf);
+        $pdf_doc->crearArchivo();
+
+        $pdfFile = new asgard_PDFHandler();
+        $pdfFile->pdf_create();
+        foreach ($lista_ordenescargar as $ordencarga) {
+            if (!empty($ordencarga)) {
+                $datos_ordencarga = explode('-', $ordencarga);
+                $idordencarga = $datos_ordencarga[0];
+                $codalmacen = $datos_ordencarga[1];
+                $contador_ordenescarga++;
+
+                $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+                $pdf_doc->agregarCabecera($this->empresa, $ordencarga, $ordencarga);
+
+                $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
+                $pdfFile->pdf_pagina($this->helper_ordencarga->cabecera($ordencarga), $this->helper_ordencarga->contenido($lineasordencarga), $this->helper_ordencarga->pie($ordencarga));
+            }
+        }
+        //$pdfFile->pdf_mostrar();
+        $pdf_doc->mostrarDocumento();
     }
 
     public function imprimir_carga() {
