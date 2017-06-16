@@ -143,7 +143,7 @@ class distrib_creacion extends fs_controller {
       $this->fecha_pago = $this->today();
       if(\filter_input(INPUT_GET,'fecha_pago'))
       {
-         $this->fecha_pago = \filter_input(INPUT_GET,'fecha_pago');
+         $this->fecha_pago = \date('Y-m-d',strtotime(\filter_input(INPUT_GET,'fecha_pago')));
       }
 
       if(isset($mostrar)){
@@ -204,6 +204,8 @@ class distrib_creacion extends fs_controller {
          $this->imprimir_devolucion();
       } elseif ($type == 'pagar-factura') {
          $this->pagar_factura();
+      } elseif ($type == 'corregir-pago') {
+         $this->corregir_pagos();
       } elseif ($type == 'extornar-factura') {
          $this->extornar_factura();
       } elseif ($type == 'crear-faltante') {
@@ -234,6 +236,10 @@ class distrib_creacion extends fs_controller {
 
    public function buscador(){
         $datos_busqueda = array();
+        $query = \filter_input(INPUT_POST, 'query');
+        if($query){
+            $datos_busqueda['idtransporte'] = $query;
+        }
         if($this->conductor){
             $datos_busqueda['conductor'] = $this->conductor->licencia;
         }
@@ -243,7 +249,7 @@ class distrib_creacion extends fs_controller {
 
         $busqueda = $this->distrib_transporte->search($this->empresa->id, $datos_busqueda, $this->desde, $this->hasta, $this->offset);
         $this->resultados = $busqueda['resultados'];
-        $this->num_resultados = $busqueda['cantidad'];        
+        $this->num_resultados = $busqueda['cantidad'];
     }
 
    public function paginas() {
@@ -610,6 +616,13 @@ class distrib_creacion extends fs_controller {
              if ($factura) {
                 $factura->pagada = FALSE;
                 $factura->save();
+                if($this->tesoreria){
+                    $rf = new recibo_cliente();
+                    $recibofac = $rf->all_from_factura($factura->idfactura);
+                    foreach($recibofac as $r){
+                        $r->delete();
+                    }
+                }
                 $num++;
              }
           }
@@ -623,6 +636,61 @@ class distrib_creacion extends fs_controller {
        $this->template = false;
        header('Content-Type: application/json');
        echo json_encode($data);
+   }
+
+   public function corregir_pagos(){
+       $idtransporte = \filter_input(INPUT_GET, 'idtransporte');
+       $codalmacen = \filter_input(INPUT_GET, 'codalmacen');
+       $facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
+        $reversadas = 0;
+        $confirmadas = 0;
+        if($this->tesoreria){
+            require_model('pago_recibo_cliente.php');
+            require_model('recibo_cliente.php');
+            require_model('recibo_factura.php');
+        }
+        foreach($facturastransporte as $fac){
+           $factura = $this->factura_cliente->get($fac->idfactura);
+           //Reversamos el pago
+           if ($factura) {
+              $factura->pagada = FALSE;
+              $factura->save();
+              if($this->tesoreria){
+
+                  $rf = new recibo_cliente();
+                  $recibofac = $rf->all_from_factura($factura->idfactura);
+                  foreach($recibofac as $r){
+                      $r->delete();
+                  }
+              }
+              $reversadas++;
+           }
+
+           if($this->tesoreria){
+                $rec0 = new recibo_cliente();
+                $ref0 = new recibo_factura();
+                $recibos = $rec0->all_from_factura($factura->idfactura);
+                if(!$recibos){
+                    $this->nuevo_recibo($factura);
+                    $recibos = $rec0->all_from_factura($factura->idfactura);
+                }
+
+                foreach($recibos as $recibo){
+                   if($recibo->estado != 'Pagado'){
+                      if($ref0->nuevo_pago_cli($recibo, $this->codsubcuenta_pago, 'Pago', $this->fecha_pago) ){
+                        $confirmadas++;
+                      }
+                   }
+                }
+            }
+            $factura->pagada = TRUE;
+            $factura->save();
+        }
+        $data['success']=TRUE;
+        $data['mensaje']="{$reversadas} reversadas y {$confirmadas} confirmadas.";
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($data);
    }
 
    public function imprimir_liquidacion(){
@@ -663,7 +731,7 @@ class distrib_creacion extends fs_controller {
       foreach ($lista_facturas as $factura) {
          $datos_factura = explode('-', $factura);
          $factura = $fact0->get($datos_factura[0]);
-         if ($factura) {
+         if($factura) {
             if($this->tesoreria){
                 $recibos = $rec0->all_from_factura($factura->idfactura);
                 if(!$recibos){
@@ -672,10 +740,7 @@ class distrib_creacion extends fs_controller {
                 }
                 foreach($recibos as $recibo){
                    if($recibo->estado != 'Pagado'){
-                      if(!$ref0->nuevo_pago_cli($recibo, $this->codsubcuenta_pago, 'Pago', $this->fecha_pago) ){
-                         $error = TRUE;
-                         break;
-                      }
+                      $ref0->nuevo_pago_cli($recibo, $this->codsubcuenta_pago, 'Pago', $this->fecha_pago);
                    }
                 }
             }
@@ -711,7 +776,7 @@ class distrib_creacion extends fs_controller {
       header('Content-Type: application/json');
       echo json_encode($data);
    }
-   
+
    private function nuevo_recibo($factura){
         $recibo = new recibo_cliente();
         $recibo->apartado = $factura->apartado;
