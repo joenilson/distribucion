@@ -18,7 +18,8 @@
  */
 
 namespace FacturaScripts;
-
+require_once 'plugins/distribucion/vendors/FacturaScripts/Impresion/FS_PDF.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/Impresion/FS_TXT.php';
 use FacturaScripts\Impresion\FS_TXT;
 use FacturaScripts\Impresion\FS_PDF;
 /**
@@ -38,11 +39,11 @@ class PrinterManager {
     public $page_orientation;
     public $fileHandler;
     public function __construct(array $info) {
-        $this->file = $info['file'];
-        $this->type = $info['type'];
-        $this->page_size = $info['page_size'];
-        $this->page_lines = $info['page_lines'];
-        $this->page_orientation = $info['page_orientation'];
+        $this->file = (isset($info['file']))?$info['file']:'doc.pdf';
+        $this->type = (isset($info['type']))?$info['type']:'pdf';
+        $this->page_size = (isset($info['page_size']))?$info['page_size']:'letter';
+        $this->page_lines = (isset($info['page_lines']))?$info['page_lines']:27;
+        $this->page_orientation = (isset($info['page_orientation']))?$info['page_orientation']:'P';
         $this->tmp_dir = sys_get_temp_dir();
     }
 
@@ -66,14 +67,20 @@ class PrinterManager {
         }
     }
 
-    public function agregarCabecera(\empresa $empresa, array $documento, array $cabecera){
+    public function agregarCabecera(\empresa $empresa, $documento, $cabecera){
+        $this->fileHandler->addCabecera();
+        $this->fileHandler->documento_nombre = $documento->nombre;
+        $this->fileHandler->documento_numero = $documento->numero;
+        $this->fileHandler->documento_cabecera_lineas = $documento->cabecera_lineas;
+
         $this->fileHandler->addEmpresaInfo($empresa);
         $this->fileHandler->addDocumentoInfo($documento);
         $this->fileHandler->addCabeceraInfo($cabecera);
+        $this->fileHandler->addCabeceraLineas();
     }
 
     public function agregarLineas(array $lineas){
-
+        $this->fileHandler->addDetalleLineas($lineas);
     }
 
     public function agregarPie(array $pie){

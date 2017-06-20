@@ -18,7 +18,7 @@
  */
 
 namespace FacturaScripts\Impresion;
-require_once 'plugins/distribucion/vendors/FacturaScripts/fpdf181/fpdf.php';
+require_once 'plugins/distribucion/vendors/fpdf181/fpdf.php';
 /**
  * Description of FS_PDF
  *
@@ -29,6 +29,11 @@ class FS_PDF extends \FPDF{
     protected $NewPageGroup;   // variable indicating whether a new group was requested
     protected $PageGroups;     // variable containing the number of pages of the groups
     protected $CurrPageGroup;  // variable containing the alias of the current page group
+    public $verlogotipo = 0;
+    public $documento_nombre;
+    public $documento_numero;
+    public $documento_codigo;
+    public $documento_cabecera_lineas;
     /**
      *
      * @param string $orientation
@@ -44,20 +49,21 @@ class FS_PDF extends \FPDF{
     }
 
     public function addEmpresaInfo(\empresa $empresa){
-        $x1 = ($this->fdf_verlogotipo == '1')?50:10;
+        $x1 = ($this->verlogotipo == '1')?50:10;
         $y1 = 8;
         $this->SetXY( $x1, $y1 );
         $this->SetFont('Arial','B',10);
         $this->SetTextColor(0);
         $length1 = $this->GetStringWidth($empresa->nombre);
-        $this->Cell( $length1, 4, $empresa->nombre);
+        $this->Cell( $length1, 4, utf8_decode($empresa->nombre));
         $this->SetXY( $x1, $y1 + 4 );
         $length2 = $this->GetStringWidth(FS_CIFNIF.': '.$empresa->cifnif);
-        $this->Cell($length2, 4, FS_CIFNIF.': '.$empresa->cifnif);
+        $this->SetFont('Arial','',8);
+        $this->Cell($length2, 4, utf8_decode(FS_CIFNIF.': '.$empresa->cifnif));
         $this->SetXY($x1, $y1 + 8 );
         $this->SetFont('Arial','',8);
         $length3 = $this->GetStringWidth( $empresa->direccion.' - '.$empresa->ciudad.' - '.$empresa->provincia );
-        $this->MultiCell($length3, 4, $empresa->direccion.' - '.$empresa->ciudad.' - '.$empresa->provincia);
+        $this->MultiCell($length3, 4, utf8_decode($empresa->direccion.' - '.$empresa->ciudad.' - '.$empresa->provincia));
 
         if ($empresa->email != '')
         {
@@ -65,7 +71,7 @@ class FS_PDF extends \FPDF{
             $this->SetFont('Arial','',8);
             $this->Write(5,'Email: ');
             $this->SetTextColor(0,0,255);
-            $this->Write(5, $empresa->email, 'mailto:' . $empresa->email);
+            $this->Write(5, utf8_decode($empresa->email), 'mailto:' . $empresa->email);
             $this->SetTextColor(0);
             $this->SetFont('');
         }
@@ -76,26 +82,96 @@ class FS_PDF extends \FPDF{
             $this->SetFont('Arial','',8);
             $this->Write(5,'Web: ');
             $this->SetTextColor(0,0,255);
-            $this->Write(5, $empresa->web, $empresa->web);
+            $this->Write(5, utf8_decode($empresa->web), $empresa->web);
             $this->SetTextColor(0);
             $this->SetFont('');
         }
     }
 
     public function addDocumentoInfo(){
+        $r1  = $this->w - 80;
+        $r2  = $r1 + 70;
+        $y1  = 6;
+        $y2  = $y1 + 20;
 
+        $szfont = 10;
+        $loop   = 0;
+
+        while ( $loop == 0 )
+        {
+           $this->SetFont("Arial", "B",$szfont);
+           $sz = $this->GetStringWidth($this->documento_nombre);
+           if ( ($r1+$sz) > $r2 ){
+              $szfont--;
+           }else{
+              $loop++;
+           }
+        }
+        $this->SetDrawColor(0,0,0);
+        $this->SetLineWidth(0.1);
+        $this->Rect($r1, $y1,($r2 - $r1), $y2, 'B');
+        $y1++;
+        $this->SetFont( "Arial", "B", 10 );
+        $this->SetXY( $r1+1, $y1+3);
+        $this->MultiCell(67,5, utf8_decode(strtoupper($this->documento_nombre)), 0, "C");
+        $y1++;$y1++;$y1++;$y1++;
+        $this->SetXY( $r1+1, $y1+3);
+        $this->Cell(67,5, utf8_decode($this->documento_numero), 0, 0, "C" );
     }
 
-    public function addCabeceraInfo(){
+    public function addCabeceraInfo($cabecera){
+        $r1 = 10;
+        $r2  = $this->w - 10;
+        $y1  = 35;
+        $y2  = $y1;
 
+        $this->SetDrawColor(0,0,0);
+        $this->SetLineWidth(0.1);
+        $this->Rect($r1, $y1,($r2 - $r1), $y2, 'B');
+        $y1++;
+        $this->SetXY( $r1, $y1);
+        foreach($cabecera as $linea){
+            $this->SetFont( "Arial", "B", 10 );
+            $this->Cell(30,5, utf8_decode($linea['label']), 0, 0, 'R' );
+            $this->SetFont( "Arial", "", 10 );
+            $this->Cell($linea['size'],5, utf8_decode($linea['valor']), 0, 0, 'L' );
+            if($linea['salto_linea']){
+                $y1++;$y1++;$y1++;$y1++;$y1++;
+                $this->SetXY( $r1, $y1);
+            }
+        }
     }
 
     public function AddCabeceraLineas(){
+        $r1 = 10;
+        $r2  = $this->w - 10;
+        $y1  = 72;
+        $y2  = 5;
 
+        $this->SetDrawColor(0,0,0);
+        $this->SetLineWidth(0.1);
+        $this->Rect($r1, $y1,($r2 - $r1), $y2, 'B');
+        //$r1++;
+        //$y1++;
+        $this->SetXY( $r1, $y1);
+        $this->SetFont( "Arial", "B", 10 );
+        foreach($this->documento_cabecera_lineas as $cab){
+            $this->Cell($cab['size'],5, utf8_decode($cab['descripcion']),0,0,$cab['align']);
+        }
     }
 
-    public function addDetalleLineas(){
-
+    public function addDetalleLineas($lineas){
+        $r1 = 10;
+        $y1 = 80;
+        $this->SetFont( "Arial", "", 10 );
+        foreach($lineas as $linea){
+            $this->SetXY( $r1, $y1);
+            foreach($this->documento_cabecera_lineas as $i=>$k){
+                $this->Cell($k['size'],5, utf8_decode($linea[$i]),0,0,$k['align']);
+            }
+            //$r1++;$r1++;$r1++;
+            $y1++;$y1++;$y1++;$y1++;$y1++;
+        }
     }
 
     public function addPie(){

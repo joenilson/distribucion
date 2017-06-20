@@ -635,12 +635,12 @@ class distrib_ordencarga extends fs_controller {
         $lista_ordenescargar = explode(',', $value_ordencarga);
         $contador_ordenescarga = 0;
 
-        $conf = array();
+        $conf = array('file'=>'ordencarga.pdf', 'type'=>'pdf', 'page_size'=>'letter');
         $pdf_doc = new PrinterManager($conf);
         $pdf_doc->crearArchivo();
 
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
+        //$pdfFile = new asgard_PDFHandler();
+        //$pdfFile->pdf_create();
         foreach ($lista_ordenescargar as $ordencarga) {
             if (!empty($ordencarga)) {
                 $datos_ordencarga = explode('-', $ordencarga);
@@ -648,15 +648,33 @@ class distrib_ordencarga extends fs_controller {
                 $codalmacen = $datos_ordencarga[1];
                 $contador_ordenescarga++;
 
-                $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                $pdf_doc->agregarCabecera($this->empresa, $ordencarga, $ordencarga);
+                $ordencarga = $this->distrib_ordenescarga->getOne($this->empresa->id, $idordencarga, $codalmacen);
+                $ordencarga->nombre = 'Orden de Carga';
+                $ordencarga->numero = str_pad($ordencarga->idordencarga,6,'0',STR_PAD_LEFT);
+                $ordencarga->cabecera_lineas = $this->cabecera_ordencarga();
+                $cabecera = array();
+                $cabecera[] = array('size'=>30, 'label'=>'Fecha Reparto:','valor'=>$ordencarga->fecha,'salto_linea'=>false);
+                $cabecera[] = array('size'=>30, 'label'=>'Almacén Origen:','valor'=>$ordencarga->codalmacen,'salto_linea'=>false);
+                $cabecera[] = array('size'=>30, 'label'=>'Almacén Destino:','valor'=>$ordencarga->codalmacen_dest,'salto_linea'=>true);
+                $cabecera[] = array('size'=>30, 'label'=>'Unidad:','valor'=>$ordencarga->unidad,'salto_linea'=>false);
+                $cabecera[] = array('size'=>120, 'label'=>'Conductor:','valor'=>$ordencarga->conductor_nombre,'salto_linea'=>true);
+                $pdf_doc->agregarCabecera($this->empresa, $ordencarga, $cabecera);
 
-                $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                $pdfFile->pdf_pagina($this->helper_ordencarga->cabecera($ordencarga), $this->helper_ordencarga->contenido($lineasordencarga), $this->helper_ordencarga->pie($ordencarga));
+                $lineasordencarga = $this->distrib_lineasordenescarga->get_lineas_imprimir($this->empresa->id, $idordencarga, $codalmacen);
+                $pdf_doc->agregarLineas($lineasordencarga);
+                //$pdfFile->pdf_pagina($this->helper_ordencarga->cabecera($ordencarga), $this->helper_ordencarga->contenido($lineasordencarga), $this->helper_ordencarga->pie($ordencarga));
             }
         }
         //$pdfFile->pdf_mostrar();
         $pdf_doc->mostrarDocumento();
+    }
+
+    private function cabecera_ordencarga(){
+        $cabecera = array();
+        $cabecera[] = array('size'=>125, 'descripcion'=>'Ref + Descripcion','align'=>'L');
+        $cabecera[] = array('size'=>40, 'descripcion'=>'U. Med','align'=>'C');
+        $cabecera[] = array('size'=>30, 'descripcion'=>'Cantidad','align'=>'R');
+        return $cabecera;
     }
 
     public function imprimir_carga() {
