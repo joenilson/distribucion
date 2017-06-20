@@ -422,6 +422,7 @@ class distrib_creacion extends fs_controller {
    }
 
    public function confirmar_devolucion($confirmado=TRUE){
+      $fechad = \filter_input(INPUT_GET, 'fechad');
       $value_transporte = \filter_input(INPUT_GET, 'transporte');
       $lista_transporte = explode(',', $value_transporte);
       $tipo_mensaje = ($confirmado)?"confirmado":"desconfirmado";
@@ -458,7 +459,7 @@ class distrib_creacion extends fs_controller {
             }
             if(!$error){
                 $trans0->devolucionado = $confirmado;
-                $trans0->fechad = \Date('d-m-Y');
+                $trans0->fechad = ($fechad)?\date('Y-m-d',strtotime($fechad)):\Date('d-m-Y');
                 $trans0->fecha_modificacion = Date('d-m-Y H:i');
                 $trans0->usuario_modificacion = $this->user->nick;
                 if ($trans0->confirmar_devolucion()) {
@@ -565,11 +566,12 @@ class distrib_creacion extends fs_controller {
 
    public function guardar_liquidacion(){
       $value_transporte = \filter_input(INPUT_GET, 'transporte');
+      $fechal = \filter_input(INPUT_GET, 'fechal');
       $datos_transporte = explode('-', $value_transporte);
       $idtransporte = $datos_transporte[0];
       $codalmacen = $datos_transporte[1];
       $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-      $trans0->fechal = Date('d-m-Y');
+      $trans0->fechal = ($fechal)?\date('Y-m-d',strtotime($fechal)):\date('d-m-Y');
       $trans0->liquidado = TRUE;
       $trans0->fecha_modificacion = Date('d-m-Y H:i');
       $trans0->usuario_modificacion = $this->user->nick;
@@ -617,6 +619,7 @@ class distrib_creacion extends fs_controller {
                 $factura->pagada = FALSE;
                 $factura->save();
                 if($this->tesoreria){
+                    require_model('recibo_cliente.php');
                     $rf = new recibo_cliente();
                     $recibofac = $rf->all_from_factura($factura->idfactura);
                     foreach($recibofac as $r){

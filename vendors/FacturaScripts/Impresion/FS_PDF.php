@@ -34,6 +34,8 @@ class FS_PDF extends \FPDF{
     public $documento_numero;
     public $documento_codigo;
     public $documento_cabecera_lineas;
+    public $x_pos;
+    public $y_pos;
     /**
      *
      * @param string $orientation
@@ -46,21 +48,25 @@ class FS_PDF extends \FPDF{
 
     public function addCabecera(){
         $this->AddPage();
+        //Colocamos el marcador de página en la linea 8
+        $this->x_pos = 8;
     }
 
     public function addEmpresaInfo(\empresa $empresa){
         $x1 = ($this->verlogotipo == '1')?50:10;
-        $y1 = 8;
+        $y1 = $this->x_pos;
         $this->SetXY( $x1, $y1 );
         $this->SetFont('Arial','B',10);
         $this->SetTextColor(0);
         $length1 = $this->GetStringWidth($empresa->nombre);
         $this->Cell( $length1, 4, utf8_decode($empresa->nombre));
-        $this->SetXY( $x1, $y1 + 4 );
+        $y1+=4;
+        $this->SetXY( $x1, $y1);
         $length2 = $this->GetStringWidth(FS_CIFNIF.': '.$empresa->cifnif);
         $this->SetFont('Arial','',8);
         $this->Cell($length2, 4, utf8_decode(FS_CIFNIF.': '.$empresa->cifnif));
-        $this->SetXY($x1, $y1 + 8 );
+        $y1+=8;
+        $this->SetXY( $x1, $y1);
         $this->SetFont('Arial','',8);
         $length3 = $this->GetStringWidth( $empresa->direccion.' - '.$empresa->ciudad.' - '.$empresa->provincia );
         $this->MultiCell($length3, 4, utf8_decode($empresa->direccion.' - '.$empresa->ciudad.' - '.$empresa->provincia));
@@ -123,11 +129,7 @@ class FS_PDF extends \FPDF{
         $r1 = 10;
         $r2  = $this->w - 10;
         $y1  = 35;
-        $y2  = $y1;
-
-        $this->SetDrawColor(0,0,0);
-        $this->SetLineWidth(0.1);
-        $this->Rect($r1, $y1,($r2 - $r1), $y2, 'B');
+        $y2  = 5;
         $y1++;
         $this->SetXY( $r1, $y1);
         foreach($cabecera as $linea){
@@ -138,8 +140,14 @@ class FS_PDF extends \FPDF{
             if($linea['salto_linea']){
                 $y1++;$y1++;$y1++;$y1++;$y1++;
                 $this->SetXY( $r1, $y1);
+                $y2+=5;
             }
+
         }
+
+        $this->SetDrawColor(0,0,0);
+        $this->SetLineWidth(0.1);
+        $this->Rect($r1, 35,($r2 - $r1), $y2, 'B');
     }
 
     public function AddCabeceraLineas(){

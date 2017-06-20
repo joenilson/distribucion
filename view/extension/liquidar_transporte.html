@@ -27,19 +27,39 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
    }
 
    function guardarLiquidacion(){
+
+        {if="$fsc->allow_delete"}
+        var fecha_liquidacion = '\n<br/><div class="row"><div class="col-sm-6">'+
+                '<label class="control-label" for="fecha_liquidacion">Fecha de Liquidaci&oacute;n:</label>'+
+                '</div>'+
+                '<div class="col-sm-6 form-group-inline">'+
+                    '<div class="input-group">'+
+                        '<span class="input-group-addon">'+
+                            '<span class="glyphicon glyphicon-calendar"></span>'+
+                        '</span>'+
+                        '<input type="text" name="fechal" id="fecha_liquidacion" value="{$fsc->fecha_pago}" class="form-control datepicker" autocomplete="off"/>'+
+                    '</div>'+
+                '</div>'+
+                '<div class=clearfix></div>'+
+            '</div>';
+        {else}
+        var fecha_liquidacion = '';
+        {/if}
+
         bootbox.dialog({
-            message: "Esta seguro que quiere Guardar la liquidación de este transporte?",
+            message: "Esta seguro que quiere Guardar la liquidación de este transporte?"+fecha_liquidacion,
             title: "Guardar Liquidacion",
             buttons: {
               success: {
                 label: "<span class='glyphicon glyphicon-floppy-disk'></span> &nbsp; Guardar",
                 className: "btn-success",
                 callback: function() {
+                    var fechal = ($('#fecha_liquidacion').length > 0)?'&fechal='+$('#fecha_liquidacion').val():'';
                     $.ajax({
                        type: 'GET',
                        url: '{$fsc->url()}',
                        async: false,
-                       data: 'type=guardar-liquidacion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}',
+                       data: 'type=guardar-liquidacion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}'+fechal,
                        success : function(datos) {
                          bootbox.alert(datos.mensaje, function() {
                             window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
@@ -61,6 +81,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
               }
             }
         });
+      $("#fecha_liquidacion").datepicker();
+      $("#fecha_liquidacion").datepicker( "option", "dateFormat", 'yy-mm-dd' );
+      $("#fecha_liquidacion").datepicker( "setDate", new Date("{$fsc->fecha_pago}"));
    }
 
    function generarFaltante(){
@@ -194,22 +217,42 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
            }
          }
       });
+
    }
 
    function confirmarDevolucion(){
+        {if="$fsc->allow_delete"}
+        var fecha_devolucion = '\n<br/><div class="row"><div class="col-sm-6">'+
+                '<label class="control-label" for="fecha_devolucion">Fecha de Devoluci&oacute;n:</label>'+
+                '</div>'+
+                '<div class="col-sm-6 form-group-inline">'+
+                    '<div class="input-group">'+
+                        '<span class="input-group-addon">'+
+                            '<span class="glyphicon glyphicon-calendar"></span>'+
+                        '</span>'+
+                        '<input type="text" name="fechad" id="fecha_devolucion" value="{$fsc->fecha_pago}" class="form-control datepicker" autocomplete="off"/>'+
+                    '</div>'+
+                '</div>'+
+                '<div class=clearfix></div>'+
+            '</div>';
+        {else}
+        var fecha_devolucion = '';
+        {/if}
+
       bootbox.dialog({
-         message: "¿Esta seguro que quiere confirmar la devolución de este transporte?<br>Esta acción guardará las cantidades de devolución de las facturas en el transporte para que este pueda ser terminado de liquidar en caja.",
+         message: "¿Esta seguro que quiere confirmar la devolución de este transporte?<br>Esta acción guardará las cantidades de devolución de las facturas en el transporte para que este pueda ser terminado de liquidar en caja.<br/>"+fecha_devolucion,
          title: "Confirmar devolución del Transporte",
          buttons: {
            success: {
              label: "Confirmar",
              className: "btn-success",
              callback: function() {
-                 $.ajax({
+               var fechad = ($('#fecha_devolucion').length > 0)?'&fechad='+$('#fecha_devolucion').val():'';
+               $.ajax({
                    type: 'GET',
                    url: '{$fsc->url()}',
                    async: false,
-                   data: 'type=confirmar-devolucion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}',
+                   data: 'type=confirmar-devolucion&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}'+fechad,
                    success : function(datos) {
                      bootbox.alert(datos.mensaje, function() {
                         window.location.assign("{$fsc->url()}&type=liquidar-transporte&transporte={$fsc->transporte->idtransporte}-{$fsc->transporte->codalmacen}");
@@ -230,6 +273,9 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
            }
          }
       });
+      $("#fecha_devolucion").datepicker();
+      $("#fecha_devolucion").datepicker( "option", "dateFormat", 'yy-mm-dd' );
+      $("#fecha_devolucion").datepicker( "setDate", new Date("{$fsc->fecha_pago}"));
    }
 
    function corregirPago(){
