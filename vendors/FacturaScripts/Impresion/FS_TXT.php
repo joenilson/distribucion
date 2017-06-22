@@ -98,7 +98,15 @@ class FS_TXT {
 
     }
 
-    public function addPie(){
+    public function addTotalesLineas(){
+
+    }
+
+    public function Footer(){
+
+    }
+
+    public function addObservaciones(){
 
     }
 
@@ -111,7 +119,7 @@ class FS_TXT {
     }
 
     public function Output(){
-        
+
     }
 
     // create a new page group; call this before calling AddPage()

@@ -83,12 +83,16 @@ class PrinterManager {
         $this->fileHandler->addDetalleLineas($lineas);
     }
 
-    public function agregarPie(array $pie){
+    public function agregarObservaciones($observaciones){
+        $this->fileHandler->addObservaciones($observaciones);
+    }
 
+    public function agregarTotalesLineas($totales){
+        $this->fileHandler->addTotalesLineas($totales);
     }
 
     public function agregarFirmas(array $firmas){
-
+        $this->fileHandler->addFirmas($firmas);
     }
 
     public function mostrarDocumento(){

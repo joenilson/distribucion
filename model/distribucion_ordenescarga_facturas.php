@@ -172,6 +172,7 @@ class distribucion_ordenescarga_facturas extends fs_model {
             $ncf_info = $this->ncf_ventas->get_ncf($factura->idempresa, $factura->idfactura, $info_adicional->codcliente);
             $factura->ncf = $ncf_info->ncf;
         }
+        $factura->numero2 = $info_adicional->numero2;
         $factura->fecha_factura = $info_adicional->fecha;
         $factura->pagada = $info_adicional->pagada;
         $factura->monto = $info_adicional->total;
@@ -262,7 +263,33 @@ class distribucion_ordenescarga_facturas extends fs_model {
         }
         return $lista;
     }
-    
+
+    public function get_lineas_imprimir($idempresa,$codalmacen,$idtransporte)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga_facturas WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, idordencarga, idfactura;");
+
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $info_factura = new distribucion_ordenescarga_facturas($d);
+                $valor_lista = $this->info_factura($info_factura);
+                $item = array();
+                $item[] = $info_factura->idfactura;
+                $item[] = $valor_lista->numero2;
+                $item[] = $valor_lista->nombrecliente;
+                $item[] = $valor_lista->fecha_factura;
+                $item[] = $valor_lista->cantidad;
+                $item[] = $valor_lista->monto;
+                $item[] = $valor_lista->abono;
+                $item[] = $valor_lista->saldo;
+                $lista[] = $item;
+            }
+        }
+        return $lista;
+    }
+
     public function get_transporte_factura($idempresa,$idfactura,$codalmacen)
     {
         $transporte = false;

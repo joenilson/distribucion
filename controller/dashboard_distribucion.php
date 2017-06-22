@@ -33,7 +33,6 @@ require_model('facturas_cliente.php');
 require_model('facturas_proveedor.php');
 require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
-require_once 'plugins/distribucion/vendors/tcpdf/tcpdf.php';
 /**
  * Description of dashboard_distribucion
  *
@@ -135,7 +134,7 @@ class dashboard_distribucion extends fs_controller {
         $this->grupos_clientes = new grupo_clientes();
         $this->resultados_formas_pago = false;
         $this->procesado = false;
-        
+
         //Si el usuario es admin puede ver todos los almacenes, pero sino, solo su almacén designado
         if(!$this->user->admin)
         {
@@ -209,7 +208,7 @@ class dashboard_distribucion extends fs_controller {
         $this->importe_referencia = array();
         $this->total_cantidad_familia = 0;
         $this->total_importe_familia = 0;
-        
+
         //generamos un listado de todas las familias para hacer una sola llamada a la db
         $f = array();
         $f['NOFAMILIA'] = 'SIN FAMILIA';
@@ -221,10 +220,10 @@ class dashboard_distribucion extends fs_controller {
 
         //Buscamos los productos en la fecha dada y los agrupamos por familia
         //Esta pendiente sacar la información de ventas por vendedor
-        
+
         //Si no eligen un almacén, buscamos todo
         $sql_almacen = ($this->codalmacen)?" AND fc.codalmacen = ".$this->empresa->var2str($this->codalmacen):"";
-        
+
         $sql = "SELECT a.codfamilia,lf.referencia,lf.descripcion,fc.fecha,sum(lf.cantidad) as cantidad,sum(lf.pvptotal) as importe  ".
                 "FROM facturascli AS fc, articulos AS a, familias AS f, lineasfacturascli as lf ".
                 "WHERE fecha between ".$this->empresa->var2str($this->f_desde)." AND ".$this->empresa->var2str($this->f_hasta)." ".
@@ -457,7 +456,7 @@ class dashboard_distribucion extends fs_controller {
             $vendedores = $this->organizacion->get_asignados($this->empresa->id, $sup->codagente);
             $this->mesa_trabajo[$sup->codagente] = $vendedores;
         }
-        
+
         //Obtenemos la información de los vendedores
         //Verificamos el codigo de almacen para vendedores
         if($this->codalmacen){
@@ -472,7 +471,7 @@ class dashboard_distribucion extends fs_controller {
             $unidades = $this->unidades->activos($this->empresa->id);
         }
         $this->cantidad_unidades = count($unidades);
-        
+
         $articulos = $this->articulos->all();
         $this->cantidad_articulos = 0;
         foreach($articulos as $art){
@@ -480,7 +479,7 @@ class dashboard_distribucion extends fs_controller {
                 $this->cantidad_articulos++;
             }
         }
-        
+
         //Obtenemos la información de los Clientes
         if($this->codalmacen){
             $clientes_distribucion = $this->distribucion_clientes->clientes_almacen($this->empresa->id,$this->codalmacen);
@@ -492,7 +491,7 @@ class dashboard_distribucion extends fs_controller {
         $this->clientes_activos = $clientes_estado['activos'];
         $this->clientes_inactivos = $clientes_estado['inactivos'];
         $this->clientes_nuevos = $clientes_estado['nuevos'];
-        $this->clientes_debaja = $clientes_estado['debaja'];        
+        $this->clientes_debaja = $clientes_estado['debaja'];
         $this->clientes_visitados = $this->distribucion_facturas->clientes_visitados($this->codalmacen, FALSE, $this->f_desde, $this->f_hasta);
         $this->clientes_por_visitar = $this->clientes_activos-$this->clientes_visitados;
         $this->cantidad_clientes = $this->clientes_activos;
@@ -501,10 +500,10 @@ class dashboard_distribucion extends fs_controller {
         //Guardamos la cantidad de clientes por cada grupo
         $this->grupos_clientes_lista = array();
         foreach($this->grupos_clientes->all() as $gc){
-            $gc->clientes = $gc->cantidad_clientes_total();            
+            $gc->clientes = $gc->cantidad_clientes_total();
             $this->grupos_clientes_lista[] = $gc;
         }
-        
+
         if($this->grupos_clientes->cantidad_clientes_singrupo())
         {
             $singrupo = new grupo_clientes();
@@ -558,7 +557,7 @@ class dashboard_distribucion extends fs_controller {
                 $this->clientes_rutas['mesa_fecha_oferta'][$supervisor->codagente][$fecha->format('d-m-Y')] = 0;
             }
         }
-        
+
         foreach($this->vendedores as $vendedor){
             $rutasagente = $this->rutas->all_rutasporagente($this->empresa->id, $vendedor->codalmacen, $vendedor->codagente);
             $vendedor->codsupervisor = ($vendedor->codsupervisor)?$vendedor->codsupervisor:"NOSUPERVISOR";
@@ -587,11 +586,11 @@ class dashboard_distribucion extends fs_controller {
                         $this->clientes_rutas['importe'][$ruta->ruta] = 0;
                         $this->clientes_rutas['oferta'][$ruta->ruta] = 0;
                     }
-                    
+
                     if(!isset($this->clientes_rutas['no_atendidos'][$ruta->ruta])){
                         $this->clientes_rutas['no_atendidos'][$ruta->ruta] = $clientes_ruta;
                     }
-                    
+
                     $this->clientes_rutas['atendidos'][$ruta->ruta] = $this->distribucion_facturas->clientes_visitados($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
                     $this->clientes_rutas['no_atendidos'][$ruta->ruta] -= $this->clientes_rutas['atendidos'][$ruta->ruta];
 
@@ -664,7 +663,7 @@ class dashboard_distribucion extends fs_controller {
             $efectividad_color = ($efectividad_supervisor>30 AND $efectividad_supervisor<65)?'warning':$efectividad_color;
             $this->clientes_rutas['efectividad_mesa_color'][$supervisor->codagente] = $efectividad_color;
         }
-        
+
         if($this->clientes_rutas['general_clientes']){
             $efectividad_general = round(($this->clientes_rutas['general_atendidos']/$this->clientes_rutas['general_clientes'])*100,0);
             $this->clientes_rutas['general_efectividad'] = $efectividad_general;
@@ -672,7 +671,7 @@ class dashboard_distribucion extends fs_controller {
             $efectividad_color = ($efectividad_general>30 AND $efectividad_general<65)?'warning':$efectividad_color;
             $this->clientes_rutas['efectividad_general_color'] = $efectividad_color;
         }
-        
+
     }
 
     //Generamos el listado de los 10 clientes que más compran
@@ -812,7 +811,7 @@ class dashboard_distribucion extends fs_controller {
 
     public function shared_extensions(){
         $extensiones = array(
-            
+
             array(
                 'name' => 'dashboard_distribucion_chartjs',
                 'page_from' => __CLASS__,
@@ -957,7 +956,7 @@ class dashboard_distribucion extends fs_controller {
                 $this->new_error_msg('Error al guardar la extensión ' . $ext['name']);
             }
         }
-        
+
         $extensiones2 = array(
         array(
                 'name' => 'dashboard_distribucion_momentjs',

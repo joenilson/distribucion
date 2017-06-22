@@ -23,7 +23,7 @@ require_model('facturas_cliente.php');
 require_model('facturas_proveedor.php');
 require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
-require_once ('plugins/distribucion/vendors/tcpdf/tcpdf.php');
+
 /**
  * Description of informes_caja
  *
@@ -76,13 +76,10 @@ class informes_caja extends fs_controller {
     public $detalle;
     public $tesoreria;
     public $fileNameXLS;
-    public $fileNamePDF;
     public $pathNameXLS;
-    public $pathNamePDF;
     public $documentosDir;
     public $cajaDir;
     public $publicPath;
-    public $pdf;
     public $distribucion_ordenescarga_factura;
     public function __construct() {
         parent::__construct(__CLASS__, 'Caja', 'informes', FALSE, TRUE, FALSE);
@@ -154,7 +151,6 @@ class informes_caja extends fs_controller {
                     $this->pendientes_anteriores();
                     $this->egresos();
                     $this->generar_excel();
-                    //$this->generar_pdf();
                 break;
             }
         }
@@ -335,295 +331,6 @@ class informes_caja extends fs_controller {
         $this->writer->writeSheetRow('Compras', array('Total','', '', '', '', 0, 0, 0, ($totalAbonosCompras+$totalSaldoCompras), '',''));
         $this->writer->writeToFile($this->pathNameXLS);
         gc_collect_cycles();
-    }
-
-    private function generar_pdf(){
-        $this->pathNamePDF = $this->cajaDir . DIRECTORY_SEPARATOR . 'informe' . "_" . $this->user->nick . ".pdf";
-        $this->fileNamePDF = $this->publicPath . DIRECTORY_SEPARATOR . 'informe' . "_" . $this->user->nick . ".pdf";
-        if (file_exists($this->fileNamePDF)) {
-            unlink($this->fileNamePDF);
-        }
-        $this->pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        $this->pdf->setPageOrientation('L',TRUE,10);
-        $basepath = dirname(dirname(__FILE__));
-        $logo = '../../../..'.FS_MYDOCS.DIRECTORY_SEPARATOR.'images/logo.png';
-        $logo_empresa = (file_exists($logo))?$logo:false;
-        $this->pdf->startPageGroup();
-        $this->pdf->SetHeaderData(
-            $logo_empresa,
-            10,
-            $this->empresa->nombre,
-            'Informe de Caja del Almacén: '.$this->almacenes->get($this->codalmacen)->nombre.' del '.$this->f_desde.' al '.$this->f_hasta. 'generado el: '.\date('d-m-Y H:i:s'),
-            array(0,0,0),
-            array(0,0,0)
-        );
-        $this->pdf->setFooterData(array(0,64,0), array(0,64,128));
-        // set header and footer fonts
-        $this->pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-        $this->pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-        // set default monospaced font
-        $this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-        $this->pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-        //$this->pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-        $this->pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-        $this->pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-        $this->pdf->SetAutoPageBreak(TRUE, 0);
-        $headerResumen = array('Tipo'=>20,'Facturado'=>30,'Cobrado'=>30,'Por cobrar'=>30);
-        $this->pdf->SetFont('courier', '', 9);
-        $this->pdf->AddPage();
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(110, 4, 'Detalle de Ingresos', 1, 0, 'C', 0);
-        $this->pdf->Ln();
-        $this->pdfHeader($headerResumen);
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(20, 4, 'Ventas', 1, 0, 'L', 0);
-        $this->pdf->SetFont('courier', '');
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_ventas,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->pagadas['ventas'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->pendientes['ventas'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Ln();
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(20, 4, 'Faltantes', 1, 0, 'L', 0);
-        $this->pdf->SetFont('courier', '');
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_faltantes_ventas,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->pagadas['faltantes_ventas'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->pendientes['faltantes_ventas'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Ln();
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(20, 4, 'Total', 1, 0, 'L', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_ingresos,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_cobros,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_pendientes_cobro,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Ln();
-        $this->pdf->Ln();
-        $this->pdf->Ln();
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(110, 4, 'Detalle de Egresos', 1, 0, 'C', 0);
-        $this->pdf->Ln();
-        $this->pdfHeader($headerResumen);
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(20, 4, 'Ventas', 1, 0, 'L', 0);
-        $this->pdf->SetFont('courier', '');
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_compras,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->pagadas['compras'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->pendientes['compras'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Ln();
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(20, 4, 'Faltantes', 1, 0, 'L', 0);
-        $this->pdf->SetFont('courier', '');
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_faltantes_compras,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->pagadas['faltantes_compras'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->pendientes['faltantes_compras'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Ln();
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(20, 4, 'Total', 1, 0, 'L', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_egresos,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_pagos,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($this->total_pendientes_pago,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Ln();
-        $this->pdf->Ln();
-        $this->pdf->Ln();
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(180, 4, 'Movimientos por Formas de Pago', 1, 0, 'C', 0);
-        $this->pdf->Ln();
-        $headerFormasPago = array('forma Pago'=>60,'Ingreso Bruto'=>30,'Ingreso Neto'=>30,'Egreso Bruto'=>30, 'Egreso Neto'=>30);
-        $this->pdfHeader($headerFormasPago);
-        $totales_fp['ingresos_brutos'] = 0;
-        $totales_fp['ingresos_netos'] = 0;
-        $totales_fp['egresos_brutos'] = 0;
-        $totales_fp['egresos_netos'] = 0;
-        foreach($this->fp->all() as $fp){
-            $this->pdf->Cell(60, 4, $fp->descripcion, 1, 0, 'L', 0);
-            $this->pdf->Cell(30, 4, $this->show_precio($this->ingresos_condpago[$fp->codpago],$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(30, 4, $this->show_precio($this->cobros_condpago[$fp->codpago],$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(30, 4, $this->show_precio($this->egresos_condpago[$fp->codpago],$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(30, 4, $this->show_precio($this->pagos_condpago[$fp->codpago],$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $totales_fp['ingresos_brutos'] += $this->ingresos_condpago[$fp->codpago];
-            $totales_fp['ingresos_netos'] += $this->cobros_condpago[$fp->codpago];
-            $totales_fp['egresos_brutos'] += $this->egresos_condpago[$fp->codpago];
-            $totales_fp['egresos_netos'] += $this->pagos_condpago[$fp->codpago];
-            $this->pdf->Ln();
-        }
-
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(60, 4, 'Total', 1, 0, 'L', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($totales_fp['ingresos_brutos'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($totales_fp['ingresos_netos'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($totales_fp['egresos_brutos'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(30, 4, $this->show_precio($totales_fp['egresos_netos'],$this->empresa->coddivisa), 1, 0, 'R', 0);
-        //Inicio de páginas para Ventas
-        $this->pdf->AddPage('L');
-        $lineas = 1;
-        $totalImporte=0;
-        $totalRectificativas=0;
-        $totalAbonos=0;
-        $totalSaldo=0;
-        $this->pdf->Cell(270, 4, 'Detalles de Ventas', 1, 0, 'C', 0);
-        $this->pdf->Ln();
-        $headerDetalleVentas = array('Factura'=>15,FS_NUMERO2=>40,'Cliente'=>60,'Pagada'=>15, 'Importe'=>25,'Rect.'=>25, 'Abonos'=>25, 'Saldo'=>25, 'Fecha Doc.'=>20, 'Fecha Pago'=>20);
-        $this->pdfHeader($headerDetalleVentas);
-        foreach($this->detalle['ventas'] as $factura){
-            if($lineas == 40){
-                $this->pdf->AddPage('L');
-                $this->pdf->Cell(270, 4, 'Detalles de Ventas', 1, 0, 'C', 0);
-                $this->pdf->Ln();
-                $this->pdfHeader($headerDetalleVentas);
-                $lineas=1;
-            }
-            $factura->saldo = ($factura->total+$factura->rectificativa)-$factura->abonos;
-            $totalImporte+=$factura->total;
-            $totalRectificativas+=$factura->rectificativa;
-            $totalAbonos+=$factura->abonos;
-            $totalSaldo+=$factura->saldo;
-            $this->pdf->Cell(15, 4, $factura->idfactura, 1, 0, 'L', 0);
-            $this->pdf->Cell(40, 4, $factura->numero2, 1, 0, 'L', 0);
-            $this->pdf->Cell(60, 4, $factura->nombrecliente, 1, 0, 'L', 0);
-            $this->pdf->Cell(15, 4, ($factura->pagada)?'Pagada':'Pendiente', 1, 0, 'L', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->total,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->rectificativa,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->abonos,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->saldo,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(20, 4, $factura->fecha, 1, 0, 'L', 0);
-            $this->pdf->Cell(20, 4, $factura->fecha_pago, 1, 0, 'L', 0);
-            $this->pdf->Ln();
-            $lineas++;
-        }
-        if($lineas>=38){
-            $this->pdf->AddPage('L');
-        }
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(130, 4, 'Total Ingresos', 1, 0, 'L', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalImporte,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalRectificativas,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalAbonos,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalSaldo,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Ln();
-        $this->pdf->Cell(180, 4, '', 1, 0, 'L', 0);
-        $this->pdf->Cell(50, 4, $this->show_precio(($totalAbonos+$totalSaldo),$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->AddPage('L');
-        $lineas = 1;
-        $totalImporteFaltantes=0;
-        $totalAbonosFaltantes=0;
-        $totalSaldoFaltantes=0;
-        $this->pdf->Cell(270, 4, 'Detalle de Faltantes', 1, 0, 'C', 0);
-        $this->pdf->Ln();
-        $headerDetalleFaltantes = array('Factura'=>15,FS_NUMERO2=>40,'Conductor'=>60,'Pagada'=>15, 'Importe'=>25,''=>25, 'Abonos'=>25, 'Saldo'=>25, 'Fecha Doc.'=>20, 'Fecha Pago'=>20);
-        $this->pdfHeader($headerDetalleVentas);
-        foreach($this->detalle['faltantes'] as $factura){
-            if($lineas == 40){
-                $this->pdf->AddPage('L');
-                $this->pdf->Cell(270, 4, 'Detalle de Faltantes', 1, 0, 'C', 0);
-                $this->pdf->Ln();
-                $this->pdfHeader($headerDetalleFaltantes);
-                $lineas=1;
-            }
-            $totalImporteFaltantes+=$factura->importe;
-            $totalAbonosFaltantes+=$factura->importe_abonos;
-            $totalSaldoFaltantes+=$factura->importe_saldo;
-            $this->pdf->Cell(15, 4, $factura->idrecibo, 1, 0, 'L', 0);
-            $this->pdf->Cell(40, 4, '', 1, 0, 'L', 0);
-            $this->pdf->Cell(60, 4, $factura->conductor_nombre, 1, 0, 'L', 0);
-            $this->pdf->Cell(15, 4, ucfirst($factura->pagada), 1, 0, 'L', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->importe,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(25, 4, '', 1, 0, 'R', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->importe_abonos,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->importe_saldo,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(20, 4, $factura->fecha, 1, 0, 'L', 0);
-            $this->pdf->Cell(20, 4, $factura->fechap, 1, 0, 'L', 0);
-            $this->pdf->Ln();
-            $lineas++;
-        }
-        if($lineas>=38){
-            $this->pdf->AddPage('L');
-        }
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(130, 4, 'Total Faltantes', 1, 0, 'L', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalImporteFaltantes,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(25, 4, '', 1, 0, 'R', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalAbonosFaltantes,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalSaldoFaltantes,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Ln();
-        $this->pdf->Cell(180, 4, '', 1, 0, 'L', 0);
-        $this->pdf->Cell(50, 4, $this->show_precio($totalSaldoFaltantes,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->AddPage('L');
-        if($lineas>=38){
-            $this->pdf->AddPage('L');
-        }
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(180, 4, 'Total Ingreso Neto', 1, 0, 'L', 0);
-        $this->pdf->Cell(50, 4, $this->show_precio(($totalAbonos+$totalSaldo)-$totalSaldoFaltantes,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        //Inicio de paginas para Compras
-        $this->pdf->AddPage('L');
-        $items = 1;
-        $totalImporteCompras=0;
-        $totalRectificativasCompras=0;
-        $totalAbonosCompras=0;
-        $totalSaldoCompras=0;
-        $headerDetalleCompras = array('Factura'=>15,FS_NUMERO2=>40,'Proveedor'=>60,'Pagada'=>15, 'Importe'=>25,'Rect.'=>25, 'Abonos'=>25, 'Saldo'=>25, 'Fecha Doc.'=>20, 'Vencimiento'=>20, 'Fecha Pago'=>20);
-        $this->pdf->Cell(270, 4, 'Detalles de Compras', 1, 0, 'C', 0);
-        $this->pdf->Ln();
-        $this->pdfHeader($headerDetalleCompras);
-        foreach($this->detalle['compras'] as $factura){
-            if($items == 40){
-                $this->pdf->AddPage('L');
-                $this->pdf->Cell(270, 4, 'Detalles de Compras', 1, 0, 'C', 0);
-                $this->pdf->Ln();
-                $this->pdfHeader($headerDetalleCompras);
-                $items=1;
-            }
-            $factura->saldo = ($factura->total+$factura->rectificativa)-$factura->abonos;
-            $totalImporteCompras+=$factura->total;
-            $totalRectificativasCompras+=$factura->rectificativa;
-            $totalAbonosCompras+=$factura->abonos;
-            $totalSaldoCompras+=$factura->saldo;
-            $this->pdf->Cell(15, 4, $factura->idfactura, 1, 0, 'L', 0);
-            $this->pdf->Cell(40, 4, $factura->numproveedor, 1, 0, 'L', 0);
-            $this->pdf->Cell(60, 4, $factura->nombre, 1, 0, 'L', 0);
-            $this->pdf->Cell(15, 4, ($factura->pagada)?'Pagada':'Pendiente', 1, 0, 'L', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->total,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->rectificativa,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->abonos,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(25, 4, $this->show_precio($factura->saldo,$this->empresa->coddivisa), 1, 0, 'R', 0);
-            $this->pdf->Cell(20, 4, $factura->fecha, 1, 0, 'L', 0);
-            $this->pdf->Cell(20, 4, $factura->vencimiento, 1, 0, 'L', 0);
-            $this->pdf->Cell(20, 4, $factura->fecha_pago, 1, 0, 'L', 0);
-            $this->pdf->Ln();
-            $items++;
-        }
-        if($items>=38){
-            $this->pdf->AddPage('L');
-        }
-        $this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(130, 4, 'Total', 1, 0, 'L', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalImporteCompras,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalRectificativasCompras,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalAbonosCompras,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(25, 4, $this->show_precio($totalSaldoCompras,$this->empresa->coddivisa), 1, 0, 'R', 0);
-        $this->pdf->Cell(180, 4, '', 1, 0, 'L', 0);
-        $this->pdf->Cell(50, 4, $this->show_precio(($totalAbonosCompras+$totalSaldoCompras),$this->empresa->coddivisa), 1, 0, 'R', 0);
-
-        //Guardamos el PDF
-        $this->pdf->Output($this->pathNamePDF,'F');
-    }
-
-    private function pdfHeader($header){
-        $this->pdf->SetFillColor(255, 255, 255);
-        $this->pdf->SetTextColor(0);
-        $this->pdf->SetDrawColor(153, 153, 153);
-        $this->pdf->SetLineWidth(0.3);
-        $this->pdf->SetFont('courier', 'B');
-        //Cabecera
-        foreach($header as $text=>$width){
-            $this->pdf->Cell($width, 1, $text, 1, 0, 'C', 1);
-        }
-        $this->pdf->SetFont('courier', '', 9);
-        //$this->pdf->Cell(100, 6, '', 0, 0, 'C', 0);
-        $this->pdf->Ln();
-        // Color and font restoration
-        $this->pdf->SetFillColor(224, 235, 255);
-        $this->pdf->SetTextColor(0);
-        $this->pdf->SetFont('courier','',8);
-
     }
 
     private function generar_formas_pago(){

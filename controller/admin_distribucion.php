@@ -91,7 +91,7 @@ class admin_distribucion extends fs_controller {
         new distribucion_ordenescarga_facturas();
         new distribucion_lineastransporte();
         new distribucion_asignacion_cargos();
-        
+
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->share_extensions();
         /// cargamos la configuración
@@ -103,7 +103,9 @@ class admin_distribucion extends fs_controller {
             'distrib_transporte' => "Transporte",
             'distrib_transportes' => "Transportes",
             'distrib_devolucion' => "Devolución",
-            'distrib_devoluciones' => "Devoluciones",                
+            'distrib_devoluciones' => "Devoluciones",
+            'distrib_hojadevolucion' => "Hoja de Devolución",
+            'distrib_hojasdevolucion' => "Hojas de Devolución",
             'distrib_agencia' => "Agencia",
             'distrib_agencias' => "Agencias",
             'distrib_unidad' => "Unidad",
@@ -118,12 +120,12 @@ class admin_distribucion extends fs_controller {
         );
 
         $this->check_menu();
-        
+
         /*
          * Buscamos si está el plugin de nomina para la busqueda de los cargos de Supervisor y Vendedor
          */
         $this->nomina = in_array('nomina',$GLOBALS['plugins']);
-        
+
         $this->distribucion_tipounidad = new distribucion_tipounidad();
         $this->distribucion_tiporuta = new distribucion_tiporuta();
         $this->distribucion_restricciones_tiporuta = new distribucion_restricciones_tiporuta();
@@ -162,7 +164,7 @@ class admin_distribucion extends fs_controller {
                 $this->template = 'admin/restriccion_articulos';
             }
         }
-        
+
         $this->cargos_disponibles = $this->listado_cargos_disponibles();
         $this->listado_tipo_transporte = $this->distribucion_tipounidad->all($this->empresa->id);
         $this->listado_tipo_ruta = $this->distribucion_tiporuta->all();
@@ -173,7 +175,7 @@ class admin_distribucion extends fs_controller {
         $this->listado_administradores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'ADM');
 
     }
-    
+
     /**
      * Cargamos el menú en la base de datos, pero en varias pasadas.
      */
@@ -222,10 +224,10 @@ class admin_distribucion extends fs_controller {
 
         $this->load_menu(TRUE);
     }
-    
+
     public function restriccion_articulos($restringir = true){
         $articulos = json_decode(\filter_input(INPUT_GET, 'articulos'));
-        
+
         $restricciones = new distribucion_restricciones_tiporuta();
         foreach($articulos as $art){
             $restricciones->id = $this->idtiporuta;
@@ -243,9 +245,9 @@ class admin_distribucion extends fs_controller {
         header('Content-Type: application/json');
         echo json_encode($respuesta);
     }
-    
+
     public function get_hojas($familias){
-        $node = array();   
+        $node = array();
         foreach($familias as $values){
             $linea = new stdClass();
             if(!isset($linea->nodes)){
@@ -254,7 +256,7 @@ class admin_distribucion extends fs_controller {
             $linea->id = $values->codfamilia;
             $linea->text = $values->descripcion;
             $linea->tags = array("Familia");
-            
+
             if($values->hijas()){
                 $linea->nodes = $this->get_hojas($values->hijas());
             }
@@ -271,7 +273,7 @@ class admin_distribucion extends fs_controller {
         }
         return $node;
     }
-    
+
     public function get_arbol_articulos(){
         $listaArticulosSinFamilia = array();
         foreach($this->articulo->all() as $values){
@@ -297,7 +299,7 @@ class admin_distribucion extends fs_controller {
     }
 
     public function get_restringidos($familias){
-        $node = array();   
+        $node = array();
         foreach($familias as $values){
             $linea = new stdClass();
             if(!isset($linea->nodes)){
@@ -306,7 +308,7 @@ class admin_distribucion extends fs_controller {
             $linea->id = $values->codfamilia;
             $linea->text = $values->descripcion;
             $linea->tags = array("Familia");
-            
+
             if($values->hijas()){
                 $linea->nodes = $this->get_hojas($values->hijas());
             }
@@ -321,7 +323,7 @@ class admin_distribucion extends fs_controller {
         }
         return $node;
     }
-    
+
     public function get_arbol_restringidos(){
         $listaArticulosRestringidos = array();
         $datos = $this->distribucion_restricciones_tiporuta->get_idruta($this->idtiporuta);
@@ -374,7 +376,7 @@ class admin_distribucion extends fs_controller {
             }
         }
     }
-    
+
     public function tratar_tiporuta(){
         $delete = \filter_input(INPUT_POST, 'delete');
         $id = \filter_input(INPUT_POST, 'id');
@@ -406,9 +408,9 @@ class admin_distribucion extends fs_controller {
             } else {
                 $this->new_error_msg("¡Imposible actualizar los datos del tipo de ruta!");
             }
-        }   
+        }
     }
-    
+
     public function tratar_tipovendedor(){
         $delete = \filter_input(INPUT_POST, 'delete');
         $id = \filter_input(INPUT_POST, 'id');
@@ -442,7 +444,7 @@ class admin_distribucion extends fs_controller {
             }
         }
     }
-    
+
     public function tratar_traducciones(){
         if (isset($_POST['distribucion_setup'])) {
             $this->distribucion_setup['distrib_ordencarga'] = trim(\filter_input(INPUT_POST, 'distrib_ordencarga'));
@@ -469,7 +471,7 @@ class admin_distribucion extends fs_controller {
             }
         }
     }
-    
+
     public function tratar_asignacion_cargos(){
         $id_cargo = false;
         $id_supervisor = \filter_input(INPUT_POST, 'cargos_disponibles_supervisores');
@@ -484,7 +486,7 @@ class admin_distribucion extends fs_controller {
         }elseif($accion == 'eliminar'){
             $id_cargo=\filter_input(INPUT_POST, 'codcargo');
         }
-        
+
         if($accion=='agregar' and !empty($id_cargo)){
             $ac0 = new distribucion_asignacion_cargos();
             $ac0->idempresa = $this->empresa->id;
@@ -505,7 +507,7 @@ class admin_distribucion extends fs_controller {
             }
         }
     }
-    
+
     public function listado_cargos_disponibles(){
         $listado = array();
         if($this->nomina){
@@ -516,7 +518,7 @@ class admin_distribucion extends fs_controller {
             foreach($this->distribucion_asignacion_cargos->all($this->empresa->id) as $cargo){
                 $cargos_ocupados[]=$cargo->codcargo;
             }
-            
+
             foreach($listado as $id=>$item){
                 if(in_array($item->codcargo, $cargos_ocupados)){
                     unset($listado[$id]);
@@ -525,7 +527,7 @@ class admin_distribucion extends fs_controller {
         }
         return $listado;
     }
-    
+
     private function share_extensions()
     {
         $fsext = new fs_extension();
@@ -536,7 +538,7 @@ class admin_distribucion extends fs_controller {
         $fsext->text = '<span class="glyphicon glyphicon-cog" aria-hidden="true">'
                 . '</span><span class="hidden-xs">&nbsp; Opciones</span>';
         $fsext->delete();
-        
+
         $extensiones = array(
             array(
                 'name' => 'treeview_admin_distribucion_js',

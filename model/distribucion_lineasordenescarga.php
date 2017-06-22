@@ -18,8 +18,8 @@
 
  */
 require_model('articulo.php');
-require_model('articulo_unidadesmedida.php');
-require_model('unidadesmedida.php');
+require_model('articulo_unidadmedida.php');
+require_model('unidadmedida.php');
 /**
  * Description of distribucion_lineasordenescarga
  *

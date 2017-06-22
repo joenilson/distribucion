@@ -31,7 +31,7 @@ require_model('facturas_cliente.php');
 require_model('facturas_proveedor.php');
 require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
-require_once 'plugins/distribucion/vendors/tcpdf/tcpdf.php';
+
 /**
  * Description of informes_vendedores
  *
