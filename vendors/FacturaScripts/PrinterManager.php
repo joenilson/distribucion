@@ -38,6 +38,7 @@ class PrinterManager {
     public $page_lines;
     public $page_units = 'mm';
     public $page_orientation;
+    public $linea_espacio;
     public $fileHandler;
     public function __construct(array $info) {
         $this->file = (isset($info['file']))?$info['file']:'doc.pdf';
@@ -45,6 +46,7 @@ class PrinterManager {
         $this->font = (isset($info['font']))?$info['font']:'Arial';
         $this->page_size = (isset($info['page_size']))?$info['page_size']:'letter';
         $this->page_lines = (isset($info['page_lines']))?$info['page_lines']:27;
+        $this->linea_espacio = (isset($info['linea_espacio']))?$info['linea_espacio']:5;
         $this->page_orientation = (isset($info['page_orientation']))?$info['page_orientation']:'P';
         $this->tmp_dir = sys_get_temp_dir();
     }
@@ -71,6 +73,7 @@ class PrinterManager {
 
     public function agregarCabecera(\empresa $empresa, $documento, $cabecera){
         $this->fileHandler->fs_font = $this->font;
+        $this->fileHandler->fs_espacio = $this->linea_espacio;
         $this->fileHandler->empresa = $empresa;
         $this->fileHandler->cabecera_info = $cabecera;
         $this->fileHandler->addCabecera();

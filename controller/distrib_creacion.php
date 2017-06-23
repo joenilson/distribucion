@@ -408,7 +408,7 @@ class distrib_creacion extends fs_controller {
         $value_transporte = \filter_input(INPUT_GET, 'transporte');
         $lista_transporte = explode(',', $value_transporte);
         $contador_transporte = 0;
-        $conf = array('file'=>$tipo.'.pdf', 'type'=>'pdf', 'page_size'=>'letter');
+        $conf = array('file'=>$tipo.'.pdf', 'type'=>'pdf', 'page_size'=>'letter','linea_espacio'=>($tipo=='hojadevolucion')?8:5);
         $pdf_doc = new PrinterManager($conf);
         $pdf_doc->crearArchivo();
         foreach ($lista_transporte as $linea) {
