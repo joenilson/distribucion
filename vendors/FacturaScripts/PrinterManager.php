@@ -33,6 +33,7 @@ class PrinterManager {
     public $tmp_dir;
     public $fs_txt;
     public $fs_pdf;
+    public $font;
     public $page_size;
     public $page_lines;
     public $page_units = 'mm';
@@ -41,6 +42,7 @@ class PrinterManager {
     public function __construct(array $info) {
         $this->file = (isset($info['file']))?$info['file']:'doc.pdf';
         $this->type = (isset($info['type']))?$info['type']:'pdf';
+        $this->font = (isset($info['font']))?$info['font']:'Arial';
         $this->page_size = (isset($info['page_size']))?$info['page_size']:'letter';
         $this->page_lines = (isset($info['page_lines']))?$info['page_lines']:27;
         $this->page_orientation = (isset($info['page_orientation']))?$info['page_orientation']:'P';
@@ -68,19 +70,21 @@ class PrinterManager {
     }
 
     public function agregarCabecera(\empresa $empresa, $documento, $cabecera){
+        $this->fileHandler->fs_font = $this->font;
+        $this->fileHandler->empresa = $empresa;
+        $this->fileHandler->cabecera_info = $cabecera;
         $this->fileHandler->addCabecera();
         $this->fileHandler->documento_nombre = $documento->nombre;
         $this->fileHandler->documento_numero = $documento->numero;
         $this->fileHandler->documento_cabecera_lineas = $documento->cabecera_lineas;
-
-        $this->fileHandler->addEmpresaInfo($empresa);
-        $this->fileHandler->addDocumentoInfo($documento);
-        $this->fileHandler->addCabeceraInfo($cabecera);
+        $this->fileHandler->addEmpresaInfo();
+        $this->fileHandler->addDocumentoInfo();
+        $this->fileHandler->addCabeceraInfo();
         $this->fileHandler->addCabeceraLineas();
     }
 
-    public function agregarLineas(array $lineas){
-        $this->fileHandler->addDetalleLineas($lineas);
+    public function agregarLineas(array $lineas, $separador = false){
+        $this->fileHandler->addDetalleLineas($lineas, $separador);
     }
 
     public function agregarObservaciones($observaciones){

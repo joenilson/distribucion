@@ -259,11 +259,11 @@ class distrib_creacion extends fs_controller {
             $cabecera[] = array('size'=>30, 'descripcion'=>'Devolución','align'=>'R','total'=>true,'total_campo'=>'totaldevolucion');
             $cabecera[] = array('size'=>30, 'descripcion'=>'Saldo','align'=>'R','total'=>true,'total_campo'=>'totalsaldo');
         }elseif($tipo=='liquidacion'){
-            $cabecera[] = array('size'=>20, 'descripcion'=>'Id','align'=>'L','total'=>false);
-            $cabecera[] = array('size'=>45, 'descripcion'=>FS_NUMERO2,'align'=>'L','total'=>false);
-            $cabecera[] = array('size'=>60, 'descripcion'=>'Cliente','align'=>'L','total'=>false);
+            $cabecera[] = array('size'=>25, 'descripcion'=>'Id','align'=>'L','total'=>false);
+            $cabecera[] = array('size'=>50, 'descripcion'=>FS_NUMERO2,'align'=>'L','total'=>false);
+            $cabecera[] = array('size'=>50, 'descripcion'=>'Cliente','align'=>'L','total'=>false);
             $cabecera[] = array('size'=>30, 'descripcion'=>'Fecha Fac','align'=>'L','total'=>false);
-            $cabecera[] = array('size'=>25, 'descripcion'=>'Cantidad','align'=>'R','total'=>false);
+            $cabecera[] = array('size'=>20, 'descripcion'=>'Cant.','align'=>'R','total'=>false);
             $cabecera[] = array('size'=>30, 'descripcion'=>'Monto','align'=>'R','total'=>true,'total_campo'=>'totalmonto');
             $cabecera[] = array('size'=>30, 'descripcion'=>'Abono','align'=>'R','total'=>true,'total_campo'=>'totalabono');
             $cabecera[] = array('size'=>30, 'descripcion'=>'Saldo','align'=>'R','total'=>true,'total_campo'=>'totalsaldo');

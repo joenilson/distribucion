@@ -24,12 +24,53 @@ require_once 'plugins/distribucion/vendors/fpdf181/fpdf.php';
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
+//function hex2dec
+//returns an associative array (keys: R, G, B) from
+//a hex html code (e.g. #3FE5AA)
+//from http://fpdf.de/downloads/add-ons/write-html-2.html
+function hex2dec($couleur = "#000000"){
+    $R = substr($couleur, 1, 2);
+    $rouge = hexdec($R);
+    $V = substr($couleur, 3, 2);
+    $vert = hexdec($V);
+    $B = substr($couleur, 5, 2);
+    $bleu = hexdec($B);
+    $tbl_couleur = array();
+    $tbl_couleur['R']=$rouge;
+    $tbl_couleur['V']=$vert;
+    $tbl_couleur['B']=$bleu;
+    return $tbl_couleur;
+}
+
+//conversion pixel -> millimeter at 72 dpi
+function px2mm($px){
+    return $px*25.4/72;
+}
+
+function txtentities($html){
+    $trans = get_html_translation_table(HTML_ENTITIES);
+    $trans = array_flip($trans);
+    return strtr($html, $trans);
+}
+////////////////////////////////////
+
 class FS_PDF extends \FPDF{
     //Addon for FPDF from: http://fpdf.de/downloads/add-ons/page-groups.html
     protected $NewPageGroup;   // variable indicating whether a new group was requested
     protected $PageGroups;     // variable containing the number of pages of the groups
     protected $CurrPageGroup;  // variable containing the alias of the current page group
+    protected $B = 0;
+    protected $I = 0;
+    protected $U = 0;
+    protected $HREF = '';
+    protected $fontList;
+    protected $issetfont;
+    protected $issetcolor;
+    public $widths;
+    public $aligns;
     public $verlogotipo = 0;
+    public $empresa;
+    public $cabecera_info;
     public $documento_nombre;
     public $documento_numero;
     public $documento_codigo;
@@ -39,6 +80,7 @@ class FS_PDF extends \FPDF{
     public $mostrar_borde;
     public $mostrar_colores;
     public $mostrar_linea;
+    public $fs_font='Arial';
     /**
      *
      * @param string $orientation
@@ -47,6 +89,14 @@ class FS_PDF extends \FPDF{
      */
     public function __construct($orientation = 'P', $unit = 'mm', $size = 'LETTER', $file = 'documento.pdf') {
         parent::__construct($orientation, $unit, $size);
+        //Initialization
+        $this->B=0;
+        $this->I=0;
+        $this->U=0;
+        $this->HREF='';
+        $this->fontlist=array('arial', 'times', 'courier', 'helvetica', 'symbol');
+        $this->issetfont=false;
+        $this->issetcolor=false;
     }
 
     public function addCabecera(){
@@ -56,53 +106,53 @@ class FS_PDF extends \FPDF{
         $this->y_pos = 8;
     }
 
-    public function addEmpresaInfo(\empresa $empresa){
+    public function addEmpresaInfo(){
         $x1 = ($this->verlogotipo == '1')?50:10;
         $y1 = $this->y_pos;
         $this->SetXY( $x1, $y1 );
-        $this->SetFont('Arial','B',10);
+        $this->SetFont($this->fs_font,'B',10);
         $this->SetTextColor(0);
-        $length1 = $this->GetStringWidth($empresa->nombre);
-        $this->Cell( $length1, 4, utf8_decode($empresa->nombre));
+        $length1 = $this->GetStringWidth($this->empresa->nombre);
+        $this->Cell( $length1, 4, utf8_decode($this->empresa->nombre));
         $y1+=4;
         $this->SetXY( $x1, $y1);
-        $length2 = $this->GetStringWidth(FS_CIFNIF.': '.$empresa->cifnif);
-        $this->SetFont('Arial','',9);
-        $this->Cell($length2, 4, utf8_decode(FS_CIFNIF.': '.$empresa->cifnif));
+        $length2 = $this->GetStringWidth(FS_CIFNIF.': '.$this->empresa->cifnif);
+        $this->SetFont($this->fs_font,'',9);
+        $this->Cell($length2, 4, utf8_decode(FS_CIFNIF.': '.$this->empresa->cifnif));
         $y1+=4;
         $this->SetXY( $x1, $y1);
-        $this->SetFont('Arial','',9);
-        $length3 = $this->GetStringWidth( $empresa->direccion.' - '.$empresa->ciudad.' - '.$empresa->provincia );
-        $this->MultiCell($length3, 4, utf8_decode($empresa->direccion.' - '.$empresa->ciudad.' - '.$empresa->provincia));
+        $this->SetFont($this->fs_font,'',8);
+        $length3 = $this->GetStringWidth( $this->empresa->direccion.' - '.$this->empresa->ciudad.' - '.$this->empresa->provincia );
+        $this->MultiCell($length3, 4, utf8_decode($this->empresa->direccion.' - '.$this->empresa->ciudad.' - '.$this->empresa->provincia));
         $y1 += ($this->getY() - $y1);
-        if ($empresa->telefono != '')
+        if ($this->empresa->telefono != '')
         {
             $this->SetXY($x1, $y1);
-            $this->SetFont('Arial','',9);
-            $this->Cell($length2, 4, utf8_decode('Teléfono: '.$empresa->telefono));
+            $this->SetFont($this->fs_font,'',8);
+            $this->Cell($length2, 4, utf8_decode('Teléfono: '.$this->empresa->telefono));
             $this->SetTextColor(0);
             $this->SetFont('');
             $y1+=4;
         }
 
-        if ($empresa->email != '')
+        if ($this->empresa->email != '')
         {
             $this->SetXY($x1, $y1);
-            $this->SetFont('Arial','',9);
+            $this->SetFont($this->fs_font,'',8);
             $this->Write(5,'Email: ');
             $this->SetTextColor(0,0,255);
-            $this->Write(5, utf8_decode($empresa->email), 'mailto:' . $empresa->email);
+            $this->Write(5, utf8_decode($this->empresa->email), 'mailto:' . $this->empresa->email);
             $this->SetTextColor(0);
             $this->SetFont('');
         }
 
-        if ($empresa->web != '')
+        if ($this->empresa->web != '')
         {
-            $this->SetXY($x1+$this->GetStringWidth($empresa->email)+12, $y1);
-            $this->SetFont('Arial','',9);
+            $this->SetXY($x1+$this->GetStringWidth($this->empresa->email)+14, $y1);
+            $this->SetFont($this->fs_font,'',8);
             $this->Write(5,'Web: ');
             $this->SetTextColor(0,0,255);
-            $this->Write(5, utf8_decode($empresa->web), $empresa->web);
+            $this->Write(5, utf8_decode($this->empresa->web), $this->empresa->web);
             $this->SetTextColor(0);
             $this->SetFont('');
         }
@@ -119,7 +169,7 @@ class FS_PDF extends \FPDF{
 
         while ( $loop == 0 )
         {
-           $this->SetFont("Arial", "B",$szfont);
+           $this->SetFont($this->fs_font, "B", $szfont);
            $sz = $this->GetStringWidth($this->documento_nombre);
            if ( ($r1+$sz) > $r2 ){
               $szfont--;
@@ -131,27 +181,31 @@ class FS_PDF extends \FPDF{
         $this->SetLineWidth(0.1);
         $this->Rect($r1, $y1,($r2 - $r1), $y2, 'B');
         $y1++;
-        $this->SetFont( "Arial", "B", 10 );
+        $this->SetFont( $this->fs_font, "B", 10 );
         $this->SetXY( $r1+1, $y1+3);
         $this->MultiCell(67,5, utf8_decode(strtoupper($this->documento_nombre)), 0, "C");
         $y1+=4;
         $this->SetXY( $r1+1, $y1+3);
-        $this->Cell(67,5, utf8_decode($this->documento_numero), 0, 0, "C" );
+        $this->MultiCell(67,5, utf8_decode($this->documento_numero), 0, "C" );
         $this->y_pos = ($y1+$y2);
     }
 
-    public function addCabeceraInfo($cabecera){
+    public function addCabeceraInfo(){
         $r1 = 10;
         $r2  = $this->w - 10;
         $y1  = $this->y_pos;
         $y2  = 5;
         $y1++;
         $this->SetXY( $r1, $y1);
-        foreach($cabecera as $linea){
-            $this->SetFont( "Arial", "B", 10 );
+        foreach($this->cabecera_info as $linea){
+            $this->SetFont( $this->fs_font, "B", 10 );
             $this->Cell(30,5, utf8_decode($linea['label']), 0, 0, 'R' );
-            $this->SetFont( "Arial", "", 10 );
-            $this->Cell($linea['size'],5, utf8_decode($linea['valor']), 0, 0, 'L' );
+            $this->SetFont( $this->fs_font, "", 10 );
+            if(isset($linea['html']) AND $linea['html']){
+                $this->WriteHTML($linea['valor']);
+            }else{
+                $this->Cell($linea['size'],5, utf8_decode($linea['valor']), 0, 0, 'L' );
+            }
             if($linea['salto_linea']){
                 $y1+=5;
                 $this->SetXY( $r1, $y1);
@@ -189,25 +243,56 @@ class FS_PDF extends \FPDF{
         $this->SetLineWidth(0.1);
         $this->Rect($r1, $y1,($r2 - $r1), $y2, 'B');
         $this->SetXY($r1, $y1);
-        $this->SetFont( "Arial", "B", 10 );
+        $this->SetFont( $this->fs_font, "B", 10 );
+        $w = array();
+        $a = array();
         foreach($this->documento_cabecera_lineas as $cab){
             $this->Cell($cab['size'],5, utf8_decode($cab['descripcion']),0,0,$cab['align']);
+            $w[] = $cab['size'];
+            $a[] = $cab['align'];
         }
+        $this->SetWidths($w);
+        $this->SetAligns($a);
         $this->y_pos = $y1+6;
     }
 
-    public function addDetalleLineas($lineas){
+    public function addDetalleLineas($lineas,$separador=false){
         $r1 = 10;
         $y1 = $this->y_pos;
-        $this->SetFont("Arial", "", 9);
+        $this->SetFont($this->fs_font, "", 9);
+        $this->SetXY($r1, $y1);
         foreach($lineas as $linea){
             $r2 = $r1;
-            $this->SetXY($r1, $y1);
+            //$this->SetXY($r1, $y1);
+            //$y2 = $y1;
+            $this->Row($linea,$separador);
+            /*
             foreach($this->documento_cabecera_lineas as $i=>$k){
+                //$this->SetXY($r2, $y1);
+
                 $r2 += $k['size'];
-                $this->Cell($k['size'],5, ($linea[$i])?utf8_decode($linea[$i]):str_pad('_',($k['size']/3),'_',STR_PAD_BOTH),0,0,$k['align']);
+                $this->Cell($k['size'],5, ($linea[$i])?utf8_decode(substr($linea[$i],0,$k['size'])):str_pad('_',($k['size']/3),'_',STR_PAD_BOTH),0,0,$k['align']);
+                ///$this->MultiCell($k['size'],5, ($linea[$i])?utf8_decode($linea[$i]).' - '.$this->getY():str_pad('_',($k['size']/3),'_',STR_PAD_BOTH),0,$k['align']);
+                //$y2 = ($this->getY()>$y2)?$this->getY():$y2;
             }
-            $y1+=5;
+             *
+             */
+            //$this->Ln();
+
+            $y1 += 5;
+            //$y1=$this->getY();
+            if($this->getY()>=(ceil($this->h-60))){
+                $this->AddPage();
+                $r1 = 10;
+                $this->y_pos = 8;
+                $this->addEmpresaInfo();
+                $this->addDocumentoInfo();
+                $this->addCabeceraInfo();
+                $this->AddCabeceraLineas();
+                $y1 = $this->y_pos;
+                $this->SetXY($r1, $y1);
+                $this->SetFont($this->fs_font, "", 9);
+            }
         }
         $this->y_pos = $y1+3;
     }
@@ -218,7 +303,7 @@ class FS_PDF extends \FPDF{
         $this->SetXY($r1, $y1);
         $this->Line($r1, $this->getY(), $this->w-10, $this->getY());
         $y1++;
-        $this->SetFont("Arial", "B", 10);
+        $this->SetFont($this->fs_font, "B", 10);
         $this->SetXY($r1, $y1);
         foreach($this->documento_cabecera_lineas as $c){
             if($c['total']){
@@ -240,9 +325,9 @@ class FS_PDF extends \FPDF{
         if($observaciones){
             $strlength = $this->GetStringWidth('Observaciones: ');
             $this->SetXY($r1, -50);
-            $this->SetFont("Arial", "B", 9);
+            $this->SetFont($this->fs_font, "B", 9);
             $this->Cell($strlength+5,5, utf8_decode('Observaciones: '),0,0,'L');
-            $this->SetFont("Arial", "", 9);
+            $this->SetFont($this->fs_font, "", 9);
             $this->MultiCell(($this->w-90),5, utf8_decode($observaciones), 0, "L");
         }else{
             $y1+=5;
@@ -330,4 +415,239 @@ class FS_PDF extends \FPDF{
         }
         parent::_putpages();
     }
+
+    public function WriteHTML($html)
+    {
+        //HTML parser
+        $html=strip_tags($html, "<b><u><i><a><img><p><br><strong><em><font><tr><blockquote>"); //supprime tous les tags sauf ceux reconnus
+        $html=str_replace("\n", ' ', $html); //remplace retour à la ligne par un espace
+        $a=preg_split('/<(.*)>/U', $html, -1, PREG_SPLIT_DELIM_CAPTURE); //éclate la chaîne avec les balises
+        foreach($a as $i=>$e)
+        {
+            if($i%2==0)
+            {
+                //Text
+                if($this->HREF)
+                    $this->PutLink($this->HREF, $e);
+                else
+                    $this->Write(5, stripslashes(txtentities($e)));
+            }
+            else
+            {
+                //Tag
+                if($e[0]=='/')
+                    $this->CloseTag(strtoupper(substr($e, 1)));
+                else
+                {
+                    //Extract attributes
+                    $a2=explode(' ', $e);
+                    $tag=strtoupper(array_shift($a2));
+                    $attr=array();
+                    foreach($a2 as $v)
+                    {
+                        if(preg_match('/([^=]*)=["\']?([^"\']*)/', $v, $a3))
+                            $attr[strtoupper($a3[1])]=$a3[2];
+                    }
+                    $this->OpenTag($tag, $attr);
+                }
+            }
+        }
+    }
+
+    public function OpenTag($tag, $attr)
+    {
+        //Opening tag
+        switch($tag){
+            case 'STRONG':
+                $this->SetStyle('B', true);
+                break;
+            case 'EM':
+                $this->SetStyle('I', true);
+                break;
+            case 'B':
+            case 'I':
+            case 'U':
+                $this->SetStyle($tag, true);
+                break;
+            case 'A':
+                $this->HREF=$attr['HREF'];
+                break;
+            case 'IMG':
+                if(isset($attr['SRC']) && (isset($attr['WIDTH']) || isset($attr['HEIGHT']))) {
+                    if(!isset($attr['WIDTH']))
+                        $attr['WIDTH'] = 0;
+                    if(!isset($attr['HEIGHT']))
+                        $attr['HEIGHT'] = 0;
+                    $this->Image($attr['SRC'], $this->GetX(), $this->GetY(), px2mm($attr['WIDTH']), px2mm($attr['HEIGHT']));
+                }
+                break;
+            case 'TR':
+            case 'BLOCKQUOTE':
+            case 'BR':
+                $this->Ln(5);
+                break;
+            case 'P':
+                $this->Ln(10);
+                break;
+            case 'FONT':
+                if (isset($attr['COLOR']) && $attr['COLOR']!='') {
+                    $coul=hex2dec($attr['COLOR']);
+                    $this->SetTextColor($coul['R'], $coul['V'], $coul['B']);
+                    $this->issetcolor=true;
+                }
+                if (isset($attr['FACE']) && in_array(strtolower($attr['FACE']), $this->fontlist)) {
+                    $this->SetFont(strtolower($attr['FACE']));
+                    $this->issetfont=true;
+                }
+                break;
+        }
+    }
+
+    public function CloseTag($tag)
+    {
+        //Closing tag
+        if($tag=='STRONG')
+            $tag='B';
+        if($tag=='EM')
+            $tag='I';
+        if($tag=='B' || $tag=='I' || $tag=='U')
+            $this->SetStyle($tag, false);
+        if($tag=='A')
+            $this->HREF='';
+        if($tag=='FONT'){
+            if ($this->issetcolor==true) {
+                $this->SetTextColor(0);
+            }
+            if ($this->issetfont) {
+                $this->SetFont('arial');
+                $this->issetfont=false;
+            }
+        }
+    }
+
+    public function SetStyle($tag, $enable)
+    {
+        //Modify style and select corresponding font
+        $this->$tag+=($enable ? 1 : -1);
+        $style='';
+        foreach(array('B', 'I', 'U') as $s)
+        {
+            if($this->$s>0)
+                $style.=$s;
+        }
+        $this->SetFont('', $style);
+    }
+
+    public function PutLink($URL, $txt)
+    {
+        //Put a hyperlink
+        $this->SetTextColor(0, 0, 255);
+        $this->SetStyle('U', true);
+        $this->Write(5, $txt, $URL);
+        $this->SetStyle('U', false);
+        $this->SetTextColor(0);
+    }
+
+    public function SetWidths($w)
+    {
+        //Set the array of column widths
+        $this->widths=$w;
+    }
+
+    public function SetAligns($a)
+    {
+        //Set the array of column alignments
+        $this->aligns=$a;
+    }
+
+    public function Row($data,$separador)
+    {
+        //Calculate the height of the row
+        $nb=0;
+        for($i=0;$i<count($data);$i++)
+            $nb=max($nb, $this->NbLines($this->widths[$i], $data[$i]));
+        $h=5*$nb;
+        //Issue a page break first if needed
+        $this->CheckPageBreak($h);
+        //Draw the cells of the row
+        for($i=0;$i<count($data);$i++)
+        {
+            $w=$this->widths[$i];
+            $a=isset($this->aligns[$i]) ? $this->aligns[$i] : 'L';
+            //Save the current position
+            $x=$this->GetX();
+            $y=$this->GetY();
+            //Dibujar separador?
+            //$this->Rect($x, $y, $w, $h);
+            //Print the text
+            $this->MultiCell($w, 5, (!$data[$i] AND $a=='C')?str_pad('_',($w/3),'_',STR_PAD_BOTH):$data[$i], 0, $a);
+            //Put the position to the right of the cell
+            $this->SetXY($x+$w, $y);
+
+        }
+        if($separador){
+            $this->Line(10, $this->getY(), ($this->w-10), $this->getY());
+        }
+        //Go to the next line
+        $this->Ln($h);
+    }
+
+    public function CheckPageBreak($h)
+    {
+        //If the height h would cause an overflow, add a new page immediately
+        if($this->GetY()+$h>$this->PageBreakTrigger)
+            $this->AddPage($this->CurOrientation);
+    }
+
+    public function NbLines($w, $txt)
+    {
+        //Computes the number of lines a MultiCell of width w will take
+        $cw=&$this->CurrentFont['cw'];
+        if($w==0)
+            $w=$this->w-$this->rMargin-$this->x;
+        $wmax=($w-2*$this->cMargin)*1000/$this->FontSize;
+        $s=str_replace("\r", '', $txt);
+        $nb=strlen($s);
+        if($nb>0 and $s[$nb-1]=="\n")
+            $nb--;
+        $sep=-1;
+        $i=0;
+        $j=0;
+        $l=0;
+        $nl=1;
+        while($i<$nb)
+        {
+            $c=$s[$i];
+            if($c=="\n")
+            {
+                $i++;
+                $sep=-1;
+                $j=$i;
+                $l=0;
+                $nl++;
+                continue;
+            }
+            if($c==' ')
+                $sep=$i;
+            $l+=$cw[$c];
+            if($l>$wmax)
+            {
+                if($sep==-1)
+                {
+                    if($i==$j)
+                        $i++;
+                }
+                else
+                    $i=$sep+1;
+                $sep=-1;
+                $j=$i;
+                $l=0;
+                $nl++;
+            }
+            else
+                $i++;
+        }
+        return $nl;
+    }
+
 }

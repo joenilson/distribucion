@@ -369,21 +369,29 @@ class distribucion_clientes extends fs_model {
 
     public function clientes_ruta_imprimir($idempresa,$codalmacen, $ruta)
     {
-        $sql = "SELECT * FROM distribucion_clientes ".
-                " WHERE idempresa = ".$this->intval($idempresa).
+        $sql = "SELECT dc.codcliente,c.nombre,c.razonsocial,dc.canal,ds1.descripcion as canal_desc,dc.subcanal,ds2.descripcion as subcanal_desc,dc.iddireccion,dir.direccion ".
+                " FROM distribucion_clientes as dc ".
+                " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
+                " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
+                " JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
+                " JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
+                " WHERE dc.idempresa = ".$this->intval($idempresa).
                 " AND ruta = ".$this->var2str($ruta).
                 " AND codalmacen = ".$this->var2str($codalmacen).
-                " ORDER BY ruta, codcliente;";
+                " ORDER BY codcliente;";
         $lista = array();
         $data = $this->db->select($sql);
-
         if($data)
         {
             foreach($data as $d)
             {
-                $value = new distribucion_clientes($d);
-                $info = $this->info_adicional($value);
-                $lista[] = $info;
+                $item = array();
+                $item[] = $d['codcliente'];
+                $item[] = (trim($d['nombre'])==trim($d['razonsocial']))?trim($d['nombre']):trim($d['razonsocial']).' - '.trim($d['nombre']);
+                $item[] = $d['direccion'];
+                $item[] = $d['canal_desc'];
+                $item[] = $d['subcanal_desc'];
+                $lista[] = $item;
             }
         }
         return $lista;

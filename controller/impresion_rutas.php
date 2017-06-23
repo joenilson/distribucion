@@ -282,35 +282,44 @@ class impresion_rutas extends fs_controller{
         if($formato == 'HTML'){
             $span_activo = "<span class='btn btn-success btn-xs'>";
             $span_inactivo = "<span class='btn btn-default btn-xs'>";
+            $span_fin_inactivo = '</span>';
             $span_fin = '</span>';
         }elseif($formato == "PDF"){
-            $span_activo = '<span style="font-weight: bold; text-decoration: underline;">';
-            $span_inactivo = "<span>&nbsp;";
-            $span_fin = '</span>';
+            $span_activo = '<b>[';
+            $span_inactivo = ' ';
+            $span_fin_activo = ']</b>';
+            $span_fin = ' ';
         }
         $span_inicio_l = ($datos->lunes)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_l.' Lu '.$span_fin;
+        $span_fin_l = ($datos->lunes)?$span_fin_activo:$span_fin;
+        $partes.=$span_inicio_l.'Lu'.$span_fin_l;
         $span_inicio_m = ($datos->martes)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_m.' Ma '.$span_fin;
+        $span_fin_m = ($datos->martes)?$span_fin_activo:$span_fin;
+        $partes.=$span_inicio_m.'Ma'.$span_fin_m;
         $span_inicio_i = ($datos->miercoles)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_i.' Mi '.$span_fin;
+        $span_fin_i = ($datos->miercoles)?$span_fin_activo:$span_fin;
+        $partes.=$span_inicio_i.'Mi'.$span_fin_i;
         $span_inicio_j = ($datos->jueves)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_j.' Ju '.$span_fin;
+        $span_fin_j = ($datos->jueves)?$span_fin_activo:$span_fin;
+        $partes.=$span_inicio_j.'Ju'.$span_fin_j;
         $span_inicio_v = ($datos->viernes)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_v.' Vi '.$span_fin;
+        $span_fin_v = ($datos->viernes)?$span_fin_activo:$span_fin;
+        $partes.=$span_inicio_v.'Vi'.$span_fin_v;
         $span_inicio_s = ($datos->sabado)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_s.' Sa '.$span_fin;
+        $span_fin_s = ($datos->sabado)?$span_fin_activo:$span_fin;
+        $partes.=$span_inicio_s.'Sa'.$span_fin_s;
         $span_inicio_d = ($datos->domingo)?$span_activo:$span_inactivo;
-        $partes.=$span_inicio_d.' Do '.$span_fin;
+        $span_fin_d = ($datos->domingo)?$span_fin_activo:$span_fin;
+        $partes.=$span_inicio_d.'Do'.$span_fin_d;
         return $partes;
     }
 
-    public function imprimir_rutas_new(){
+    public function imprimir_rutas(){
         $this->template = FALSE;
         $rutas_imprimir = explode(",",filter_input(INPUT_GET, 'rutas'));
         $almacen_imprimir = filter_input(INPUT_GET, 'codalmacen');
         $fecha_imprimir = filter_input(INPUT_GET, 'fecha');
-        $conf = array('file'=>'rutas_clientes.pdf', 'type'=>'pdf', 'page_size'=>'letter');
+        $conf = array('file'=>'rutas_clientes.pdf', 'type'=>'pdf', 'page_size'=>'letter','font'=>'Courier');
         $pdf_doc = new PrinterManager($conf);
         $pdf_doc->crearArchivo();
         //$this->pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
@@ -320,61 +329,36 @@ class impresion_rutas extends fs_controller{
             $informacion_ruta->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $almacen_imprimir, $r);
             $informacion_ruta->almacen_nombre = $this->almacen->get($informacion_ruta->codalmacen)->nombre;
             $informacion_ruta->dias_atencion = $this->dias_atencion($informacion_ruta, 'PDF');
-            $informacion_ruta->nombre = 'Listado de Clientes';
-            $informacion_ruta->numero = 'al '.\date('Y-m-d');
+            $informacion_ruta->numero = 'Listado de Clientes al '.\date('Y-m-d');
             $informacion_ruta->cabecera_lineas = $this->cabeceras_lineas_rutas();
             $cabecera = array();
-            $cabecera[] = array('size'=>60, 'label'=>'Almacén:','valor'=>$informacion_ruta->almacen_nombre,'salto_linea'=>false);
-            $cabecera[] = array('size'=>60, 'label'=>'Supervisor:','valor'=>$informacion_ruta->nombre_supervisor,'salto_linea'=>true);
-            $cabecera[] = array('size'=>60, 'label'=>'Vendedor:','valor'=>$informacion_ruta->nombre_vendedor,'salto_linea'=>false);
-            $cabecera[] = array('size'=>60, 'label'=>'Días de visita:','valor'=>$informacion_ruta->dias_atencion,'salto_linea'=>true);
-            $cabecera[] = array('size'=>60, 'label'=>'Ruta:','valor'=>$informacion_ruta->ruta.' - '.$informacion_ruta->descripcion,'salto_linea'=>false);
-            $cabecera[] = array('size'=>60, 'label'=>'Total Clientes:','valor'=>$informacion_ruta->cantidad,'salto_linea'=>true);
+            $cabecera[] = array('size'=>60, 'label'=>'Almacén:','valor'=>$informacion_ruta->almacen_nombre,'salto_linea'=>false,'html'=>false);
+            $cabecera[] = array('size'=>60, 'label'=>'Supervisor:','valor'=>$informacion_ruta->nombre_supervisor,'salto_linea'=>true,'html'=>false);
+            $cabecera[] = array('size'=>60, 'label'=>'Vendedor:','valor'=>$informacion_ruta->nombre,'salto_linea'=>false,'html'=>false);
+            $cabecera[] = array('size'=>60, 'label'=>'Días de visita:','valor'=>$informacion_ruta->dias_atencion,'salto_linea'=>true,'html'=>true);
+            $cabecera[] = array('size'=>60, 'label'=>'Ruta:','valor'=>$informacion_ruta->ruta.' - '.$informacion_ruta->descripcion,'salto_linea'=>false,'html'=>false);
+            $cabecera[] = array('size'=>60, 'label'=>'Total Clientes:','valor'=>$informacion_ruta->cantidad,'salto_linea'=>true,'html'=>false);
             $pdf_doc->agregarCabecera($this->empresa, $informacion_ruta, $cabecera);
-            $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $almacen_imprimir, $r);
-            $basepath = dirname(dirname(__FILE__));
-            $logo = '../../../..'.FS_MYDOCS.DIRECTORY_SEPARATOR.'images/logo.png';
-            $logo_empresa = (file_exists($logo))?$logo:false;
-            $this->pdf->startPageGroup();
-            $this->pdf->SetHeaderData(
-                $logo_empresa,
-                15,
-                $this->empresa->nombre,
-                'Listado de Clientes al '.$fecha_imprimir,
-                array(0,0,0),
-                array(0,0,0));
-            $this->pdf->setFooterData(array(0,64,0), array(0,64,128));
-            // set header and footer fonts
-            $this->pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-            $this->pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-            // set default monospaced font
-            $this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-            $this->pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-            //$this->pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-            $this->pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-            $this->pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-            $this->pdf->SetAutoPageBreak(TRUE, 0);
-
-            $this->pdf->SetFont('courier', '', 9);
-
-            $header = array('Codigo', 'Cliente', 'Direccion', 'Canal', 'Subcanal');
-            $this->ColoredTable($header, $lista_clientes, $cabecera);
-
+            $lista_clientes = $this->distribucion_clientes->clientes_ruta_imprimir($this->empresa->id, $almacen_imprimir, $r);
+            $pdf_doc->agregarLineas($lista_clientes,TRUE);
         }
-        $this->pdf->Output('ruta_impresa.pdf', 'I');
+        $pdf_doc->mostrarDocumento();
     }
 
     public function cabeceras_lineas_rutas(){
         $cabecera = array();
-        $cabecera[] = array('size'=>30, 'descripcion'=>'Código','align'=>'C','total'=>false);
-        $cabecera[] = array('size'=>60, 'descripcion'=>'Cliente','align'=>'L','total'=>false);
-        $cabecera[] = array('size'=>80, 'descripcion'=>'Dirección','align'=>'L','total'=>false);
-        $cabecera[] = array('size'=>50, 'descripcion'=>'Canal','align'=>'L','total'=>false);
-        $cabecera[] = array('size'=>50, 'descripcion'=>'Subcanal','align'=>'L','total'=>false);
+        $cabecera[] = array('size'=>35, 'descripcion'=>'Código','align'=>'C','total'=>false);
+        $cabecera[] = array('size'=>80, 'descripcion'=>'Cliente','align'=>'L','total'=>false);
+        $cabecera[] = array('size'=>90, 'descripcion'=>'Dirección','align'=>'L','total'=>false);
+        $cabecera[] = array('size'=>40, 'descripcion'=>'Canal','align'=>'L','total'=>false);
+        $cabecera[] = array('size'=>40, 'descripcion'=>'Subcanal','align'=>'L','total'=>false);
         return $cabecera;
     }
 
-    public function imprimir_rutas(){
+    /**
+     * @deprecated since version 62
+     */
+    public function imprimir_rutas_old(){
         $this->template = FALSE;
         $rutas_imprimir = explode(",",filter_input(INPUT_GET, 'rutas'));
         $almacen_imprimir = filter_input(INPUT_GET, 'codalmacen');
@@ -415,7 +399,6 @@ class impresion_rutas extends fs_controller{
 
             $header = array('Codigo', 'Cliente', 'Direccion', 'Canal', 'Subcanal');
             $this->ColoredTable($header, $lista_clientes, $cabecera);
-
         }
         $this->pdf->Output('ruta_impresa.pdf', 'I');
     }

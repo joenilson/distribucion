@@ -422,7 +422,7 @@ class distrib_ordencarga extends fs_controller {
                 $pdf_doc->agregarCabecera($this->empresa, $transporte, $cabecera);
                 $lineastransporte = $this->distrib_lineastransporte->get_lineas_imprimir($this->empresa->id, $idtransporte, $codalmacen, 'transporte');
                 $pdf_doc->agregarLineas($lineastransporte);
-                $totales_lineas = array('totalcantidad'=>$this->show_numero($transporte->totalcantidad,FS_NF0),'totalimporte'=>$this->show_numero($transporte->totalimporte,FS_NF0));
+                $totales_lineas = array('totalcantidad'=>$transporte->totalcantidad,'totalimporte'=>$transporte->totalimporte);
                 $pdf_doc->agregarTotalesLineas($totales_lineas);
                 $pdf_doc->agregarObservaciones(false);
                 $firmas = array();
@@ -435,6 +435,10 @@ class distrib_ordencarga extends fs_controller {
         $pdf_doc->mostrarDocumento();
     }
 
+
+    /**
+     * @deprecated since version 62
+     */
     public function imprimir_transporte_old(){
         $this->template = false;
         $this->helper_transportes = new helper_transportes();
@@ -756,6 +760,9 @@ class distrib_ordencarga extends fs_controller {
         return $cabecera;
     }
 
+    /**
+     * @deprecated since version 62
+     */
     public function imprimir_carga_old() {
         $this->template = false;
         $this->helper_ordencarga = new helper_ordencarga();
