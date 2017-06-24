@@ -374,7 +374,6 @@ class dashboard_distribucion extends fs_controller {
     /**
      * Listamos las familias para llenar un treetable
      * @param type $madre
-     * @param stdClass $lista
      * @return \stdClass
      */
     public function resumen_familias($madre = FALSE){
@@ -406,7 +405,7 @@ class dashboard_distribucion extends fs_controller {
             }
 
         }else{
-            return $lista;
+            return false;
         }
     }
 
