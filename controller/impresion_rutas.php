@@ -21,7 +21,6 @@ require_model('cliente.php');
 require_model('distribucion_clientes.php');
 require_model('distribucion_rutas.php');
 require_model('distribucion_organizacion.php');
-require_once ('plugins/distribucion/vendors/tcpdf/tcpdf.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
 require_once 'plugins/distribucion/vendors/FacturaScripts/PrinterManager.php';
 use FacturaScripts\PrinterManager;
@@ -315,6 +314,10 @@ class impresion_rutas extends fs_controller{
         return $partes;
     }
 
+    /**
+     * Funcion para imprimir las rutas en formato PDF haciendo uso de la libreria FS_PDF
+     * @since version 62
+     */
     public function imprimir_rutas(){
         $this->template = FALSE;
         $rutas_imprimir = explode(",",filter_input(INPUT_GET, 'rutas'));
@@ -324,8 +327,6 @@ class impresion_rutas extends fs_controller{
         $conf = array('file'=>'rutas_clientes.pdf', 'type'=>'pdf', 'page_size'=>'letter','font'=>'Courier');
         $pdf_doc = new PrinterManager($conf);
         $pdf_doc->crearArchivo();
-        //$this->pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        //$this->pdf->setPageOrientation('P',TRUE,10);
         foreach($rutas_imprimir as $r){
             $informacion_ruta = $this->distribucion_rutas->get($this->empresa->id, $almacen_imprimir, $r);
             $informacion_ruta->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $almacen_imprimir, $r);
@@ -355,136 +356,6 @@ class impresion_rutas extends fs_controller{
         $cabecera[] = array('size'=>40, 'descripcion'=>'Canal','align'=>'L','total'=>false);
         $cabecera[] = array('size'=>40, 'descripcion'=>'Subcanal','align'=>'L','total'=>false);
         return $cabecera;
-    }
-
-    /**
-     * @deprecated since version 62
-     */
-    public function imprimir_rutas_old(){
-        $this->template = FALSE;
-        $rutas_imprimir = explode(",",filter_input(INPUT_GET, 'rutas'));
-        $almacen_imprimir = filter_input(INPUT_GET, 'codalmacen');
-        $fecha_imprimir = filter_input(INPUT_GET, 'fecha');
-        $this->pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        $this->pdf->setPageOrientation('P',TRUE,10);
-        foreach($rutas_imprimir as $r){
-            $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $almacen_imprimir, $r);
-            $cabecera = new stdClass();
-            $cabecera = $this->distribucion_rutas->get($this->empresa->id, $almacen_imprimir, $r);
-            $cabecera->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $almacen_imprimir, $r);
-            $cabecera->almacen_nombre = $this->almacen->get($cabecera->codalmacen)->nombre;
-            $cabecera->dias_atencion = $this->dias_atencion($cabecera, 'PDF');
-            $basepath = dirname(dirname(__FILE__));
-            $logo = '../../../..'.FS_MYDOCS.DIRECTORY_SEPARATOR.'images/logo.png';
-            $logo_empresa = (file_exists($logo))?$logo:false;
-            $this->pdf->startPageGroup();
-            $this->pdf->SetHeaderData(
-                $logo_empresa,
-                15,
-                $this->empresa->nombre,
-                'Listado de Clientes al '.$fecha_imprimir,
-                array(0,0,0),
-                array(0,0,0));
-            $this->pdf->setFooterData(array(0,64,0), array(0,64,128));
-            // set header and footer fonts
-            $this->pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-            $this->pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-            // set default monospaced font
-            $this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-            $this->pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-            //$this->pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-            $this->pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-            $this->pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-            $this->pdf->SetAutoPageBreak(TRUE, 0);
-
-            $this->pdf->SetFont('courier', '', 9);
-
-            $header = array('Codigo', 'Cliente', 'Direccion', 'Canal', 'Subcanal');
-            $this->ColoredTable($header, $lista_clientes, $cabecera);
-        }
-        $this->pdf->Output('ruta_impresa.pdf', 'I');
-    }
-
-    public function HeaderPage($header_page){
-        // Colors, line width and bold font
-        $this->pdf->SetFillColor(255, 255, 255);
-        $this->pdf->SetTextColor(0);
-
-
-        $this->pdf->SetDrawColor(153, 153, 153);
-        $this->pdf->SetLineWidth(0.3);
-        $this->pdf->SetFont('courier', 'B');
-        //Cabecera
-        $this->pdf->Cell(20, 4, 'Almacén:', 0, 0, 'L', 0);$this->pdf->SetFont('courier', '', 8);
-        $this->pdf->Cell(50, 4, $header_page->almacen_nombre, 0, 0, 'L', 0);$this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(30, 4, 'Supervisor:', 0, 0, 'L', 0);$this->pdf->SetFont('courier', '', 8);
-        $this->pdf->Cell(60, 4, $header_page->nombre_supervisor, 0, 0, 'L', 1);$this->pdf->SetFont('courier', 'B');
-        $this->pdf->Ln();
-        $this->pdf->Cell(20, 4, 'Vendedor:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
-        $this->pdf->Cell(50, 4, $header_page->nombre, 0, 0, 'L', 1);$this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(30, 4, 'Días de Visita:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
-        $this->pdf->writeHTMLCell(60, 4, 112, 24,$header_page->dias_atencion, 0, 'L', 0, 0);$this->pdf->SetFont('courier', 'B');
-        $this->pdf->Ln();
-        $this->pdf->Cell(20, 4, 'Ruta:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
-        $this->pdf->Cell(50, 4, $header_page->ruta.' - '.$header_page->descripcion, 0, 0, 'L', 1);$this->pdf->SetFont('courier', 'B');
-        $this->pdf->Cell(30, 4, 'Total Clientes:', 0, 0, 'L', 1);$this->pdf->SetFont('courier', '', 8);
-        $this->pdf->Cell(60, 4, $header_page->cantidad, 0, 0, 'L', 1);
-        $this->pdf->Cell(100, 6, '', 0, 0, 'C', 0);
-        $this->pdf->Ln();
-        // Color and font restoration
-        $this->pdf->SetFillColor(224, 235, 255);
-        $this->pdf->SetTextColor(0);
-        $this->pdf->SetFont('courier','',8);
-    }
-
-    function HeaderTable($header, $w){
-        // Colors, line width and bold font
-        $this->pdf->SetFillColor(153, 153, 153);
-        $this->pdf->SetTextColor(255);
-        $this->pdf->SetDrawColor(153, 153, 153);
-        $this->pdf->SetLineWidth(0.3);
-        $this->pdf->SetFont('courier', 'B');
-        // Header
-        $num_headers = count($header);
-        for($i = 0; $i < $num_headers; ++$i) {
-            $this->pdf->Cell($w[$i], 5, $header[$i], 1, 0, 'C', 1);
-        }
-        $this->pdf->Ln();
-        // Color and font restoration
-        $this->pdf->SetFillColor(224, 235, 255);
-        $this->pdf->SetTextColor(0);
-        $this->pdf->SetFont('courier','',8);
-    }
-
-    // Colored table
-    public function ColoredTable($header, $lista_clientes, $header_page) {
-        //Tamaño de cada linea
-        $w = array(15, 40, 60, 25, 40);
-                // Data
-        $fill = 0;
-        $line = 0;
-        foreach($lista_clientes as $row) {
-            if($line == 0){
-                $this->pdf->AddPage();
-                $this->pdf->setXY(15,20);
-                $this->HeaderPage($header_page);
-                $this->HeaderTable($header, $w);
-            }
-            $this->pdf->Cell($w[0], 5, $row->codcliente, 'LR', 0, 'C', $fill);
-            $this->pdf->Cell($w[1], 5, $row->nombre_cliente, 'LR', 0, 'L', $fill);
-            $this->pdf->Cell($w[2], 5, $row->direccion, 'LR', 0, 'L', $fill);
-            $this->pdf->Cell($w[3], 5, $row->canal_descripcion, 'LR', 0, 'L', $fill);
-            $this->pdf->Cell($w[4], 5, substr($row->subcanal_descripcion,0,15), 'LR', 0, 'L', $fill);
-            $this->pdf->Ln();
-            $fill=!$fill;
-            if($line<=45){
-                $line++;
-            }else{
-                $this->pdf->Cell(array_sum($w), 0, '', 'T');
-                $line = 0;
-            }
-        }
-        $this->pdf->Cell(array_sum($w), 0, '', 'T');
     }
 
     private function share_extensions(){

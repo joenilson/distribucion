@@ -23,6 +23,8 @@ require_model('facturas_cliente.php');
 require_model('facturas_proveedor.php');
 require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
+use FacturaScripts\Seguridad\SeguridadUsuario;
 
 /**
  * Description of informes_caja
@@ -93,14 +95,10 @@ class informes_caja extends fs_controller {
         $this->distribucion_ordenescarga_factura = new distribucion_ordenescarga_facturas();
         $this->fp = new forma_pago();
         $this->resultados_formas_pago = false;
+
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        if(!$this->user->admin){
-            $this->agente = new agente();
-            $cod = $this->agente->get($this->user->codagente);
-            $user_almacen = $this->almacenes->get($cod->codalmacen);
-            $this->user->codalmacen = $user_almacen->codalmacen;
-            $this->user->nombrealmacen = $user_almacen->nombre;
-        }
+        $seguridadUsuario = new SeguridadUsuario();
+        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
         //revisamos si esta el plugin de tesoreria
         $this->tesoreria = FALSE;

@@ -16,9 +16,9 @@
  *  * You should have received a copy of the GNU Lesser General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('factura_cliente');
-require_model('linea_factura_cliente');
-require_model('almacen');
+require_model('factura_cliente.php');
+require_model('linea_factura_cliente.php');
+require_model('almacen.php');
 require_model('agencia_transporte.php');
 require_model('distribucion_conductores.php');
 require_model('distribucion_unidades.php');
@@ -37,12 +37,9 @@ require_model('asiento');
 require_model('ejercicio');
 require_model('cuenta_banco.php');
 require_model('subcuenta.php');
-
-require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
-require_once 'helper_ordencarga.php';
-require_once 'helper_transportes.php';
-
+require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
 require_once 'plugins/distribucion/vendors/FacturaScripts/PrinterManager.php';
+use FacturaScripts\Seguridad\SeguridadUsuario;
 use FacturaScripts\PrinterManager;
 
 /**
@@ -67,8 +64,6 @@ class distrib_creacion extends fs_controller {
     public $hasta;
     public $conductor;
     public $conductores;
-    public $helper_ordencarga;
-    public $helper_transportes;
     public $transporte;
     public $lineastransporte;
     public $facturastransporte;
@@ -107,7 +102,6 @@ class distrib_creacion extends fs_controller {
         $this->subcuentas_faltantes = new distribucion_subcuentas_faltantes();
         $this->asiento = new asiento();
         $this->ejercicio = new ejercicio();
-        $this->helper_transportes = new helper_transportes();
         $this->conductores = new distribucion_conductores();
         $this->tesoreria = FALSE;
         //revisamos si esta el plugin de tesoreria
@@ -124,14 +118,9 @@ class distrib_creacion extends fs_controller {
         //Cargamos las traducciones de los documentos
         $this->variables_globales();
 
-        //Si el usuario es admin o no tiene usuario asignado puede ver todo, pero sino, solo su almacén designado
-        if (!$this->user->admin) {
-            $this->agente = new agente();
-            $cod = $this->agente->get($this->user->codagente);
-            $user_almacen = $this->almacen->get($cod->codalmacen);
-            $this->user->codalmacen = (isset($user_almacen->codalmacen)) ? $user_almacen->codalmacen : false;
-            $this->user->nombrealmacen = (isset($user_almacen->nombre)) ? $user_almacen->nombre : false;
-        }
+        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
+        $seguridadUsuario = new SeguridadUsuario();
+        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
         $type = \filter_input(INPUT_GET, 'type');
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
@@ -187,7 +176,6 @@ class distrib_creacion extends fs_controller {
         if ($type === 'imprimir-transporte') {
             $this->imprimir_documento('transporte');
         } elseif ($type === 'imprimir-hojadevolucion') {
-            //$this->imprimir_hojadevolucion();
             $this->imprimir_documento('hojadevolucion');
         } elseif ($type == 'confirmar-devolucion') {
             $this->confirmar_devolucion(TRUE);
@@ -206,10 +194,8 @@ class distrib_creacion extends fs_controller {
         } elseif ($type == 'guardar-liquidacion') {
             $this->guardar_liquidacion();
         } elseif ($type == 'imprimir-liquidacion') {
-            //$this->imprimir_liquidacion();
             $this->imprimir_documento('liquidacion');
         } elseif ($type == 'imprimir-devolucion') {
-            //$this->imprimir_devolucion();
             $this->imprimir_documento('devolucion');
         } elseif ($type == 'pagar-factura') {
             $this->pagar_factura();
@@ -479,77 +465,6 @@ class distrib_creacion extends fs_controller {
             $lineas_documento = $this->distrib_lineastransporte->get_lineas_imprimir($this->empresa->id, $idtransporte, $codalmacen, $tipo);
         }
         return $lineas_documento;
-    }
-
-    public function imprimir_devolucion() {
-        $this->template = false;
-        $this->helper_transportes = new helper_transportes();
-        $value_transporte = \filter_input(INPUT_GET, 'transporte');
-        $lista_transporte = explode(',', $value_transporte);
-        $contador_transporte = 0;
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
-        foreach ($lista_transporte as $linea) {
-            if (!empty($linea)) {
-                $datos_transporte = explode('-', $linea);
-                $idtransporte = $datos_transporte[0];
-                $codalmacen = $datos_transporte[1];
-                $contador_transporte++;
-                $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $sumaDevolucion = 0;
-                foreach ($lineastransporte as $l) {
-                    $sumaDevolucion += $l->devolucion;
-                }
-                $transporte->totaldevolucion = $sumaDevolucion;
-                $pdfFile->pdf_pagina($this->helper_transportes->cabecera_devolucion($transporte), $this->helper_transportes->contenido_devolucion($lineastransporte), $this->helper_transportes->pie_devolucion($transporte));
-            }
-        }
-        $pdfFile->pdf_mostrar();
-    }
-
-    public function imprimir_transporte() {
-        $this->template = false;
-        $this->helper_transportes = new helper_transportes();
-        $value_transporte = \filter_input(INPUT_GET, 'transporte');
-        $lista_transporte = explode(',', $value_transporte);
-        $contador_transporte = 0;
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
-        foreach ($lista_transporte as $linea) {
-            if (!empty($linea)) {
-                $datos_transporte = explode('-', $linea);
-                $idtransporte = $datos_transporte[0];
-                $codalmacen = $datos_transporte[1];
-                $contador_transporte++;
-                $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $pdfFile->pdf_pagina($this->helper_transportes->cabecera_transporte($transporte), $this->helper_transportes->contenido_transporte($lineastransporte), $this->helper_transportes->pie_transporte($transporte));
-            }
-        }
-        $pdfFile->pdf_mostrar();
-    }
-
-    public function imprimir_hojadevolucion() {
-        $this->template = false;
-        $this->helper_transportes = new helper_transportes();
-        $value_transporte = \filter_input(INPUT_GET, 'transporte');
-        $lista_transporte = explode(',', $value_transporte);
-        $contador_transporte = 0;
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
-        foreach ($lista_transporte as $linea) {
-            if (!empty($linea)) {
-                $datos_transporte = explode('-', $linea);
-                $idtransporte = $datos_transporte[0];
-                $codalmacen = $datos_transporte[1];
-                $contador_transporte++;
-                $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $pdfFile->pdf_pagina($this->helper_transportes->cabecera_hojadevolucion($transporte), $this->helper_transportes->contenido_hojadevolucion($lineastransporte), $this->helper_transportes->pie_hojadevolucion($transporte));
-            }
-        }
-        $pdfFile->pdf_mostrar();
     }
 
     public function confirmar_devolucion($confirmado = TRUE) {
@@ -825,28 +740,6 @@ class distrib_creacion extends fs_controller {
         $this->template = false;
         header('Content-Type: application/json');
         echo json_encode($data);
-    }
-
-    public function imprimir_liquidacion() {
-        $this->template = false;
-        $value_transporte = \filter_input(INPUT_GET, 'transporte');
-        $lista_transporte = explode(',', $value_transporte);
-        $contador_transporte = 0;
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
-        foreach ($lista_transporte as $linea) {
-            if (!empty($linea)) {
-                $datos_transporte = explode('-', $linea);
-                $idtransporte = $datos_transporte[0];
-                $codalmacen = $datos_transporte[1];
-                $contador_transporte++;
-                $faltante = $this->faltante->get($this->empresa->id, $idtransporte, $codalmacen);
-                $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
-                $pdfFile->pdf_pagina($this->helper_transportes->cabecera_liquidacion($transporte), $this->helper_transportes->contenido_liquidacion($facturastransporte), $this->helper_transportes->pie_liquidacion($transporte, $faltante));
-            }
-        }
-        $pdfFile->pdf_mostrar();
     }
 
     public function pagar_factura() {

@@ -61,7 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <label for="codalmacen" class="control-label">Almacén</label>
                             <select name="codalmacen" class="form-control" required>
                                 <option value="">Elija un Almacen</option>
-                                {if="$fsc->user->admin"}
+                                {if="$fsc->user->admin OR !$fsc->user->codalmacen"}
                                     {loop="$fsc->almacenes->all()"}
                                     <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
                                     {/loop}
@@ -115,7 +115,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <tbody>
                     {loop="$fsc->supervisores"}
                         <!-- {$inicio=0} !-->
-                        {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente)"}    
+                        {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente)"}
                             {loop="$fsc->rutas->all_rutasporagente($fsc->empresa->id, $value2->codalmacen, $value2->codagente)"}
                             <tr>
                                 {if="$inicio==0"}
@@ -134,7 +134,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <td class="text-right">{if="$fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['importe']"}{$fsc->show_numero($fsc->lista_ruta[$value3->ruta][$value4->format('dmY')]['importe'])}{/if}</td>
                                 <td class="text-right">{$fsc->lista_ofertas[$value3->ruta][$value4->format('dmY')]['cantidad']}</td>
                                 {/loop}
-                            </tr>                      
+                            </tr>
                             <!-- {$inicio++} !-->
                             {/loop}
                             <tr>
@@ -149,7 +149,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <td class="text-right info"><b>{$fsc->vendedor_total_ofertas[$value2->codagente][$value3->format('dmY')]}</b></td>
                                 {/loop}
                             </tr>
-                        {/loop}                  
+                        {/loop}
                         <tr>
                             <td colspan="3" class="text-left info"><b>Total de {$value1->nombre}</b></td>
                             <td class="text-right info"><b>{$fsc->clientes_rutas['mesa_clientes'][$value1->codagente]}</b></td>

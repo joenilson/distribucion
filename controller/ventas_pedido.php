@@ -13,7 +13,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -55,7 +55,7 @@ class ventas_pedido extends fs_controller
    public $pedido;
    public $serie;
    public $versiones;
-   
+
    public function __construct()
    {
       parent::__construct(__CLASS__, ucfirst(FS_PEDIDO), 'ventas', FALSE, FALSE);
@@ -65,12 +65,12 @@ class ventas_pedido extends fs_controller
    {
       /// ¿El usuario tiene permiso para eliminar en esta página?
       $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
-      
+
       $this->ppage = $this->page->get('ventas_pedidos');
       $this->agente = FALSE;
 
       $pedido = new pedido_cliente();
-      $this->pedido = FALSE;
+      $this->pedido = '';
       $this->almacen = new almacen();
       $this->cliente = new cliente();
       $this->cliente_s = FALSE;
@@ -84,7 +84,7 @@ class ventas_pedido extends fs_controller
       $this->pais = new pais();
       $this->serie = new serie();
       $this->agencia = new agencia_transporte();
-      
+
       /**
        * Comprobamos si el usuario tiene acceso a nueva_venta,
        * necesario para poder añadir líneas.
@@ -111,7 +111,7 @@ class ventas_pedido extends fs_controller
       if($this->pedido)
       {
          $this->page->title = $this->pedido->codigo;
-         
+
          /// cargamos el agente
          if( !is_null($this->pedido->codagente) )
          {
@@ -128,7 +128,7 @@ class ventas_pedido extends fs_controller
             if( isset($_REQUEST['status']) )
             {
                $this->pedido->status = intval($_REQUEST['status']);
-               
+
                if($this->pedido->status == 1 AND is_null($this->pedido->idalbaran))
                {
                   if( $this->comprobar_stock() )
@@ -158,7 +158,7 @@ class ventas_pedido extends fs_controller
                $this->new_message('Esta es la nueva versión del '.FS_PEDIDO.'.');
             }
          }
-         
+
          $this->versiones = $this->pedido->get_versiones();
          $this->get_historico();
       }
@@ -167,7 +167,7 @@ class ventas_pedido extends fs_controller
          $this->new_error_msg("¡" . ucfirst(FS_PEDIDO) . " de cliente no encontrado!", 'error', FALSE, FALSE);
       }
    }
-   
+
    private function nueva_version()
    {
       $pedi = clone $this->pedido;
@@ -178,20 +178,20 @@ class ventas_pedido extends fs_controller
       $pedi->femail = NULL;
       $pedi->status = 0;
       $pedi->numdocs = 0;
-      
+
       $pedi->idoriginal = $this->pedido->idpedido;
       if($this->pedido->idoriginal)
       {
          $pedi->idoriginal = $this->pedido->idoriginal;
       }
-      
+
       /// enlazamos con el ejercicio correcto
       $ejercicio = $this->ejercicio->get_by_fecha($pedi->fecha);
       if($ejercicio)
       {
          $pedi->codejercicio = $ejercicio->codejercicio;
       }
-      
+
       if( $pedi->save() )
       {
          /// también copiamos las líneas del presupuesto
@@ -202,7 +202,7 @@ class ventas_pedido extends fs_controller
             $newl->idpedido = $pedi->idpedido;
             $newl->save();
          }
-         
+
          $this->new_message('<a href="' . $pedi->url() . '">Documento</a> de ' . FS_PEDIDO . ' copiado correctamente.');
          header('Location: '.$pedi->url().'&nversionok=TRUE');
       }
@@ -230,7 +230,7 @@ class ventas_pedido extends fs_controller
    {
       $this->pedido->observaciones = $_POST['observaciones'];
       $this->pedido->numero2 = $_POST['numero2'];
-      
+
       /// ¿El pedido es editable o ya ha sido aprobado?
       if($this->pedido->editable)
       {
@@ -239,13 +239,13 @@ class ventas_pedido extends fs_controller
          {
             $this->pedido->fecha = $_POST['fecha'];
             $this->pedido->hora = $_POST['hora'];
-            
+
             $this->pedido->fechasalida = NULL;
             if($_POST['fechasalida'] != '')
             {
                $this->pedido->fechasalida = $_POST['fechasalida'];
             }
-            
+
             if($this->pedido->codejercicio != $eje0->codejercicio)
             {
                $this->pedido->codejercicio = $eje0->codejercicio;
@@ -256,7 +256,7 @@ class ventas_pedido extends fs_controller
          {
             $this->new_error_msg('Ningún ejercicio encontrado.');
          }
-         
+
          /// ¿cambiamos el cliente?
          if($_POST['cliente'] != $this->pedido->codcliente)
          {
@@ -273,7 +273,7 @@ class ventas_pedido extends fs_controller
                $this->pedido->codpostal = NULL;
                $this->pedido->direccion = NULL;
                $this->pedido->provincia = NULL;
-               
+
                foreach($cliente->get_direcciones() as $d)
                {
                   if($d->domfacturacion)
@@ -307,7 +307,7 @@ class ventas_pedido extends fs_controller
             $this->pedido->codpostal = $_POST['codpostal'];
             $this->pedido->direccion = $_POST['direccion'];
             $this->pedido->apartado = $_POST['apartado'];
-            
+
             $this->pedido->envio_nombre = $_POST['envio_nombre'];
             $this->pedido->envio_apellidos = $_POST['envio_apellidos'];
             $this->pedido->envio_codtrans = NULL;
@@ -322,7 +322,7 @@ class ventas_pedido extends fs_controller
             $this->pedido->envio_codpostal = $_POST['envio_codpostal'];
             $this->pedido->envio_direccion = $_POST['envio_direccion'];
             $this->pedido->envio_apartado = $_POST['envio_apartado'];
-            
+
             $cliente = $this->cliente->get($this->pedido->codcliente);
          }
 
@@ -340,10 +340,10 @@ class ventas_pedido extends fs_controller
                $serie = $serie2;
             }
          }
-         
+
          $this->pedido->codalmacen = $_POST['almacen'];
          $this->pedido->codpago = $_POST['forma_pago'];
-         
+
          /// ¿Cambiamos la divisa?
          if($_POST['divisa'] != $this->pedido->coddivisa)
          {
@@ -358,7 +358,7 @@ class ventas_pedido extends fs_controller
          {
             $this->pedido->tasaconv = floatval($_POST['tasaconv']);
          }
-         
+
          if( isset($_POST['numlineas']) )
          {
             $numlineas = intval($_POST['numlineas']);
@@ -368,7 +368,7 @@ class ventas_pedido extends fs_controller
             $this->pedido->totalirpf = 0;
             $this->pedido->totalrecargo = 0;
             $this->pedido->irpf = 0;
-            
+
             $lineas = $this->pedido->get_lineas();
             $articulo = new articulo();
 
@@ -395,13 +395,13 @@ class ventas_pedido extends fs_controller
                   }
                }
             }
-            
+
             $regimeniva = 'general';
             if($cliente)
             {
                $regimeniva = $cliente->regimeniva;
             }
-            
+
             /// modificamos y/o añadimos las demás líneas
             for($num = 0; $num <= $numlineas; $num++)
             {
@@ -443,7 +443,7 @@ class ventas_pedido extends fs_controller
                            $this->pedido->totaliva += $value->pvptotal * $value->iva / 100;
                            $this->pedido->totalirpf += $value->pvptotal * $value->irpf / 100;
                            $this->pedido->totalrecargo += $value->pvptotal * $value->recargo / 100;
-                           
+
                            if($value->irpf > $this->pedido->irpf)
                            {
                               $this->pedido->irpf = $value->irpf;
@@ -451,7 +451,7 @@ class ventas_pedido extends fs_controller
                         }
                         else
                            $this->new_error_msg("¡Imposible modificar la línea del artículo " . $value->referencia . "!");
-                        
+
                         break;
                      }
                   }
@@ -462,7 +462,7 @@ class ventas_pedido extends fs_controller
                      $linea = new linea_pedido_cliente();
                      $linea->idpedido = $this->pedido->idpedido;
                      $linea->descripcion = $_POST['desc_' . $num];
-                     
+
                      if(!$serie->siniva AND $regimeniva != 'Exento')
                      {
                         $imp0 = $this->impuesto->get_by_iva($_POST['iva_' . $num]);
@@ -470,18 +470,18 @@ class ventas_pedido extends fs_controller
                         {
                            $linea->codimpuesto = $imp0->codimpuesto;
                         }
-                        
+
                         $linea->iva = floatval($_POST['iva_' . $num]);
                         $linea->recargo = floatval($_POST['recargo_' . $num]);
                      }
-                     
+
                      $linea->irpf = floatval($_POST['irpf_'.$num]);
                      $linea->cantidad = floatval($_POST['cantidad_' . $num]);
                      $linea->pvpunitario = floatval($_POST['pvp_' . $num]);
                      $linea->dtopor = floatval($_POST['dto_' . $num]);
                      $linea->pvpsindto = ($linea->cantidad * $linea->pvpunitario);
                      $linea->pvptotal = ($linea->cantidad * $linea->pvpunitario * (100 - $linea->dtopor) / 100);
-                     
+
                      $art0 = $articulo->get($_POST['referencia_' . $num]);
                      if($art0)
                      {
@@ -491,14 +491,14 @@ class ventas_pedido extends fs_controller
                            $linea->codcombinacion = $_POST['codcombinacion_' . $num];
                         }
                      }
-                     
+
                      if( $linea->save() )
                      {
                         $this->pedido->neto += $linea->pvptotal;
                         $this->pedido->totaliva += $linea->pvptotal * $linea->iva / 100;
                         $this->pedido->totalirpf += $linea->pvptotal * $linea->irpf / 100;
                         $this->pedido->totalrecargo += $linea->pvptotal * $linea->recargo / 100;
-                        
+
                         if($linea->irpf > $this->pedido->irpf)
                         {
                            $this->pedido->irpf = $linea->irpf;
@@ -569,7 +569,7 @@ class ventas_pedido extends fs_controller
       $albaran->porcomision = $this->pedido->porcomision;
       $albaran->totalirpf = $this->pedido->totalirpf;
       $albaran->totalrecargo = $this->pedido->totalrecargo;
-      
+
       $albaran->envio_nombre = $this->pedido->envio_nombre;
       $albaran->envio_apellidos = $this->pedido->envio_apellidos;
       $albaran->envio_codtrans = $this->pedido->envio_codtrans;
@@ -580,17 +580,17 @@ class ventas_pedido extends fs_controller
       $albaran->envio_codpostal = $this->pedido->envio_codpostal;
       $albaran->envio_direccion = $this->pedido->envio_direccion;
       $albaran->envio_apartado = $this->pedido->envio_apartado;
-      
+
       if( isset($_POST['facturar']) )
       {
          $albaran->fecha = $_POST['facturar'];
       }
-      
+
       if( is_null($albaran->codagente) )
       {
          $albaran->codagente = $this->user->codagente;
       }
-      
+
       /**
        * Obtenemos el ejercicio para la fecha de hoy (puede que
        * no sea el mismo ejercicio que el del pedido, por ejemplo
@@ -665,11 +665,11 @@ class ventas_pedido extends fs_controller
          {
             $this->pedido->idalbaran = $albaran->idalbaran;
             $this->pedido->fechasalida = $albaran->fecha;
-            
+
             if( $this->pedido->save() )
             {
                $this->new_message("<a href='" . $albaran->url() . "'>" . ucfirst(FS_ALBARAN) . '</a> generado correctamente.');
-               
+
                if($trazabilidad)
                {
                   header('Location: index.php?page=ventas_trazabilidad&doc=albaran&id='.$albaran->idalbaran);
@@ -703,11 +703,11 @@ class ventas_pedido extends fs_controller
       else
          $this->new_error_msg("¡Imposible guardar el " . FS_ALBARAN . "!");
    }
-   
+
    public function get_lineas_stock()
    {
       $lineas = array();
-      
+
       $sql = "SELECT l.referencia,l.descripcion,l.cantidad,s.cantidad as stock,s.ubicacion FROM lineaspedidoscli l"
               . " LEFT JOIN stocks s ON l.referencia = s.referencia"
               . " AND s.codalmacen = ".$this->pedido->var2str($this->pedido->codalmacen)
@@ -717,7 +717,7 @@ class ventas_pedido extends fs_controller
       if($data)
       {
          $art0 = new articulo();
-         
+
          foreach($data as $d)
          {
             $articulo = $art0->get($d['referencia']);
@@ -733,19 +733,19 @@ class ventas_pedido extends fs_controller
             }
          }
       }
-      
+
       return $lineas;
    }
-   
+
    private function get_historico()
    {
       $this->historico = array();
       $orden = 0;
-      
+
       /// presupuestos
       $sql = "SELECT * FROM presupuestoscli WHERE idpedido = ".$this->pedido->var2str($this->pedido->idpedido)
               ." ORDER BY idpresupuesto ASC;";
-      
+
       $data = $this->db->select($sql);
       if($data)
       {
@@ -760,12 +760,12 @@ class ventas_pedido extends fs_controller
             $orden++;
          }
       }
-      
+
       if($this->pedido->idalbaran)
       {
          $sql1 = "SELECT * FROM albaranescli WHERE idalbaran = ".$this->pedido->var2str($this->pedido->idalbaran)
                  ." ORDER BY idalbaran ASC;";
-         
+
          $data1 = $this->db->select($sql1);
          if($data1)
          {
@@ -778,12 +778,12 @@ class ventas_pedido extends fs_controller
                    'modelo' => $albaran
                );
                $orden++;
-               
+
                if($albaran->idfactura)
                {
                   $sql2 = "SELECT * FROM facturascli WHERE idfactura = ".$albaran->var2str($albaran->idfactura)
                           ." ORDER BY idfactura ASC;";
-                  
+
                   $data2 = $this->db->select($sql2);
                   if($data2)
                   {
@@ -803,7 +803,7 @@ class ventas_pedido extends fs_controller
          }
       }
    }
-   
+
    /**
     * Comprueba el stock de cada uno de los artículos del pedido.
     * Devuelve TRUE si hay suficiente stock.
@@ -812,7 +812,7 @@ class ventas_pedido extends fs_controller
    private function comprobar_stock()
    {
       $ok = TRUE;
-      
+
       $art0 = new articulo();
       foreach($this->pedido->get_lineas() as $linea)
       {
@@ -844,7 +844,7 @@ class ventas_pedido extends fs_controller
                         }
                      }
                   }
-                  
+
                   if(!$ok)
                   {
                      $this->new_error_msg('No hay suficiente stock del artículo '.$linea->referencia);
@@ -854,7 +854,7 @@ class ventas_pedido extends fs_controller
             }
          }
       }
-      
+
       return $ok;
    }
 }

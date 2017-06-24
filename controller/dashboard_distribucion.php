@@ -33,6 +33,8 @@ require_model('facturas_cliente.php');
 require_model('facturas_proveedor.php');
 require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
+use FacturaScripts\Seguridad\SeguridadUsuario;
 /**
  * Description of dashboard_distribucion
  *
@@ -135,15 +137,9 @@ class dashboard_distribucion extends fs_controller {
         $this->resultados_formas_pago = false;
         $this->procesado = false;
 
-        //Si el usuario es admin puede ver todos los almacenes, pero sino, solo su almacén designado
-        if(!$this->user->admin)
-        {
-            $this->agente = new agente();
-            $cod = $this->agente->get($this->user->codagente);
-            $user_almacen = $this->almacenes->get($cod->codalmacen);
-            $this->user->codalmacen = $user_almacen->codalmacen;
-            $this->user->nombrealmacen = $user_almacen->nombre;
-        }
+        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
+        $seguridadUsuario = new SeguridadUsuario();
+        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
         //Creamos o validamos las carpetas para grabar los reportes generados
         $this->fileName = '';

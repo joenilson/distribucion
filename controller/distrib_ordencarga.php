@@ -34,12 +34,10 @@ require_model('distribucion_lineastransporte.php');
 require_model('cliente.php');
 require_model('articulo.php');
 require_model('articulo_unidadmedida.php');
-require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
 require_once 'plugins/distribucion/vendors/FacturaScripts/PrinterManager.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
+use FacturaScripts\Seguridad\SeguridadUsuario;
 use FacturaScripts\PrinterManager;
-
-require_once 'helper_ordencarga.php';
-require_once 'helper_transportes.php';
 
 /**
  * Description of distribucion_creacion
@@ -81,8 +79,6 @@ class distrib_ordencarga extends fs_controller {
     public $num_resultados;
     public $paginas;
     public $articulo;
-    public $helper_ordencarga;
-    public $helper_transportes;
     public $unidadmedida;
     public $articulo_unidadmedida;
 
@@ -112,15 +108,9 @@ class distrib_ordencarga extends fs_controller {
         $this->articulo_unidadmedida = new articulo_unidadmedida();
         $this->share_extensions();
 
-        //Si el usuario es admin o no tiene usuario asignado puede ver todo, pero sino, solo su almacén designado
-        if(!$this->user->admin){
-            $this->agente = new agente();
-            $cod = $this->agente->get($this->user->codagente);
-            $user_almacen = $this->almacen->get($cod->codalmacen);
-            $this->user->codalmacen = (isset($user_almacen->codalmacen))?$user_almacen->codalmacen:false;
-            $this->user->nombrealmacen = (isset($user_almacen->nombre))?$user_almacen->nombre:false;
-        }
-
+        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
+        $seguridadUsuario = new SeguridadUsuario();
+        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
         //Cargamos las traducciones de los documentos
         $this->variables_globales();
 
@@ -435,33 +425,6 @@ class distrib_ordencarga extends fs_controller {
         $pdf_doc->mostrarDocumento();
     }
 
-
-    /**
-     * @deprecated since version 62
-     */
-    public function imprimir_transporte_old(){
-        $this->template = false;
-        $this->helper_transportes = new helper_transportes();
-        $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-        $lista_ordenescargar = explode(',', $value_ordencarga);
-        $contador_transporte = 0;
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
-        foreach ($lista_ordenescargar as $ordencarga) {
-            if (!empty($ordencarga)) {
-                $datos_ordencarga = explode('-', $ordencarga);
-                $idordencarga = $datos_ordencarga[0];
-                $codalmacen = $datos_ordencarga[1];
-                $idtransporte = $datos_ordencarga[2];
-                $contador_transporte++;
-                $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $pdfFile->pdf_pagina($this->helper_transportes->cabecera_transporte($transporte), $this->helper_transportes->contenido_transporte($lineastransporte), $this->helper_transportes->pie_transporte($transporte));
-            }
-        }
-        $pdfFile->pdf_mostrar();
-    }
-
     public function visualizar_ordencarga($idordencarga, $codalmacen) {
         $datos = array();
         $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
@@ -760,31 +723,6 @@ class distrib_ordencarga extends fs_controller {
         return $cabecera;
     }
 
-    /**
-     * @deprecated since version 62
-     */
-    public function imprimir_carga_old() {
-        $this->template = false;
-        $this->helper_ordencarga = new helper_ordencarga();
-        $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-        $lista_ordenescargar = explode(',', $value_ordencarga);
-        $contador_ordenescarga = 0;
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
-        foreach ($lista_ordenescargar as $ordencarga) {
-            if (!empty($ordencarga)) {
-                $datos_ordencarga = explode('-', $ordencarga);
-                $idordencarga = $datos_ordencarga[0];
-                $codalmacen = $datos_ordencarga[1];
-                $contador_ordenescarga++;
-                $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                $pdfFile->pdf_pagina($this->helper_ordencarga->cabecera($ordencarga), $this->helper_ordencarga->contenido($lineasordencarga), $this->helper_ordencarga->pie($ordencarga));
-            }
-        }
-        $pdfFile->pdf_mostrar();
-    }
-
     public function confirmar_carga(){
         $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
         $lista_ordenescargar = explode(',', $value_ordencarga);
@@ -825,7 +763,6 @@ class distrib_ordencarga extends fs_controller {
 
     public function eliminar_carga() {
         $this->template = false;
-        $this->helper_ordencarga = new helper_ordencarga();
         $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
         $lista_ordenescargar = explode(',', $value_ordencarga);
         foreach ($lista_ordenescargar as $ordencarga) {
