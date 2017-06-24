@@ -35,6 +35,7 @@ class impresion_rutas extends fs_controller{
     public $codalmacen;
     public $clientes;
     public $fecha;
+    public $fecha_imprimir;
     public $rutas;
     public $rutas_elegidas;
     public $rutas_listadas;
@@ -282,7 +283,7 @@ class impresion_rutas extends fs_controller{
         if($formato == 'HTML'){
             $span_activo = "<span class='btn btn-success btn-xs'>";
             $span_inactivo = "<span class='btn btn-default btn-xs'>";
-            $span_fin_inactivo = '</span>';
+            $span_fin_activo = '</span>';
             $span_fin = '</span>';
         }elseif($formato == "PDF"){
             $span_activo = '<b>[';
@@ -319,6 +320,7 @@ class impresion_rutas extends fs_controller{
         $rutas_imprimir = explode(",",filter_input(INPUT_GET, 'rutas'));
         $almacen_imprimir = filter_input(INPUT_GET, 'codalmacen');
         $fecha_imprimir = filter_input(INPUT_GET, 'fecha');
+        $this->fecha_imprimir = ($fecha_imprimir)?\date('Y-m-d',strtotime($fecha_imprimir)):\date('Y-m-d');
         $conf = array('file'=>'rutas_clientes.pdf', 'type'=>'pdf', 'page_size'=>'letter','font'=>'Courier');
         $pdf_doc = new PrinterManager($conf);
         $pdf_doc->crearArchivo();
@@ -329,7 +331,7 @@ class impresion_rutas extends fs_controller{
             $informacion_ruta->cantidad = $this->distribucion_rutas->cantidad_asignados($this->empresa->id, $almacen_imprimir, $r);
             $informacion_ruta->almacen_nombre = $this->almacen->get($informacion_ruta->codalmacen)->nombre;
             $informacion_ruta->dias_atencion = $this->dias_atencion($informacion_ruta, 'PDF');
-            $informacion_ruta->numero = 'Listado de Clientes al '.\date('Y-m-d');
+            $informacion_ruta->numero = 'Listado de Clientes al '.$this->fecha_imprimir;
             $informacion_ruta->cabecera_lineas = $this->cabeceras_lineas_rutas();
             $cabecera = array();
             $cabecera[] = array('size'=>60, 'label'=>'Almacén:','valor'=>$informacion_ruta->almacen_nombre,'salto_linea'=>false,'html'=>false);
