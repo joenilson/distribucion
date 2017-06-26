@@ -161,7 +161,7 @@ class dashboard_distribucion extends fs_controller {
         $f_hasta = filter_input(INPUT_POST, 'f_hasta');
         $this->f_hasta = ($f_hasta)?$f_hasta:\date('d-m-Y');
         $codalmacen = filter_input(INPUT_POST, 'codalmacen');
-        $this->codalmacen = (isset($this->user->codalmacen))?$this->user->codalmacen:$codalmacen;
+        $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:$codalmacen;
 
         //Ragno de fechas según los datos enviados
         $desde = new DateTime($this->f_desde);

@@ -124,7 +124,7 @@ class distrib_ordencarga extends fs_controller {
         $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
         $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
         $codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
-        $this->codalmacen = (isset($this->user->codalmacen))?$this->user->codalmacen:$codalmacen;
+        $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:$codalmacen;
         $desde_p = \filter_input(INPUT_POST, 'desde');
         $desde_g = \filter_input(INPUT_GET, 'desde');
         $this->desde = ($desde_p)?$desde_p:$desde_g;

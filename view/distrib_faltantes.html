@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <div class="col-sm-3">
                         <select class="form-control" name="codalmacen">
                             <option value="">Elige un almacén</option>
-                            {if="$fsc->user->admin"}
+                            {if="$fsc->user->admin OR !$fsc->user->codalmacen"}
                             {loop="$fsc->almacenes->all()"}
                             <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>
                             {/loop}
@@ -181,7 +181,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <div class="col-sm-4">
                         <div class="has-feedback">
                             <input type="text" name="fecha_pago" value="{$fsc->fecha_pago}" class="form-control datepicker input-sm" id="fecha_pago">
-                            <span class="fa fa-calendar form-control-feedback"></span>                                
+                            <span class="fa fa-calendar form-control-feedback"></span>
                         </div>
                     </div>
                 </div>
@@ -190,7 +190,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <div class="col-sm-4">
                         <div class="has-feedback">
                             <input type="number" name="monto_pago" class="form-control input-sm" id="monto_pago">
-                            <span class="fa fa-money form-control-feedback"></span>                                
+                            <span class="fa fa-money form-control-feedback"></span>
                         </div>
                     </div>
                 </div>

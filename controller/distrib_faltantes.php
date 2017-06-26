@@ -19,6 +19,8 @@
 require_model('almacen.php');
 require_model('agente.php');
 require_model('distribucion_faltantes.php');
+require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
+use FacturaScripts\Seguridad\SeguridadUsuario;
 /**
  * Description of distrib_faltantes
  *
@@ -44,30 +46,21 @@ class distrib_faltantes extends fs_controller{
     public function __construct() {
         parent::__construct(__CLASS__, 'Liquidar Faltantes', 'Caja', FALSE, TRUE, FALSE);
     }
-    
+
     protected function private_core() {
         $this->allow_delete = ($this->user->admin)?true:$this->user->allow_delete_on(__CLASS__);
         $this->mostrar = 'todo';
-        
+
         $this->distribucion_faltantes = new distribucion_faltantes();
         $this->almacenes = new almacen();
-        
+
         $this->fecha_pago = \date('d-m-Y');
         $fecha_pago = filter_input(INPUT_POST, 'fecha_pago');
         $this->fecha_pago = ($fecha_pago)?$fecha_pago:\date('d-m-Y');
 
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        if($this->user->admin){
-            $this->listado_faltantes = $this->distribucion_faltantes->all($this->empresa->id);
-        }else{
-            $this->agente = new agente();
-            $cod = $this->agente->get($this->user->codagente);
-            $this->listado_faltantes = $this->distribucion_faltantes->all_almacen($this->empresa->id, $cod->codalmacen);
-            $user_almacen = $this->almacenes->get($cod->codalmacen);
-            $this->user->codalmacen = $user_almacen->codalmacen;
-            $this->user->nombrealmacen = $user_almacen->nombre;
-            $this->codalmacen = $cod->codalmacen;
-        }
+        $seguridadUsuario = new SeguridadUsuario();
+        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
         $accion = filter_input(INPUT_POST, 'accion');
         if($accion){
@@ -75,29 +68,50 @@ class distrib_faltantes extends fs_controller{
                 $this->cobrar_faltante();
             }
         }
-        
+
+        $this->listado_faltantes = false;
+        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
+        if($this->user->admin){
+            $this->listado_faltantes = $this->distribucion_faltantes->all($this->empresa->id);
+        }else{
+            //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
+            $seguridadUsuario = new SeguridadUsuario();
+            $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
+            $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:false;
+            //$this->agente = new agente();
+            //$cod = $this->agente->get($this->user->codagente);
+            /*
+            $this->listado_faltantes = $this->distribucion_faltantes->all_almacen($this->empresa->id, $cod->codalmacen);
+            $user_almacen = $this->almacenes->get($cod->codalmacen);
+            $this->user->codalmacen = $user_almacen->codalmacen;
+            $this->user->nombrealmacen = $user_almacen->nombre;
+            $this->codalmacen = $cod->codalmacen;
+             *
+             */
+        }
+
         //Si se eligió un almacen o se proceso el listado se vuelve a cargar los faltantes del almacen
         $codalmacen = \filter_input(INPUT_POST, 'codalmacen');
         $this->codalmacen = ($codalmacen)?$codalmacen:$this->codalmacen;
-        if(!empty($this->codalmacen)){
+        if($this->codalmacen){
             $this->listado_faltantes = $this->distribucion_faltantes->all_almacen($this->empresa->id, $this->codalmacen);
         }
-        
+
         $fecha_inicio = \filter_input(INPUT_POST, 'fecha_desde');
         if($fecha_inicio){
             $this->desde = $fecha_inicio;
         }
-        
+
         $fecha_fin = \filter_input(INPUT_POST, 'fecha_hasta');
         if($fecha_fin){
             $this->hasta = $fecha_fin;
         }
-        
+
         if(isset($_REQUEST['mostrar'])){
             $this->mostrar = $_REQUEST['mostrar'];
             $this->listado_faltantes = $this->mostrar_informacion($_REQUEST['mostrar']);
         }
-        
+
         //Totalizamos por Divisa los faltantes
         if($this->listado_faltantes){
             $total_faltantes = array();
@@ -124,17 +138,17 @@ class distrib_faltantes extends fs_controller{
             }
             $this->total_faltantes = $lista;
         }else{
-            $this->total_faltantes[$this->empresa->coddivisa]=0;
+            $this->total_faltantes=array();
         }
         $this->total_resultados = count($this->listado_faltantes);
     }
-    
+
     public function mostrar_informacion($solicitud){
         if($solicitud == 'buscar'){
             return $this->distribucion_faltantes->buscar($this->empresa->id, $this->codalmacen, $this->desde, $this->hasta, $this->conductor);
         }
     }
-    
+
     public function cobrar_faltante(){
         $idrecibo = filter_input(INPUT_POST, 'idrecibo');
         $codalmacen = filter_input(INPUT_POST, 'codalmacen');
@@ -166,7 +180,7 @@ class distrib_faltantes extends fs_controller{
             $this->new_error_msg('No se encontró un Faltante con la información proporcionada.'.$recibo_origen.' '.$idrecibo);
         }
     }
-    
+
     public function paginas() {
         $url = $this->url()."&mostrar=".$this->mostrar
             ."&query=".$this->query
@@ -213,18 +227,18 @@ class distrib_faltantes extends fs_controller{
 
         return $paginas;
     }
-    
-    
+
+
     public function tratar_faltante(){
-        
+
     }
-    
+
     public function imprimir_recibo(){
-        
+
     }
-    
+
     public function share_extensions(){
-        
+
     }
-    
+
 }
