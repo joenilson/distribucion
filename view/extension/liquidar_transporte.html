@@ -244,11 +244,11 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
            checkboxValues.push(factura+'-'+almacen);
         }else if(checkboxValues.length === 0 && factura === undefined && almacen === undefined){
             seguir = false;
-            alert('Error de informacion enviada a procesar, no hay datos seleccionados!');
+            bootbox.alert('Error de informacion enviada a procesar, no hay datos seleccionados!');
         }
         
         if(codsubcuenta === '' && fecha_pago ===''){
-            alert('Debe elegir una cuenta para generar el asiento de pago y una fecha de pago');
+            bootbox.alert('Debe elegir una cuenta para generar el asiento de pago y una fecha de pago');
         }
         
         if(seguir){
