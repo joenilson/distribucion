@@ -34,9 +34,10 @@ require_model('distribucion_lineastransporte.php');
 require_model('cliente.php');
 require_model('articulo.php');
 require_model('articulo_unidadmedida.php');
-require_once 'plugins/distribucion/vendors/asgard/asgard_PDFHandler.php';
-require_once 'helper_ordencarga.php';
-require_once 'helper_transportes.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/PrinterManager.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
+use FacturaScripts\Seguridad\SeguridadUsuario;
+use FacturaScripts\PrinterManager;
 
 /**
  * Description of distribucion_creacion
@@ -50,6 +51,12 @@ class distrib_ordencarga extends fs_controller {
     public $almacen;
     public $resultados;
     public $agencia_transporte;
+    public $distribucion_setup;
+    public $ordencarga_nombre;
+    public $tranporte_nombre;
+    public $liquidacion_nombre;
+    public $devolucion_nombre;
+    public $hojadevolucion_nombre;
     public $distrib_clientes;
     public $distrib_facturas;
     public $distrib_rutas;
@@ -72,8 +79,6 @@ class distrib_ordencarga extends fs_controller {
     public $num_resultados;
     public $paginas;
     public $articulo;
-    public $helper_ordencarga;
-    public $helper_transportes;
     public $unidadmedida;
     public $articulo_unidadmedida;
 
@@ -103,14 +108,11 @@ class distrib_ordencarga extends fs_controller {
         $this->articulo_unidadmedida = new articulo_unidadmedida();
         $this->share_extensions();
 
-        //Si el usuario es admin o no tiene usuario asignado puede ver todo, pero sino, solo su almacén designado
-        if(!$this->user->admin){
-            $this->agente = new agente();
-            $cod = $this->agente->get($this->user->codagente);
-            $user_almacen = $this->almacen->get($cod->codalmacen);
-            $this->user->codalmacen = $user_almacen->codalmacen;
-            $this->user->nombrealmacen = $user_almacen->nombre;
-        }
+        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
+        $seguridadUsuario = new SeguridadUsuario();
+        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
+        //Cargamos las traducciones de los documentos
+        $this->variables_globales();
 
         //Leemos las variables que nos manda el view
         $type = \filter_input(INPUT_GET, 'type');
@@ -122,7 +124,7 @@ class distrib_ordencarga extends fs_controller {
         $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
         $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
         $codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
-        $this->codalmacen = (isset($this->user->codalmacen))?$this->user->codalmacen:$codalmacen;
+        $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:$codalmacen;
         $desde_p = \filter_input(INPUT_POST, 'desde');
         $desde_g = \filter_input(INPUT_GET, 'desde');
         $this->desde = ($desde_p)?$desde_p:$desde_g;
@@ -210,6 +212,38 @@ class distrib_ordencarga extends fs_controller {
 
         $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga($this->empresa->id, $this->codalmacen, $this->desde, $this->hasta, $conductor);
         $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes($this->empresa->id, 'cargado', $this->codalmacen, $this->desde, $this->hasta, $conductor);
+    }
+
+    public function variables_globales(){
+        $fsvar = new fs_var();
+        $this->distribucion_setup = $fsvar->array_get(
+            array(
+            'distrib_ordencarga' => "Orden de Carga",
+            'distrib_ordenescarga' => "Ordenes de Carga",
+            'distrib_transporte' => "Transporte",
+            'distrib_transportes' => "Transportes",
+            'distrib_devolucion' => "Devolución",
+            'distrib_devoluciones' => "Devoluciones",
+            'distrib_agencia' => "Agencia",
+            'distrib_agencias' => "Agencias",
+            'distrib_unidad' => "Unidad",
+            'distrib_unidades' => "Unidades",
+            'distrib_conductor' => "Conductor",
+            'distrib_conductores' => "Conductores",
+            'distrib_liquidacion' => "Liquidación",
+            'distrib_liquidaciones' => "Liquidaciones",
+            'distrib_faltante' => "Faltante",
+            'distrib_faltantes' => "Faltantes",
+            'distrib_hojadevolucion' => "Hoja de Devolución",
+            'distrib_hojasdevolucion' => "Hojas de Devolución"
+            ), FALSE
+        );
+        $this->ordencarga_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_ordencarga']));
+        $this->transporte_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_transporte']));
+        $this->devolucion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_devolucion']));
+        $this->liquidacion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_liquidacion']));
+        $this->hojadevolucion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_hojadevolucion']));
+
     }
 
     public function buscador(){
@@ -352,25 +386,43 @@ class distrib_ordencarga extends fs_controller {
 
     public function imprimir_transporte(){
         $this->template = false;
-        $this->helper_transportes = new helper_transportes();
         $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
         $lista_ordenescargar = explode(',', $value_ordencarga);
         $contador_transporte = 0;
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
-        foreach ($lista_ordenescargar as $ordencarga) {
-            if (!empty($ordencarga)) {
-                $datos_ordencarga = explode('-', $ordencarga);
-                $idordencarga = $datos_ordencarga[0];
+        $conf = array('file'=>'transporte.pdf', 'type'=>'pdf', 'page_size'=>'letter');
+        $pdf_doc = new PrinterManager($conf);
+        $pdf_doc->crearArchivo();
+        foreach ($lista_ordenescargar as $transporte) {
+            if (!empty($transporte)) {
+                $datos_ordencarga = explode('-', $transporte);
                 $codalmacen = $datos_ordencarga[1];
                 $idtransporte = $datos_ordencarga[2];
                 $contador_transporte++;
                 $transporte = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $pdfFile->pdf_pagina($this->helper_transportes->cabecera_transporte($transporte), $this->helper_transportes->contenido_transporte($lineastransporte), $this->helper_transportes->pie_transporte($transporte));
+                $transporte->nombre = $this->transporte_nombre;
+                $transporte->numero = str_pad($transporte->idtransporte,6,'0',STR_PAD_LEFT);
+                $transporte->cabecera_lineas = $this->cabecera_transporte();
+                $cabecera = array();
+                $cabecera[] = array('size'=>30, 'label'=>'Orden de Carga:','valor'=>str_pad($transporte->idordencarga,6,0,STR_PAD_LEFT),'salto_linea'=>false);
+                $cabecera[] = array('size'=>30, 'label'=>'Fecha de Reparto:','valor'=>$transporte->fecha,'salto_linea'=>true);
+                $cabecera[] = array('size'=>30, 'label'=>'Almacén Origen:','valor'=>$transporte->codalmacen,'salto_linea'=>false);
+                $cabecera[] = array('size'=>30, 'label'=>'Almacén Destino:','valor'=>$transporte->codalmacen_dest,'salto_linea'=>true);
+                $cabecera[] = array('size'=>30, 'label'=>'Unidad:','valor'=>$transporte->unidad,'salto_linea'=>false);
+                $cabecera[] = array('size'=>120, 'label'=>'Conductor:','valor'=>$transporte->conductor_nombre,'salto_linea'=>true);
+                $pdf_doc->agregarCabecera($this->empresa, $transporte, $cabecera);
+                $lineastransporte = $this->distrib_lineastransporte->get_lineas_imprimir($this->empresa->id, $idtransporte, $codalmacen, 'transporte');
+                $pdf_doc->agregarLineas($lineastransporte);
+                $totales_lineas = array('totalcantidad'=>$transporte->totalcantidad,'totalimporte'=>$transporte->totalimporte);
+                $pdf_doc->agregarTotalesLineas($totales_lineas);
+                $pdf_doc->agregarObservaciones(false);
+                $firmas = array();
+                $firmas[] = 'Firma Distribución';
+                $firmas[] = 'Firma Seguridad';
+                $firmas[] = 'Firma Almacén';
+                $pdf_doc->agregarFirmas($firmas);
             }
         }
-        $pdfFile->pdf_mostrar();
+        $pdf_doc->mostrarDocumento();
     }
 
     public function visualizar_ordencarga($idordencarga, $codalmacen) {
@@ -501,30 +553,23 @@ class distrib_ordencarga extends fs_controller {
         $num = 0;
         $actual = 1;
 
-        if($this->mostrar == 'pendientes')
-        {
+        if ($this->mostrar == 'pendientes') {
             $total = $this->total_pendientes();
-        }
-        else if($this->mostrar == 'buscar')
-        {
+        } else if ($this->mostrar == 'buscar') {
             $total = $this->num_resultados;
-        }
-        else
-        {
+        } else {
             $total = $this->total_resultados;
         }
 
         /// añadimos todas la página
-        while($num < $total)
-        {
+        while ($num < $total) {
             $paginas[$i] = array(
-                'url' => $url."&offset=".($i*FS_ITEM_LIMIT),
+                'url' => $url . "&offset=" . ($i * FS_ITEM_LIMIT),
                 'num' => $i + 1,
                 'actual' => ($num == $this->offset)
             );
 
-            if($num == $this->offset)
-            {
+            if ($num == $this->offset) {
                 $actual = $i;
             }
 
@@ -626,24 +671,56 @@ class distrib_ordencarga extends fs_controller {
 
     public function imprimir_carga() {
         $this->template = false;
-        $this->helper_ordencarga = new helper_ordencarga();
         $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
         $lista_ordenescargar = explode(',', $value_ordencarga);
         $contador_ordenescarga = 0;
-        $pdfFile = new asgard_PDFHandler();
-        $pdfFile->pdf_create();
+        $conf = array('file'=>'ordencarga.pdf', 'type'=>'pdf', 'page_size'=>'letter');
+        $pdf_doc = new PrinterManager($conf);
+        $pdf_doc->crearArchivo();
         foreach ($lista_ordenescargar as $ordencarga) {
             if (!empty($ordencarga)) {
                 $datos_ordencarga = explode('-', $ordencarga);
                 $idordencarga = $datos_ordencarga[0];
                 $codalmacen = $datos_ordencarga[1];
                 $contador_ordenescarga++;
-                $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
-                $pdfFile->pdf_pagina($this->helper_ordencarga->cabecera($ordencarga), $this->helper_ordencarga->contenido($lineasordencarga), $this->helper_ordencarga->pie($ordencarga));
+                $ordencarga = $this->distrib_ordenescarga->getOne($this->empresa->id, $idordencarga, $codalmacen);
+                $ordencarga->nombre = $this->ordencarga_nombre;
+                $ordencarga->numero = str_pad($ordencarga->idordencarga,6,'0',STR_PAD_LEFT);
+                $ordencarga->cabecera_lineas = $this->cabecera_ordencarga();
+                $cabecera = array();
+                $cabecera[] = array('size'=>30, 'label'=>'Fecha Reparto:','valor'=>$ordencarga->fecha,'salto_linea'=>false);
+                $cabecera[] = array('size'=>30, 'label'=>'Almacén Origen:','valor'=>$ordencarga->codalmacen,'salto_linea'=>false);
+                $cabecera[] = array('size'=>30, 'label'=>'Almacén Destino:','valor'=>$ordencarga->codalmacen_dest,'salto_linea'=>true);
+                $cabecera[] = array('size'=>30, 'label'=>'Unidad:','valor'=>$ordencarga->unidad,'salto_linea'=>false);
+                $cabecera[] = array('size'=>120, 'label'=>'Conductor:','valor'=>$ordencarga->conductor_nombre,'salto_linea'=>true);
+                $pdf_doc->agregarCabecera($this->empresa, $ordencarga, $cabecera);
+                $lineasordencarga = $this->distrib_lineasordenescarga->get_lineas_imprimir($this->empresa->id, $idordencarga, $codalmacen);
+                $pdf_doc->agregarLineas($lineasordencarga);
+                $pdf_doc->agregarObservaciones($ordencarga->observaciones);
+                $firmas = array();
+                $firmas[] = 'Firma Distribución';
+                $firmas[] = 'Firma Almacén';
+                $pdf_doc->agregarFirmas($firmas);
             }
         }
-        $pdfFile->pdf_mostrar();
+        $pdf_doc->mostrarDocumento();
+    }
+
+    private function cabecera_ordencarga(){
+        $cabecera = array();
+        $cabecera[] = array('size'=>125, 'descripcion'=>'Ref + Descripcion','align'=>'L');
+        $cabecera[] = array('size'=>40, 'descripcion'=>'U. Med','align'=>'C');
+        $cabecera[] = array('size'=>30, 'descripcion'=>'Cantidad','align'=>'R');
+        return $cabecera;
+    }
+
+    private function cabecera_transporte(){
+        $cabecera = array();
+        $cabecera[] = array('size'=>125, 'descripcion'=>'Ref + Descripcion','align'=>'L','total'=>false);
+        $cabecera[] = array('size'=>40, 'descripcion'=>'U. Med','align'=>'C','total'=>false);
+        $cabecera[] = array('size'=>30, 'descripcion'=>'Cantidad','align'=>'R','total'=>true,'total_campo'=>'totalcantidad');
+        $cabecera[] = array('size'=>30, 'descripcion'=>'Monto','align'=>'R','total'=>true,'total_campo'=>'totalimporte');
+        return $cabecera;
     }
 
     public function confirmar_carga(){
@@ -686,7 +763,6 @@ class distrib_ordencarga extends fs_controller {
 
     public function eliminar_carga() {
         $this->template = false;
-        $this->helper_ordencarga = new helper_ordencarga();
         $value_ordencarga = \filter_input(INPUT_GET, 'ordencarga');
         $lista_ordenescargar = explode(',', $value_ordencarga);
         foreach ($lista_ordenescargar as $ordencarga) {

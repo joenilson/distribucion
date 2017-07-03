@@ -12,12 +12,14 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Lesser General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Lesser General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
 require_model('articulo.php');
+require_model('articulo_unidadmedida.php');
+require_model('unidadmedida.php');
 /**
  * Description of distribucion_lineasordenescarga
  *
@@ -36,9 +38,10 @@ class distribucion_lineasordenescarga extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
-    
+
     public $articulo;
-    
+    public $articulo_unidadmedida;
+    public $unidad_medida;
     public function __construct($t = false) {
         parent::__construct('distribucion_lineasordenescarga','plugins/distribucion/');
         if($t)
@@ -71,18 +74,30 @@ class distribucion_lineasordenescarga extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion  = \Date('d-m-Y H:i');
         }
-        
+
         $this->articulo = new articulo();
+        $this->articulo_unidadmedida = new articulo_unidadmedida();
+        $this->unidad_medida = new unidadmedida();
     }
-    
+
     public function url(){
         return "index.php?page=distrib_ordencarga";
     }
-    
+
     protected function install() {
         return "";
     }
-    
+
+    public function info_adicional($res){
+        $aum = $this->articulo_unidadmedida->getBase($res->referencia);
+        $res->codum = (isset($aum->codum))?$aum->codum:'UNIDAD';
+        $um = $this->unidad_medida->get($res->codum);
+        $descripcion_producto = $this->articulo->get($res->referencia);
+        $res->descripcion = $descripcion_producto->descripcion;
+        $res->descripcion_um = (isset($um->nombre))?$um->nombre:'UNIDAD';
+        return $res;
+    }
+
     public function exists() {
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -95,7 +110,7 @@ class distribucion_lineasordenescarga extends fs_model {
             return false;
         }
     }
-    
+
     public function save() {
         if ($this->exists())
         {
@@ -136,7 +151,7 @@ class distribucion_lineasordenescarga extends fs_model {
             }
         }
     }
-    
+
     public function delete() {
         $sql = "DELETE FROM distribucion_lineasordenescarga WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -144,12 +159,12 @@ class distribucion_lineasordenescarga extends fs_model {
                 "idordencarga = ".$this->intval($this->idordencarga).";";
         return $this->db->exec($sql);
     }
-    
+
     public function all($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -159,12 +174,12 @@ class distribucion_lineasordenescarga extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_almacen($idempresa,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -174,12 +189,12 @@ class distribucion_lineasordenescarga extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_agencia($idempresa,$codtrans)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -189,12 +204,12 @@ class distribucion_lineasordenescarga extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -204,12 +219,12 @@ class distribucion_lineasordenescarga extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -219,12 +234,12 @@ class distribucion_lineasordenescarga extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_almacen($idempresa,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -234,12 +249,12 @@ class distribucion_lineasordenescarga extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_agencia($idempresa,$codtrans)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -249,12 +264,12 @@ class distribucion_lineasordenescarga extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -264,20 +279,42 @@ class distribucion_lineasordenescarga extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get($idempresa,$idordencarga, $codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND idordencarga = ".$this->intval($idordencarga)." AND codalmacen = ".$this->var2str($codalmacen).";");
-        
+
         if($data)
         {
             foreach($data as $d)
             {
                 $valor_linea = new distribucion_lineasordenescarga($d);
-                $descripcion_producto = $this->articulo->get($valor_linea->referencia);
-                $valor_linea->descripcion = $descripcion_producto->descripcion;
-                $lista[] = $valor_linea;
+                $item = $this->info_adicional($valor_linea);
+                //$descripcion_producto = $this->articulo->get($valor_linea->referencia);
+                //$valor_linea->descripcion = $descripcion_producto->descripcion;
+                $lista[] = $item;
+            }
+        }
+        return $lista;
+    }
+
+    public function get_lineas_imprimir($idempresa,$idordencarga, $codalmacen)
+    {
+        $lista = array();
+        $data = $this->db->select("SELECT referencia,cantidad FROM distribucion_lineasordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND idordencarga = ".$this->intval($idordencarga)." AND codalmacen = ".$this->var2str($codalmacen).";");
+
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $item = array();
+                $descripcion_producto = $this->articulo->get($d['referencia']);
+                $um = $this->articulo_unidadmedida->getBase($d['referencia']);
+                $item[] = $d['referencia'].' '.$descripcion_producto->descripcion;
+                $item[] = (isset($um->codum))?$um->codum:'UNIDAD';
+                $item[] = $d['cantidad'];
+                $lista[] = $item;
             }
         }
         return $lista;

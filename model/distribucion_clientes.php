@@ -11,7 +11,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Lesser General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Lesser General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -45,7 +45,7 @@ class distribucion_clientes extends fs_model {
     public $agente;
     public $nombre_cliente;
     public $cliente;
-    
+
     public function __construct($t = false) {
         parent::__construct('distribucion_clientes','plugins/distribucion/');
         if($t)
@@ -81,15 +81,15 @@ class distribucion_clientes extends fs_model {
         $this->direccion_cliente = new direccion_cliente();
         $this->cliente = new cliente();
     }
-    
+
     public function url(){
         return "index.php?page=distrib_clientes";
     }
-    
+
     protected function install() {
         return "";
     }
-    
+
     public function info_adicional($informacion){
         $datos_ruta = $this->distrib_rutas->get($informacion->idempresa,$informacion->codalmacen, $informacion->ruta);
         $datos_canal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->canal, 'CANAL');
@@ -110,8 +110,8 @@ class distribucion_clientes extends fs_model {
         $informacion->debaja = ($datos_cliente)?$datos_cliente->debaja:'Error de fechabaja del cliente';
         return $informacion;
     }
-    
-    //Agregando metodo para mostrar la informacion  de la ruta y las iniciales del agente. 
+
+    //Agregando metodo para mostrar la informacion  de la ruta y las iniciales del agente.
     public function info_vendedor($factura) {
         $data = $this->db->select("SELECT  '('||dc.ruta || '/'|| substring(ag.nombre,1,1)||substring(ag.apellidos,1,1) ||')' as vendedor FROM facturascli f inner join distribucion_clientes dc  on dc.codcliente = f.codcliente
             inner join albaranescli a on a.idfactura = f.idfactura inner join pedidoscli p on p.idalbaran = a.idalbaran
@@ -134,9 +134,9 @@ class distribucion_clientes extends fs_model {
             return true;
         }else{
             return false;
-        }        
+        }
     }
-    
+
     public function save() {
         if ($this->exists())
         {
@@ -177,7 +177,7 @@ class distribucion_clientes extends fs_model {
             }
         }
     }
-    
+
     public function transferir($ruta_destino){
         if ($this->exists())
         {
@@ -196,7 +196,7 @@ class distribucion_clientes extends fs_model {
             return false;
         }
     }
-    
+
     public function delete() {
         $sql = "DELETE FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
@@ -206,12 +206,12 @@ class distribucion_clientes extends fs_model {
                 "codcliente = ".$this->var2str($this->codcliente).";";
         return $this->db->exec($sql);
     }
-    
+
     public function all($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." ORDER BY ruta, canal, subcanal, codcliente;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -223,7 +223,7 @@ class distribucion_clientes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function clientes_sinruta($idempresa, $almacen){
         $sql = "SELECT c.codcliente as codcliente, c.nombre as nombre, d.id as iddireccion, d.direccion as direccion FROM  clientes as c, dirclientes as d ".
                    "WHERE c.codcliente NOT IN (select distinct codcliente from ".$this->table_name.") ".
@@ -248,7 +248,7 @@ class distribucion_clientes extends fs_model {
         }
         return $lista;
     }
-       
+
     public function clientes_almacen($idempresa,$codalmacen)
     {
         $sql = "SELECT c.*, dc.* FROM clientes as c, distribucion_clientes as dc ".
@@ -273,7 +273,7 @@ class distribucion_clientes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function clientes_totales($idempresa)
     {
         $sql = "SELECT c.*, dc.* FROM clientes as c, distribucion_clientes as dc ".
@@ -297,7 +297,7 @@ class distribucion_clientes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function clientes_totales_estado($codalmacen,$desde,$hasta)
     {
         $clientes = array();
@@ -344,7 +344,7 @@ class distribucion_clientes extends fs_model {
         }
         return $clientes;
     }
-    
+
     public function clientes_ruta($idempresa,$codalmacen, $ruta)
     {
         $sql = "SELECT * FROM distribucion_clientes ".
@@ -354,7 +354,7 @@ class distribucion_clientes extends fs_model {
                 " ORDER BY ruta, codcliente;";
         $lista = array();
         $data = $this->db->select($sql);
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -367,6 +367,36 @@ class distribucion_clientes extends fs_model {
         return $lista;
     }
 
+    public function clientes_ruta_imprimir($idempresa,$codalmacen, $ruta)
+    {
+        $sql = "SELECT dc.codcliente,c.nombre,c.razonsocial,dc.canal,ds1.descripcion as canal_desc,dc.subcanal,ds2.descripcion as subcanal_desc,dc.iddireccion,dir.direccion ".
+                " FROM distribucion_clientes as dc ".
+                " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
+                " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
+                " JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
+                " JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
+                " WHERE dc.idempresa = ".$this->intval($idempresa).
+                " AND ruta = ".$this->var2str($ruta).
+                " AND codalmacen = ".$this->var2str($codalmacen).
+                " ORDER BY codcliente;";
+        $lista = array();
+        $data = $this->db->select($sql);
+        if($data)
+        {
+            foreach($data as $d)
+            {
+                $item = array();
+                $item[] = $d['codcliente'];
+                $item[] = (trim($d['nombre'])==trim($d['razonsocial']))?trim($d['nombre']):trim($d['razonsocial']).' - '.trim($d['nombre']);
+                $item[] = $d['direccion'];
+                $item[] = $d['canal_desc'];
+                $item[] = $d['subcanal_desc'];
+                $lista[] = $item;
+            }
+        }
+        return $lista;
+    }
+
     public function clientes_canal($idempresa,$codalmacen,$canal)
     {
         $lista = array();
@@ -374,7 +404,7 @@ class distribucion_clientes extends fs_model {
                 " AND canal = ".$this->var2str($canal).
                 " AND codalmacen = ".$this->var2str($codalmacen).
                 " ORDER BY canal, ruta, codcliente;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -394,7 +424,7 @@ class distribucion_clientes extends fs_model {
                 " AND subcanal = ".$this->var2str($subcanal).
                 " AND codalmacen = ".$this->var2str($codalmacen).
                 " ORDER BY subcanal, ruta, codcliente;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -406,7 +436,7 @@ class distribucion_clientes extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get($idempresa,$codcliente)
     {
         $lista = array();
@@ -424,7 +454,7 @@ class distribucion_clientes extends fs_model {
             return false;
         }
     }
-    
+
     public function getOne($idempresa,$codcliente,$ruta)
     {
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).
@@ -439,7 +469,7 @@ class distribucion_clientes extends fs_model {
             return false;
         }
     }
-    
+
     public function ruta_cliente($idempresa,$codalmacen,$codcliente,$iddireccion,$ruta)
     {
         $data = $this->db->select("SELECT * FROM ".$this->table_name." WHERE idempresa = ".$idempresa.

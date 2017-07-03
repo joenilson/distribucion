@@ -453,7 +453,7 @@ class distribucion_ordenescarga extends fs_model {
         }
         return $lista;
     }
-    
+
 
     public function all_almacen($idempresa,$codalmacen,$offset = 0)
     {
@@ -594,5 +594,18 @@ class distribucion_ordenescarga extends fs_model {
             }
         }
         return $lista;
+    }
+
+    public function getOne($idempresa,$idordencarga,$codalmacen)
+    {
+        $valor_lista = false;
+        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND idordencarga = ".$this->intval($idordencarga)." AND codalmacen = ".$this->var2str($codalmacen).";");
+        if($data)
+        {
+                $valor_lista = new distribucion_ordenescarga($data[0]);
+                $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
+                $valor_lista->conductor_nombre = $datos_conductor->nombre;
+        }
+        return $valor_lista;
     }
 }

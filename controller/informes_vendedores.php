@@ -31,7 +31,8 @@ require_model('facturas_cliente.php');
 require_model('facturas_proveedor.php');
 require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
-require_once 'plugins/distribucion/vendors/tcpdf/tcpdf.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
+use FacturaScripts\Seguridad\SeguridadUsuario;
 /**
  * Description of informes_vendedores
  *
@@ -112,22 +113,16 @@ class informes_vendedores extends fs_controller {
         if (!is_dir($this->distribucionDir)) {
             mkdir($this->distribucionDir);
         }
-
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        if(!$this->user->admin){
-            $this->agente = new agente();
-            $cod = $this->agente->get($this->user->codagente);
-            $user_almacen = $this->almacenes->get($cod->codalmacen);
-            $this->user->codalmacen = $user_almacen->codalmacen;
-            $this->user->nombrealmacen = $user_almacen->nombre;
-        }
+        $seguridadUsuario = new SeguridadUsuario();
+        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
         $f_desde = filter_input(INPUT_POST, 'f_desde');
         $this->f_desde = ($f_desde)?$f_desde:\date('01-m-Y');
         $f_hasta = filter_input(INPUT_POST, 'f_hasta');
         $this->f_hasta = ($f_hasta)?$f_hasta:\date('d-m-Y');
         $codalmacen = filter_input(INPUT_POST, 'codalmacen');
-        $this->codalmacen = (isset($this->user->codalmacen))?$this->user->codalmacen:$codalmacen;
+        $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:$codalmacen;
 
         //Ragno de fechas según los datos enviados
         $desde = new DateTime($this->f_desde);

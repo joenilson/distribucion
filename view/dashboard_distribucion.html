@@ -60,7 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <div class="col-sm-3">
                             <label for="codalmacen" class="control-label">Almacén</label>
                             <select name="codalmacen" class="form-control">
-                                {if="$fsc->user->admin"}
+                                {if="$fsc->user->admin OR !$fsc->user->codalmacen"}
                                     <option value="">Todos los almacenes</option>
                                     {loop="$fsc->almacenes->all()"}
                                     <option value="{$value->codalmacen}" {if="$value->codalmacen==$fsc->codalmacen"}selected{/if}>{$value->nombre}</option>

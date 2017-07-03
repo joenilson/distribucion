@@ -50,12 +50,12 @@ class informe_almacen extends fs_controller{
     public $fileNamePath;
     public $documentosDir;
     public $distribucionDir;
-    public $publicPath;    
+    public $publicPath;
     public $tablas;
     public function __construct() {
         parent::__construct(__CLASS__, 'Movimientos de Almacén', 'informes', FALSE, TRUE, FALSE);
     }
-    
+
     protected function private_core() {
         $this->shared_extensions();
         $this->almacen = new almacen();
@@ -78,29 +78,29 @@ class informe_almacen extends fs_controller{
         if (!is_dir($this->distribucionDir)) {
             mkdir($this->distribucionDir);
         }
-        
+
         $desde_p = \filter_input(INPUT_POST, 'desde');
         $desde_g = \filter_input(INPUT_GET, 'desde');
-        $desde = ($desde_p)?$desde_p:$desde_g;      
+        $desde = ($desde_p)?$desde_p:$desde_g;
         $this->desde = ($desde)?$desde:\date('01-m-Y');
         $this->f_desde = \date('Y-m-d',strtotime($this->desde));
-        
+
         $hasta_p = \filter_input(INPUT_POST, 'hasta');
         $hasta_g = \filter_input(INPUT_GET, 'hasta');
         $hasta = ($hasta_p)?$hasta_p:$hasta_g;
         $this->hasta = ($hasta)?$hasta:\date('d-m-Y');
         $this->f_hasta = \date('Y-m-d',strtotime($this->hasta));
-        
+
         $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
         $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
         $codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
         $this->codalmacen = ($codalmacen)?$codalmacen:false;
-        
+
         $referencia_p = \filter_input(INPUT_POST, 'referencia');
         $referencia_g = \filter_input(INPUT_GET, 'referencia');
         $referencia = ($referencia_p)?$referencia_p:$referencia_g;
         $this->referencia = ($referencia)?$referencia:false;
-        
+
         $accion_p = \filter_input(INPUT_POST, 'accion');
         $accion_g = \filter_input(INPUT_GET, 'accion');
         $accion = ($accion_p)?$accion_p:$accion_g;
@@ -112,9 +112,9 @@ class informe_almacen extends fs_controller{
         {
             $this->buscar_articulo();
         }
-        
+
     }
-    
+
     public function buscar_articulo()
     {
         $articulos = new articulo();
@@ -124,8 +124,8 @@ class informe_almacen extends fs_controller{
         header('Content-Type: application/json');
         echo json_encode($data);
     }
-            
-    
+
+
     public function buscar()
     {
         $this->resultados = array();
@@ -136,13 +136,13 @@ class informe_almacen extends fs_controller{
             $datos['codalmacen'] = $this->codalmacen;
             $almacenes = array($this->almacen->get($this->codalmacen));
         }
-        
+
         $articulos = $this->articulos();
         if($this->referencia){
             $datos['referencia'] = $this->referencia;
             $articulos = array($this->articulo->get($this->referencia));
         }
-        
+
         $resultado = array();
         $saldo = array();
         foreach($almacenes as $almacen)
@@ -173,7 +173,7 @@ class informe_almacen extends fs_controller{
                 $resultado[$art->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
             }
         }
-        
+
         $lineas_ingresos = $this->ingresos();
         if($lineas_ingresos){
             foreach($lineas_ingresos as $linea)
@@ -186,7 +186,7 @@ class informe_almacen extends fs_controller{
                 $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
             }
         }
-        
+
         $lineas_transportes = $this->distribucion_lineastransporte->lista($this->empresa->id, $datos, $this->f_desde, $this->f_hasta);
         if($lineas_transportes){
             foreach($lineas_transportes['resultados'] as $linea)
@@ -214,7 +214,7 @@ class informe_almacen extends fs_controller{
                 $resultado[$linea->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
             }
         }
-        
+
         $lineas_regularizaciones = $this->regularizaciones();
         if($lineas_regularizaciones){
             foreach($lineas_regularizaciones as $linea)
@@ -230,7 +230,22 @@ class informe_almacen extends fs_controller{
             }
         }
 
-        //ksort($resultado);
+        $lineas_traslados = $this->traslados();
+        if($lineas_traslados){
+            foreach($lineas_traslados as $linea)
+            {
+                if(!isset($resultado[$linea->referencia][$linea->fecha]))
+                {
+                    $resultado[$linea->referencia][$linea->fecha] = array();
+                }
+                $fecha = strtotime($linea->fecha.' '.$linea->hora);
+                $linea->saldo = 0;
+                $linea->fechal = '';
+                $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
+            }
+        }
+
+
         foreach($resultado as $referencia=>$datos)
         {
             ksort($datos);
@@ -268,8 +283,8 @@ class informe_almacen extends fs_controller{
             $linea_nueva->saldo = $saldo_anterior[$referencia];
             $listado_final[] = $linea_nueva;
             $this->resultados = array_merge($listado_final,$this->resultados);
-            
-            
+
+
 
         }
         $this->generar_excel();
@@ -278,7 +293,7 @@ class informe_almacen extends fs_controller{
         header('Content-Type: application/json');
         echo json_encode($data);
     }
-    
+
     public function articulos()
     {
         $lista = array();
@@ -296,7 +311,7 @@ class informe_almacen extends fs_controller{
         }
         return $lista;
     }
-    
+
     public function ingresos()
     {
         $sql_aux = '';
@@ -343,7 +358,7 @@ class informe_almacen extends fs_controller{
                 $movimientos[] = $linea_nueva;
             }
         }
-        
+
         //Albaranes de compra
         $sql_compras2 = "SELECT codalmacen,codigo,fecha,hora,referencia, descripcion, cantidad FROM lineasalbaranesprov as lap".
                 " JOIN albaranesprov as ap on (ap.idalbaran = lap.idalbaran)".
@@ -371,7 +386,7 @@ class informe_almacen extends fs_controller{
                 $movimientos[] = $linea_nueva;
             }
         }
-        
+
         //Si existen estas tablas se genera la información de las transferencias de stock
         if ($this->db->table_exists('transstock', $this->tablas) AND $this->db->table_exists('lineastransstock', $this->tablas)) {
             /*
@@ -403,7 +418,7 @@ class informe_almacen extends fs_controller{
         }
         return $movimientos;
     }
-    
+
     public function regularizaciones()
     {
         $sql_aux = '';
@@ -446,7 +461,50 @@ class informe_almacen extends fs_controller{
         }
         return $movimientos;
     }
-    
+
+    public function traslados()
+    {
+        $sql_aux = '';
+        if($this->codalmacen)
+        {
+            $sql_aux .= ' AND codalmaorigen = '.$this->empresa->var2str($this->codalmacen);
+        }
+        if($this->referencia)
+        {
+            $sql_aux .= ' AND a.referencia = '.$this->empresa->var2str($this->referencia);
+        }
+        $movimientos = array();
+        //Si existe esta tabla se genera la información de los traslados entre almacenes y se agrega como salida el resultado
+        if ($this->db->table_exists('lineastransstock', $this->tablas)) {
+            $sql_traslados = "select codalmaorigen as codalmacen,a.referencia,ls.descripcion,ls.idtrans,fecha,hora,cantidad from lineastransstock AS ls ".
+            "  JOIN articulos as a ON (ls.referencia = a.referencia) JOIN transstock as l ON(ls.idtrans = l.idtrans) ".
+            " WHERE fecha between ".$this->empresa->var2str($this->f_desde).' AND '.$this->empresa->var2str($this->f_hasta).$sql_aux.
+            " ORDER BY fecha,hora,referencia,ls.idtrans";
+            $data_traslados = $this->db->select($sql_traslados);
+            if ($data_traslados) {
+                foreach($data_traslados as $item)
+                {
+                    $linea_nueva = new StdClass();
+                    $linea_nueva->codalmacen = $item['codalmacen'];
+                    $linea_nueva->idtransporte = 'Salida por Traslado '.$item['idtrans'];
+                    $linea_nueva->referencia = $item['referencia'];
+                    $linea_nueva->descripcion = $item['descripcion'];
+                    $linea_nueva->fecha = $item['fecha'];
+                    $linea_nueva->fechal = '';
+                    $linea_nueva->fechad = '';
+                    $linea_nueva->hora = $item['hora'];
+                    $linea_nueva->fecha_creacion = strtotime($item['fecha'].' '.$item['hora']);
+                    $linea_nueva->cantidad = 0;
+                    $linea_nueva->devolucion = 0;
+                    $linea_nueva->total_final = $item['cantidad'];
+                    $linea_nueva->ingresos = 0;
+                    $movimientos[] = $linea_nueva;
+                }
+            }
+        }
+        return $movimientos;
+    }
+
     public function saldo_articulo($ref,$almacen)
     {
         $total_ingresos = 0;
@@ -461,7 +519,7 @@ class informe_almacen extends fs_controller{
         {
             $total_ingresos += $data_Compras1[0]['total'];
         }
-        
+
         //Albaranes de compra
         $sql_compras2 = "SELECT sum(cantidad) as total FROM lineasalbaranesprov as lap".
                 " JOIN albaranesprov as ap on (ap.idalbaran = lap.idalbaran)".
@@ -473,7 +531,7 @@ class informe_almacen extends fs_controller{
         {
             $total_ingresos += $data_Compras2[0]['total'];
         }
-        
+
         $total_salidas = 0;
         //Facturas de venta sin albaran
         $sql_ventas1 = "SELECT sum(cantidad) as total FROM lineasfacturascli as lfc".
@@ -486,7 +544,7 @@ class informe_almacen extends fs_controller{
         {
             $total_salidas += $data_Ventas1[0]['total'];
         }
-        
+
         //Albaranes de venta
         $sql_ventas2 = "SELECT sum(cantidad) as total FROM lineasalbaranescli as lac".
                 " JOIN albaranescli as ac on (ac.idalbaran = lac.idalbaran)".
@@ -498,7 +556,7 @@ class informe_almacen extends fs_controller{
         {
             $total_salidas += $data_Ventas2[0]['total'];
         }
-        
+
         //Si existen estas tablas se genera la información de las transferencias de stock
         if ($this->db->table_exists('transstock', $this->tablas) AND $this->db->table_exists('lineastransstock', $this->tablas)) {
             /*
@@ -506,7 +564,7 @@ class informe_almacen extends fs_controller{
              */
             $sql_transstock1 = "select sum(cantidad) as total FROM lineastransstock AS ls".
             " JOIN transstock as l ON(ls.idtrans = l.idtrans) ".
-            " WHERE codalmadestino = ".$this->empresa->var2str($almacen). 
+            " WHERE codalmadestino = ".$this->empresa->var2str($almacen).
             " AND fecha < ".$this->empresa->var2str($this->f_desde).
             " AND referencia = ".$this->empresa->var2str($ref);
             $data_transstock1 = $this->db->select($sql_transstock1);
@@ -527,7 +585,7 @@ class informe_almacen extends fs_controller{
                 $total_salidas += $data_transstock2[0]['total'];
             }
         }
-        
+
         //Si existe esta tabla se genera la información de las regularizaciones de stock y se agrega como salida el resultado
         if ($this->db->table_exists('lineasregstocks', $this->tablas)) {
             $sql_regstocks = "select sum(cantidadini-cantidadfin) as total from lineasregstocks AS ls ".
@@ -541,11 +599,11 @@ class informe_almacen extends fs_controller{
                 $total_salidas += $cantidad;
             }
         }
-        
+
         $total_saldo = $total_ingresos - $total_salidas;
         return $total_saldo;
     }
-    
+
     public function generar_excel(){
         //Revisamos que no haya un archivo ya cargado
         $archivo = 'MovimientoAlmacen';
@@ -557,7 +615,7 @@ class informe_almacen extends fs_controller{
         //Variables para cada parte del excel
         $estilo_cabecera = array('border'=>'left,right,top,bottom','font-style'=>'bold');
         $estilo_cuerpo = array( array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'left'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'),array('halign'=>'none'));
-        
+
         //Inicializamos la clase
         $this->writer = new XLSXWriter();
         //Verificamos si es un solo almacén o si son todos
@@ -591,7 +649,7 @@ class informe_almacen extends fs_controller{
         //Escribimos
         $this->writer->writeToFile($this->fileNamePath);
     }
-    
+
     /**
      * Obtenemos el rango de fechas a procesar
      * @return \DatePeriod
@@ -607,7 +665,7 @@ class informe_almacen extends fs_controller{
 
     public function shared_extensions()
     {
-        
+
     }
 }
 

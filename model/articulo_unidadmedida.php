@@ -150,7 +150,7 @@ class articulo_unidadmedida extends fs_model {
     }
 
     public function getBase($referencia){
-        $sql = "SELECT * FROM ".$this->table_name." WHERE referencia = ".$this->var2str($referencia).";";
+        $sql = "SELECT * FROM ".$this->table_name." WHERE referencia = ".$this->var2str($referencia)." and base = TRUE;";
         $data = $this->db->select($sql);
         if($data){
             $value = new articulo_unidadmedida($data[0]);

@@ -32,10 +32,17 @@ class FS_TXT {
     public $page_size;
     public $lineas;
     public $orientacion;
-    public function __construct(array $opciones)
+    protected $NewPageGroup;   // variable indicating whether a new group was requested
+    protected $PageGroups;     // variable containing the number of pages of the groups
+    protected $CurrPageGroup;
+    /**
+     *
+     * @param array $opciones
+     */
+    public function __construct($orientation = 'P', $unit = 'mm', $size = 'LETTER', $file = 'documento.txt')
     {
-        $file_name = $opciones['tmp'].$opciones['file'];
-        $this->page_size = $opciones['page_size'];
+        $file_name = $opciones['tmp'].$file;
+        $this->page_size = $size;
         $this->lineas = $opciones['page_lines'];
         $this->orientacion = ($opciones['page_orientation'])?$opciones['page_orientation']:'P';
         $this->fp = fopen($file_name, 'w') or die('CANNOT_OPEN_FILE: '.$file_name);
@@ -65,5 +72,104 @@ class FS_TXT {
     public function file_close()
     {
         fclose($this->fp);
+    }
+
+        public function addCabecera(){
+
+    }
+
+    public function addEmpresaInfo(){
+
+    }
+
+    public function addDocumentoInfo(){
+
+    }
+
+    public function addCabeceraInfo(){
+
+    }
+
+    public function AddCabeceraLineas(){
+
+    }
+
+    public function addDetalleLineas(){
+
+    }
+
+    public function addTotalesLineas(){
+
+    }
+
+    public function Footer(){
+
+    }
+
+    public function addObservaciones(){
+
+    }
+
+    public function addFirmas(){
+
+    }
+
+    public function cerrarArchivo(){
+
+    }
+
+    public function Output(){
+
+    }
+
+    // create a new page group; call this before calling AddPage()
+    public function StartPageGroup()
+    {
+        $this->NewPageGroup = true;
+    }
+
+    // current page in the group
+    public function GroupPageNo()
+    {
+        return $this->PageGroups[$this->CurrPageGroup];
+    }
+
+    // alias of the current page group -- will be replaced by the total number of pages in this group
+    public function PageGroupAlias()
+    {
+        return $this->CurrPageGroup;
+    }
+
+    public function _beginpage($orientation, $format, $rotation)
+    {
+        parent::_beginpage($orientation, $format, $rotation);
+        if($this->NewPageGroup)
+        {
+            // start a new group
+            $n = sizeof($this->PageGroups)+1;
+            $alias = "{nb$n}";
+            $this->PageGroups[$alias] = 1;
+            $this->CurrPageGroup = $alias;
+            $this->NewPageGroup = false;
+        }
+        elseif($this->CurrPageGroup)
+            $this->PageGroups[$this->CurrPageGroup]++;
+    }
+
+    public function _putpages()
+    {
+        $nb = $this->page;
+        if (!empty($this->PageGroups))
+        {
+            // do page number replacement
+            foreach ($this->PageGroups as $k => $v)
+            {
+                for ($n = 1; $n <= $nb; $n++)
+                {
+                    $this->pages[$n] = str_replace($k, $v, $this->pages[$n]);
+                }
+            }
+        }
+        parent::_putpages();
     }
 }
