@@ -31,13 +31,12 @@ class SeguridadUsuario {
         $this->agente = new \agente();
         $this->almacenes = new \almacen();
     }
-
+    
     public function accesoAlmacenes($user){
-
+        $user->codalmacen = false;
+        $user->nombrealmacen = false;
         if(!$user->admin){
             $cod = $this->agente->get($user->codagente);
-            $user->codalmacen = false;
-            $user->nombrealmacen = false;
             if(isset($cod) AND !empty($cod)){
                 $user_almacen = $this->almacenes->get($cod->codalmacen);
                 $user->codalmacen = $user_almacen->codalmacen;
