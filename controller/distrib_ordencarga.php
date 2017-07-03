@@ -34,10 +34,10 @@ require_model('distribucion_lineastransporte.php');
 require_model('cliente.php');
 require_model('articulo.php');
 require_model('articulo_unidadmedida.php');
-require_once 'plugins/distribucion/vendors/FacturaScripts/PrinterManager.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/PrintingManager.php';
 require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
 use FacturaScripts\Seguridad\SeguridadUsuario;
-use FacturaScripts\PrinterManager;
+use FacturaScripts\PrintingManager;
 
 /**
  * Description of distribucion_creacion
@@ -390,7 +390,7 @@ class distrib_ordencarga extends fs_controller {
         $lista_ordenescargar = explode(',', $value_ordencarga);
         $contador_transporte = 0;
         $conf = array('file'=>'transporte.pdf', 'type'=>'pdf', 'page_size'=>'letter');
-        $pdf_doc = new PrinterManager($conf);
+        $pdf_doc = new PrintingManager($conf);
         $pdf_doc->crearArchivo();
         foreach ($lista_ordenescargar as $transporte) {
             if (!empty($transporte)) {
@@ -675,7 +675,7 @@ class distrib_ordencarga extends fs_controller {
         $lista_ordenescargar = explode(',', $value_ordencarga);
         $contador_ordenescarga = 0;
         $conf = array('file'=>'ordencarga.pdf', 'type'=>'pdf', 'page_size'=>'letter');
-        $pdf_doc = new PrinterManager($conf);
+        $pdf_doc = new PrintingManager($conf);
         $pdf_doc->crearArchivo();
         foreach ($lista_ordenescargar as $ordencarga) {
             if (!empty($ordencarga)) {

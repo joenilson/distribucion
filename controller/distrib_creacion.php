@@ -38,9 +38,9 @@ require_model('ejercicio');
 require_model('cuenta_banco.php');
 require_model('subcuenta.php');
 require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
-require_once 'plugins/distribucion/vendors/FacturaScripts/PrinterManager.php';
+require_once 'plugins/distribucion/vendors/FacturaScripts/PrintingManager.php';
 use FacturaScripts\Seguridad\SeguridadUsuario;
-use FacturaScripts\PrinterManager;
+use FacturaScripts\PrintingManager;
 
 /**
  * Description of distribucion_creacion
@@ -395,7 +395,7 @@ class distrib_creacion extends fs_controller {
         $lista_transporte = explode(',', $value_transporte);
         $contador_transporte = 0;
         $conf = array('file'=>$tipo.'.pdf', 'type'=>'pdf', 'page_size'=>'letter','linea_espacio'=>($tipo=='hojadevolucion')?8:5);
-        $pdf_doc = new PrinterManager($conf);
+        $pdf_doc = new PrintingManager($conf);
         $pdf_doc->crearArchivo();
         foreach ($lista_transporte as $linea) {
             if (!empty($linea)) {

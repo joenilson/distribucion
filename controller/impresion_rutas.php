@@ -22,8 +22,8 @@ require_model('distribucion_clientes.php');
 require_model('distribucion_rutas.php');
 require_model('distribucion_organizacion.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
-require_once 'plugins/distribucion/vendors/FacturaScripts/PrinterManager.php';
-use FacturaScripts\PrinterManager;
+require_once 'plugins/distribucion/vendors/FacturaScripts/PrintingManager.php';
+use FacturaScripts\PrintingManager;
 /**
  * Description of impresion_rutas
  *
@@ -325,7 +325,7 @@ class impresion_rutas extends fs_controller{
         $fecha_imprimir = filter_input(INPUT_GET, 'fecha');
         $this->fecha_imprimir = ($fecha_imprimir)?\date('Y-m-d',strtotime($fecha_imprimir)):\date('Y-m-d');
         $conf = array('file'=>'rutas_clientes.pdf', 'type'=>'pdf', 'page_size'=>'letter','font'=>'Courier');
-        $pdf_doc = new PrinterManager($conf);
+        $pdf_doc = new PrintingManager($conf);
         $pdf_doc->crearArchivo();
         foreach($rutas_imprimir as $r){
             $informacion_ruta = $this->distribucion_rutas->get($this->empresa->id, $almacen_imprimir, $r);

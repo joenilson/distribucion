@@ -16,11 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-//require_once 'plugins/distribucion/vendors/FacturaScripts/PrinterManager.php';
-//require_once 'plugins/distribucion/vendors/FacturaScripts/Impresion/FS_TXT.php';
-//require_once 'plugins/distribucion/vendors/FacturaScripts/Impresion/FS_PDF.php';
-
-//use FacturaScripts\PrinterManager;
 
 require_model('agente.php');
 require_model('almacen.php');
@@ -106,12 +101,6 @@ class imprimir_facturas extends fs_controller
           $opciones['page_size'] = 'letter';
           $opciones['page_lines'] = 62;
           $opciones['page_orientation'] = 'P';
-          //$this->impresion = new PrinterManager($opciones);
-          //$archivo = $this->impresion->do_print();
-
-          //$archivo->file_header($this->empresa);
-          //$archivo->file_close();
-          //copy($this->impresion->tmp_dir.$facturas_file, $this->distribucionDir.DIRECTORY_SEPARATOR.$facturas_file);
           $this->template = false;
           header('Content-Type: application/json');
           echo json_encode( array('file' => $this->publicPath.DIRECTORY_SEPARATOR.$facturas_file) );

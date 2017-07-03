@@ -23,11 +23,13 @@ require_once 'plugins/distribucion/vendors/FacturaScripts/Impresion/FS_TXT.php';
 use FacturaScripts\Impresion\FS_TXT;
 use FacturaScripts\Impresion\FS_PDF;
 /**
- * Description of PrinterManager
+ * Description of PrintingManager
+ * Clase para controlar desde un solo sitio la generación de documentos 
+ * para imprimir de FS
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class PrinterManager {
+class PrintingManager {
     public $file;
     public $type;
     public $tmp_dir;
