@@ -604,7 +604,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 <span class="glyphicon glyphicon-print"></span>
                                 <span class="hidden-xs">&nbsp; Imprimir Devolución</span>
                             </button>
-                            {if="$fsc->user->admin AND !$fsc->transporte->liquidado"}
+                            {if="$fsc->allow_delete AND !$fsc->transporte->liquidado"}
                             <button type="button" onclick="desconfirmarDevolucion()" title="Desconfirmar Devolución" class="btn btn-sm btn-warning"><i class="fa fa-undo"></i></button>
                             {/if}
                             {/if}
