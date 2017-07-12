@@ -521,32 +521,32 @@ class FS_PDF extends \FPDF{
 
     public function CloseTag($tag)
     {
-        switch($tag){
-            case 'STRONG':
-                $tag='B';
-                break;
-            case 'EM':
-                $tag='I';
-                break;
-            case 'B':
-            case 'I':
-            case 'U':
-                $this->SetStyle($tag, false);
-                break;
-            case 'A':
-                $this->HREF='';
-                break;
-            case 'FONT':
-                if ($this->issetcolor==true) {
-                    $this->SetTextColor(0);
-                }
-                if ($this->issetfont) {
-                    $this->SetFont($this->fs_font);
-                    $this->issetfont=false;
-                }
-                break;
-            default:
-                break;
+        //Closing tag
+        if($tag=='STRONG'){
+            $tag='B';
+        }
+        
+        if($tag=='EM'){
+            $tag='I';
+        }
+        
+        if($tag=='B' || $tag=='I' || $tag=='U'){
+            $this->SetStyle($tag, false);
+        }
+        
+        if($tag=='A'){
+            $this->HREF='';
+        }
+        
+        if($tag=='FONT'){
+            if ($this->issetcolor) {
+                $this->SetTextColor(0);
+            }
+            
+            if ($this->issetfont) {
+                $this->SetFont($this->fs_font);
+                $this->issetfont=false;
+            }
         }
     }
 
