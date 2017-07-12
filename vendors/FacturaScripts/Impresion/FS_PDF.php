@@ -82,6 +82,10 @@ class FS_PDF extends \FPDF{
     public $mostrar_linea;
     public $fs_font='Arial';
     public $fs_espacio = 5;
+    public $fs_font_title_size = 10;
+    public $fs_font_subtitle_size = 9;
+    public $fs_font_text_size = 8;
+    public $fs_font_lines_size = 9;
     /**
      *
      * @param string $orientation
@@ -98,6 +102,12 @@ class FS_PDF extends \FPDF{
         $this->fontList=array('arial', 'times', 'courier', 'helvetica', 'symbol');
         $this->issetfont=false;
         $this->issetcolor=false;
+        if((strtolower($size)=='a5')){
+            $this->fs_font_title_size-=3;
+            $this->fs_font_subtitle_size-=3;
+            $this->fs_font_text_size-=3;
+            $this->fs_font_lines_size-=3;
+        }
     }
 
     public function addCabecera(){
@@ -111,25 +121,25 @@ class FS_PDF extends \FPDF{
         $x1 = ($this->verlogotipo == '1')?50:10;
         $y1 = $this->y_pos;
         $this->SetXY( $x1, $y1 );
-        $this->SetFont($this->fs_font,'B',10);
+        $this->SetFont($this->fs_font,'B',$this->fs_font_title_size);
         $this->SetTextColor(0);
         $length1 = $this->GetStringWidth($this->empresa->nombre);
         $this->Cell( $length1, 4, utf8_decode($this->empresa->nombre));
         $y1+=4;
         $this->SetXY( $x1, $y1);
         $length2 = $this->GetStringWidth(FS_CIFNIF.': '.$this->empresa->cifnif);
-        $this->SetFont($this->fs_font,'',9);
+        $this->SetFont($this->fs_font,'',$this->fs_font_subtitle_size);
         $this->Cell($length2, 4, utf8_decode(FS_CIFNIF.': '.$this->empresa->cifnif));
         $y1+=4;
         $this->SetXY( $x1, $y1);
-        $this->SetFont($this->fs_font,'',8);
+        $this->SetFont($this->fs_font,'',$this->fs_font_text_size);
         $length3 = $this->GetStringWidth( $this->empresa->direccion.' - '.$this->empresa->ciudad.' - '.$this->empresa->provincia );
         $this->MultiCell($length3, 4, utf8_decode($this->empresa->direccion.' - '.$this->empresa->ciudad.' - '.$this->empresa->provincia));
         $y1 += ($this->getY() - $y1);
         if ($this->empresa->telefono != '')
         {
             $this->SetXY($x1, $y1);
-            $this->SetFont($this->fs_font,'',8);
+            $this->SetFont($this->fs_font,'',$this->fs_font_text_size);
             $this->Cell($length2, 4, utf8_decode('Teléfono: '.$this->empresa->telefono));
             $this->SetTextColor(0);
             $this->SetFont('');
@@ -139,7 +149,7 @@ class FS_PDF extends \FPDF{
         if ($this->empresa->email != '')
         {
             $this->SetXY($x1, $y1);
-            $this->SetFont($this->fs_font,'',8);
+            $this->SetFont($this->fs_font,'',$this->fs_font_text_size);
             $this->Write(5,'Email: ');
             $this->SetTextColor(0,0,255);
             $this->Write(5, utf8_decode($this->empresa->email), 'mailto:' . $this->empresa->email);
@@ -150,7 +160,7 @@ class FS_PDF extends \FPDF{
         if ($this->empresa->web != '')
         {
             $this->SetXY($x1+$this->GetStringWidth($this->empresa->email)+14, $y1);
-            $this->SetFont($this->fs_font,'',8);
+            $this->SetFont($this->fs_font,'',$this->fs_font_text_size);
             $this->Write(5,'Web: ');
             $this->SetTextColor(0,0,255);
             $this->Write(5, utf8_decode($this->empresa->web), $this->empresa->web);
@@ -182,7 +192,7 @@ class FS_PDF extends \FPDF{
         $this->SetLineWidth(0.1);
         $this->Rect($r1, $y1,($r2 - $r1), $y2, 'B');
         $y1++;
-        $this->SetFont( $this->fs_font, "B", 10 );
+        $this->SetFont( $this->fs_font, "B", $this->fs_font_title_size );
         $this->SetXY( $r1+1, $y1+3);
         $this->MultiCell(67,5, utf8_decode(strtoupper($this->documento_nombre)), 0, "C");
         $y1+=4;
@@ -199,9 +209,9 @@ class FS_PDF extends \FPDF{
         $y1++;
         $this->SetXY( $r1, $y1);
         foreach($this->cabecera_info as $linea){
-            $this->SetFont( $this->fs_font, "B", 10 );
+            $this->SetFont( $this->fs_font, "B", $this->fs_font_title_size );
             $this->Cell(30,5, utf8_decode($linea['label']), 0, 0, 'R' );
-            $this->SetFont( $this->fs_font, "", 10 );
+            $this->SetFont( $this->fs_font, "", $this->fs_font_title_size );
             if(isset($linea['html']) AND $linea['html']){
                 $this->WriteHTML($linea['valor']);
             }else{
@@ -244,7 +254,7 @@ class FS_PDF extends \FPDF{
         $this->SetLineWidth(0.1);
         $this->Rect($r1, $y1,($r2 - $r1), $y2, 'B');
         $this->SetXY($r1, $y1);
-        $this->SetFont( $this->fs_font, "B", 10 );
+        $this->SetFont( $this->fs_font, "B", $this->fs_font_title_size );
         $w = array();
         $a = array();
         foreach($this->documento_cabecera_lineas as $cab){
@@ -260,7 +270,7 @@ class FS_PDF extends \FPDF{
     public function addDetalleLineas($lineas,$separador=false){
         $r1 = 10;
         $y1 = $this->y_pos;
-        $this->SetFont($this->fs_font, "", 9);
+        $this->SetFont($this->fs_font, "", $this->fs_font_lines_size);
         $this->SetXY($r1, $y1);
         foreach($lineas as $linea){
             $this->Row($linea,$separador);
@@ -275,7 +285,7 @@ class FS_PDF extends \FPDF{
                 $this->AddCabeceraLineas();
                 $y1 = $this->y_pos;
                 $this->SetXY($r1, $y1);
-                $this->SetFont($this->fs_font, "", 9);
+                $this->SetFont($this->fs_font, "", $this->fs_font_lines_size);
             }
         }
         $this->y_pos = $y1+3;
@@ -287,7 +297,7 @@ class FS_PDF extends \FPDF{
         $this->SetXY($r1, $y1);
         $this->Line($r1, $this->getY(), $this->w-10, $this->getY());
         $y1++;
-        $this->SetFont($this->fs_font, "B", 10);
+        $this->SetFont($this->fs_font, "B", $this->fs_font_title_size);
         $this->SetXY($r1, $y1);
         foreach($this->documento_cabecera_lineas as $c){
             if($c['total']){
@@ -309,9 +319,9 @@ class FS_PDF extends \FPDF{
         if($observaciones){
             $strlength = $this->GetStringWidth('Observaciones: ');
             $this->SetXY($r1, -50);
-            $this->SetFont($this->fs_font, "B", 9);
+            $this->SetFont($this->fs_font, "B", $this->fs_font_subtitle_size);
             $this->Cell($strlength+5,5, utf8_decode('Observaciones: '),0,0,'L');
-            $this->SetFont($this->fs_font, "", 9);
+            $this->SetFont($this->fs_font, "", $this->fs_font_subtitle_size);
             $this->MultiCell(($this->w-90),5, utf8_decode($observaciones), 0, "L");
         }else{
             $y1+=5;
@@ -511,23 +521,32 @@ class FS_PDF extends \FPDF{
 
     public function CloseTag($tag)
     {
-        //Closing tag
-        if($tag=='STRONG')
-            $tag='B';
-        if($tag=='EM')
-            $tag='I';
-        if($tag=='B' || $tag=='I' || $tag=='U')
-            $this->SetStyle($tag, false);
-        if($tag=='A')
-            $this->HREF='';
-        if($tag=='FONT'){
-            if ($this->issetcolor==true) {
-                $this->SetTextColor(0);
-            }
-            if ($this->issetfont) {
-                $this->SetFont($this->fs_font);
-                $this->issetfont=false;
-            }
+        switch($tag){
+            case 'STRONG':
+                $tag='B';
+                break;
+            case 'EM':
+                $tag='I';
+                break;
+            case 'B':
+            case 'I':
+            case 'U':
+                $this->SetStyle($tag, false);
+                break;
+            case 'A':
+                $this->HREF='';
+                break;
+            case 'FONT':
+                if ($this->issetcolor==true) {
+                    $this->SetTextColor(0);
+                }
+                if ($this->issetfont) {
+                    $this->SetFont($this->fs_font);
+                    $this->issetfont=false;
+                }
+                break;
+            default:
+                break;
         }
     }
 
