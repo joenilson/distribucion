@@ -68,7 +68,7 @@ class PrintingManager {
         {
             $this->fileHandler = new FS_TXT($this->page_orientation, $this->page_units, $this->page_size, $this->tmp_dir.DIRECTORY_SEPARATOR.$this->file);
         }
-        if(!$this->fileHandler){
+        if(!$this->fileHandler) {
             return false;
         }
     }

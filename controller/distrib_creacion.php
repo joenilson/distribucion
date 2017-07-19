@@ -495,14 +495,13 @@ class distrib_creacion extends fs_controller {
                 }
                 $error = 0;
                 foreach ($lineastransporte as $linea) {
-                    if (isset($articulo[$linea->referencia])) {
-                        $lin0 = $this->distrib_lineastransporte->getOne($this->empresa->id, $idtransporte, $codalmacen, $linea->referencia);
-                        $lin0->devolucion = $articulo[$linea->referencia];
-                        if (!$lin0->save()) {
-                            $error++;
-                        }
+                    $lin0 = $this->distrib_lineastransporte->getOne($this->empresa->id, $idtransporte, $codalmacen, $linea->referencia);
+                    $lin0->devolucion = ($confirmado AND isset($articulo[$linea->referencia]))?$articulo[$linea->referencia]:0;
+                    if (!$lin0->save()) {
+                        $error++;
                     }
                 }
+                
                 if (!$error) {
                     $trans0->devolucionado = $confirmado;
                     $trans0->fechad = ($fechad) ? \date('Y-m-d', strtotime($fechad)) : \Date('d-m-Y');
