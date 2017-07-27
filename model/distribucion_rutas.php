@@ -22,7 +22,7 @@ require_model('distribucion_organizacion.php');
 require_model('distribucion_tiporuta.php');
 /**
  * Description of distribucion_rutas
- * 
+ *
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class distribucion_rutas extends fs_model {
@@ -119,7 +119,7 @@ class distribucion_rutas extends fs_model {
         $id++;
         return str_pad($id,3,'0',STR_PAD_LEFT);
     }
-    
+
     public function info_adicional($res){
         $agente = new agente();
         $organizacion = new distribucion_organizacion();
@@ -127,7 +127,7 @@ class distribucion_rutas extends fs_model {
         $data_agente = $agente->get($res->codagente);
         $data_organizacion = $organizacion->get($res->idempresa, $res->codagente);
         $res->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-        $data_supervisor = (!empty($data_organizacion->codsupervisor))?$this->agente->get($data_organizacion->codsupervisor):null;
+        $data_supervisor = (!empty($data_organizacion->codsupervisor))?$agente->get($data_organizacion->codsupervisor):null;
         $res->codsupervisor = ($data_supervisor != null)?$data_supervisor->codagente:null;
         $res->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
         $res->tiene_asignados = $this->tiene_asignados($res->idempresa, $res->codalmacen, $res->ruta);
@@ -389,7 +389,7 @@ class distribucion_rutas extends fs_model {
             return false;
         }
     }
-    
+
     public function search($almacen,$query){
         $lista = array();
         $sql = "SELECT * FROM ".$this->table_name." WHERE ";
