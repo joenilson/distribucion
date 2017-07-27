@@ -72,8 +72,7 @@ class distribucion_coordenadas_clientes extends fs_model {
     
     public function __construct($t = false) {
         parent::__construct('distribucion_coordenadas_clientes','plugins/distribucion/');
-        if($t)
-        {
+        if($t) {
             $this->idempresa = $t['idempresa'];
             $this->codcliente = $t['codcliente'];
             $this->iddireccion = $t['iddireccion'];
@@ -82,9 +81,7 @@ class distribucion_coordenadas_clientes extends fs_model {
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
             $this->usuario_modificacion = $t['usuario_modificacion'];
             $this->fecha_modificacion = Date('d-m-Y H:i');
-        }
-        else
-        {
+        } else {
             $this->idempresa = null;
             $this->codcliente = null;
             $this->iddireccion = null;
@@ -94,7 +91,6 @@ class distribucion_coordenadas_clientes extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-        
     }
     
     public function url(){
