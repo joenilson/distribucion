@@ -25,7 +25,7 @@ require_once 'plugins/facturacion_base/model/core/albaran_cliente.php';
 class albaran_cliente extends FacturaScripts\model\albaran_cliente{
     /**
      * El codigo de la ruta de atención
-     * @var type varchar(10)
+     * @var varchar(10)
      */
     public $codruta;
     public $codvendedor;

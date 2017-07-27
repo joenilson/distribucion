@@ -26,45 +26,45 @@ class articulo_unidadmedida extends fs_model {
 
     /**
      * codum de la unidad de medida
-     * @var type varchar(10)
+     * @var varchar(10)
      */
     public $codum;
 
     /**
      * Codigo del artículo
-     * @var type varchar
+     * @var varchar
      */
     public $referencia;
 
     /**
      * Se debe ingresar siempre la primera unidad de medida
      * como TRUE para que sea la unidad de medida base
-     * @var type boolean
+     * @var boolean
      */
     public $base;
 
     /**
      * Este factor de conversión se usará cuando el artículo
      * tenga más de una unidad de medida
-     * @var type float
+     * @var float
      */
     public $factor;
     /**
      * Para efectos de pesar la carga se pone un peso para
      * cada unidad de medida a utilizar
-     * @var type float
+     * @var float
      */
     public $peso;
     /**
      * Si esta unidad de medida es para compra se configura en true
      * puede tener en true el campo $se_vende.
-     * @var type boolean
+     * @var boolean
      */
     public $se_compra;
     /**
      * Si esta unidad de medida es para venta se configura en true
      * puede tener en true el campo $se_compra.
-     * @var type boolean
+     * @var boolean
      */
     public $se_vende;
     public $unidadmedida;

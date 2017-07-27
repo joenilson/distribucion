@@ -24,11 +24,35 @@ require_model('hr_cargos.php');
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class distribucion_asignacion_cargos extends fs_model {
+    /**
+     *
+     * @var integer
+     */
     public $idempresa;
+    /**
+     *
+     * @var string
+     */
     public $codcargo;
+    /**
+     *
+     * @var string
+     */
     public $tipo_cargo;
+    /**
+     *
+     * @var string
+     */
     public $usuario_creacion;
+    /**
+     *
+     * @var date
+     */
     public $fecha_creacion;
+    /**
+     *
+     * @var object
+     */
     public $cargos;
     public function __construct($t = false) {
         parent::__construct('distribucion_asignacion_cargos','plugins/distribucion/');
