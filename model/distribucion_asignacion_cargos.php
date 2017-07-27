@@ -46,7 +46,7 @@ class distribucion_asignacion_cargos extends fs_model {
     public $usuario_creacion;
     /**
      *
-     * @var date
+     * @var string
      */
     public $fecha_creacion;
     /**
@@ -62,7 +62,7 @@ class distribucion_asignacion_cargos extends fs_model {
             $this->codcargo = $t['codcargo'];
             $this->tipo_cargo = $t['tipo_cargo'];
             $this->usuario_creacion = $t['usuario_creacion'];
-            $this->fecha_creacion = Date('d-m-Y H:i:s', strtotime($t['fecha_creacion']));
+            $this->fecha_creacion = \Date('d-m-Y H:i:s', strtotime($t['fecha_creacion']));
         }
         else
         {
@@ -70,7 +70,7 @@ class distribucion_asignacion_cargos extends fs_model {
             $this->codcargo = null;
             $this->tipo_cargo = null;
             $this->usuario_creacion = null;
-            $this->fecha_creacion = Date('d-m-Y H:i');
+            $this->fecha_creacion = \Date('d-m-Y H:i:s');
         }
     }
     

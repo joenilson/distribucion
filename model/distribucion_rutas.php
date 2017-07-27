@@ -51,8 +51,7 @@ class distribucion_rutas extends fs_model {
 
     public function __construct($t = false) {
         parent::__construct('distribucion_rutas','plugins/distribucion/');
-        if($t)
-        {
+        if($t){
             $this->idempresa = $t['idempresa'];
             $this->codalmacen = $t['codalmacen'];
             $this->codagente = $t['codagente'];
@@ -71,9 +70,7 @@ class distribucion_rutas extends fs_model {
             $this->fecha_creacion = Date('d-m-Y H:i', strtotime($t['fecha_creacion']));
             $this->usuario_modificacion = $t['usuario_modificacion'];
             $this->fecha_modificacion = Date('d-m-Y H:i');
-        }
-        else
-        {
+        } else {
             $this->idempresa = null;
             $this->codalmacen = null;
             $this->codagente = null;
