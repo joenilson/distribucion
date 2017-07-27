@@ -87,15 +87,15 @@ class distribucion_clientes extends fs_model {
     }
 
     public function info_adicional($informacion){
-        $this->distrib_rutas = new distribucion_rutas();
-        $this->distrib_segmentos = new distribucion_segmentos();
-        $this->direccion_cliente = new direccion_cliente();
-        $this->cliente = new cliente();
-        $datos_ruta = $this->distrib_rutas->get($informacion->idempresa,$informacion->codalmacen, $informacion->ruta);
-        $datos_canal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->canal, 'CANAL');
-        $datos_subcanal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->subcanal, 'SUBCANAL');
-        $datos_direccion = $this->direccion_cliente->get($informacion->iddireccion);
-        $datos_cliente = $this->cliente->get($informacion->codcliente);
+        $distrib_rutas = new distribucion_rutas();
+        $distrib_segmentos = new distribucion_segmentos();
+        $direccion_cliente = new direccion_cliente();
+        $cliente = new cliente();
+        $datos_ruta = $distrib_rutas->get($informacion->idempresa,$informacion->codalmacen, $informacion->ruta);
+        $datos_canal = $distrib_segmentos->get($informacion->idempresa, $informacion->canal, 'CANAL');
+        $datos_subcanal = $distrib_segmentos->get($informacion->idempresa, $informacion->subcanal, 'SUBCANAL');
+        $datos_direccion = $direccion_cliente->get($informacion->iddireccion);
+        $datos_cliente = $cliente->get($informacion->codcliente);
         $informacion->direccion = ($datos_direccion)?$datos_direccion->direccion:'Completar Información';
         $informacion->ruta_descripcion = ($datos_ruta)?$datos_ruta->descripcion:'SIN RUTA';
         $informacion->codagente = ($datos_ruta)?$datos_ruta->codagente:'';

@@ -124,17 +124,17 @@ class distribucion_rutas extends fs_model {
     }
     
     public function info_adicional($res){
-        $this->agente = new agente();
-        $this->organizacion = new distribucion_organizacion();
-        $this->tiporuta = new distribucion_tiporuta();
-        $data_agente = $this->agente->get($res->codagente);
-        $data_organizacion = $this->organizacion->get($res->idempresa, $res->codagente);
+        $agente = new agente();
+        $organizacion = new distribucion_organizacion();
+        $tiporuta = new distribucion_tiporuta();
+        $data_agente = $agente->get($res->codagente);
+        $data_organizacion = $organizacion->get($res->idempresa, $res->codagente);
         $res->nombre = $data_agente->nombre." ".$data_agente->apellidos;
         $data_supervisor = (!empty($data_organizacion->codsupervisor))?$this->agente->get($data_organizacion->codsupervisor):null;
         $res->codsupervisor = ($data_supervisor != null)?$data_supervisor->codagente:null;
         $res->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
         $res->tiene_asignados = $this->tiene_asignados($res->idempresa, $res->codalmacen, $res->ruta);
-        $res->tipo_ruta = (!empty($res->codruta))?$this->tiporuta->get($res->codruta)->descripcion:"";
+        $res->tipo_ruta = (!empty($res->codruta))?$tiporuta->get($res->codruta)->descripcion:"";
         return $res;
     }
 
