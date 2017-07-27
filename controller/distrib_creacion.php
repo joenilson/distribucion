@@ -468,6 +468,7 @@ class distrib_creacion extends fs_controller {
     }
 
     public function confirmar_devolucion($confirmado = TRUE) {
+        $data = array();
         $fechad = \filter_input(INPUT_GET, 'fechad');
         $value_transporte = \filter_input(INPUT_GET, 'transporte');
         $lista_transporte = explode(',', $value_transporte);
@@ -526,6 +527,7 @@ class distrib_creacion extends fs_controller {
     }
 
     public function confirmar_transporte($confirmado = TRUE) {
+        $data = array();
         $value_transporte = \filter_input(INPUT_GET, 'transporte');
         $lista_transporte = explode(',', $value_transporte);
         $tipo_mensaje = ($confirmado) ? "despachado" : "desconfirmado";
@@ -555,6 +557,7 @@ class distrib_creacion extends fs_controller {
     }
 
     public function eliminar_transporte() {
+        $data = array();
         $value_transporte = \filter_input(INPUT_GET, 'transporte');
         $lista_transporte = explode(',', $value_transporte);
         foreach ($lista_transporte as $linea) {
@@ -610,6 +613,7 @@ class distrib_creacion extends fs_controller {
     }
 
     public function guardar_liquidacion() {
+        $data = array();
         $value_transporte = \filter_input(INPUT_GET, 'transporte');
         $fechal = \filter_input(INPUT_GET, 'fechal');
         $datos_transporte = explode('-', $value_transporte);
@@ -633,6 +637,7 @@ class distrib_creacion extends fs_controller {
     }
 
     public function eliminar_liquidacion() {
+        $data = array();
         $idtransporte = \filter_input(INPUT_GET, 'transporte');
         $codalmacen = \filter_input(INPUT_GET, 'almacen');
         $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
@@ -687,6 +692,7 @@ class distrib_creacion extends fs_controller {
     }
 
     public function corregir_pagos() {
+        $data = array();
         $idtransporte = \filter_input(INPUT_GET, 'idtransporte');
         $codalmacen = \filter_input(INPUT_GET, 'codalmacen');
         $facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
@@ -742,6 +748,7 @@ class distrib_creacion extends fs_controller {
     }
 
     public function pagar_factura() {
+        $data = array();
         $value_factura = \filter_input(INPUT_GET, 'factura');
         $lista_facturas = explode(',', $value_factura);
         $fact0 = new factura_cliente();
@@ -783,6 +790,7 @@ class distrib_creacion extends fs_controller {
     }
 
     public function extornar_factura() {
+        $data = array();
         $value_factura = \filter_input(INPUT_GET, 'factura');
         $lista_facturas = explode(',', $value_factura);
         $fact0 = new factura_cliente();
@@ -839,6 +847,7 @@ class distrib_creacion extends fs_controller {
     }
 
     public function crear_faltante() {
+        $data = array();
         $idtransporte = \filter_input(INPUT_GET, 'idtransporte');
         $codalmacen = \filter_input(INPUT_GET, 'codalmacen');
         $codtrans = \filter_input(INPUT_GET, 'codtrans');
