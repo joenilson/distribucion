@@ -94,7 +94,7 @@ class distribucion_coordenadas_clientes extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-        $this->direccion_cliente = new direccion_cliente();
+        
     }
     
     public function url(){
@@ -159,6 +159,7 @@ class distribucion_coordenadas_clientes extends fs_model {
     }
     
     public function info_adicional($direccion){
+        $this->direccion_cliente = new direccion_cliente();
         $datos_direccion = $this->direccion_cliente->get($direccion->iddireccion);
         $direccion->direccion = $datos_direccion->direccion;
         return $direccion;
@@ -184,7 +185,7 @@ class distribucion_coordenadas_clientes extends fs_model {
             foreach($data as $d){
                 if((!empty($d['idempresa']) AND $d['idempresa']==$idempresa) OR empty($d['idempresa'])){
                     $direccion = new distribucion_coordenadas_clientes($d);
-                    $direccion->id = $d['id'];
+                    $direccion->iddireccion = $d['id'];
                     $direccion->direccion = $d['direccion'];
                     $lista[] = $direccion;
                 }

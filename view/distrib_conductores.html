@@ -44,6 +44,47 @@
                      <th width="120"></th>
                   </tr>
                </thead>
+               <tbody>
+                   <form action="{$fsc->url()}" method="post" class="form">
+                  <tr class="info">
+                     <td>
+                       <select name="codalmacen" class="form-control">
+                            {loop="$fsc->almacen->all()"}
+                            <option value="{$value->codalmacen}">{$value->nombre}</option>
+                            {/loop}
+                        </select>
+                     </td>
+                     <td>
+                        <select name="codtrans" class="form-control">
+                            {loop="$fsc->agencia_transporte->all()"}
+                            <option value="{$value->codtrans}">{$value->nombre}</option>
+                            {/loop}
+                        </select>
+                     </td>
+                     <td>
+                        <input type="text" name="nombre" class="form-control" maxlength="80" autocomplete="off" placeholder="Nombre del Conductor"/>
+                     </td>
+                     <td>
+                        <input type="text" name="licencia" class="form-control" maxlength="32" autocomplete="off" placeholder="Licencia"/>
+                     </td>
+                     <td>
+                        <input type="text" name="tipolicencia" class="form-control" maxlength="32" placeholder="Tipo licencia"/>
+                     </td>
+                     <td class="text-center">
+                        <div class="checkbox">
+                           <label>
+                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
+                           </label>
+                        </div>
+                     </td>
+                     <td class="text-right">
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar">
+                           <span class="glyphicon glyphicon-floppy-disk"></span>
+                        </button>
+                     </td>
+                  </tr>
+               </form>
+               
                {loop="$fsc->listado"}
                <form action="{$fsc->url()}" method="post" class="form">
                    <input type="hidden" name="id" value="{$value1->id}"/>
@@ -105,45 +146,7 @@
                   </tr>
                </form>
                {/loop}
-               <form action="{$fsc->url()}" method="post" class="form">
-                  <tr class="info">
-                     <td>
-                       <select name="codalmacen" class="form-control">
-                            {loop="$fsc->almacen->all()"}
-                            <option value="{$value->codalmacen}">{$value->nombre}</option>
-                            {/loop}
-                        </select>
-                     </td>
-                     <td>
-                        <select name="codtrans" class="form-control">
-                            {loop="$fsc->agencia_transporte->all()"}
-                            <option value="{$value->codtrans}">{$value->nombre}</option>
-                            {/loop}
-                        </select>
-                     </td>
-                     <td>
-                        <input type="text" name="nombre" class="form-control" maxlength="80" autocomplete="off" placeholder="Nombre del Conductor"/>
-                     </td>
-                     <td>
-                        <input type="text" name="licencia" class="form-control" maxlength="32" autocomplete="off" placeholder="Licencia"/>
-                     </td>
-                     <td>
-                        <input type="text" name="tipolicencia" class="form-control" maxlength="32" placeholder="Tipo licencia"/>
-                     </td>
-                     <td class="text-center">
-                        <div class="checkbox">
-                           <label>
-                              <input type="checkbox" name="estado" value="TRUE" checked=""/>
-                           </label>
-                        </div>
-                     </td>
-                     <td class="text-right">
-                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();" title="Guardar">
-                           <span class="glyphicon glyphicon-floppy-disk"></span>
-                        </button>
-                     </td>
-                  </tr>
-               </form>
+               </tbody>
             </table>
          </div>
       </div>

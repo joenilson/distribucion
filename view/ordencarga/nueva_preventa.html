@@ -337,22 +337,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     alert(response);
                 }
             });
-            /*
-            var select = $('#rutas');
-            select.empty();
-            if(data.length !== 0){
-                var array = data.filter(function(e){return e;});
-                select.append(
-                    $('<option></option>').val('').html('--------------')
-                );
-                $.each(array, function(index, value) {
-                    select.append(
-                        $('<option></option>').val(value.ruta).html(value.ruta+' - '+value.descripcion)
-                    );
-                });
-            }
-            $('#rutas').selectpicker('refresh');
-            */
         });
         
         var options = {
@@ -360,8 +344,6 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                 url     : '{$fsc->url()}&type=buscar-rutas',
                 type    : 'POST',
                 dataType: 'json',
-                // Use "{{{q}}}" as a placeholder and Ajax Bootstrap Select will
-                // automatically replace it with the value of the search query.
                 data    : function () {
                     var params = {
                         q: '{{{q}}}',
@@ -373,7 +355,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
             locale : {
                 emptyTitle: 'Busque para seleccionar'
             },
-            log : 3,
+            log : 0,
             preprocessData: function (data) {
                 var i, l = data.length, array = [];
                 if (l) {

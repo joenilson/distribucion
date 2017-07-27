@@ -66,7 +66,7 @@ class distribucion_organizacion extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-        $this->agente = new agente();
+        
         //$this->rutas = new distribucion_rutas();
     }
 
@@ -79,6 +79,7 @@ class distribucion_organizacion extends fs_model {
     }
     
     public function info_adicional($value){
+        $this->agente = new agente();
         $data_agente = $this->agente->get($value->codagente);
         $value->nombre = $data_agente->nombre." ".$data_agente->apellidos." ".$data_agente->segundo_apellido;
         $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;

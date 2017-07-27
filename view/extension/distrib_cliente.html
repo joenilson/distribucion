@@ -50,21 +50,30 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                         <form name="f_cliente{$counter}" id="f_cliente{$counter}" method="POST" action="{$fsc->url()}&cod={$fsc->codcliente}" class="form">
                             <input type="hidden" name="type" value="distrib_cliente">
                             <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
-                            <input type="hidden" name="codalmacen" value="{$value1->codalmacen}">
                             <input type="hidden" name="iddireccion" value="{$value1->iddireccion}">
-                            <input type="hidden" name="ruta" value="{$value1->ruta}">
+                            
                             <tr>
                                 <td>
                                     <input type="text" name="direccion" readonly value="{$value1->direccion}" class="form-control input-sm"/>
                                 </td>
                                 <td>
-                                    <input type="text" name="almacen" readonly value="{$fsc->almacen->get($value1->codalmacen)->nombre}" class="form-control input-sm"/>
+                                    <select required name="codalmacen" class="form-control input-sm">
+                                        <option value="">Elija un almacen</option>
+                                        {loop="$fsc->almacen->all()"}
+                                        <option value="{$value2->codalmacen}" {if="$value1->codalmacen==$value2->codalmacen"}selected{/if}>{$value->nombre}</option>
+                                        {/loop}
+                                    </select>
                                 </td>
                                 <td>
                                     <input type="text" name="codagente" readonly value="{$value1->nombre}" class="form-control input-sm"/>
                                 </td>
                                 <td>
-                                    <input type="text" name="descruta" readonly value="{$value1->ruta_descripcion}" class="form-control input-sm"/>
+                                    <select name="ruta" class="form-control input-sm">
+                                    <option value="">Sin Ruta</option>
+                                    {loop="$fsc->distribucion_rutas->all_rutasporalmacen($fsc->empresa->id,$value1->codalmacen)"}
+                                        <option value="{$value2->ruta}" {if="$value1->ruta==$value2->ruta"}selected{/if}>{$value2->ruta} - {$value2->descripcion}</option>
+                                    {/loop}
+                                    </select>
                                 </td>
                                 <td>
                                     <select name="canal" class="form-control" required onchange="actualizaSubcanales(this.value,{$counter})">
@@ -117,11 +126,12 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
                                 </td>
                                 <td>
-                                    <select id="rutas" required name="ruta" class="form-control">
-                                    </select>
+                                    <input type="text" name="ac_ruta" id="ac_ruta" value="" class="form-control input-sm" placeholder="Buscar la ruta" autocomplete="off">
+                                    <input type="hidden" name="ruta" id="codigo_ruta" value="">
                                 </td>
                                 <td>
                                     <select name="canal" id="canal" required class="form-control">
+                                        <option value="">Elije un Canal</option>
                                         {loop="$fsc->canales"}
                                         <option value="{$value->codigo}">{$value->descripcion}</option>
                                         {/loop}
@@ -141,7 +151,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     </table>
                 </div>
                 <div role="tabpanel" class="tab-pane fade" id="p_coordenadas">
-                    <div class="container">
+                    <div class="container table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
@@ -150,6 +160,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                     <th width="120"></th>
                                 </tr>
                             </thead>
+                            <tbody>
                             {loop="$fsc->distrib_coordenadas_cliente"}
                             <form name="f_dircli{$counter}" id="f_dircli{$counter}" action="{$fsc->url()}&cod={$fsc->codcliente}" method="POST" class="form">
                                 <tr>
@@ -174,6 +185,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 </tr>
                             </form>
                             {/loop}
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -187,7 +199,7 @@ $('#lista_tabs a[href="#{$fsc->tab_activa}"]').tab('show');
 {/if}
     function actualizaSubcanales(canal,fila){
         var data = "";
-        //Llenamos el selector de rutas
+        //Llenamos el selector de subcanales
         $.ajax({
             type: 'GET',
             url : '{$fsc->url()}&type=select-subcanal',
@@ -197,11 +209,11 @@ $('#lista_tabs a[href="#{$fsc->tab_activa}"]').tab('show');
                 if(response.length !== 0){
                     data = response;
                 }else{
-                    alert('¡No hay Subcanales para este Canal!');
+                    bootbox.alert('¡No hay Subcanales para este Canal!');
                 }
             },
             error: function() {
-                alert(response);
+                bootbox.alert(response);
             }
         });
         var select = $('#subcanal'+fila);
@@ -218,39 +230,29 @@ $('#lista_tabs a[href="#{$fsc->tab_activa}"]').tab('show');
             });
         }
     }
+    
     $(document).ready(function(){
+        bootbox.setLocale('es');
+        var almacen = '';
         $('#codalmacen').change(function() {
             var data = "";
-            var almacen = document.n_distrib_cliente.codalmacen.value;
-            //Llenamos el selector de rutas
-            $.ajax({
-                type: 'GET',
-                url : '{$fsc->url()}&type=select-rutas',
-                data : 'codalmacen='+almacen,
-                async: false,
-                success : function(response) {
-                    if(response.length !== 0){
-                        data = response;
-                    }else{
-                        alert('¡No hay Rutas en este Almacén!');
-                    }
-                },
-                error: function() {
-                    alert(response);
+            almacen = document.n_distrib_cliente.codalmacen.value;
+        });
+        
+        $("#ac_ruta").autocomplete({
+            paramName: 'q',
+            params: { 
+                'codalmacen': almacen
+            },
+            serviceUrl: '{$fsc->url()}&type=buscar-rutas',
+            minChars: 2,
+            showNoSuggestionNotice: true,
+            noSuggestionNotice: 'Sin resultados',
+            onSelect: function(suggestion){
+                if(document.n_distrib_cliente.ruta.value !== suggestion.data && suggestion.data !== '')
+                {
+                    document.n_distrib_cliente.ruta.value = suggestion.data;
                 }
-            });
-            var select = $('#rutas');
-            select.empty();
-            if(data.length !== 0){
-                var array = data.filter(function(e){return e;});
-                select.append(
-                    $('<option></option>').val('').html('Elija una ruta')
-                );
-                $.each(array, function(index, value) {
-                    select.append(
-                        $('<option></option>').val(value.ruta).html(value.ruta+' - '+value.descripcion)
-                    );
-                });
             }
         });
         
@@ -267,11 +269,11 @@ $('#lista_tabs a[href="#{$fsc->tab_activa}"]').tab('show');
                     if(response.length !== 0){
                         data = response;
                     }else{
-                        alert('¡No hay Subcanales para este Canal!');
+                        bootbox.alert('¡No hay Subcanales para este Canal!');
                     }
                 },
                 error: function() {
-                    alert(response);
+                    bootbox.alert(response);
                 }
             });
             var select = $('#subcanal');

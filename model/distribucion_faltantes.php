@@ -125,10 +125,7 @@ class distribucion_faltantes extends fs_model {
             $this->fecha_modificacion = null;
         }
 
-        $this->distribucion_conductores = new distribucion_conductores();
-        $this->distribucion_unidades = new distribucion_unidades();
-        $this->distribucion_transporte = new distribucion_transporte();
-        $this->ejercicio = new ejercicio();
+
     }
 
     public function url() {
@@ -145,6 +142,10 @@ class distribucion_faltantes extends fs_model {
     }
     
     public function info_adicional($d){
+        $this->distribucion_conductores = new distribucion_conductores();
+        $this->distribucion_unidades = new distribucion_unidades();
+        $this->distribucion_transporte = new distribucion_transporte();
+        $this->ejercicio = new ejercicio();
         $datos_conductor = $this->distribucion_conductores->get($d->idempresa, $d->conductor);
         $d->conductor_nombre = $datos_conductor->nombre;
         $d->importe_saldo = $d->importe;
@@ -633,6 +634,7 @@ class distribucion_faltantes extends fs_model {
         $ok = FALSE;
         $this->asiento = FALSE;
         $tipo = $faltante->estado;
+        $ejercicio0 = new ejercicio();
         $conductor0 = new distribucion_conductores();
         $subcuenta_conductor = FALSE;
         $concepto = ($tipo == 'pendiente') ? "Faltante " : "Pago Faltante ";
@@ -642,7 +644,7 @@ class distribucion_faltantes extends fs_model {
         }
 
         if (!$subcuenta_conductor) {
-            $eje0 = $this->ejercicio->get($ejercicio);
+            $eje0 = $ejercicio0->get($ejercicio);
             return "No se ha podido generar una subcuenta para el conductor <a href='" . $eje0->url() . "'>¿Has importado los datos del ejercicio?</a>";
 
             if (!$this->soloasiento) {

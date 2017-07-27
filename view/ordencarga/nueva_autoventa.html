@@ -179,6 +179,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
     }
 
     $(document).ready(function () {
+        bootbox.setLocale('es');
         if( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
             $('.selectpicker').selectpicker('mobile');
         }
@@ -191,7 +192,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
         $('#f_nueva_ordencarga').submit(function (event) {
             event.preventDefault();
             if (document.f_nueva_ordencarga.fecha_reparto.value === ''){
-                alert('Elija la fecha de reparto para continuar');
+                bootbox.alert('Elija la fecha de reparto para continuar');
             }else{
                 procesar_carga();
             }
@@ -218,10 +219,10 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                                 async: false,
                                 data: 'type=confirmar-carga&ordencarga='+checkboxValues,
                                 success : function(datos) {
-                                    alert('¡Confirmacion existosa!');
+                                    bootbox.alert('¡Confirmacion existosa!');
                                 },
                                 error: function() {
-                                    alert('¡Ocurrio un error, salga y vuelva a ingresar a la pantalla!');
+                                    bootbox.alert('¡Ocurrio un error, salga y vuelva a ingresar a la pantalla!');
                                 }
                             });
                         }
@@ -236,7 +237,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     }
                 });
             }else{
-                alert('Debe seleccionar un item!');                
+                bootbox.alert('Debe seleccionar un item!');                
             }
         });
         
@@ -273,7 +274,7 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     }
                 });
             }else{
-                alert('Debe seleccionar un item!');
+                bootbox.alert('Debe seleccionar un item!');
             }
         });
         
@@ -325,11 +326,11 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     if(response.length !== 0){
                         data = response;
                     }else{
-                        alert('¡No hay Rutas en este Almacén!');
+                        bootbox.alert('¡No hay Rutas en este Almacén!');
                     }
                 },
                 error: function() {
-                    alert(response);
+                    bootbox.alert(response);
                 }
             });
             /*
@@ -403,11 +404,11 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     if(response.length !== 0){
                         data = response;
                     }else{
-                        alert('No hay Unidades registradas a esta Agencia en este Almacén!');
+                        bootbox.alert('No hay Unidades registradas a esta Agencia en este Almacén!');
                     }
                 },
                 error: function() {
-                    alert('No hay Unidades registradas a esta Agencia');
+                    bootbox.alert('No hay Unidades registradas a esta Agencia');
                 }
             });
             var select = $('#codunidad');
@@ -437,11 +438,11 @@ Copyright (C) 2015 Joe Nilson <joenilson@gmail.com>
                     if(response.length !== 0){
                         data = response;
                     }else{
-                        alert('No hay Unidades registradas a esta Agencia en este Almacén!');
+                        bootbox.alert('No hay Unidades registradas a esta Agencia en este Almacén!');
                     }
                 },
                 error: function() {
-                    alert('No hay Unidades registradas a esta Agencia');
+                    bootbox.alert('No hay Unidades registradas a esta Agencia');
                 }
             });
             var select = $('#conductor');

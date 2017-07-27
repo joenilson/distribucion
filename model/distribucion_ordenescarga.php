@@ -101,9 +101,6 @@ class distribucion_ordenescarga extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-
-        $this->distribucion_conductores = new distribucion_conductores();
-        $this->distribucion_unidades = new distribucion_unidades();
     }
 
     public function url(){
@@ -362,12 +359,12 @@ class distribucion_ordenescarga extends fs_model {
     }
 
     public function info_adicional($t){
-
+        $this->distribucion_conductores = new distribucion_conductores();
+        $this->distribucion_unidades = new distribucion_unidades();
         $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
 
         if(!empty($con0 )){
-        $t->conductor_nombre = $con0->nombre;
-
+            $t->conductor_nombre = $con0->nombre;
         }
         return $t;
     }
@@ -587,10 +584,9 @@ class distribucion_ordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
-                $valor_lista = new distribucion_ordenescarga($d);
-                $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
-                $valor_lista->conductor_nombre = $datos_conductor->nombre;
-                $lista[] = $valor_lista;
+                $valor = new distribucion_ordenescarga($d);
+                $linea = $this->info_adicional($valor);
+                $lista[] = $linea;
             }
         }
         return $lista;
@@ -598,14 +594,13 @@ class distribucion_ordenescarga extends fs_model {
 
     public function getOne($idempresa,$idordencarga,$codalmacen)
     {
-        $valor_lista = false;
+        $linea = false;
         $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND idordencarga = ".$this->intval($idordencarga)." AND codalmacen = ".$this->var2str($codalmacen).";");
         if($data)
         {
-                $valor_lista = new distribucion_ordenescarga($data[0]);
-                $datos_conductor = $this->distribucion_conductores->get($valor_lista->idempresa, $valor_lista->conductor);
-                $valor_lista->conductor_nombre = $datos_conductor->nombre;
+                $valor = new distribucion_ordenescarga($data[0]);
+                $linea = $this->info_adicional($valor);
         }
-        return $valor_lista;
+        return $linea;
     }
 }

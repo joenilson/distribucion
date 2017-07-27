@@ -92,6 +92,8 @@ class distrib_clientes extends fs_controller {
             $this->tratar_direccion_cliente();
         }elseif($type == 'select-rutas'){
             $this->lista_rutas();
+        }elseif($type == 'buscar-rutas'){
+            $this->buscar_rutas();
         }elseif($type == 'select-subcanal'){
             $this->lista_subcanales();
         }
@@ -229,11 +231,33 @@ class distrib_clientes extends fs_controller {
         $this->rutas_libres = $this->rutas_libres();
         $this->template = 'extension/distrib_cliente';
     }
+    
+    public function buscar_rutas()
+    {
+        $rutas = new distribucion_rutas();
+        $query = \filter_input(INPUT_GET, 'q');
+        $almacen = \filter_input(INPUT_GET, 'almacen');
+        $data = $rutas->search($almacen,$query);
+        $lista = array();
+        foreach($data as $r){
+            $lista[] = array('value' => $r->ruta.' - '.$r->descripcion, 'data' => $r->ruta);
+        }
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode(array('query'=>$query,'suggestions'=>$lista));
+    }
 
     public function lista_rutas(){
         $this->template = FALSE;
         $codalmacen = filter_input(INPUT_GET, 'codalmacen');
-        $resultados = $this->distribucion_rutas->all_rutasporalmacen($this->empresa->id, $codalmacen);
+        $resultados = array();
+        $data = $this->distribucion_rutas->all_rutasporalmacen($this->empresa->id, $codalmacen);
+        foreach($data as $r){
+            $item = new stdClass();
+            $item->ruta = $r->ruta;
+            $item->descripcion = $r->descripcion;
+            $resultados[] = $item;
+        }
         header('Content-Type: application/json');
         echo json_encode($resultados);
     }
@@ -271,7 +295,39 @@ class distrib_clientes extends fs_controller {
                 'type' => 'head',
                 'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-treeview.min.css"/>',
                 'params' => ''
-            )
+            ),
+            array(
+                'name' => '010_distribucion_clientes_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-select.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '011_distribucion_clientes_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/plugins/ajax-bootstrap-select.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '012_distribucion_clientes_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/locale/ajax-bootstrap-select.es-ES.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '002_distribucion_clientes_css',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
+                'params' => ''
+            ),
         );
         foreach ($extensiones as $ext) {
             $fsext0 = new fs_extension($ext);
@@ -297,6 +353,7 @@ class distrib_clientes extends fs_controller {
                 'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/bootstrap-treeview.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
+            
             array(
                 'name' => '001_distribucion_clientes_css',
                 'page_from' => __CLASS__,

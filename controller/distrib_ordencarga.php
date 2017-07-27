@@ -590,9 +590,16 @@ class distrib_ordencarga extends fs_controller {
         $query = \filter_input(INPUT_POST, 'q');
         $almacen = \filter_input(INPUT_POST, 'almacen');
         $data = $rutas->search($almacen,$query);
+        $lista = array();
+        foreach($data as $r){
+            $item = new stdClass();
+            $item->ruta = $r->ruta;
+            $item->descripcion = $r->descripcion;
+            $lista[] = $item;
+        }
         $this->template = false;
         header('Content-Type: application/json');
-        echo json_encode($data);
+        echo json_encode($lista);
     }
 
     public function crear_carga($datos, $retorno) {

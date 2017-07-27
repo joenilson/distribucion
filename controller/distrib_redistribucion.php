@@ -76,6 +76,9 @@ class distrib_redistribucion extends fs_controller{
                case "ruta_destino":
                    $this->ruta_destino = filter_input(INPUT_POST, 'ruta_destino');
                    break;
+               case "buscar-rutas":
+                   $this->buscar_rutas();
+                   break;
                case "transferir":
                    $this->transferir();
                    break;
@@ -97,6 +100,21 @@ class distrib_redistribucion extends fs_controller{
         }
         $this->clientes_destino = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $this->codalmacen, $this->ruta_destino);
         
+    }
+    
+    public function buscar_rutas()
+    {
+        $rutas = new distribucion_rutas();
+        $query = \filter_input(INPUT_GET, 'q');
+        $almacen = \filter_input(INPUT_GET, 'codalmacen');
+        $data = $rutas->search($almacen,$query);
+        $lista = array();
+        foreach($data as $r){
+            $lista[] = array('value' => $r->ruta.' - '.$r->descripcion, 'data' => $r->ruta);
+        }
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode(array('query'=>$query,'suggestions'=>$lista));
     }
     
     public function transferir(){

@@ -93,9 +93,6 @@ class distribucion_rutas extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-        $this->agente = new agente();
-        $this->organizacion = new distribucion_organizacion();
-        $this->tiporuta = new distribucion_tiporuta();
     }
 
     public function url(){
@@ -127,6 +124,9 @@ class distribucion_rutas extends fs_model {
     }
     
     public function info_adicional($res){
+        $this->agente = new agente();
+        $this->organizacion = new distribucion_organizacion();
+        $this->tiporuta = new distribucion_tiporuta();
         $data_agente = $this->agente->get($res->codagente);
         $data_organizacion = $this->organizacion->get($res->idempresa, $res->codagente);
         $res->nombre = $data_agente->nombre." ".$data_agente->apellidos;

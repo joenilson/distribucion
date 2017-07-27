@@ -72,11 +72,6 @@ class distribucion_ordenescarga_facturas extends fs_model {
             $this->fecha_modificacion = null;
         }
 
-        $this->factura_cliente = new factura_cliente();
-        $this->cliente = new cliente();
-        if(class_exists('ncf_rango')){
-            $this->ncf_ventas = new ncf_ventas();
-        }
     }
 
     public function url(){
@@ -149,6 +144,11 @@ class distribucion_ordenescarga_facturas extends fs_model {
     }
 
     public function info_factura($factura){
+        $this->factura_cliente = new factura_cliente();
+        $this->cliente = new cliente();
+        if(class_exists('ncf_rango')){
+            $this->ncf_ventas = new ncf_ventas();
+        }        
         $info_adicional = $this->factura_cliente->get($factura->idfactura);
         $facturasrect = $this->db->select("SELECT * FROM facturascli WHERE idfacturarect = ".$this->intval($factura->idfactura)." ORDER BY idfactura ASC;");
         $cliente_factura = $this->cliente->get($info_adicional->codcliente);

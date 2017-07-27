@@ -61,17 +61,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <div class="col-md-6">
             <div class="panel panel-info">
                 <div class="panel-heading">
-                    <form role="form" class="form" method="POST" action="{$fsc->url()}&type=ruta_origen&codalmacen={$fsc->codalmacen}"> 
+                    <form role="form" class="form" name="f_ruta_origen" method="POST" action="{$fsc->url()}&type=ruta_origen&codalmacen={$fsc->codalmacen}"> 
                         <label for="ruta_origen" class="control-label">Ruta Origen
-                            <select data-style="btn-sm" class="selectpicker form-control input-sm" name='ruta_origen' id='ruta_origen' onchange="this.form.submit();" {$fsc->selector_habilitado}>
-                                
-                                <option value="" {if="$fsc->ruta_origen==''"}selected{/if}></option>
-                                <option value="noruta" {if="$fsc->ruta_origen=='noruta'"}selected{/if}>Clientes Sin Ruta</option>
-                                {loop="$fsc->rutas_almacen"}
-                                <option value="{$value->ruta}" {if="$fsc->ruta_origen==$value->ruta"}selected{/if}>{$value->ruta} - {$value->descripcion}</option>
-                                {/loop}
-                            </select>
+                            <input type="text" class="form-control input-sm" name="ac_ruta_origen" id="ac_ruta_origen" value="{$fsc->ruta_origen}" placeholder="Ruta origen">
+                            <input type="hidden" name="ruta_origen" id="ruta_origen" value="{$fsc->ruta_origen}">
                         </label>
+                        
                         <a class="btn btn-sm btn-default" href="{$fsc->url()}&codalmacen={$fsc->codalmacen}&ruta_origen={$fsc->ruta_origen}&ruta_destino={$fsc->ruta_destino}" title="Actualizar lista" {$fsc->selector_habilitado}>
                             <span class="glyphicon glyphicon-refresh"></span>
                         </a>
@@ -117,17 +112,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <div class="col-md-6">
             <div class="panel panel-success">
                 <div class="panel-heading">
-                    <form role="form" class="form" method="POST" action="{$fsc->url()}&type=ruta_destino&codalmacen={$fsc->codalmacen}&ruta_origen={$fsc->ruta_origen}"> 
+                    <form role="form" class="form" name="f_ruta_destino" method="POST" action="{$fsc->url()}&type=ruta_destino&codalmacen={$fsc->codalmacen}&ruta_origen={$fsc->ruta_origen}"> 
                         <label for="ruta_destino" class="control-label">Ruta Destino
-                            <select data-style="btn-sm" class="selectpicker form-control input-sm" name='ruta_destino' id='ruta_destino' onchange="this.form.submit();" {$fsc->selector_habilitado}>
-                                <option value="" {if="$fsc->ruta_destino==''"}selected{/if}></option>
-                                {loop="$fsc->rutas_almacen"}
-                                    {if="$fsc->ruta_origen!=$value->ruta"}
-                                        <option value="{$value->ruta}" {if="$fsc->ruta_destino==$value->ruta"}selected{/if}>{$value->ruta} - {$value->descripcion}</option>
-                                    {/if}
-                                {/loop}
-                            </select>
+                            <input type="text" class="form-control input-sm" name="ac_ruta_destino" id="ac_ruta_destino" value="{$fsc->ruta_destino}" placeholder="Ruta destino">
+                            <input type="hidden" name="ruta_destino" id="ruta_destino" value="{$fsc->ruta_destino}">
                         </label>
+                        
                         <a class="btn btn-sm btn-default" href="{$fsc->url()}&codalmacen={$fsc->codalmacen}&ruta_origen={$fsc->ruta_origen}&ruta_destino={$fsc->ruta_destino}" title="Actualizar lista" {$fsc->selector_habilitado}>
                             <span class="glyphicon glyphicon-refresh"></span>
                         </a>
@@ -162,6 +152,44 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </div>
 </div>
 <script>
+    
+    $("#ac_ruta_origen").autocomplete({
+        paramName: 'q',
+        params: { 
+            'codalmacen': '{$fsc->codalmacen}'
+        },
+        serviceUrl: '{$fsc->url()}&type=buscar-rutas',
+        minChars: 2,
+        showNoSuggestionNotice: true,
+        noSuggestionNotice: 'Sin resultados',
+        onSelect: function(suggestion){
+            var ruta_origen = $('#ruta_origen').val();
+            if(ruta_origen !== suggestion.data && suggestion.data !== '')
+            {
+                $('#ruta_origen').val(suggestion.data);
+                document.f_ruta_origen.submit();
+            }
+        }
+    });
+    $("#ac_ruta_destino").autocomplete({
+        paramName: 'q',
+        params: { 
+            'codalmacen': '{$fsc->codalmacen}'
+        },
+        serviceUrl: '{$fsc->url()}&type=buscar-rutas',
+        minChars: 2,
+        showNoSuggestionNotice: true,
+        noSuggestionNotice: 'Sin resultados',
+        onSelect: function(suggestion){
+            var ruta_destino = $('#ruta_destino').val();
+            if(ruta_destino !== suggestion.data && suggestion.data !== '')
+            {
+                $('#ruta_destino').val(suggestion.data);
+                document.f_ruta_destino.submit();
+            }
+        }
+    });
+    
     $('.selectpicker').selectpicker({
         noneSelectedText: 'Nada Seleccionado'
     });

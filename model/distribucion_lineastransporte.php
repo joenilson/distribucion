@@ -80,10 +80,6 @@ class distribucion_lineastransporte extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion  = \Date('d-m-Y H:i');
         }
-
-        $this->articulo = new articulo();
-        $this->articulo_unidadmedida = new articulo_unidadmedida();
-        $this->unidad_medida = new unidadmedida();
     }
 
     public function url(){
@@ -103,6 +99,9 @@ class distribucion_lineastransporte extends fs_model {
 
     public function info_adicional($valor_linea)
     {
+        $this->articulo = new articulo();
+        $this->articulo_unidadmedida = new articulo_unidadmedida();
+        $this->unidad_medida = new unidadmedida();        
         $descripcion_producto = $this->articulo->get($valor_linea->referencia);
         $valor_linea->descripcion = $descripcion_producto->descripcion;
         $valor_linea->total_final = $valor_linea->cantidad+$valor_linea->devolucion;
@@ -439,13 +438,15 @@ class distribucion_lineastransporte extends fs_model {
         $lista = array();
         $sql = "SELECT $campos FROM distribucion_lineastransporte WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen).";";
         $data = $this->db->select($sql);
+        $articulo = new articulo();
+        $articulo_unidadmedida = new articulo_unidadmedida();
         if($data)
         {
             foreach($data as $d)
             {
                 $item = array();
-                $descripcion_producto = $this->articulo->get($d['referencia']);
-                $um = $this->articulo_unidadmedida->getBase($d['referencia']);
+                $descripcion_producto = $articulo->get($d['referencia']);
+                $um = $articulo_unidadmedida->getBase($d['referencia']);
                 $item[] = $d['referencia'].' '.$descripcion_producto->descripcion;
                 $item[] = (isset($um->codum))?$um->codum:'UNIDAD';
                 $item[] = $d['cantidad'];

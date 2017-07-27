@@ -117,10 +117,6 @@ class distribucion_transporte extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-
-        $this->distribucion_conductores = new distribucion_conductores();
-        $this->distribucion_unidades = new distribucion_unidades();
-        $this->articulo = new articulo();
     }
 
     public function url(){
@@ -226,6 +222,9 @@ class distribucion_transporte extends fs_model {
     }
 
     public function info_adicional($t){
+        $this->distribucion_conductores = new distribucion_conductores();
+        $this->distribucion_unidades = new distribucion_unidades();
+        $this->articulo = new articulo();        
         $con0 = $this->distribucion_conductores->get($t->idempresa, $t->conductor);
         $t->conductor_nombre = (!empty($con0->nombre))?$con0->nombre:'';
         $t->liquidado_desc = ($t->liquidado)?"SI":"NO";
@@ -367,6 +366,7 @@ class distribucion_transporte extends fs_model {
 
     public function get_lineas()
     {
+        $articulo0 = new articulo();
         $lista = array();
         $sql = "SELECT * FROM distribucion_lineastransporte where idtransporte = ".$this->intval($this->idtransporte)
                 ." AND codalmacen = ".$this->var2str($this->codalmacen)." AND idempresa = ".$this->intval($this->idempresa);
@@ -376,7 +376,7 @@ class distribucion_transporte extends fs_model {
             foreach($data as $d)
             {
                 $item = new distribucion_lineastransporte($d);
-                $articulo = $this->articulo->get($item->referencia);
+                $articulo = $articulo0->get($item->referencia);
                 $item->descripcion = $articulo->descripcion;
                 $lista[] = $item;
             }
@@ -641,16 +641,14 @@ class distribucion_transporte extends fs_model {
 
     public function get($idempresa,$idtransporte,$codalmacen)
     {
-        $lista = FALSE;
+        $linea = FALSE;
         $data = $this->db->select("SELECT * FROM distribucion_transporte WHERE idempresa = ".$this->intval($idempresa)." AND idtransporte = ".$this->intval($idtransporte)." AND codalmacen = ".$this->var2str($codalmacen).";");
 
         if($data)
         {
-                $valor = new distribucion_transporte($data[0]);
-                $linea = $this->info_adicional($valor);
-                return $linea;
-        }else{
-            return true;
+            $valor = new distribucion_transporte($data[0]);
+            $linea = $this->info_adicional($valor);
         }
+        return $linea;
     }
 }

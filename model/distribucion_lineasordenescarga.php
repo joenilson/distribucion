@@ -74,10 +74,6 @@ class distribucion_lineasordenescarga extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion  = \Date('d-m-Y H:i');
         }
-
-        $this->articulo = new articulo();
-        $this->articulo_unidadmedida = new articulo_unidadmedida();
-        $this->unidad_medida = new unidadmedida();
     }
 
     public function url(){
@@ -89,6 +85,9 @@ class distribucion_lineasordenescarga extends fs_model {
     }
 
     public function info_adicional($res){
+        $this->articulo = new articulo();
+        $this->articulo_unidadmedida = new articulo_unidadmedida();
+        $this->unidad_medida = new unidadmedida();
         $aum = $this->articulo_unidadmedida->getBase($res->referencia);
         $res->codum = (isset($aum->codum))?$aum->codum:'UNIDAD';
         $um = $this->unidad_medida->get($res->codum);
@@ -308,9 +307,11 @@ class distribucion_lineasordenescarga extends fs_model {
         {
             foreach($data as $d)
             {
+                $articulo = new articulo();
+                $articulo_unidadmedida = new articulo_unidadmedida();
                 $item = array();
-                $descripcion_producto = $this->articulo->get($d['referencia']);
-                $um = $this->articulo_unidadmedida->getBase($d['referencia']);
+                $descripcion_producto = $articulo->get($d['referencia']);
+                $um = $articulo_unidadmedida->getBase($d['referencia']);
                 $item[] = $d['referencia'].' '.$descripcion_producto->descripcion;
                 $item[] = (isset($um->codum))?$um->codum:'UNIDAD';
                 $item[] = $d['cantidad'];

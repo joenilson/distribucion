@@ -76,10 +76,6 @@ class distribucion_clientes extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-        $this->distrib_rutas = new distribucion_rutas();
-        $this->distrib_segmentos = new distribucion_segmentos();
-        $this->direccion_cliente = new direccion_cliente();
-        $this->cliente = new cliente();
     }
 
     public function url(){
@@ -91,6 +87,10 @@ class distribucion_clientes extends fs_model {
     }
 
     public function info_adicional($informacion){
+        $this->distrib_rutas = new distribucion_rutas();
+        $this->distrib_segmentos = new distribucion_segmentos();
+        $this->direccion_cliente = new direccion_cliente();
+        $this->cliente = new cliente();
         $datos_ruta = $this->distrib_rutas->get($informacion->idempresa,$informacion->codalmacen, $informacion->ruta);
         $datos_canal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->canal, 'CANAL');
         $datos_subcanal = $this->distrib_segmentos->get($informacion->idempresa, $informacion->subcanal, 'SUBCANAL');
@@ -126,9 +126,7 @@ class distribucion_clientes extends fs_model {
     public function exists() {
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
-                "ruta = ".$this->var2str($this->ruta)." AND ".
                 "iddireccion = ".$this->var2str($this->iddireccion)." AND ".
-                "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "codcliente = ".$this->var2str($this->codcliente).";");
         if($data){
             return true;
@@ -141,7 +139,7 @@ class distribucion_clientes extends fs_model {
         if ($this->exists())
         {
             $sql = "UPDATE distribucion_clientes SET ".
-                "iddireccion = ".$this->intval($this->iddireccion).", ".
+                "codalmacen = ".$this->var2str($this->codalmacen).", ".
                 "canal = ".$this->var2str($this->canal).", ".
                 "subcanal = ".$this->var2str($this->subcanal).", ".
                 "ruta = ".$this->var2str($this->ruta).", ".
@@ -149,9 +147,7 @@ class distribucion_clientes extends fs_model {
                 "fecha_modificacion = ".$this->var2str($this->fecha_modificacion).
                 " WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
-                "ruta = ".$this->var2str($this->ruta)." AND ".
                 "iddireccion = ".$this->var2str($this->iddireccion)." AND ".
-                "codalmacen = ".$this->var2str($this->codalmacen)." AND ".
                 "codcliente = ".$this->var2str($this->codcliente).";";
             return $this->db->exec($sql);
         }
