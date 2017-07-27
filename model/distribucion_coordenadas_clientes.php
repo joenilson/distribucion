@@ -25,48 +25,48 @@ require_model('direccion_cliente.php');
 class distribucion_coordenadas_clientes extends fs_model {
     /**
      * El id de la empresa
-     * @var type integer
+     * @var integer
      */
     public $idempresa;
     /**
      * El codidgo del cliente
-     * @var type varchar(6)
+     * @var varchar(6)
      */
     public $codcliente;
     /**
      * El id de la tabla direccion_cliente
-     * @var type integer
+     * @var integer
      */
     public $iddireccion;
     /**
      * Las coordenadas del cliente en formato LAT,LON
      * ejemplo 24.8240156,-75.4925647
-     * @var type varchar(64)
+     * @var varchar(64)
      */
     public $coordenadas;
     /**
      * Fecha de creación
-     * @var type date(y-m-d)
+     * @var date(y-m-d)
      */
     public $fecha_creacion;
     /**
      * Fecha de modificacion
-     * @var type date(y-m-d)
+     * @var date(y-m-d)
      */
     public $fecha_modificacion;
     /**
      * Usuario que crea la entrada
-     * @var type varchar(10)
+     * @var varchar(10)
      */
     public $usuario_creacion;
     /**
      * Usuario que modifica la entrada
-     * @var type varhcar(10)
+     * @var varhcar(10)
      */
     public $usuario_modificacion;
     /**
      * Variable auxiliar para cargar el model direccion_cliente
-     * @var type object model direccion_cliente
+     * @var object model direccion_cliente
      */
     public $direccion_cliente;
     
