@@ -24,12 +24,13 @@ require_model('distribucion_transporte.php');
 require_model('distribucion_lineastransporte.php');
 require_model('distribucion_ordenescarga_facturas.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
 /**
  * Description of informe_despachos
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class informe_almacen extends fs_controller{
+class informe_almacen extends distribucion_controller{
     public $desde;
     public $f_desde;
     public $hasta;
@@ -57,6 +58,7 @@ class informe_almacen extends fs_controller{
     }
 
     protected function private_core() {
+        parent::private_core();
         $this->shared_extensions();
         $this->almacen = new almacen();
         $this->articulo = new articulo();
@@ -207,8 +209,8 @@ class informe_almacen extends fs_controller{
                 $linea_nueva->hora = $hora;
                 $linea_nueva->fecha_creacion = strtotime($linea->fecha.' '.$hora);
                 $linea_nueva->cantidad = $linea->cantidad;
-                $linea_nueva->devolucion = $linea->devolucion;
-                $linea_nueva->total_final = $linea->total_final;
+                $linea_nueva->devolucion = ($this->fecha_rango($this->f_desde,$this->f_hasta,$linea->fechad,'dentro'))?$linea->devolucion:0;
+                $linea_nueva->total_final = ($this->fecha_rango($this->f_desde,$this->f_hasta,$linea->fechad,'dentro'))?$linea->total_final:$linea->cantidad;
                 $linea_nueva->ingresos = 0;
                 $linea_nueva->saldo = 0;
                 $resultado[$linea->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
@@ -226,6 +228,7 @@ class informe_almacen extends fs_controller{
                 $fecha = strtotime($linea->fecha.' '.$linea->hora);
                 $linea->saldo = 0;
                 $linea->fechal = '';
+                $linea->fechad = '';
                 $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
             }
         }
@@ -241,6 +244,7 @@ class informe_almacen extends fs_controller{
                 $fecha = strtotime($linea->fecha.' '.$linea->hora);
                 $linea->saldo = 0;
                 $linea->fechal = '';
+                $linea->fechad = '';
                 $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
             }
         }

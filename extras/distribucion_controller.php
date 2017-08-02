@@ -57,6 +57,15 @@ class distribucion_controller extends fs_controller
         $this->multi_almacen = $fsvar->simple_get('multi_almacen');
         $this->variables_globales();
         
+        $this->existe_tesoreria();
+        
+        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
+        $seguridadUsuario = new SeguridadUsuario();
+        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
+    }
+    
+    public function existe_tesoreria()
+    {
         $this->tesoreria = FALSE;
         //revisamos si esta el plugin de tesoreria
         $disabled = array();
@@ -68,12 +77,33 @@ class distribucion_controller extends fs_controller
         if (in_array('tesoreria', $GLOBALS['plugins']) and ! in_array('tesoreria', $disabled)) {
             $this->tesoreria = TRUE;
         }
-        
-        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        $seguridadUsuario = new SeguridadUsuario();
-        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
-
-        
+    }
+    
+    /**
+     * Comparamos las fechas de los documentos para saber si estan dentro de un
+     * determinado rango de fechas o fuera del mismo
+     * @param type $fecha
+     * @param type $tipo
+     * @return boolean
+     */
+    public function fecha_rango($desde, $hasta, $fecha, $tipo='dentro')
+    {
+        $respuesta = false;
+        if($tipo == 'dentro')
+        {
+            if(\date('Y-m-d',strtotime($fecha))>=\date('Y-m-d',strtotime($desde)) AND \date('Y-m-d',strtotime($fecha))<=\date('Y-m-d',strtotime($hasta)))
+            {
+                $respuesta = true;
+            }
+        }
+        elseif($tipo == 'fuera')
+        {
+            if(\date('Y-m-d',strtotime($fecha))<\date('Y-m-d',strtotime($desde)))
+            {
+                $respuesta = true;
+            }
+        }
+        return $respuesta;
     }
     
     public function variables_globales()

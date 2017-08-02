@@ -24,7 +24,6 @@ require_model('facturas_proveedor.php');
 require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
 require_once 'plugins/distribucion/extras/distribucion_controller.php';
-
 /**
  * Description of informes_caja
  *
