@@ -24,7 +24,6 @@
     }
     function delete_cuenta(id)
     {
-      bootbox.confirm({
          message: '¿Realmente desea eliminar la cuenta bancaria #'+id+'?',
          title: '<b>Atención</b>',
          callback: function(result) {
@@ -332,6 +331,7 @@
                                 </label>
                             </div>
                         </div>
+                        {if="isset($fsc->ncf_tipo)"}
                         <div class="col-sm-4">
                             <div class="form-group">
                                 Tipo de Comprobante Fiscal:
@@ -342,6 +342,7 @@
                                 </select>
                             </div>
                         </div>
+                        {/if}
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <a href="{$fsc->agente->url()}">Empleado asignado</a>:

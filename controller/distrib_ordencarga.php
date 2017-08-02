@@ -152,15 +152,19 @@ class distrib_ordencarga extends fs_controller {
         $this->conductor = $data_conductor;
 
         if ($type === 'buscar_facturas') {
-            $this->buscar_facturas($buscar_fecha, $this->codalmacen, $rutas, $offset);
+            $this->buscar_informacion('buscar_facturas', $this->codalmacen, $buscar_fecha, $rutas);
+            //$this->buscar_facturas($buscar_fecha, $this->codalmacen, $rutas, $offset);
         } elseif ($type === 'select-rutas') {
-            $this->lista_rutas($this->empresa->id, $this->codalmacen);
+            $this->buscar_informacion('lista_rutas', $this->codalmacen);
+            //$this->lista_rutas($this->empresa->id, $this->codalmacen);
         } elseif ($type === 'buscar-rutas') {
             $this->buscar_rutas();
         } elseif ($type === 'select-unidad') {
-            $this->lista_unidades($this->empresa->id, $codtrans, $this->codalmacen);
+            $this->buscar_informacion('lista_unidades', $this->codalmacen, FALSE, FALSE, $codtrans);
+            //$this->lista_unidades($this->empresa->id, $codtrans, $this->codalmacen);
         }elseif ($type === 'select-conductor') {
-            $this->lista_conductores($this->empresa->id, $codtrans, $this->codalmacen);
+            $this->buscar_informacion('lista_conductores', $this->codalmacen, FALSE, FALSE, $codtrans);
+            //$this->lista_conductores($this->empresa->id, $codtrans, $this->codalmacen);
         } elseif ($type === 'crear-carga') {
             $dataInicialCarga['almacenorig'] = \filter_input(INPUT_GET, 'almacenorig');
             $dataInicialCarga['almacendest'] = \filter_input(INPUT_GET, 'almacendest');
@@ -259,6 +263,29 @@ class distrib_ordencarga extends fs_controller {
             $this->resultados = $busqueda['resultados'];
             $this->num_resultados = $busqueda['cantidad'];
         }
+    }
+    
+    public function buscar_informacion($tipo,$codalmacen,$buscar_fecha=false,$rutas=false,$codtrans=false){
+        $this->template = FALSE;
+        $this->resultados = array();
+        switch($tipo){
+            case 'buscar_facturas':
+                $this->resultados = $this->distrib_facturas->buscar_rutas($this->empresa->id, $buscar_fecha, $codalmacen, $rutas);
+                break;
+            case 'lista_rutas':
+                $this->resultados = $this->distrib_rutas->all_rutasporalmacen($this->empresa->id, $codalmacen);
+                break;
+            case 'lista_unidades':
+                $this->resultados = $this->distrib_unidades->activos_agencia_almacen($this->empresa->id, $codtrans, $codalmacen);
+                break;
+            case 'lista_conductores':
+                $this->resultados = $this->distrib_conductores->activos_agencia_almacen($this->empresa->id, $codtrans, $codalmacen);
+                break;
+            default;
+                break;
+        }
+        header('Content-Type: application/json');
+        echo json_encode($this->resultados);
     }
 
     private function buscar_conductor()
