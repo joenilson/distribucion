@@ -76,9 +76,6 @@ class informes_caja extends distribucion_controller {
     public $detalle;
     public $fileNameXLS;
     public $pathNameXLS;
-    public $documentosDir;
-    public $cajaDir;
-    public $publicPath;
     public $distribucion_ordenescarga_factura;
     public function __construct() {
         parent::__construct(__CLASS__, 'Caja', 'informes', FALSE, TRUE, FALSE);
@@ -96,19 +93,8 @@ class informes_caja extends distribucion_controller {
 
         //Creamos o validamos las carpetas para grabar los informes de caja
         $this->fileName = '';
-        $basepath = dirname(dirname(dirname(__DIR__)));
-        $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
-        $this->cajaDir = $this->documentosDir . DIRECTORY_SEPARATOR . "caja";
         $this->publicPath = FS_PATH . FS_MYDOCS . 'documentos' . DIRECTORY_SEPARATOR . 'caja';
-
-        if (!is_dir($this->documentosDir)) {
-            mkdir($this->documentosDir);
-        }
-
-        if (!is_dir($this->cajaDir)) {
-            mkdir($this->cajaDir);
-        }
-
+        
         $f_desde = filter_input(INPUT_POST, 'f_desde');
         $this->f_desde = ($f_desde)?$f_desde:\date('d-m-Y');
         $f_hasta = filter_input(INPUT_POST, 'f_hasta');

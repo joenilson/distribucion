@@ -49,9 +49,6 @@ class informe_almacen extends distribucion_controller{
     public $offset;
     public $fileName;
     public $fileNamePath;
-    public $documentosDir;
-    public $distribucionDir;
-    public $publicPath;
     public $tablas;
     public function __construct() {
         parent::__construct(__CLASS__, 'Movimientos de Almacén', 'informes', FALSE, TRUE, FALSE);
@@ -68,18 +65,6 @@ class informe_almacen extends distribucion_controller{
         $this->distribucion_lineastransporte = new distribucion_lineastransporte();
         $this->distribucion_ordenescarga_facturas = new distribucion_ordenescarga_facturas();
         $this->tablas = $this->db->list_tables();
-        $basepath = dirname(dirname(dirname(__DIR__)));
-        $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
-        $this->distribucionDir = $this->documentosDir . DIRECTORY_SEPARATOR . "distribucion";
-        $this->publicPath = FS_PATH . FS_MYDOCS . 'documentos' . DIRECTORY_SEPARATOR . 'distribucion';
-
-        if (!is_dir($this->documentosDir)) {
-            mkdir($this->documentosDir);
-        }
-
-        if (!is_dir($this->distribucionDir)) {
-            mkdir($this->distribucionDir);
-        }
 
         $desde_p = \filter_input(INPUT_POST, 'desde');
         $desde_g = \filter_input(INPUT_GET, 'desde');

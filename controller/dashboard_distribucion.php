@@ -87,9 +87,6 @@ class dashboard_distribucion extends fs_controller {
     public $fileNamePDF;
     public $pathNameXLS;
     public $pathNamePDF;
-    public $documentosDir;
-    public $distribucionDir;
-    public $publicPath;
     public $fileNameXLSArticulos;
     public $pathNameXLSArticulos;
     public $pdf;
@@ -141,20 +138,8 @@ class dashboard_distribucion extends fs_controller {
         $seguridadUsuario = new SeguridadUsuario();
         $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
-        //Creamos o validamos las carpetas para grabar los reportes generados
+        //Inicializamos la variable del reporte
         $this->fileName = '';
-        $basepath = dirname(dirname(dirname(__DIR__)));
-        $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
-        $this->distribucionDir = $this->documentosDir . DIRECTORY_SEPARATOR . "distribucion";
-        $this->publicPath = FS_PATH . FS_MYDOCS . 'documentos' . DIRECTORY_SEPARATOR . 'distribucion';
-
-        if (!is_dir($this->documentosDir)) {
-            mkdir($this->documentosDir);
-        }
-
-        if (!is_dir($this->distribucionDir)) {
-            mkdir($this->distribucionDir);
-        }
 
         $f_desde = filter_input(INPUT_POST, 'f_desde');
         $this->f_desde = ($f_desde)?$f_desde:\date('01-m-Y');
@@ -431,9 +416,6 @@ class dashboard_distribucion extends fs_controller {
     }
 
     public function generar_resumen(){
-        //Inicializamos las fechas para tratamiento de comparación
-        $diffdesde = new \DateTime(\date('d-m-Y',strtotime($this->f_desde)));
-        $diffhasta = new \DateTime(\date('d-m-Y',strtotime($this->f_hasta)));
         //Obtenemos la información de los supervisores
         //Verificamos el codigo de almacen para supervisores
         if($this->codalmacen){
@@ -475,12 +457,6 @@ class dashboard_distribucion extends fs_controller {
             }
         }
 
-        //Obtenemos la información de los Clientes
-        if($this->codalmacen){
-            $clientes_distribucion = $this->distribucion_clientes->clientes_almacen($this->empresa->id,$this->codalmacen);
-        }else{
-            $clientes_distribucion = $this->distribucion_clientes->clientes_totales($this->empresa->id);
-        }
         //Inicializamos los contadores de informacion
         $clientes_estado = $this->distribucion_clientes->clientes_totales_estado($this->codalmacen,$this->f_desde,$this->f_hasta);
         $this->clientes_activos = $clientes_estado['activos'];

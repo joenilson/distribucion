@@ -47,6 +47,10 @@ class distribucion_controller extends fs_controller
     public $devolucion_nombre;
     public $liquidacion_nombre;
     public $hojadevolucion_nombre;
+    public $documentosDir;
+    public $cajaDir;
+    public $distribucionDir;
+    public $publicPath;    
     protected function private_core() 
     {
         /// ¿El usuario tiene permiso para eliminar en esta página?
@@ -57,11 +61,35 @@ class distribucion_controller extends fs_controller
         $this->multi_almacen = $fsvar->simple_get('multi_almacen');
         $this->variables_globales();
         
+        $this->verificar_carpetas();
+        
         $this->existe_tesoreria();
         
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
         $seguridadUsuario = new SeguridadUsuario();
         $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
+    }
+    
+    public function verificar_carpetas()
+    {
+        $basepath = dirname(dirname(dirname(__DIR__)));
+        $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
+        $this->cajaDir = $this->documentosDir . DIRECTORY_SEPARATOR . "caja";
+        $this->distribucionDir = $this->documentosDir . DIRECTORY_SEPARATOR . "distribucion";
+        $this->publicPath = FS_PATH . FS_MYDOCS . 'documentos' . DIRECTORY_SEPARATOR . 'distribucion';
+
+        if (!is_dir($this->documentosDir)) {
+            mkdir($this->documentosDir);
+        }
+
+        if (!is_dir($this->distribucionDir)) {
+            mkdir($this->distribucionDir);
+        }
+        
+        if (!is_dir($this->cajaDir)) {
+            mkdir($this->cajaDir);
+        }
+
     }
     
     public function existe_tesoreria()

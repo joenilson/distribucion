@@ -23,13 +23,14 @@ require_model('distribucion_rutas.php');
 require_model('distribucion_organizacion.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
 require_once 'plugins/distribucion/vendors/FacturaScripts/PrintingManager.php';
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
 use FacturaScripts\PrintingManager;
 /**
  * Description of impresion_rutas
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class impresion_rutas extends fs_controller{
+class impresion_rutas extends distribucion_controller{
     public $almacen;
     public $codalmacen;
     public $clientes;
@@ -51,33 +52,18 @@ class impresion_rutas extends fs_controller{
     public $ArchivoRutasXLSX;
     public $ArchivoRutasXLSXPath;
     public $pdf;
-    public $documentosDir;
-    public $distribucionDir;
-    public $publicPath;
     public function __construct() {
         parent::__construct(__CLASS__, '8 - Impresión de Rutas', 'distribucion', FALSE, TRUE, TRUE);
     }
 
     protected function private_core() {
+        parent::private_core();
         $this->share_extensions();
 
         $this->almacen = new almacen();
         $this->distribucion_rutas = new distribucion_rutas();
         $this->distribucion_clientes = new distribucion_clientes();
         $this->distribucion_organizacion = new distribucion_organizacion();
-
-        $basepath = dirname(dirname(dirname(__DIR__)));
-        $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
-        $this->distribucionDir = $this->documentosDir . DIRECTORY_SEPARATOR . "distribucion";
-        $this->publicPath = FS_PATH . FS_MYDOCS . 'documentos' . DIRECTORY_SEPARATOR . 'distribucion';
-
-        if (!is_dir($this->documentosDir)) {
-            mkdir($this->documentosDir);
-        }
-
-        if (!is_dir($this->distribucionDir)) {
-            mkdir($this->distribucionDir);
-        }
 
         $codalmacen = filter_input(INPUT_POST, 'codalmacen');
         $codvendedor = filter_input(INPUT_POST, 'vendedores');
@@ -359,88 +345,6 @@ class impresion_rutas extends fs_controller{
     }
 
     private function share_extensions(){
-        $extensiones = array(
-            array(
-                'name' => 'impresion_rutas_datepicker_es_js',
-                'page_from' => __CLASS__,
-                'page_to' => 'impresion_rutas',
-                'type' => 'head',
-                'text' => '<script type="text/javascript" src="' . FS_PATH . 'plugins/distribucion/view/js/locale/datepicker-es.js"></script>',
-                'params' => ''
-            ),
-            array(
-                'name' => 'impresion_rutas_jqueryui_js',
-                'page_from' => __CLASS__,
-                'page_to' => 'impresion_rutas',
-                'type' => 'head',
-                'text' => '<script type="text/javascript" src="' . FS_PATH . 'plugins/distribucion/view/js/jquery-ui.min.js"></script>',
-                'params' => ''
-            ),
-            array(
-                'name' => 'impresion_rutas_jqueryui_css1',
-                'page_from' => __CLASS__,
-                'page_to' => 'impresion_rutas',
-                'type' => 'head',
-                'text' => '<link rel="stylesheet" href="' . FS_PATH . 'plugins/distribucion/view/css/jquery-ui.min.css"/>',
-                'params' => ''
-            ),
-            array(
-                'name' => 'impresion_rutas_jqueryui_css2',
-                'page_from' => __CLASS__,
-                'page_to' => 'impresion_rutas',
-                'type' => 'head',
-                'text' => '<link rel="stylesheet" href="' . FS_PATH . 'plugins/distribucion/view/css/jquery-ui.structure.min.css"/>',
-                'params' => ''
-            ),
-            array(
-                'name' => 'impresion_rutas_jqueryui_css3',
-                'page_from' => __CLASS__,
-                'page_to' => 'impresion_rutas',
-                'type' => 'head',
-                'text' => '<link rel="stylesheet" href="' . FS_PATH . 'plugins/distribucion/view/css/jquery-ui.theme.min.css"/>',
-                'params' => ''
-            ),
-            array(
-                'name' => 'impresion_rutas_css5',
-                'page_from' => __CLASS__,
-                'page_to' => 'impresion_rutas',
-                'type' => 'head',
-                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="' . FS_PATH . 'plugins/distribucion/view/css/ui.jqgrid-bootstrap.css"/>',
-                'params' => ''
-            ),
-            array(
-                'name' => 'impresion_rutas_css6',
-                'page_from' => __CLASS__,
-                'page_to' => 'impresion_rutas',
-                'type' => 'head',
-                'text' => '<script src="' . FS_PATH . 'plugins/distribucion/view/js/locale/grid.locale-es.js" type="text/javascript"></script>',
-                'params' => ''
-            ),
-            array(
-                'name' => 'impresion_rutas_css7',
-                'page_from' => __CLASS__,
-                'page_to' => 'impresion_rutas',
-                'type' => 'head',
-                'text' => '<script src="' . FS_PATH . 'plugins/distribucion/view/js/plugins/jquery.jqGrid.min.js" type="text/javascript"></script>',
-                'params' => ''
-            ),
-            array(
-                'name' => 'impresion_rutas_css11',
-                'page_from' => __CLASS__,
-                'page_to' => 'impresion_rutas',
-                'type' => 'head',
-                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="' . FS_PATH . 'plugins/distribucion/view/css/bootstrap-select.min.css"/>',
-                'params' => ''
-            )
-        );
-
-        foreach ($extensiones as $ext) {
-            $fsext0 = new fs_extension($ext);
-            if (!$fsext0->delete()) {
-                $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
-            }
-        }
-
         $extensiones2 = array(
             array(
                 'name' => '001_impresion_rutas_js',

@@ -31,6 +31,7 @@ require_model('facturas_cliente.php');
 require_model('facturas_proveedor.php');
 require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
 require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
 use FacturaScripts\Seguridad\SeguridadUsuario;
 /**
@@ -38,7 +39,7 @@ use FacturaScripts\Seguridad\SeguridadUsuario;
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class informes_vendedores extends fs_controller {
+class informes_vendedores extends distribucion_controller {
     public $almacenes;
     public $familias;
     public $articulos;
@@ -56,9 +57,6 @@ class informes_vendedores extends fs_controller {
     public $total;
     public $fileNameXLS;
     public $pathNameXLS;
-    public $documentosDir;
-    public $distribucionDir;
-    public $publicPath;
     public $pdf;
     public $procesado;
     public $lista_ruta;
@@ -86,6 +84,7 @@ class informes_vendedores extends fs_controller {
     }
 
     protected function private_core() {
+        parent::private_core();
         $this->shared_extensions();
         $this->almacenes = new almacen();
         $this->articulos = new articulo();
@@ -101,21 +100,6 @@ class informes_vendedores extends fs_controller {
         $this->grupos_clientes = new grupo_clientes();
         $this->resultados_formas_pago = false;
         $this->procesado = false;
-
-        $basepath = dirname(dirname(dirname(__DIR__)));
-        $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
-        $this->distribucionDir = $this->documentosDir . DIRECTORY_SEPARATOR . "distribucion";
-        $this->publicPath = FS_PATH . FS_MYDOCS . 'documentos' . DIRECTORY_SEPARATOR . 'distribucion';
-        if (!is_dir($this->documentosDir)) {
-            mkdir($this->documentosDir);
-        }
-
-        if (!is_dir($this->distribucionDir)) {
-            mkdir($this->distribucionDir);
-        }
-        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        $seguridadUsuario = new SeguridadUsuario();
-        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
         $f_desde = filter_input(INPUT_POST, 'f_desde');
         $this->f_desde = ($f_desde)?$f_desde:\date('01-m-Y');
