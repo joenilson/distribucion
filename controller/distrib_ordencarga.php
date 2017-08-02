@@ -36,6 +36,7 @@ require_model('articulo.php');
 require_model('articulo_unidadmedida.php');
 require_once 'plugins/distribucion/vendors/FacturaScripts/PrintingManager.php';
 require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
 use FacturaScripts\Seguridad\SeguridadUsuario;
 use FacturaScripts\PrintingManager;
 
@@ -44,19 +45,13 @@ use FacturaScripts\PrintingManager;
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
-class distrib_ordencarga extends fs_controller {
+class distrib_ordencarga extends distribucion_controller {
 
     public $facturas_cliente;
     public $linea_factura_cliente;
     public $almacen;
     public $resultados;
     public $agencia_transporte;
-    public $distribucion_setup;
-    public $ordencarga_nombre;
-    public $tranporte_nombre;
-    public $liquidacion_nombre;
-    public $devolucion_nombre;
-    public $hojadevolucion_nombre;
     public $distrib_clientes;
     public $distrib_facturas;
     public $distrib_rutas;
@@ -82,13 +77,12 @@ class distrib_ordencarga extends fs_controller {
     public $unidadmedida;
     public $articulo_unidadmedida;
 
-
     public function __construct() {
         parent::__construct(__CLASS__, '4 - Ordenes de Carga', 'distribucion');
     }
 
     public function private_core() {
-
+        parent::private_core();
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->almacen = new almacen();
         $this->facturas_cliente = new factura_cliente();
@@ -111,8 +105,6 @@ class distrib_ordencarga extends fs_controller {
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
         $seguridadUsuario = new SeguridadUsuario();
         $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
-        //Cargamos las traducciones de los documentos
-        $this->variables_globales();
 
         //Leemos las variables que nos manda el view
         $type = \filter_input(INPUT_GET, 'type');
@@ -214,38 +206,6 @@ class distrib_ordencarga extends fs_controller {
         $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes($this->empresa->id, 'cargado', $this->codalmacen, $this->desde, $this->hasta, $conductor);
     }
 
-    public function variables_globales(){
-        $fsvar = new fs_var();
-        $this->distribucion_setup = $fsvar->array_get(
-            array(
-            'distrib_ordencarga' => "Orden de Carga",
-            'distrib_ordenescarga' => "Ordenes de Carga",
-            'distrib_transporte' => "Transporte",
-            'distrib_transportes' => "Transportes",
-            'distrib_devolucion' => "Devolución",
-            'distrib_devoluciones' => "Devoluciones",
-            'distrib_agencia' => "Agencia",
-            'distrib_agencias' => "Agencias",
-            'distrib_unidad' => "Unidad",
-            'distrib_unidades' => "Unidades",
-            'distrib_conductor' => "Conductor",
-            'distrib_conductores' => "Conductores",
-            'distrib_liquidacion' => "Liquidación",
-            'distrib_liquidaciones' => "Liquidaciones",
-            'distrib_faltante' => "Faltante",
-            'distrib_faltantes' => "Faltantes",
-            'distrib_hojadevolucion' => "Hoja de Devolución",
-            'distrib_hojasdevolucion' => "Hojas de Devolución"
-            ), FALSE
-        );
-        $this->ordencarga_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_ordencarga']));
-        $this->transporte_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_transporte']));
-        $this->devolucion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_devolucion']));
-        $this->liquidacion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_liquidacion']));
-        $this->hojadevolucion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_hojadevolucion']));
-
-    }
-
     public function buscador(){
         $datos_busqueda = array();
         if($this->conductor){
@@ -282,22 +242,6 @@ class distrib_ordencarga extends fs_controller {
         }
         header('Content-Type: application/json');
         echo json_encode($this->resultados);
-    }
-
-    private function buscar_conductor()
-    {
-        /// desactivamos la plantilla HTML
-        $this->template = FALSE;
-
-        $con0 = new distribucion_conductores();
-        $json = array();
-        foreach($con0->search($this->empresa->id, $_REQUEST['buscar_conductor']) as $con)
-        {
-           $json[] = array('label' => $con->nombre, 'value' => $con->licencia);
-        }
-
-        header('Content-Type: application/json');
-        echo json_encode( $json );
     }
 
     public function crear_transporte($lista) {

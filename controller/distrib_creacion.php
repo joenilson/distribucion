@@ -39,6 +39,7 @@ require_model('cuenta_banco.php');
 require_model('subcuenta.php');
 require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
 require_once 'plugins/distribucion/vendors/FacturaScripts/PrintingManager.php';
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
 use FacturaScripts\Seguridad\SeguridadUsuario;
 use FacturaScripts\PrintingManager;
 
@@ -47,7 +48,7 @@ use FacturaScripts\PrintingManager;
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
-class distrib_creacion extends fs_controller {
+class distrib_creacion extends distribucion_controller {
 
     public $almacen;
     public $codalmacen;
@@ -78,18 +79,13 @@ class distrib_creacion extends fs_controller {
     public $cuenta_banco;
     public $fecha_pago;
     public $tesoreria;
-    public $distribucion_setup;
-    public $ordencarga_nombre;
-    public $tranporte_nombre;
-    public $liquidacion_nombre;
-    public $devolucion_nombre;
-    public $hojadevolucion_nombre;
     public $totales_lineas;
     public function __construct() {
         parent::__construct(__CLASS__, '5 - Transportes', 'distribucion');
     }
 
     public function private_core() {
+        parent::private_core();
         $this->share_extensions();
         new distribucion_lineastransporte();
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
@@ -114,9 +110,6 @@ class distrib_creacion extends fs_controller {
         if (in_array('tesoreria', $GLOBALS['plugins']) and ! in_array('tesoreria', $disabled)) {
             $this->tesoreria = TRUE;
         }
-
-        //Cargamos las traducciones de los documentos
-        $this->variables_globales();
 
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
         $seguridadUsuario = new SeguridadUsuario();
@@ -275,38 +268,6 @@ class distrib_creacion extends fs_controller {
         $this->num_resultados = $busqueda['cantidad'];
     }
 
-    public function variables_globales(){
-        $fsvar = new fs_var();
-        $this->distribucion_setup = $fsvar->array_get(
-            array(
-            'distrib_ordencarga' => "Orden de Carga",
-            'distrib_ordenescarga' => "Ordenes de Carga",
-            'distrib_transporte' => "Transporte",
-            'distrib_transportes' => "Transportes",
-            'distrib_devolucion' => "Devolución",
-            'distrib_devoluciones' => "Devoluciones",
-            'distrib_agencia' => "Agencia",
-            'distrib_agencias' => "Agencias",
-            'distrib_unidad' => "Unidad",
-            'distrib_unidades' => "Unidades",
-            'distrib_conductor' => "Conductor",
-            'distrib_conductores' => "Conductores",
-            'distrib_liquidacion' => "Liquidación",
-            'distrib_liquidaciones' => "Liquidaciones",
-            'distrib_faltante' => "Faltante",
-            'distrib_faltantes' => "Faltantes",
-            'distrib_hojadevolucion' => "Hoja de Devolución",
-            'distrib_hojasdevolucion' => "Hojas de Devolución"
-            ), FALSE
-        );
-        $this->ordencarga_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_ordencarga']));
-        $this->transporte_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_transporte']));
-        $this->devolucion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_devolucion']));
-        $this->liquidacion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_liquidacion']));
-        $this->hojadevolucion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_hojadevolucion']));
-
-    }
-
     public function paginas() {
         $conductor = ($this->conductor) ? $this->conductor->licencia : '';
         $this->total_resultados = $this->distrib_transporte->total_transportes($this->empresa->id, $this->codalmacen, $this->desde, $this->hasta);
@@ -373,20 +334,6 @@ class distrib_creacion extends fs_controller {
         } else {
             return parent::url();
         }
-    }
-
-    private function buscar_conductor() {
-        /// desactivamos la plantilla HTML
-        $this->template = FALSE;
-
-        $con0 = new distribucion_conductores();
-        $json = array();
-        foreach ($con0->search($this->empresa->id, $_REQUEST['buscar_conductor']) as $con) {
-            $json[] = array('label' => $con->nombre, 'value' => $con->licencia);
-        }
-
-        header('Content-Type: application/json');
-        echo json_encode($json);
     }
 
     public function imprimir_documento($tipo='transporte') {
