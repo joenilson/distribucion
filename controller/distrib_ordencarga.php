@@ -154,6 +154,7 @@ class distrib_ordencarga extends distribucion_controller {
         }elseif ($type === 'select-conductor') {
             $this->buscar_informacion('lista_conductores', $this->codalmacen, FALSE, FALSE, $codtrans);
         } elseif ($type === 'crear-carga') {
+            $dataInicialCarga = array();
             $dataInicialCarga['almacenorig'] = \filter_input(INPUT_GET, 'almacenorig');
             $dataInicialCarga['almacendest'] = \filter_input(INPUT_GET, 'almacendest');
             $dataInicialCarga['codunidad'] = \filter_input(INPUT_GET, 'codunidad');
