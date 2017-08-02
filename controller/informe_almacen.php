@@ -147,10 +147,8 @@ class informe_almacen extends distribucion_controller{
 
         $resultado = array();
         $saldo = array();
-        foreach($almacenes as $almacen)
-        {
-            foreach($articulos as $art)
-            {
+        foreach($almacenes as $almacen){
+            foreach($articulos as $art){
                 //Saldo Inicial
                 $saldo_ini = $this->saldo_articulo($art->referencia, $almacen->codalmacen);
                 $linea_nueva = new StdClass();
@@ -168,8 +166,7 @@ class informe_almacen extends distribucion_controller{
                 $linea_nueva->total_final = 0;
                 $linea_nueva->ingresos = 0;
                 $linea_nueva->saldo = $saldo_ini;
-                if(!isset($resultado[$art->referencia][$linea_nueva->fecha_creacion]))
-                {
+                if(!isset($resultado[$art->referencia][$linea_nueva->fecha_creacion])){
                     $resultado[$art->referencia][$linea_nueva->fecha_creacion] = array();
                 }
                 $resultado[$art->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
@@ -178,10 +175,8 @@ class informe_almacen extends distribucion_controller{
 
         $lineas_ingresos = $this->ingresos();
         if($lineas_ingresos){
-            foreach($lineas_ingresos as $linea)
-            {
-                if(!isset($resultado[$linea->referencia][$linea->fecha_creacion]))
-                {
+            foreach($lineas_ingresos as $linea){
+                if(!isset($resultado[$linea->referencia][$linea->fecha_creacion])){
                     $resultado[$linea->referencia][$linea->fecha_creacion] = array();
                 }
                 $linea->saldo = 0;
@@ -191,11 +186,9 @@ class informe_almacen extends distribucion_controller{
 
         $lineas_transportes = $this->distribucion_lineastransporte->lista($this->empresa->id, $datos, $this->f_desde, $this->f_hasta);
         if($lineas_transportes){
-            foreach($lineas_transportes['resultados'] as $linea)
-            {
+            foreach($lineas_transportes['resultados'] as $linea){
                 $hora = \date('H:i:s',strtotime($linea->fecha_creacion));
-                if(!isset($resultado[$linea->referencia][strtotime($linea->fecha.' '.$hora)]))
-                {
+                if(!isset($resultado[$linea->referencia][strtotime($linea->fecha.' '.$hora)])){
                     $resultado[$linea->referencia][strtotime($linea->fecha.' '.$hora)] = array();
                 }
                 $linea_nueva = new StdClass();
@@ -219,8 +212,7 @@ class informe_almacen extends distribucion_controller{
 
         $lineas_regularizaciones = $this->regularizaciones();
         if($lineas_regularizaciones){
-            foreach($lineas_regularizaciones as $linea)
-            {
+            foreach($lineas_regularizaciones as $linea){
                 if(!isset($resultado[$linea->referencia][$linea->fecha]))
                 {
                     $resultado[$linea->referencia][$linea->fecha] = array();
