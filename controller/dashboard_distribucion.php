@@ -570,7 +570,7 @@ class dashboard_distribucion extends fs_controller {
                 $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
             }
 
-            if($rutasagente){
+            if(!empty($rutasagente)){
                 foreach($rutasagente as $ruta){
                     $clientes_ruta = $this->rutas->cantidad_asignados($this->empresa->id, $ruta->codalmacen, $ruta->ruta);
                     $this->clientes_rutas['total'][$ruta->ruta] = $clientes_ruta;
@@ -599,7 +599,7 @@ class dashboard_distribucion extends fs_controller {
 
                     //Generamos la estadistica de ventas cantidad vendida, importe vendido, cantidad bonificada y devoluciones
                     $ventas_ruta = $this->distribucion_facturas->ventas_ruta($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
-                    if($ventas_ruta){
+                    if(!empty($ventas_ruta)){
                         foreach($ventas_ruta as $d){
                             $this->clientes_rutas['cantidad'][$ruta->ruta] += $d->qdad_vendida;
                             $this->clientes_rutas['importe'][$ruta->ruta] += $d->importe_vendido;

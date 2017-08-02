@@ -37,10 +37,8 @@ require_model('asiento');
 require_model('ejercicio');
 require_model('cuenta_banco.php');
 require_model('subcuenta.php');
-require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
 require_once 'plugins/distribucion/vendors/FacturaScripts/PrintingManager.php';
 require_once 'plugins/distribucion/extras/distribucion_controller.php';
-use FacturaScripts\Seguridad\SeguridadUsuario;
 use FacturaScripts\PrintingManager;
 
 /**
@@ -78,7 +76,6 @@ class distrib_creacion extends distribucion_controller {
     public $codsubcuenta_pago;
     public $cuenta_banco;
     public $fecha_pago;
-    public $tesoreria;
     public $totales_lineas;
     public function __construct() {
         parent::__construct(__CLASS__, '5 - Transportes', 'distribucion');
@@ -88,7 +85,7 @@ class distrib_creacion extends distribucion_controller {
         parent::private_core();
         $this->share_extensions();
         new distribucion_lineastransporte();
-        $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
+
         $this->almacen = new almacen();
         $this->distrib_transporte = new distribucion_transporte();
         $this->distrib_lineastransporte = new distribucion_lineastransporte();
@@ -99,21 +96,7 @@ class distrib_creacion extends distribucion_controller {
         $this->asiento = new asiento();
         $this->ejercicio = new ejercicio();
         $this->conductores = new distribucion_conductores();
-        $this->tesoreria = FALSE;
-        //revisamos si esta el plugin de tesoreria
-        $disabled = array();
-        if (defined('FS_DISABLED_PLUGINS')) {
-            foreach (explode(',', FS_DISABLED_PLUGINS) as $aux) {
-                $disabled[] = $aux;
-            }
-        }
-        if (in_array('tesoreria', $GLOBALS['plugins']) and ! in_array('tesoreria', $disabled)) {
-            $this->tesoreria = TRUE;
-        }
 
-        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        $seguridadUsuario = new SeguridadUsuario();
-        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
         $type = \filter_input(INPUT_GET, 'type');
         $mostrar = \filter_input(INPUT_GET, 'mostrar');
@@ -741,10 +724,10 @@ class distrib_creacion extends distribucion_controller {
         $value_factura = \filter_input(INPUT_GET, 'factura');
         $lista_facturas = explode(',', $value_factura);
         $fact0 = new factura_cliente();
+        $num = 0;
         foreach ($lista_facturas as $factura) {
             $datos_factura = explode('-', $value_factura);
             $factura = $fact0->get($datos_factura[0]);
-            $num = 0;
             if ($factura) {
                 $factura->pagada = FALSE;
                 $factura->save();

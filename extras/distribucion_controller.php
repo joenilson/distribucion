@@ -17,6 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 require_model('distribucion_conductores.php');
+require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
+use FacturaScripts\Seguridad\SeguridadUsuario;
+
 /**
  * Description of distribucion_controller
  *
@@ -37,7 +40,7 @@ class distribucion_controller extends fs_controller
      */
     public $multi_almacen;
     public $meses = array(1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril', 5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto', 9 => 'Setiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre');
-    
+    public $tesoreria;
     public $distribucion_setup;
     public $ordencarga_nombre;
     public $transporte_nombre;
@@ -53,6 +56,24 @@ class distribucion_controller extends fs_controller
         $fsvar = new fs_var();
         $this->multi_almacen = $fsvar->simple_get('multi_almacen');
         $this->variables_globales();
+        
+        $this->tesoreria = FALSE;
+        //revisamos si esta el plugin de tesoreria
+        $disabled = array();
+        if (defined('FS_DISABLED_PLUGINS')) {
+            foreach (explode(',', FS_DISABLED_PLUGINS) as $aux) {
+                $disabled[] = $aux;
+            }
+        }
+        if (in_array('tesoreria', $GLOBALS['plugins']) and ! in_array('tesoreria', $disabled)) {
+            $this->tesoreria = TRUE;
+        }
+        
+        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
+        $seguridadUsuario = new SeguridadUsuario();
+        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
+
+        
     }
     
     public function variables_globales()

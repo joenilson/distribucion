@@ -23,15 +23,14 @@ require_model('facturas_cliente.php');
 require_model('facturas_proveedor.php');
 require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
-require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
-use FacturaScripts\Seguridad\SeguridadUsuario;
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
 
 /**
  * Description of informes_caja
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class informes_caja extends fs_controller {
+class informes_caja extends distribucion_controller {
     public $almacenes;
     public $facturascli;
     public $facturaspro;
@@ -76,7 +75,6 @@ class informes_caja extends fs_controller {
     public $pendientes_anteriores;
     public $fp;
     public $detalle;
-    public $tesoreria;
     public $fileNameXLS;
     public $pathNameXLS;
     public $documentosDir;
@@ -88,6 +86,7 @@ class informes_caja extends fs_controller {
     }
 
     protected function private_core() {
+        parent::private_core();
         $this->almacenes = new almacen();
         $this->facturascli = new factura_cliente();
         $this->facturaspro = new factura_proveedor();
@@ -95,24 +94,6 @@ class informes_caja extends fs_controller {
         $this->distribucion_ordenescarga_factura = new distribucion_ordenescarga_facturas();
         $this->fp = new forma_pago();
         $this->resultados_formas_pago = false;
-
-        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        $seguridadUsuario = new SeguridadUsuario();
-        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
-
-        //revisamos si esta el plugin de tesoreria
-        $this->tesoreria = FALSE;
-        $disabled = array();
-        if( defined('FS_DISABLED_PLUGINS') )
-        {
-           foreach( explode(',', FS_DISABLED_PLUGINS) as $aux )
-           {
-              $disabled[] = $aux;
-           }
-        }
-        if(in_array('tesoreria',$GLOBALS['plugins']) and !in_array('tesoreria',$disabled)){
-            $this->tesoreria = TRUE;
-        }
 
         //Creamos o validamos las carpetas para grabar los informes de caja
         $this->fileName = '';
@@ -160,6 +141,7 @@ class informes_caja extends fs_controller {
         if (file_exists($this->fileNameXLS)) {
             unlink($this->fileNameXLS);
         }
+        $cabeceraResumenIngresos = array();
         $cabeceraResumenIngresos['Tipo'] = 'string';
         $cabeceraResumenIngresos['Facturado'] = '#,###,###.##';
         $cabeceraResumenIngresos['Cobrado'] = '#,###,###.##';
@@ -181,6 +163,7 @@ class informes_caja extends fs_controller {
         $this->writer->writeSheetRow('Resumen', array('', '', ''));
         $this->writer->writeSheetRow('Resumen', array('', '', ''));
         $this->writer->writeSheetRow('Resumen', array('Movimientos por Formas de Pago', '', '','',''));
+        $totales_fp = array();
         $totales_fp['ingresos_brutos'] = 0;
         $totales_fp['ingresos_netos'] = 0;
         $totales_fp['egresos_brutos'] = 0;
@@ -193,7 +176,7 @@ class informes_caja extends fs_controller {
             $totales_fp['egresos_netos'] += $this->pagos_condpago[$fp->codpago];
         }
         $this->writer->writeSheetRow('Resumen', array('Total', $totales_fp['ingresos_brutos'], $totales_fp['ingresos_netos'], $totales_fp['egresos_brutos'], $totales_fp['egresos_netos']));
-
+        $cabeceraDetalleVenta = array();
         $cabeceraDetalleVenta['Factura'] = 'string';
         $cabeceraDetalleVenta[FS_NUMERO2] = 'string';
         $cabeceraDetalleVenta['Transporte'] = '0';
@@ -212,7 +195,6 @@ class informes_caja extends fs_controller {
         $totalAbonos=0;
         $totalSaldo=0;
         foreach($this->detalle['ventas'] as $factura){
-            //$factura->saldo = ($factura->total+$factura->rectificativa)-$factura->abonos;
             $this->writer->writeSheetRow('Ventas', array($factura->codigo, $factura->numero2, $factura->transporte, $factura->nombrecliente, ($factura->pagada)?'Pagada':'Pendiente', $factura->total, $factura->rectificativa, $factura->abonos, $factura->saldo, \date('Y-m-d',strtotime($factura->fecha)),\date('Y-m-d',strtotime($factura->vencimiento)), ($factura->fecha_pago)?\date('Y-m-d',strtotime($factura->fecha_pago)):''));
             $totalImporte+=$factura->total;
             $totalRectificativas+=$factura->rectificativa;
@@ -240,7 +222,6 @@ class informes_caja extends fs_controller {
         $totalAbonosCA = 0;
         $totalSaldoCA = 0;
         foreach($this->detalle['cobros_anteriores'] as $factura){
-            //$factura->saldo = ($factura->total+$factura->rectificativa)-$factura->abonos;
             $this->writer->writeSheetRow('Ventas', array($factura->codigo, $factura->numero2, $factura->transporte, $factura->nombrecliente, ($factura->pagada)?'Pagada':'Pendiente', $factura->total, $factura->rectificativa, $factura->abonos, $factura->saldo, \date('Y-m-d',strtotime($factura->fecha)),\date('Y-m-d',strtotime($factura->vencimiento)), ($factura->fecha_pago)?\date('Y-m-d',strtotime($factura->fecha_pago)):''));
             $totalImporteCA+=$factura->total;
             $totalRectificativasCA+=$factura->rectificativa;
@@ -259,7 +240,6 @@ class informes_caja extends fs_controller {
         $totalAbonosPC = 0;
         $totalSaldoPC = 0;
         foreach($this->detalle['anteriores'] as $factura){
-            //$factura->saldo = ($factura->total+$factura->rectificativa)-$factura->abonos;
             $this->writer->writeSheetRow('Ventas', array($factura->codigo, $factura->numero2, $factura->transporte, $factura->nombrecliente, ($factura->pagada)?'Pagada':'Pendiente', $factura->total, $factura->rectificativa, $factura->abonos, $factura->saldo, \date('Y-m-d',strtotime($factura->fecha)),\date('Y-m-d',strtotime($factura->vencimiento)), ($factura->fecha_pago)?\date('Y-m-d',strtotime($factura->fecha_pago)):''));
             $totalImportePC+=$factura->total;
             $totalRectificativasPC+=$factura->rectificativa;
@@ -450,9 +430,10 @@ class informes_caja extends fs_controller {
                 $this->total_ingresos -= $faltante->importe;
                 $this->cobros_condpago['CONT'] -= $faltante->importe;
                 $this->detalle['faltantes'][] = $faltante;
+                $this->ingresos_condpago['CONT'] += $faltante->importe;
             }
             $this->total_general += $this->total_ingresos;
-            $this->ingresos_condpago['CONT'] += $faltante->importe;
+            
         }
     }
 
@@ -514,16 +495,7 @@ class informes_caja extends fs_controller {
         if($pago_venta){
             $fecha_pago = ($this->tesoreria)?$pago_venta->fechap:$pago_venta->fecha;
             if(\date('Y-m-d',strtotime($fecha_pago))>=\date('Y-m-d',strtotime($this->f_desde)) AND \date('Y-m-d',strtotime($fecha_pago))<=\date('Y-m-d',strtotime($this->f_hasta))){
-                //Esta pagada a la fecha buscada
-                //$this->total_cobros += $f->total;
-                //$this->pagadas['ventas'] += $f->total;
-                //$this->cobros_condpago[$f->codpago] += $f->total;
-                //$f->fecha_pago = $fecha_pago;
                 $abonos = $f->total;
-            }else{
-                //Esta pendiente a la fecha buscada
-                //$this->total_pendientes_cobro += $f->total;
-                //$this->pendientes['ventas'] += $f->total;
             }
         }
         return $abonos;
@@ -542,9 +514,6 @@ class informes_caja extends fs_controller {
         if($rectificativas){
             foreach($rectificativas as $rectificativa){
                 if($this->comparar_fechas($rectificativa->fecha,$modo)){
-                    //$this->total_cobros += $rectificativa->total;
-                    //$this->pagadas['ventas'] += $rectificativa->total;
-                    //$this->cobros_condpago[$rectificativa->codpago] += $rectificativa->total;
                     $total_rectificativas += $rectificativa->total;
                     $f->fecha_pago = $rectificativa->fecha;
                     if(round($rectificativa->total+$f->total,0) == 0){
