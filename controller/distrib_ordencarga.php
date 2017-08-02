@@ -153,18 +153,14 @@ class distrib_ordencarga extends fs_controller {
 
         if ($type === 'buscar_facturas') {
             $this->buscar_informacion('buscar_facturas', $this->codalmacen, $buscar_fecha, $rutas);
-            //$this->buscar_facturas($buscar_fecha, $this->codalmacen, $rutas, $offset);
         } elseif ($type === 'select-rutas') {
             $this->buscar_informacion('lista_rutas', $this->codalmacen);
-            //$this->lista_rutas($this->empresa->id, $this->codalmacen);
         } elseif ($type === 'buscar-rutas') {
             $this->buscar_rutas();
         } elseif ($type === 'select-unidad') {
             $this->buscar_informacion('lista_unidades', $this->codalmacen, FALSE, FALSE, $codtrans);
-            //$this->lista_unidades($this->empresa->id, $codtrans, $this->codalmacen);
         }elseif ($type === 'select-conductor') {
             $this->buscar_informacion('lista_conductores', $this->codalmacen, FALSE, FALSE, $codtrans);
-            //$this->lista_conductores($this->empresa->id, $codtrans, $this->codalmacen);
         } elseif ($type === 'crear-carga') {
             $dataInicialCarga['almacenorig'] = \filter_input(INPUT_GET, 'almacenorig');
             $dataInicialCarga['almacendest'] = \filter_input(INPUT_GET, 'almacendest');
@@ -530,38 +526,6 @@ class distrib_ordencarga extends fs_controller {
             $this->new_error_msg('Orden de carga ' . $ordencarga->idordencarga . ' guardada con errores en los siguientes articulos: ' . $erroresLinea . ' por favor revise la información enviada.');
         }
         $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id);
-    }
-
-    public function buscar_facturas($buscar_fecha, $codalmacen, $rutas, $offset) {
-        $this->template = FALSE;
-        $this->resultados = array();
-        $this->resultados = $this->distrib_facturas->buscar_rutas($this->empresa->id, $buscar_fecha, $codalmacen, $rutas);
-        header('Content-Type: application/json');
-        echo json_encode($this->resultados);
-    }
-
-    public function lista_rutas($idempresa, $codalmacen){
-        $this->template = FALSE;
-        $this->resultados = array();
-        $this->resultados = $this->distrib_rutas->all_rutasporalmacen($idempresa, $codalmacen);
-        header('Content-Type: application/json');
-        echo json_encode($this->resultados);
-    }
-
-    public function lista_unidades($idempresa, $codtrans, $codalmacen) {
-        $this->template = FALSE;
-        $this->resultados = array();
-        $this->resultados = $this->distrib_unidades->activos_agencia_almacen($idempresa, $codtrans, $codalmacen);
-        header('Content-Type: application/json');
-        echo json_encode($this->resultados);
-    }
-
-    public function lista_conductores($idempresa, $codtrans, $codalmacen) {
-        $this->template = FALSE;
-        $this->resultados = array();
-        $this->resultados = $this->distrib_conductores->activos_agencia_almacen($idempresa, $codtrans, $codalmacen);
-        header('Content-Type: application/json');
-        echo json_encode($this->resultados);
     }
 
     public function paginas() {
