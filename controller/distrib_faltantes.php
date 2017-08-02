@@ -19,14 +19,13 @@
 require_model('almacen.php');
 require_model('agente.php');
 require_model('distribucion_faltantes.php');
-require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
-use FacturaScripts\Seguridad\SeguridadUsuario;
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
 /**
  * Description of distrib_faltantes
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class distrib_faltantes extends fs_controller{
+class distrib_faltantes extends distribucion_controller{
     public $agente;
     public $almacenes;
     public $almacen;
@@ -42,13 +41,12 @@ class distrib_faltantes extends fs_controller{
     public $hasta;
     public $codalmacen;
     public $conductor;
-    public $allow_delete;
     public function __construct() {
         parent::__construct(__CLASS__, 'Liquidar Faltantes', 'Caja', FALSE, TRUE, FALSE);
     }
 
     protected function private_core() {
-        $this->allow_delete = ($this->user->admin)?true:$this->user->allow_delete_on(__CLASS__);
+        parent::private_core();
         $this->mostrar = 'todo';
 
         $this->distribucion_faltantes = new distribucion_faltantes();
@@ -57,10 +55,6 @@ class distrib_faltantes extends fs_controller{
         $this->fecha_pago = \date('d-m-Y');
         $fecha_pago = filter_input(INPUT_POST, 'fecha_pago');
         $this->fecha_pago = ($fecha_pago)?$fecha_pago:\date('d-m-Y');
-
-        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        $seguridadUsuario = new SeguridadUsuario();
-        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
         $accion = filter_input(INPUT_POST, 'accion');
         if($accion){
@@ -73,21 +67,6 @@ class distrib_faltantes extends fs_controller{
         //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
         if($this->user->admin){
             $this->listado_faltantes = $this->distribucion_faltantes->all($this->empresa->id);
-        }else{
-            //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-            $seguridadUsuario = new SeguridadUsuario();
-            $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
-            $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:false;
-            //$this->agente = new agente();
-            //$cod = $this->agente->get($this->user->codagente);
-            /*
-            $this->listado_faltantes = $this->distribucion_faltantes->all_almacen($this->empresa->id, $cod->codalmacen);
-            $user_almacen = $this->almacenes->get($cod->codalmacen);
-            $this->user->codalmacen = $user_almacen->codalmacen;
-            $this->user->nombrealmacen = $user_almacen->nombre;
-            $this->codalmacen = $cod->codalmacen;
-             *
-             */
         }
 
         //Si se eligió un almacen o se proceso el listado se vuelve a cargar los faltantes del almacen

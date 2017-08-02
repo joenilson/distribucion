@@ -265,7 +265,7 @@ class informes_vendedores extends distribucion_controller {
             }
 
             //sumamos las bonificaciones
-            $sql = "SELECT fecha,SUM(cantidad) as cantidad FROM ".
+            $sql2 = "SELECT fecha,SUM(cantidad) as cantidad FROM ".
                 "facturascli as f, distribucion_clientes as dc, lineasfacturascli as lf ".
                 " WHERE ".
                 " dc.ruta = ".$this->empresa->var2str($linea->ruta).
@@ -276,21 +276,20 @@ class informes_vendedores extends distribucion_controller {
                 " AND f.fecha >= ".$this->empresa->var2str(\date('d-m-Y',strtotime($this->f_desde))).
                 " AND f.fecha <= ".$this->empresa->var2str(\date('d-m-Y',strtotime($this->f_hasta))).
                 " GROUP BY fecha ";
-            //$this->new_advice($sql);
-            $data = $this->db->select($sql);
-            $fecha_cantidad = array();
-            if($data){
-                foreach($data as $d){
+            $data2 = $this->db->select($sql2);
+            $fecha_cantidad2 = array();
+            if($data2){
+                foreach($data2 as $d){
                     $fecha = \date('d-m-Y',strtotime($d['fecha']));
                     $fecha_idx = \date('dmY',strtotime($d['fecha']));
-                    if(!isset($fecha_cantidad[$fecha_idx])){
-                        $fecha_cantidad[$fecha_idx] = 0;
+                    if(!isset($fecha_cantidad2[$fecha_idx])){
+                        $fecha_cantidad2[$fecha_idx] = 0;
                     }
                     $cantidad = floatval($d['cantidad']);
-                    $fecha_cantidad[$fecha_idx] += floatval($d['cantidad']);
+                    $fecha_cantidad2[$fecha_idx] += floatval($d['cantidad']);
                     $this->ruta_ofertas[$linea->ruta] += $cantidad;
                     $this->lista_ofertas[$linea->ruta][$fecha_idx]=array('cantidad'=>$cantidad);
-                    $this->ofertas_fecha[$fecha_idx]=array('cantidad'=>$fecha_cantidad[$fecha_idx]);
+                    $this->ofertas_fecha[$fecha_idx]=array('cantidad'=>$fecha_cantidad2[$fecha_idx]);
                     $this->vendedor_ofertas[$linea->codagente] += $cantidad;
                     $this->mesa_ofertas[$linea->codsupervisor] += $cantidad;
                     $this->vendedor_total_ofertas[$linea->codagente][$fecha_idx] += $cantidad;
@@ -321,7 +320,7 @@ class informes_vendedores extends distribucion_controller {
             $this->clientes_rutas['total_rutas'][$vendedor->codagente] = count($rutasagente);
             $this->clientes_rutas['total_clientes'][$vendedor->codagente] = 0;
             $this->clientes_rutas['mesa'][$vendedor->codsupervisor] = 0;
-            if($rutasagente){
+            if(!empty($rutasagente)){
                 foreach($rutasagente as $ruta){
                     $clientes_ruta = $this->rutas->cantidad_asignados($this->empresa->id, $this->codalmacen, $ruta->ruta);
                     $this->clientes_rutas['total'][$ruta->ruta] = $clientes_ruta;
@@ -420,9 +419,11 @@ class informes_vendedores extends distribucion_controller {
         foreach($this->supervisores as $sup){
             $contador_s = 1;
             $col_ini_v = 2;
-            foreach($this->organizacion->get_asignados($this->empresa->id,$sup->codagente) as $vendedor){
+            $vendedores_asignados = $this->organizacion->get_asignados($this->empresa->id,$sup->codagente);
+            foreach($vendedores_asignados as $vendedor){
                 $contador_v = 1;
-                foreach($this->rutas->all_rutasporagente($this->empresa->id, $vendedor->codalmacen, $vendedor->codagente) as $rutas){
+                $rutas_vendedor = $this->rutas->all_rutasporagente($this->empresa->id, $vendedor->codalmacen, $vendedor->codagente);
+                foreach($rutas_vendedor as $rutas){
                     $linea = array();
                     $linea[] = $sup->nombre;
                     $linea[]=$vendedor->nombre;

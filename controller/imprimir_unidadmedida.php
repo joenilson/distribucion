@@ -29,13 +29,13 @@ require_model('pedido_proveedor.php');
 require_model('presupuesto_cliente.php');
 require_model('proveedor.php');
 
-
 /**
  * Description of imprimir_unidadmedida
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class imprimir_unidadmedida extends fs_controller {
+class imprimir_unidadmedida extends fs_controller
+{
 
     public $pedido_um;
     public $pedidos_um_client;
@@ -49,16 +49,17 @@ class imprimir_unidadmedida extends fs_controller {
     public $proveedor;
     private $numpaginas;
     public $clientes;
-    public  $clint;
+    public $clint;
     public $unidadmedida;
     public $datosCli;
 
-
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct(__CLASS__, 'imprimir', 'ventas', FALSE, FALSE, FALSE);
     }
 
-    protected function private_core() {
+    protected function private_core()
+    {
 
         $this->um = new unidadmedida();
         $this->articulo_um = new articulo_unidadmedida();
@@ -93,28 +94,26 @@ class imprimir_unidadmedida extends fs_controller {
         $this->id = ($id_p) ? $id_p : $id_g;
         $this->email = ($email_p) ? $email_p : $email_g;
 
-        if(!empty($pedidos_um_client) and !empty($this->id)){
+        if (!empty($pedidos_um_client) and ! empty($this->id)) {
 
-          $clientes = new pedido_cliente();
-          $this->document_client = $clientes->get($this->id);
+            $clientes = new pedido_cliente();
+            $this->document_client = $clientes->get($this->id);
 
-          if($this->document_client){
-              $clint = new cliente();
-              $this->datosCli= $clint->get($this->document_client->codcliente);
-
-              }
+            if ($this->document_client) {
+                $clint = new cliente();
+                $this->datosCli = $clint->get($this->document_client->codcliente);
+            }
             $this->generar_pdf_pedido_ventas();
+        }
 
-          }
-
-        if(!empty($this->pedido_um) and ! empty($this->id)) {
+        if (!empty($this->pedido_um) and ! empty($this->id)) {
             $ped = new pedido_proveedor();
             $this->documento = $ped->get($this->id);
 
-        if($this->documento){
+            if ($this->documento) {
                 $proveedor = new proveedor();
                 $this->proveedor = $proveedor->get($this->documento->codproveedor);
-        }
+            }
             if (!empty($this->email)) {
                 $this->enviar_email_proveedor();
             } else {
@@ -123,16 +122,17 @@ class imprimir_unidadmedida extends fs_controller {
         }
     }
 
-        private function  generar_pdf_pedido_ventas($archivo = FALSE) {
+    private function generar_pdf_pedido_ventas($archivo = FALSE)
+    {
 
-         if (!$archivo) {
+        if (!$archivo) {
             /// desactivamos la plantilla HTML
             $this->template = FALSE;
         }
 
         $pdf_doc = new fs_pdf();
-        $pdf_doc->pdf->addInfo('Title', ucfirst(FS_PEDIDO) . ' ' .  $this->document_client->codigo);
-        $pdf_doc->pdf->addInfo('Subject', ucfirst(FS_PEDIDO) . ' de proveedor ' .  $this->document_client->codigo);
+        $pdf_doc->pdf->addInfo('Title', ucfirst(FS_PEDIDO) . ' ' . $this->document_client->codigo);
+        $pdf_doc->pdf->addInfo('Subject', ucfirst(FS_PEDIDO) . ' de proveedor ' . $this->document_client->codigo);
 
         $lineas = $this->document_client->get_lineas();
         $lineas_iva = $pdf_doc->get_lineas_iva($lineas);
@@ -171,7 +171,7 @@ class imprimir_unidadmedida extends fs_controller {
                         array(
                             'campo1' => "<b>Cliente:</b>",
                             'dato1' => $pdf_doc->fix_html($this->datosCli->nombre),
-                            'campo2' => "<b>" . $tipoidfiscal . ":</b> " .$this->document_client->cifnif
+                            'campo2' => "<b>" . $tipoidfiscal . ":</b> " . $this->document_client->cifnif
                         )
                 );
 
@@ -211,7 +211,8 @@ class imprimir_unidadmedida extends fs_controller {
         }
     }
 
-        private function generar_pdf_pedido_proveedor($archivo = FALSE) {
+    private function generar_pdf_pedido_proveedor($archivo = FALSE)
+    {
         if (!$archivo) {
             /// desactivamos la plantilla HTML
             $this->template = FALSE;
@@ -254,7 +255,7 @@ class imprimir_unidadmedida extends fs_controller {
                 );
 
                 $tipoidfiscal = FS_CIFNIF;
-                if($this->proveedor) {
+                if ($this->proveedor) {
                     $tipoidfiscal = $this->proveedor->tipoidfiscal;
                 }
                 $pdf_doc->add_table_row(
@@ -297,11 +298,11 @@ class imprimir_unidadmedida extends fs_controller {
 
             $pdf_doc->save('tmp/' . FS_TMP_NAME . 'enviar/' . $archivo);
         } else
-
             $pdf_doc->show(FS_PEDIDO . '_ventas_' . 'Documento' . '.pdf');
-        }
+    }
 
-    private function get_referencia_proveedor($ref, $codproveedor) {
+    private function get_referencia_proveedor($ref, $codproveedor)
+    {
         $artprov = $this->articulo_proveedor->get_by($ref, $codproveedor);
         if ($artprov) {
             return $artprov->refproveedor;
@@ -316,7 +317,8 @@ class imprimir_unidadmedida extends fs_controller {
      * @param type $linea_actual
      * @param type $lppag
      */
-    private function generar_pdf_lineas(&$pdf_doc, &$lineas, &$linea_actual, &$lppag) {
+    private function generar_pdf_lineas(&$pdf_doc, &$lineas, &$linea_actual, &$lppag)
+    {
         /// calculamos el número de páginas
         if (!isset($this->numpaginas)) {
             $this->numpaginas = 0;
@@ -463,17 +465,16 @@ class imprimir_unidadmedida extends fs_controller {
 
         for ($i = $linea_actual; (($linea_actual < ($lppag + $i)) AND ( $linea_actual < count($lineas)));) {
 
-             $descripcion = $pdf_doc->fix_html($lineas[$linea_actual]->descripcion);
+            $descripcion = $pdf_doc->fix_html($lineas[$linea_actual]->descripcion);
 
             if (!is_null($lineas[$linea_actual]->referencia)) {
                 if (get_class_name($lineas[$linea_actual]) == 'linea_pedido_proveedor') {
                     $descripcion = '<b>' . $this->get_referencia_proveedor($lineas[$linea_actual]->referencia, $this->documento->codproveedor)
                             . '</b> ' . $descripcion;
-                      /*Linea para validar la impresion de los pedidos con sus unidades de medidas correspondientes*/
-                    $this->document_client =  $this->documento;
+                    /* Linea para validar la impresion de los pedidos con sus unidades de medidas correspondientes */
+                    $this->document_client = $this->documento;
                 } else {
                     $descripcion = '<b>' . $lineas[$linea_actual]->referencia . '</b> ' . $descripcion;
-                    
                 }
             }
             /**
@@ -493,17 +494,16 @@ class imprimir_unidadmedida extends fs_controller {
             // $nuevaCantidad = $lineas[$linea_actual]->cantidad/$umCompra->factor;
             // Pero el precio no se divide se multiplica para poder mostrar el valor total
             // $nuevoPrecio = $lineas[$linea_actual]->pvpunitario*$umCompra->factor;
-              //Validando linea de unidad de medida.
-            if($lineas[$linea_actual]->codum==""){
-                 $lineas[$linea_actual]->codum = 'UNIDAD';
-
+            //Validando linea de unidad de medida.
+            if ($lineas[$linea_actual]->codum == "") {
+                $lineas[$linea_actual]->codum = 'UNIDAD';
             }
-       //********************************************************************
-       //Removi esta parte ya que me esta generando error cuando en articulos_um no encuentra los productos.
+            //********************************************************************
+            //Removi esta parte ya que me esta generando error cuando en articulos_um no encuentra los productos.
 
-                 $precioConvertido = $lineas[$linea_actual]->pvpunitario*$unidadM->cantidad;
+            $precioConvertido = $lineas[$linea_actual]->pvpunitario * $unidadM->cantidad;
 
-                 $fila = array(
+            $fila = array(
                 'cantidad' => $this->show_numero($lineas[$linea_actual]->cantidad_um, $dec_cantidad),
                 'cantidad2' => $this->show_numero($lineas[$linea_actual]->cantidad_um, $dec_cantidad),
                 'descripcion' => $descripcion,
@@ -577,7 +577,8 @@ class imprimir_unidadmedida extends fs_controller {
         }
     }
 
-    private function generar_pdf_totales(&$pdf_doc, &$lineas_iva, $pagina) {
+    private function generar_pdf_totales(&$pdf_doc, &$lineas_iva, $pagina)
+    {
         if (isset($_GET['noval'])) {
             $pdf_doc->pdf->addText(10, 10, 8, $pdf_doc->center_text('Página ' . $pagina . '/' . $this->numpaginas, 250));
         } else {
@@ -590,7 +591,7 @@ class imprimir_unidadmedida extends fs_controller {
             $titulo = array('pagina' => '<b>Página</b>', 'neto' => '<b>Neto</b>',);
             $fila = array(
                 'pagina' => $pagina . '/' . $this->numpaginas,
-                'neto' => $this->show_precio($this->document_client->neto,$this->document_client->coddivisa),
+                'neto' => $this->show_precio($this->document_client->neto, $this->document_client->coddivisa),
             );
             $opciones = array(
                 'cols' => array(
@@ -634,7 +635,8 @@ class imprimir_unidadmedida extends fs_controller {
         }
     }
 
-    public function is_html($txt) {
+    public function is_html($txt)
+    {
         if (stripos($txt, '<html') === FALSE) {
             return FALSE;
         } else {
@@ -642,7 +644,8 @@ class imprimir_unidadmedida extends fs_controller {
         }
     }
 
-    private function enviar_email_proveedor() {
+    private function enviar_email_proveedor()
+    {
         if ($this->empresa->can_send_mail()) {
             if ($this->proveedor) {
                 if ($_POST['email'] != $this->proveedor->email AND isset($_POST['guardar'])) {
@@ -701,7 +704,8 @@ class imprimir_unidadmedida extends fs_controller {
         }
     }
 
-    public function shared_extensions() {
+    public function shared_extensions()
+    {
         $extensiones = array(
             array(
                 'name' => 'imprimir_pedido_um_proveedor',
@@ -719,16 +723,14 @@ class imprimir_unidadmedida extends fs_controller {
                 'text' => ucfirst(FS_PEDIDO) . '  con UM',
                 'params' => '&pedido_um=TRUE'
             ),
-
-             array(
+            array(
                 'name' => 'imprimir_pedido_um_clientes',
-                  'page_from' => __CLASS__,
-                'page_to'  => 'ventas_pedido',
+                'page_from' => __CLASS__,
+                'page_to' => 'ventas_pedido',
                 'type' => 'pdf',
                 'text' => ucfirst(FS_PEDIDO) . '  con UM',
                 'params' => '&pedido_um_client=TRUE'
             )
-
         );
         foreach ($extensiones as $ext) {
             $fsext = new fs_extension($ext);
