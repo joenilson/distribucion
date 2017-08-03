@@ -379,13 +379,11 @@ class distribucion_clientes extends fs_model {
                 " ORDER BY dc.codcliente;";
         $lista = array();
         $data = $this->db->select($sql);
-        if($data)
-        {
-            foreach($data as $d)
-            {
+        if($data){
+            foreach($data as $d){
                 $item = array();
                 $item[] = $d['codcliente'];
-                $item[] = (trim($d['nombre'])==trim($d['razonsocial']))?trim($d['nombre']):trim($d['razonsocial']).' - '.trim($d['nombre']);
+                $item[] = (trim($d['nombre_cliente'])==trim($d['razonsocial']))?trim($d['nombre_cliente']):trim($d['razonsocial']).' - '.trim($d['nombre_cliente']);
                 $item[] = $d['direccion'];
                 $item[] = $d['canal_desc'];
                 $item[] = $d['subcanal_desc'];
@@ -405,10 +403,8 @@ class distribucion_clientes extends fs_model {
                 " AND dc.codalmacen = ".$this->var2str($codalmacen).
                 " ORDER BY dc.canal, dc.ruta, dc.codcliente;");
 
-        if($data)
-        {
-            foreach($data as $d)
-            {
+        if($data){
+            foreach($data as $d){
                 $value = new distribucion_clientes($d);
                 $info = $this->info_adicional($value,$d);
                 $lista[] = $info;

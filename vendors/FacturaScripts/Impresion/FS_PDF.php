@@ -604,7 +604,7 @@ class FS_PDF extends \FPDF{
             $x=$this->GetX();
             $y=$this->GetY();
             //Print the text
-            $this->MultiCell($w, $this->fs_espacio, (!$data[$i] AND $a=='C')?str_pad('_',($w/3),'_',STR_PAD_BOTH):$data[$i], 0, $a);
+            $this->MultiCell($w, $this->fs_espacio, (!$data[$i] AND $a=='C')?str_pad('_',($w/3),'_',STR_PAD_BOTH):utf8_decode($data[$i]), 0, $a);
             //Put the position to the right of the cell
             $this->SetXY($x+$w, $y);
         }

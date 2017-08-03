@@ -262,24 +262,20 @@ class distribucion_ordenescarga extends fs_model {
 
     public function total_ordenescarga($idempresa=false, $codalmacen=false, $desde=false, $hasta=false, $conductor=false){
         $query = '';
-        if($codalmacen)
-        {
-            $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
+        if ($codalmacen) {
+            $query .= ' AND codalmacen = ' . $this->var2str($codalmacen);
         }
 
-        if($desde)
-        {
-            $query .= ' AND fecha >= '.$this->var2str($desde);
+        if ($desde) {
+            $query .= ' AND fecha >= ' . $this->var2str($desde);
         }
 
-        if($hasta)
-        {
-            $query .= ' AND fecha <= '.$this->var2str($hasta);
+        if ($hasta) {
+            $query .= ' AND fecha <= ' . $this->var2str($hasta);
         }
 
-        if($conductor)
-        {
-            $query .= ' AND conductor = '.$this->var2str($conductor);
+        if ($conductor) {
+            $query .= ' AND conductor = ' . $this->var2str($conductor);
         }
 
         $sql = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query.";";
@@ -293,23 +289,19 @@ class distribucion_ordenescarga extends fs_model {
 
     public function total_pendientes($idempresa, $tipo='cargado', $codalmacen, $desde, $hasta){
         $query = '';
-        if($codalmacen)
-        {
-            $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
+        if ($codalmacen) {
+            $query .= ' AND codalmacen = ' . $this->var2str($codalmacen);
         }
 
-        if($desde)
-        {
-            $query .= ' AND fecha >= '.$this->var2str($desde);
+        if ($desde) {
+            $query .= ' AND fecha >= ' . $this->var2str($desde);
         }
 
-        if($hasta)
-        {
-            $query .= ' AND fecha <= '.$this->var2str($hasta);
+        if ($hasta) {
+            $query .= ' AND fecha <= ' . $this->var2str($hasta);
         }
 
-        if(!$tipo)
-        {
+        if (!$tipo) {
             $tipo = 'cargado';
         }
 
@@ -327,31 +319,34 @@ class distribucion_ordenescarga extends fs_model {
         $query = '';
         if($codalmacen)
         {
-            $query .= ' AND codalmacen = '.$this->var2str($codalmacen);
+            $query .= ' AND doc.codalmacen = '.$this->var2str($codalmacen);
         }
 
         if($desde)
         {
-            $query .= ' AND fecha >= '.$this->var2str($desde);
+            $query .= ' AND doc.fecha >= '.$this->var2str($desde);
         }
 
         if($hasta)
         {
-            $query .= ' AND fecha <= '.$this->var2str($hasta);
+            $query .= ' AND doc.fecha <= '.$this->var2str($hasta);
         }
 
         if(!$tipo)
         {
-            $tipo = 'cargado';
+            $tipo = 'doc.cargado';
         }
 
-        $sql = "SELECT *  FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa).$query." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY codalmacen,fecha,idordencarga;";
+        $sql = "SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa).$query." AND ".strip_tags(trim($tipo))." = FALSE ORDER BY doc.codalmacen,doc.fecha,doc.idordencarga;";
         $data = $this->db->select($sql);
         if($data){
             foreach($data as $d)
             {
                 $item = new distribucion_ordenescarga($d);
-                $this->info_adicional($item);
+                $item->conductor_nombre = $d['conductor_nombre'];
                 $lista[] = $item;
             }
         }
@@ -376,7 +371,7 @@ class distribucion_ordenescarga extends fs_model {
         foreach($datos as $k=>$v){
             $and = (count($datos) > $contador)?" AND ":"";
             $value = (is_string($v))?$this->var2str($v):$this->intval($v);
-            $where.=" $k = ".$value.$and;
+            $where.=" doc.$k = ".$value.$and;
             $contador++;
         }
 
@@ -390,10 +385,13 @@ class distribucion_ordenescarga extends fs_model {
             $where.=" AND fecha <= ".$this->var2str($hasta);
         }
 
-        $sql_count = "SELECT count(*) as total FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where;";
+        $sql_count = "SELECT count(*) as total FROM ".$this->table_name." as doc WHERE doc.idempresa = ".$this->intval($idempresa)." $where;";
         $conteo = $this->db->select($sql_count);
         $resultados['cantidad'] = $conteo[0]['total'];
-        $sql = "SELECT * FROM ".$this->table_name." WHERE idempresa = ".$this->intval($idempresa)." $where ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans";
+        $sql = "SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." $where ORDER BY doc.fecha DESC, doc.idordencarga DESC, doc.codalmacen ASC, doc.codtrans";
         $lista = array();
         $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
 
@@ -402,8 +400,8 @@ class distribucion_ordenescarga extends fs_model {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         $resultados['resultados'] = $lista;
@@ -412,7 +410,10 @@ class distribucion_ordenescarga extends fs_model {
 
     public function all($idempresa, $offset = 0)
     {
-        $sql = "SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." ORDER BY fecha DESC, idordencarga DESC, codalmacen ASC, codtrans";
+        $sql = "SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." ORDER BY doc.fecha DESC, doc.idordencarga DESC, doc.codalmacen ASC, doc.codtrans";
         $lista = array();
         $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
 
@@ -421,8 +422,8 @@ class distribucion_ordenescarga extends fs_model {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -435,7 +436,10 @@ class distribucion_ordenescarga extends fs_model {
         {
             $sql_extra = " AND codalmacen = ".$this->var2str($codalmacen);
         }
-        $sql = "SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa).$sql_extra." AND cargado = FALSE ORDER BY fecha DESC, idordencarga ASC, codalmacen ASC";
+        $sql = "SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa).$sql_extra." AND doc.cargado = FALSE ORDER BY doc.fecha DESC, doc.idordencarga ASC, doc.codalmacen ASC";
         $lista = array();
         $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
 
@@ -444,8 +448,8 @@ class distribucion_ordenescarga extends fs_model {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -455,10 +459,12 @@ class distribucion_ordenescarga extends fs_model {
     public function all_almacen($idempresa,$codalmacen,$offset = 0)
     {
         $lista = array();
-        $sql = "SELECT * FROM distribucion_ordenescarga ".
-               " WHERE idempresa = ".$this->intval($idempresa).
-               " AND codalmacen = ".$this->var2str($codalmacen).
-               " ORDER BY fecha DESC, idordencarga DESC";
+        $sql = "SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa).
+               " AND doc.codalmacen = ".$this->var2str($codalmacen).
+               " ORDER BY fecha DESC, doc.idordencarga DESC";
         $data = $this->db->select_limit($sql,FS_ITEM_LIMIT,$offset);
 
         if($data)
@@ -466,8 +472,8 @@ class distribucion_ordenescarga extends fs_model {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -476,15 +482,18 @@ class distribucion_ordenescarga extends fs_model {
     public function all_agencia($idempresa,$codtrans)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." AND doc.codtrans = ".$this->var2str($codtrans)." ORDER BY doc.codalmacen, doc.fecha, doc.codtrans;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -493,15 +502,19 @@ class distribucion_ordenescarga extends fs_model {
     public function all_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT doc.*,dcon.nombre as conductor_nombre".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." AND doc.codtrans = ".$this->var2str($codtrans).
+            " AND doc.codalmacen = ".$this->var2str($codalmacen)." ORDER BY doc.codalmacen, doc.fecha, doc.codtrans;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -510,15 +523,18 @@ class distribucion_ordenescarga extends fs_model {
     public function activos($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." AND doc.estado = true ORDER BY doc.codalmacen, doc.fecha, doc.codtrans;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -527,15 +543,18 @@ class distribucion_ordenescarga extends fs_model {
     public function activos_almacen($idempresa,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." AND doc.codalmacen = ".$this->var2str($codalmacen)." AND doc.estado = true ORDER BY doc.codalmacen, doc.fecha, doc.codtrans;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -544,15 +563,18 @@ class distribucion_ordenescarga extends fs_model {
     public function activos_agencia($idempresa,$codtrans)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." AND doc.codtrans = ".$this->var2str($codtrans)." AND doc.estado = true ORDER BY doc.codalmacen, doc.fecha, doc.codtrans;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -561,15 +583,19 @@ class distribucion_ordenescarga extends fs_model {
     public function activos_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, fecha, codtrans;");
+        $data = $this->db->select("SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." AND doc.codtrans = ".$this->var2str($codtrans).
+            " AND doc.codalmacen = ".$this->var2str($codalmacen)." AND doc.estado = true ORDER BY doc.codalmacen, doc.fecha, doc.codtrans;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -578,15 +604,18 @@ class distribucion_ordenescarga extends fs_model {
     public function get($idempresa,$idordencarga,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND idordencarga = ".$this->intval($idordencarga)." AND codalmacen = ".$this->var2str($codalmacen).";");
+        $data = $this->db->select("SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." AND doc.idordencarga = ".$this->intval($idordencarga)." AND doc.codalmacen = ".$this->var2str($codalmacen).";");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $valor = new distribucion_ordenescarga($d);
-                $linea = $this->info_adicional($valor);
-                $lista[] = $linea;
+                $valor->conductor_nombre = $d['conductor_nombre'];
+                $lista[] = $valor;
             }
         }
         return $lista;
@@ -595,11 +624,14 @@ class distribucion_ordenescarga extends fs_model {
     public function getOne($idempresa,$idordencarga,$codalmacen)
     {
         $linea = false;
-        $data = $this->db->select("SELECT * FROM distribucion_ordenescarga WHERE idempresa = ".$this->intval($idempresa)." AND idordencarga = ".$this->intval($idordencarga)." AND codalmacen = ".$this->var2str($codalmacen).";");
+        $data = $this->db->select("SELECT doc.*,dcon.nombre as conductor_nombre ".
+            " FROM ".$this->table_name." as doc ".
+            " LEFT JOIN distribucion_conductores AS dcon ON (dcon.licencia = doc.conductor) ".
+            " WHERE doc.idempresa = ".$this->intval($idempresa)." AND doc.idordencarga = ".$this->intval($idordencarga)." AND doc.codalmacen = ".$this->var2str($codalmacen).";");
         if($data)
         {
-                $valor = new distribucion_ordenescarga($data[0]);
-                $linea = $this->info_adicional($valor);
+            $linea = new distribucion_ordenescarga($data[0]);
+            $linea->conductor_nombre = $data[0]['conductor_nombre'];
         }
         return $linea;
     }
