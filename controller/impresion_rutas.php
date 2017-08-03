@@ -252,7 +252,7 @@ class impresion_rutas extends distribucion_controller{
         //Agregamos cada linea en forma de array
         foreach($this->rutas_listadas as $ruta){
             $lista_clientes = $this->distribucion_clientes->clientes_ruta($this->empresa->id, $ruta->codalmacen, $ruta->ruta);
-            if($lista_clientes){
+            if(!empty($lista_clientes)){
                 foreach($lista_clientes as $cliente){
                     $linea = array($ruta->codalmacen,$ruta->ruta,$ruta->nombre,$cliente->codcliente,$cliente->nombre_cliente,$cliente->razonsocial,$cliente->cifnif,$cliente->direccion,$cliente->canal_descripcion,$cliente->subcanal_descripcion);
                     $this->writer->writeSheetRow($nombre_hoja, $linea, $estilo_cuerpo);
@@ -265,12 +265,11 @@ class impresion_rutas extends distribucion_controller{
 
     public function dias_atencion($datos, $formato = "HTML"){
         $partes = '';
-        if($formato == 'HTML'){
-            $span_activo = "<span class='btn btn-success btn-xs'>";
-            $span_inactivo = "<span class='btn btn-default btn-xs'>";
-            $span_fin_activo = '</span>';
-            $span_fin = '</span>';
-        }elseif($formato == "PDF"){
+        $span_activo = "<span class='btn btn-success btn-xs'>";
+        $span_inactivo = "<span class='btn btn-default btn-xs'>";
+        $span_fin_activo = '</span>';
+        $span_fin = '</span>';
+        if($formato == "PDF"){
             $span_activo = '<b>[';
             $span_inactivo = ' ';
             $span_fin_activo = ']</b>';
