@@ -131,7 +131,6 @@ class informe_almacen extends distribucion_controller{
         }
 
         $resultado = array();
-        $saldo = array();
         foreach($almacenes as $almacen){
             foreach($articulos as $art){
                 //Saldo Inicial
@@ -159,7 +158,7 @@ class informe_almacen extends distribucion_controller{
         }
 
         $lineas_ingresos = $this->ingresos();
-        if($lineas_ingresos){
+        if(!empty($lineas_ingresos)){
             foreach($lineas_ingresos as $linea){
                 if(!isset($resultado[$linea->referencia][$linea->fecha_creacion])){
                     $resultado[$linea->referencia][$linea->fecha_creacion] = array();
@@ -170,7 +169,7 @@ class informe_almacen extends distribucion_controller{
         }
 
         $lineas_transportes = $this->distribucion_lineastransporte->lista($this->empresa->id, $datos, $this->f_desde, $this->f_hasta);
-        if($lineas_transportes){
+        if(!empty($lineas_transportes)){
             foreach($lineas_transportes['resultados'] as $linea){
                 $hora = \date('H:i:s',strtotime($linea->fecha_creacion));
                 if(!isset($resultado[$linea->referencia][strtotime($linea->fecha.' '.$hora)])){
@@ -196,13 +195,12 @@ class informe_almacen extends distribucion_controller{
         }
 
         $lineas_regularizaciones = $this->regularizaciones();
-        if($lineas_regularizaciones){
+        if(!empty($lineas_regularizaciones)){
             foreach($lineas_regularizaciones as $linea){
                 if(!isset($resultado[$linea->referencia][$linea->fecha]))
                 {
                     $resultado[$linea->referencia][$linea->fecha] = array();
                 }
-                $fecha = strtotime($linea->fecha.' '.$linea->hora);
                 $linea->saldo = 0;
                 $linea->fechal = '';
                 $linea->fechad = '';
@@ -211,14 +209,13 @@ class informe_almacen extends distribucion_controller{
         }
 
         $lineas_traslados = $this->traslados();
-        if($lineas_traslados){
+        if(!empty($lineas_traslados)){
             foreach($lineas_traslados as $linea)
             {
                 if(!isset($resultado[$linea->referencia][$linea->fecha]))
                 {
                     $resultado[$linea->referencia][$linea->fecha] = array();
                 }
-                $fecha = strtotime($linea->fecha.' '.$linea->hora);
                 $linea->saldo = 0;
                 $linea->fechal = '';
                 $linea->fechad = '';
@@ -269,6 +266,7 @@ class informe_almacen extends distribucion_controller{
 
         }
         $this->generar_excel();
+        $data = array();
         $data['rows'] = $this->resultados;
         $data['filename'] = $this->fileNamePath;
         header('Content-Type: application/json');

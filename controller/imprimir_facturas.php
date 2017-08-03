@@ -95,6 +95,7 @@ class imprimir_facturas extends fs_controller
         if (\filter_input(INPUT_POST, 'imprimir')) {
             $imprimir = \filter_input(INPUT_POST, 'imprimir');
             $facturas_file = 'facturas_' . $this->user->nick . '.' . $imprimir;
+            $opciones = array();
             $opciones['type'] = $imprimir;
             $opciones['file'] = $facturas_file;
             $opciones['page_size'] = 'letter';
