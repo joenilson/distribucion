@@ -26,28 +26,96 @@ require_model('distribucion_tiporuta.php');
  * @author Joe Nilson <joenilson@gmail.com>
  */
 class distribucion_rutas extends fs_model {
+    /**
+     *
+     * @var integer
+     */
     public $idempresa;
+    /**
+     *
+     * @var string
+     */
     public $codalmacen;
+    /**
+     *
+     * @var string
+     */
     public $codagente;
+    /**
+     *
+     * @var string
+     */
     public $codruta;
+    /**
+     *
+     * @var string
+     */    
     public $ruta;
+    /**
+     *
+     * @var string
+     */    
     public $descripcion;
+    /**
+     *
+     * @var boolean
+     */
     public $lunes;
+    /**
+     *
+     * @var boolean
+     */
     public $martes;
+    /**
+     *
+     * @var boolean
+     */
     public $miercoles;
+    /**
+     *
+     * @var boolean
+     */
     public $jueves;
+    /**
+     *
+     * @var boolean
+     */
     public $viernes;
+    /**
+     *
+     * @var boolean
+     */
     public $sabado;
+    /**
+     *
+     * @var boolean
+     */
     public $domingo;
+    /**
+     *
+     * @var boolean
+     */
     public $estado;
+    /**
+     *
+     * @var string
+     */
     public $usuario_creacion;
+    /**
+     *
+     * @var string
+     */
     public $fecha_creacion;
+    /**
+     *
+     * @var string
+     */
     public $usuario_modificacion;
+    /**
+     *
+     * @var string
+     */
     public $fecha_modificacion;
-
-    public $agente;
-    public $organizacion;
-    public $tiporuta;
 
     public function __construct($t = false) {
         parent::__construct('distribucion_rutas','plugins/distribucion/');
@@ -120,18 +188,12 @@ class distribucion_rutas extends fs_model {
         return str_pad($id,3,'0',STR_PAD_LEFT);
     }
 
-    public function info_adicional($res){
-        $agente = new agente();
-        $organizacion = new distribucion_organizacion();
-        $tiporuta = new distribucion_tiporuta();
-        $data_agente = $agente->get($res->codagente);
-        $data_organizacion = $organizacion->get($res->idempresa, $res->codagente);
-        $res->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-        $data_supervisor = (!empty($data_organizacion->codsupervisor))?$agente->get($data_organizacion->codsupervisor):null;
-        $res->codsupervisor = ($data_supervisor != null)?$data_supervisor->codagente:null;
-        $res->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
+    public function info_adicional($res,$info){
+        $res->nombre = $info['nombre'];
+        $res->codsupervisor = $info['codsupervisor'];
+        $res->nombre_supervisor = $info['nombre_supervisor'];
+        $res->tipo_ruta = $info['tipo_ruta'];
         $res->tiene_asignados = $this->tiene_asignados($res->idempresa, $res->codalmacen, $res->ruta);
-        $res->tipo_ruta = (!empty($res->codruta))?$tiporuta->get($res->codruta)->descripcion:"";
         return $res;
     }
 
@@ -201,14 +263,22 @@ class distribucion_rutas extends fs_model {
     public function all($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, codagente, ruta;");
+        $data = $this->db->select("SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa)." ORDER BY dr.codalmacen, dr.codagente, dr.ruta;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $value_final = $this->info_adicional($value);
+                $value_final = $this->info_adicional($value,$d);
                 $lista[] = $value_final;
 
             }
@@ -219,14 +289,22 @@ class distribucion_rutas extends fs_model {
     public function all_rutasporalmacen($idempresa,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, codagente, ruta;");
+        $data = $this->db->select("SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa)." AND dr.codalmacen = ".$this->var2str($codalmacen)." ORDER BY dr.codalmacen, dr.codagente, dr.ruta;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $value_final = $this->info_adicional($value);
+                $value_final = $this->info_adicional($value,$d);
                 $lista[] = $value_final;
             }
         }
@@ -236,14 +314,22 @@ class distribucion_rutas extends fs_model {
     public function all_rutaspordia($idempresa,$codalmacen,$dia)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND $dia = TRUE ORDER BY codalmacen, codagente, ruta;");
+        $data = $this->db->select("SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa)." AND dr.codalmacen = ".$this->var2str($codalmacen)." AND $dia = TRUE ORDER BY dr.codalmacen, dr.codagente, dr.ruta;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $value_final = $this->info_adicional($value);
+                $value_final = $this->info_adicional($value,$d);
                 $lista[] = $value_final;
             }
         }
@@ -253,14 +339,23 @@ class distribucion_rutas extends fs_model {
     public function all_rutasporagente($idempresa,$codalmacen,$codagente)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND codagente = ".$this->var2str($codagente)." ORDER BY codalmacen, codagente, ruta;");
+        $data = $this->db->select("SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa)." AND dr.codalmacen = ".$this->var2str($codalmacen)." AND dr.codagente = ".$this->var2str($codagente).
+                " ORDER BY dr.codalmacen, dr.codagente, dr.ruta;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $value_final = $this->info_adicional($value);
+                $value_final = $this->info_adicional($value,$d);
                 $lista[] = $value_final;
             }
         }
@@ -270,18 +365,25 @@ class distribucion_rutas extends fs_model {
     public function all_rutasporagentedias($idempresa,$codalmacen,$codagente, $dias)
     {
         $lista = array();
-        $sql = "SELECT * FROM distribucion_rutas ".
-                "WHERE idempresa = ".$this->intval($idempresa).
-                " AND codalmacen = ".$this->var2str($codalmacen).
-                " AND ($dias) AND codagente = ".$this->var2str($codagente).
-                " ORDER BY codalmacen, codagente, ruta;";
+        $sql = "SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa).
+                " AND dr.codalmacen = ".$this->var2str($codalmacen).
+                " AND ($dias) AND dr.codagente = ".$this->var2str($codagente).
+                " ORDER BY dr.codalmacen, dr.codagente, dr.ruta;";
         $data = $this->db->select($sql);
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $value_final = $this->info_adicional($value);
+                $value_final = $this->info_adicional($value,$d);
                 $lista[] = $value_final;
             }
         }
@@ -291,14 +393,22 @@ class distribucion_rutas extends fs_model {
     public function activos($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, codagente, ruta;");
+        $data = $this->db->select("SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa)." AND dr.estado = true ORDER BY dr.codalmacen, dr.codagente, dr.ruta;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $value_final = $this->info_adicional($value);
+                $value_final = $this->info_adicional($value,$d);
                 $lista[] = $value_final;
             }
         }
@@ -308,14 +418,22 @@ class distribucion_rutas extends fs_model {
     public function activos_rutasporalmacen($idempresa,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, codagente, ruta;");
+        $data = $this->db->select("SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa)." AND dr.codalmacen = ".$this->var2str($codalmacen)." AND dr.estado = true ORDER BY dr.codalmacen, dr.codagente, dr.ruta;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_rutas($d);
-                $value_final = $this->info_adicional($value);
+                $value_final = $this->info_adicional($value,$d);
                 $lista[] = $value_final;
             }
         }
@@ -325,14 +443,20 @@ class distribucion_rutas extends fs_model {
     public function activos_rutasporagente($idempresa,$codalmacen,$codagente)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND codagente = ".$this->var2str($codagente)." AND estado = true ORDER BY codalmacen, codagente, ruta;");
-
-        if($data)
-        {
-            foreach($data as $d)
-            {
+        $data = $this->db->select("SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa)." AND dr.codalmacen = ".$this->var2str($codalmacen).
+                " AND dr.codagente = ".$this->var2str($codagente)." AND dr.estado = true ORDER BY dr.codalmacen, dr.codagente, dr.ruta;");
+        if($data){
+            foreach($data as $d){
                 $value = new distribucion_rutas($d);
-                $value_final = $this->info_adicional($value);
+                $value_final = $this->info_adicional($value,$d);
                 $lista[] = $value_final;
             }
         }
@@ -341,26 +465,32 @@ class distribucion_rutas extends fs_model {
 
     public function get($idempresa,$codalmacen,$ruta)
     {
-        $sql = "SELECT * FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND ruta = ".$this->var2str($ruta).";";
+        $sql = "SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa)." AND dr.codalmacen = ".$this->var2str($codalmacen)." AND dr.ruta = ".$this->var2str($ruta).";";
         $data = $this->db->select($sql);
-        if($data)
-        {
+        if($data){
             $value = new distribucion_rutas($data[0]);
-            $value_final = $this->info_adicional($value);
+            $value_final = $this->info_adicional($value,$data[0]);
             return $value_final;
         }else{
             return false;
         }
     }
 
+    /*
     public function get_asignados($idempresa,$codalmacen,$ruta){
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND ruta = ".$this->var2str($ruta).";");
 
-        if($data)
-        {
-            foreach($data as $d)
-            {
+        if($data){
+            foreach($data as $d){
                 $value = new distribucion_rutas($d);
                 $value_final = $this->info_adicional($value);
                 $lista[] = $value_final;
@@ -368,9 +498,10 @@ class distribucion_rutas extends fs_model {
         }
         return $lista;
     }
+     */
 
     public function tiene_asignados($idempresa,$codalmacen,$ruta){
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND ruta = ".$this->var2str($ruta).";");
+        $data = $this->db->select("SELECT count(*) FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND ruta = ".$this->var2str($ruta).";");
 
         if($data)
         {
@@ -392,26 +523,34 @@ class distribucion_rutas extends fs_model {
 
     public function search($almacen,$query){
         $lista = array();
-        $sql = "SELECT * FROM ".$this->table_name." WHERE ";
+        $sql = "SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                "do1.codsupervisor,concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor,".
+                "dtr.descripcion as tipo_ruta ".
+                " FROM ".$this->table_name." AS dr ".
+                " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ".
+                " WHERE ";
         if($almacen){
-            $sql .= "codalmacen = ".$this->var2str($almacen);
+            $sql .= "dr.codalmacen = ".$this->var2str($almacen);
         }else{
-            $sql .= "codalmacen != ''";
+            $sql .= "dr.codalmacen != ''";
         }
         if(is_numeric($query)){
-            $sql.= " AND CAST(codruta as CHAR) like '%".$query."%'";
-            $sql.= " OR ruta like '%".$query."%'";
-            $sql.="ORDER BY codalmacen, codruta";
+            $sql.= " AND CAST(dr.codruta as CHAR) like '%".$query."%'";
+            $sql.= " OR dr.ruta like '%".$query."%'";
+            $sql.="ORDER BY dr.codalmacen, dr.codruta";
         }else{
-            $sql.= " AND lower(ruta) like '%".$query."%'";
-            $sql.= " OR lower(descripcion) like '%".$query."%'";
-            $sql.=" ORDER BY codalmacen, codruta";
+            $sql.= " AND lower(dr.ruta) like '%".$query."%'";
+            $sql.= " OR lower(dr.descripcion) like '%".$query."%'";
+            $sql.=" ORDER BY dr.codalmacen, dr.codruta";
         }
         $data = $this->db->select($sql);
         if($data){
             foreach($data as $d){
                 $value = new distribucion_rutas($d);
-                $value_final = $this->info_adicional($value);
+                $value_final = $this->info_adicional($value,$d);
                 $lista[] = $value_final;
             }
         }

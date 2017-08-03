@@ -86,28 +86,19 @@ class distribucion_clientes extends fs_model {
         return "";
     }
 
-    public function info_adicional($informacion){
-        $distrib_rutas = new distribucion_rutas();
-        $distrib_segmentos = new distribucion_segmentos();
-        $direccion_cliente = new direccion_cliente();
-        $cliente = new cliente();
-        $datos_ruta = $distrib_rutas->get($informacion->idempresa,$informacion->codalmacen, $informacion->ruta);
-        $datos_canal = $distrib_segmentos->get($informacion->idempresa, $informacion->canal, 'CANAL');
-        $datos_subcanal = $distrib_segmentos->get($informacion->idempresa, $informacion->subcanal, 'SUBCANAL');
-        $datos_direccion = $direccion_cliente->get($informacion->iddireccion);
-        $datos_cliente = $cliente->get($informacion->codcliente);
-        $informacion->direccion = ($datos_direccion)?$datos_direccion->direccion:'Completar Información';
-        $informacion->ruta_descripcion = ($datos_ruta)?$datos_ruta->descripcion:'SIN RUTA';
-        $informacion->codagente = ($datos_ruta)?$datos_ruta->codagente:'';
-        $informacion->nombre = ($datos_ruta)?$datos_ruta->nombre:'SIN ASIGNAR';
-        $informacion->canal_descripcion = ($datos_canal)?$datos_canal->descripcion:'';
-        $informacion->subcanal_descripcion = ($datos_subcanal)?$datos_subcanal->descripcion:'';
-        $informacion->nombre_cliente = ($datos_cliente)?$datos_cliente->nombre:'Error de nombre del cliente';
-        $informacion->razonsocial = ($datos_cliente)?$datos_cliente->razonsocial:'Error de nombre del cliente';
-        $informacion->cifnif = ($datos_cliente)?$datos_cliente->cifnif:'Error de nombre del cliente';
-        $informacion->fechaalta = ($datos_cliente)?$datos_cliente->fechaalta:'Error de fechaalta del cliente';
-        $informacion->fechabaja = ($datos_cliente)?$datos_cliente->fechabaja:'Error de fechabaja del cliente';
-        $informacion->debaja = ($datos_cliente)?$datos_cliente->debaja:'Error de fechabaja del cliente';
+    public function info_adicional($informacion,$d){
+        $informacion->direccion =$d['direccion'];
+        $informacion->ruta_descripcion = $d['descripcion'];
+        $informacion->codagente = $d['codagente'];
+        $informacion->nombre = $d['nombre'];
+        $informacion->canal_descripcion = $d['canal_desc'];
+        $informacion->subcanal_descripcion = $d['subcanal_desc'];
+        $informacion->nombre_cliente = $d['nombre_cliente'];
+        $informacion->razonsocial = $d['razonsocial'];
+        $informacion->cifnif = $d['cifnif'];
+        $informacion->fechaalta = $d['fechaalta'];
+        $informacion->fechabaja = $d['fechabaja'];
+        $informacion->debaja = $this->str2bool($d['debaja']);
         return $informacion;
     }
 
@@ -206,14 +197,22 @@ class distribucion_clientes extends fs_model {
     public function all($idempresa)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa)." ORDER BY ruta, canal, subcanal, codcliente;");
-
+        $data = $this->db->select("SELECT dc.*,c.nombre as nombre_cliente,c.razonsocial,c.cifnif,c.fechaalta,c.fechabaja,c.debaja,ds1.descripcion as canal_desc,".
+                "ds2.descripcion as subcanal_desc,dir.direccion,dr.descripcion, dr.codagente, concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre".
+                " FROM ".$this->table_name.' AS dc '.
+                " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
+                " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
+                " LEFT JOIN distribucion_rutas as dr on (dr.ruta = dc.ruta AND dr.codalmacen = dc.codalmacen)  ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = dr.codagente) ".
+                " LEFT JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
+                " LEFT JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
+                " WHERE dc.idempresa = ".$this->intval($idempresa)." ORDER BY ruta, canal, subcanal, dc.codcliente;");
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_clientes($d);
-                $info = $this->info_adicional($value);
+                $info = $this->info_adicional($value,$d);
                 $lista[] = $info;
             }
         }
@@ -221,7 +220,7 @@ class distribucion_clientes extends fs_model {
     }
 
     public function clientes_sinruta($idempresa, $almacen){
-        $sql = "SELECT c.codcliente as codcliente, c.nombre as nombre, d.id as iddireccion, d.direccion as direccion FROM  clientes as c, dirclientes as d ".
+        $sql = "SELECT c.codcliente as codcliente, c.nombre as nombre_cliente, d.id as iddireccion, d.direccion as direccion FROM  clientes as c, dirclientes as d ".
                    "WHERE c.codcliente NOT IN (select distinct codcliente from ".$this->table_name.") ".
                    "AND lower(ciudad) like '%".strtolower($almacen->poblacion)."%' ".
                    "AND d.id NOT IN (select iddireccion from ".$this->table_name.") and c.codcliente = d.codcliente ORDER BY nombre";
@@ -343,11 +342,19 @@ class distribucion_clientes extends fs_model {
 
     public function clientes_ruta($idempresa,$codalmacen, $ruta)
     {
-        $sql = "SELECT * FROM distribucion_clientes ".
-                " WHERE idempresa = ".$this->intval($idempresa).
-                " AND ruta = ".$this->var2str($ruta).
-                " AND codalmacen = ".$this->var2str($codalmacen).
-                " ORDER BY ruta, codcliente;";
+        $sql = "SELECT dc.*,c.nombre as nombre_cliente,c.razonsocial,c.cifnif,c.fechaalta,c.fechabaja,c.debaja,ds1.descripcion as canal_desc,".
+                "ds2.descripcion as subcanal_desc,dir.direccion,dr.descripcion, dr.codagente, concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre".
+                " FROM ".$this->table_name.' AS dc '.
+                " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
+                " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
+                " LEFT JOIN distribucion_rutas as dr on (dr.ruta = dc.ruta AND dr.codalmacen = dc.codalmacen)  ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = dr.codagente) ".
+                " LEFT JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
+                " LEFT JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
+                " WHERE dc.idempresa = ".$this->intval($idempresa).
+                " AND dc.ruta = ".$this->var2str($ruta).
+                " AND dc.codalmacen = ".$this->var2str($codalmacen).
+                " ORDER BY dc.ruta, dc.codcliente;";
         $lista = array();
         $data = $this->db->select($sql);
 
@@ -356,7 +363,7 @@ class distribucion_clientes extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_clientes($d);
-                $info = $this->info_adicional($value);
+                $info = $this->info_adicional($value,$d);
                 $lista[] = $info;
             }
         }
@@ -365,16 +372,16 @@ class distribucion_clientes extends fs_model {
 
     public function clientes_ruta_imprimir($idempresa,$codalmacen, $ruta)
     {
-        $sql = "SELECT dc.codcliente,c.nombre,c.razonsocial,dc.canal,ds1.descripcion as canal_desc,dc.subcanal,ds2.descripcion as subcanal_desc,dc.iddireccion,dir.direccion ".
+        $sql = "SELECT dc.codcliente,c.nombre as nombre_cliente,c.razonsocial,dc.canal,ds1.descripcion as canal_desc,dc.subcanal,ds2.descripcion as subcanal_desc,dc.iddireccion,dir.direccion ".
                 " FROM distribucion_clientes as dc ".
                 " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
                 " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
                 " JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
                 " JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
                 " WHERE dc.idempresa = ".$this->intval($idempresa).
-                " AND ruta = ".$this->var2str($ruta).
-                " AND codalmacen = ".$this->var2str($codalmacen).
-                " ORDER BY codcliente;";
+                " AND dc.ruta = ".$this->var2str($ruta).
+                " AND dc.codalmacen = ".$this->var2str($codalmacen).
+                " ORDER BY dc.codcliente;";
         $lista = array();
         $data = $this->db->select($sql);
         if($data)
@@ -396,17 +403,26 @@ class distribucion_clientes extends fs_model {
     public function clientes_canal($idempresa,$codalmacen,$canal)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).
-                " AND canal = ".$this->var2str($canal).
-                " AND codalmacen = ".$this->var2str($codalmacen).
-                " ORDER BY canal, ruta, codcliente;");
+        $data = $this->db->select("SELECT dc.*,c.nombre as nombre_cliente,c.razonsocial,c.cifnif,c.fechaalta,c.fechabaja,c.debaja,ds1.descripcion as canal_desc,".
+                "ds2.descripcion as subcanal_desc,dir.direccion,dr.descripcion, dr.codagente, concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre".
+                " FROM ".$this->table_name.' AS dc '.
+                " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
+                " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
+                " LEFT JOIN distribucion_rutas as dr on (dr.ruta = dc.ruta AND dr.codalmacen = dc.codalmacen)  ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = dr.codagente) ".
+                " LEFT JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
+                " LEFT JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
+                " WHERE dc.idempresa = ".$this->intval($idempresa).
+                " AND dc.canal = ".$this->var2str($canal).
+                " AND dc.codalmacen = ".$this->var2str($codalmacen).
+                " ORDER BY dc.canal, dc.ruta, dc.codcliente;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_clientes($d);
-                $info = $this->info_adicional($value);
+                $info = $this->info_adicional($value,$d);
                 $lista[] = $info;
             }
         }
@@ -416,17 +432,26 @@ class distribucion_clientes extends fs_model {
     public function clientes_subcanal($idempresa,$codalmacen,$subcanal)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).
-                " AND subcanal = ".$this->var2str($subcanal).
-                " AND codalmacen = ".$this->var2str($codalmacen).
-                " ORDER BY subcanal, ruta, codcliente;");
+        $data = $this->db->select("SELECT dc.*,c.nombre as nombre_cliente,c.razonsocial,c.cifnif,c.fechaalta,c.fechabaja,c.debaja,ds1.descripcion as canal_desc,".
+                "ds2.descripcion as subcanal_desc,dir.direccion,dr.descripcion, dr.codagente, concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre".
+                " FROM ".$this->table_name.' AS dc '.
+                " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
+                " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
+                " LEFT JOIN distribucion_rutas as dr on (dr.ruta = dc.ruta AND dr.codalmacen = dc.codalmacen)  ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = dr.codagente) ".
+                " LEFT JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
+                " LEFT JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
+                " WHERE dc.idempresa = ".$this->intval($idempresa).
+                " AND dc.subcanal = ".$this->var2str($subcanal).
+                " AND dc.codalmacen = ".$this->var2str($codalmacen).
+                " ORDER BY dc.subcanal, dc.ruta, dc.codcliente;");
 
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_clientes($d);
-                $info = $this->info_adicional($value);
+                $info = $this->info_adicional($value,$d);
                 $lista[] = $info;
             }
         }
@@ -436,13 +461,22 @@ class distribucion_clientes extends fs_model {
     public function get($idempresa,$codcliente)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).
-                " AND codcliente = ".$this->var2str($codcliente).";");
+        $data = $this->db->select("SELECT dc.*,c.nombre as nombre_cliente,c.razonsocial,c.cifnif,c.fechaalta,c.fechabaja,c.debaja,ds1.descripcion as canal_desc,".
+                "ds2.descripcion as subcanal_desc,dir.direccion,dr.descripcion, dr.codagente, concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre".
+                " FROM ".$this->table_name.' AS dc '.
+                " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
+                " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
+                " LEFT JOIN distribucion_rutas as dr on (dr.ruta = dc.ruta AND dr.codalmacen = dc.codalmacen)  ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = dr.codagente) ".
+                " LEFT JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
+                " LEFT JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
+                " WHERE dc.idempresa = ".$this->intval($idempresa).
+                " AND dc.codcliente = ".$this->var2str($codcliente).";");
         if($data)
         {
             foreach ($data as $d){
                 $value = new distribucion_clientes($d);
-                $info = $this->info_adicional($value);
+                $info = $this->info_adicional($value,$d);
                 $lista[] = $info;
             }
             return $lista;
@@ -453,13 +487,22 @@ class distribucion_clientes extends fs_model {
 
     public function getOne($idempresa,$codcliente,$ruta)
     {
-        $data = $this->db->select("SELECT * FROM distribucion_clientes WHERE idempresa = ".$this->intval($idempresa).
-                " AND ruta =".$this->var2str($ruta).
-                " AND codcliente = ".$this->var2str($codcliente).";");
+        $data = $this->db->select("SELECT dc.*,c.nombre as nombre_cliente,c.razonsocial,c.cifnif,c.fechaalta,c.fechabaja,c.debaja,ds1.descripcion as canal_desc,".
+                "ds2.descripcion as subcanal_desc,dir.direccion,dr.descripcion, dr.codagente, concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre".
+                " FROM ".$this->table_name.' AS dc '.
+                " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
+                " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
+                " LEFT JOIN distribucion_rutas as dr on (dr.ruta = dc.ruta AND dr.codalmacen = dc.codalmacen)  ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = dr.codagente) ".
+                " LEFT JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
+                " LEFT JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
+                " WHERE dc.idempresa = ".$this->intval($idempresa).
+                " AND dc.ruta =".$this->var2str($ruta).
+                " AND dc.codcliente = ".$this->var2str($codcliente).";");
         if($data)
         {
-                $value = new distribucion_clientes($data[0]);
-                $info = $this->info_adicional($value);
+            $value = new distribucion_clientes($data[0]);
+            $info = $this->info_adicional($value,$data[0]);
             return $info;
         }else{
             return false;
@@ -468,15 +511,22 @@ class distribucion_clientes extends fs_model {
 
     public function ruta_cliente($idempresa,$codalmacen,$codcliente,$iddireccion,$ruta)
     {
-        $data = $this->db->select("SELECT * FROM ".$this->table_name." WHERE idempresa = ".$idempresa.
-                " AND codcliente = ".$this->var2str($codcliente).
-                " AND codalmacen = ".$this->var2str($codalmacen).
-                " AND iddireccion = ".$this->var2str($iddireccion).
-                " AND ruta = ".$this->var2str($ruta).";");
+        $data = $this->db->select("SELECT dc.*,c.nombre as nombre_cliente,c.razonsocial,c.cifnif,c.fechaalta,c.fechabaja,c.debaja,ds1.descripcion as canal_desc,".
+                "ds2.descripcion as subcanal_desc,dir.direccion,dr.descripcion, dr.codagente, concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre".
+                " FROM ".$this->table_name.' AS dc '.
+                " JOIN clientes as c ON (dc.codcliente = c.codcliente) ".
+                " JOIN dirclientes as dir ON (dc.iddireccion = dir.id AND dir.codcliente = dc.codcliente) ".
+                " LEFT JOIN distribucion_rutas as dr on (dr.ruta = dc.ruta AND dr.codalmacen = dc.codalmacen)  ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = dr.codagente) ".
+                " LEFT JOIN distribucion_segmentos as ds1 on (ds1.codigo = dc.canal AND ds1.tiposegmento = 'CANAL' AND ds1.idempresa = dc.idempresa) ".
+                " LEFT JOIN distribucion_segmentos as ds2 on (ds2.codigo = dc.subcanal AND ds2.tiposegmento = 'SUBCANAL' AND ds1.idempresa = dc.idempresa) ".
+                " WHERE dc.idempresa = ".$this->intval($idempresa)." AND dc.codcliente = ".$this->var2str($codcliente)." AND dc.codalmacen = ".$this->var2str($codalmacen).
+                " AND dc.iddireccion = ".$this->var2str($iddireccion).
+                " AND dc.ruta = ".$this->var2str($ruta).";");
         if($data)
         {
             $value = new distribucion_clientes($data[0]);
-            $info = $this->info_adicional($value);
+            $info = $this->info_adicional($value,$data[0]);
             return $info;
         }else{
             return false;
