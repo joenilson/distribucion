@@ -134,37 +134,35 @@ class distribucion_controller extends fs_controller
         return $respuesta;
     }
     
+    /**
+     * Función para devolver el valor de una variable pasada ya sea por POST o GET
+     * @param type string
+     * @return type string
+     */
+    public function filter_request($nombre) {
+        $nombre_post = \filter_input(INPUT_POST, $nombre);
+        $nombre_get = \filter_input(INPUT_GET, $nombre);
+        return ($nombre_post) ? $nombre_post : $nombre_get;
+    }
+    
     public function variables_globales()
     {
         $fsvar = new fs_var();
-        $this->distribucion_setup = $fsvar->array_get(
-            array(
-            'distrib_ordencarga' => "Orden de Carga",
+        $this->distribucion_setup = $fsvar->array_get( array( 'distrib_ordencarga' => "Orden de Carga",
             'distrib_ordenescarga' => "Ordenes de Carga",
-            'distrib_transporte' => "Transporte",
-            'distrib_transportes' => "Transportes",
-            'distrib_devolucion' => "Devolución",
-            'distrib_devoluciones' => "Devoluciones",
-            'distrib_agencia' => "Agencia",
-            'distrib_agencias' => "Agencias",
-            'distrib_unidad' => "Unidad",
-            'distrib_unidades' => "Unidades",
-            'distrib_conductor' => "Conductor",
-            'distrib_conductores' => "Conductores",
-            'distrib_liquidacion' => "Liquidación",
-            'distrib_liquidaciones' => "Liquidaciones",
-            'distrib_faltante' => "Faltante",
-            'distrib_faltantes' => "Faltantes",
-            'distrib_hojadevolucion' => "Hoja de Devolución",
-            'distrib_hojasdevolucion' => "Hojas de Devolución"
-            ), FALSE
-        );
+            'distrib_transporte' => "Transporte",             'distrib_transportes' => "Transportes",
+            'distrib_devolucion' => "Devolución",             'distrib_devoluciones' => "Devoluciones",
+            'distrib_agencia' => "Agencia",             'distrib_agencias' => "Agencias",
+            'distrib_unidad' => "Unidad",             'distrib_unidades' => "Unidades",
+            'distrib_conductor' => "Conductor",             'distrib_conductores' => "Conductores",
+            'distrib_liquidacion' => "Liquidación",             'distrib_liquidaciones' => "Liquidaciones",
+            'distrib_faltante' => "Faltante",             'distrib_faltantes' => "Faltantes",
+            'distrib_hojadevolucion' => "Hoja de Devolución",             'distrib_hojasdevolucion' => "Hojas de Devolución"), FALSE);
         $this->ordencarga_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_ordencarga']));
         $this->transporte_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_transporte']));
         $this->devolucion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_devolucion']));
         $this->liquidacion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_liquidacion']));
         $this->hojadevolucion_nombre = ucfirst(strtolower($this->distribucion_setup['distrib_hojadevolucion']));
-
     }
     
     public function buscar_conductor()
