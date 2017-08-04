@@ -248,11 +248,9 @@ class distrib_ordencarga extends distribucion_controller {
     public function crear_transporte($lista) {
         $contador_transportes = 0;
         $contador_transportes_confirmados = 0;
+        $data = array();
         foreach ($lista as $ordencarga_p) {
             if (!empty($ordencarga_p)) {
-                //$datos_ordencarga = explode('-', $ordencarga_p);
-                //$idordencarga = $datos_ordencarga[0];
-                //$codalmacen = $datos_ordencarga[1];                
                 list($idordencarga, $codalmacen) = explode('-', $ordencarga_p);
                 $contador_transportes++;
                 $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
