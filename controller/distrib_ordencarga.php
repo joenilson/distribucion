@@ -35,9 +35,7 @@ require_model('cliente.php');
 require_model('articulo.php');
 require_model('articulo_unidadmedida.php');
 require_once 'plugins/distribucion/vendors/FacturaScripts/PrintingManager.php';
-require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
 require_once 'plugins/distribucion/extras/distribucion_controller.php';
-use FacturaScripts\Seguridad\SeguridadUsuario;
 use FacturaScripts\PrintingManager;
 
 /**
@@ -83,28 +81,8 @@ class distrib_ordencarga extends distribucion_controller {
 
     public function private_core() {
         parent::private_core();
-        $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
-        $this->almacen = new almacen();
-        $this->facturas_cliente = new factura_cliente();
-        $this->linea_factura_cliente = new linea_factura_cliente();
-        $this->agencia_transporte = new agencia_transporte();
-        $this->distrib_conductores = new distribucion_conductores();
-        $this->distrib_unidades = new distribucion_unidades();
-        $this->distrib_ordenescarga = new distribucion_ordenescarga();
-        $this->distrib_ordenescarga_facturas = new distribucion_ordenescarga_facturas();
-        $this->distrib_lineasordenescarga = new distribucion_lineasordenescarga();
-        $this->distrib_transporte = new distribucion_transporte();
-        $this->distrib_lineastransporte = new distribucion_lineastransporte();
-        $this->distrib_rutas = new distribucion_rutas();
-        $this->distrib_clientes = new distribucion_clientes();
-        $this->distrib_facturas = new distribucion_facturas();
-        $this->articulo = new articulo();
-        $this->articulo_unidadmedida = new articulo_unidadmedida();
+        $this->init_clases();
         $this->share_extensions();
-
-        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        $seguridadUsuario = new SeguridadUsuario();
-        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
 
         //Leemos las variables que nos manda el view
         $type = \filter_input(INPUT_GET, 'type');
@@ -154,21 +132,12 @@ class distrib_ordencarga extends distribucion_controller {
         }elseif ($type === 'select-conductor') {
             $this->buscar_informacion('lista_conductores', $this->codalmacen, FALSE, FALSE, $codtrans);
         } elseif ($type === 'crear-carga') {
-            $dataInicialCarga = array();
-            $dataInicialCarga['almacenorig'] = \filter_input(INPUT_GET, 'almacenorig');
-            $dataInicialCarga['almacendest'] = \filter_input(INPUT_GET, 'almacendest');
-            $dataInicialCarga['codunidad'] = \filter_input(INPUT_GET, 'codunidad');
-            $dataInicialCarga['conductor'] = \filter_input(INPUT_GET, 'conductor');
-            $dataInicialCarga['observaciones'] = \filter_input(INPUT_GET, 'observaciones');
-            $dataInicialCarga['facturas'] = \filter_input(INPUT_GET, 'facturas');
-            $this->crear_carga($dataInicialCarga, 'json');
+            $this->crear_carga(array('facturas'=>\filter_input(INPUT_GET, 'facturas')), 'json');
         } elseif (isset($type_post) AND $type_post == 'guardar-carga') {
             $this->guardar_carga();
         } elseif ($type === 'ver-carga') {
             $ordencarga = \filter_input(INPUT_GET, 'ordencarga');
-            $datos_ordencarga = explode('-', $ordencarga);
-            $idordencarga = $datos_ordencarga[0];
-            $codalmacen = $datos_ordencarga[1];
+            list($idordencarga, $codalmacen) = explode('-', $ordencarga);
             $this->visualizar_ordencarga($idordencarga, $codalmacen);
         } elseif ($type === 'imprimir-carga') {
             $this->imprimir_carga();
@@ -184,17 +153,9 @@ class distrib_ordencarga extends distribucion_controller {
             $this->crear_transporte($lista_ordenescargar);
         } elseif ($type === 'reversar-carga') {
             $this->reversar_carga();
-
         } else {
             if($this->mostrar == 'todo'){
-                if($this->codalmacen)
-                {
-                    $this->resultados = $this->distrib_ordenescarga->all_almacen($this->empresa->id, $this->codalmacen,$this->offset);
-                }
-                else
-                {
-                    $this->resultados = $this->distrib_ordenescarga->all($this->empresa->id,$this->offset);
-                }
+                $this->resultados = ($this->codalmacen)?$this->distrib_ordenescarga->all_almacen($this->empresa->id, $this->codalmacen,$this->offset):$this->distrib_ordenescarga->all($this->empresa->id,$this->offset);
             }elseif($this->mostrar == 'pendientes'){
                 $this->resultados = $this->distrib_ordenescarga->all_pendientes($this->empresa->id, $this->codalmacen, $this->offset);
             }elseif($this->mostrar == 'buscar'){
@@ -202,9 +163,28 @@ class distrib_ordencarga extends distribucion_controller {
                 $this->buscador();
             }
         }
-
         $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga($this->empresa->id, $this->codalmacen, $this->desde, $this->hasta, $conductor);
         $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes($this->empresa->id, 'cargado', $this->codalmacen, $this->desde, $this->hasta, $conductor);
+    }
+    
+    public function init_clases()
+    {
+        $this->almacen = new almacen();
+        $this->facturas_cliente = new factura_cliente();
+        $this->linea_factura_cliente = new linea_factura_cliente();
+        $this->agencia_transporte = new agencia_transporte();
+        $this->distrib_conductores = new distribucion_conductores();
+        $this->distrib_unidades = new distribucion_unidades();
+        $this->distrib_ordenescarga = new distribucion_ordenescarga();
+        $this->distrib_ordenescarga_facturas = new distribucion_ordenescarga_facturas();
+        $this->distrib_lineasordenescarga = new distribucion_lineasordenescarga();
+        $this->distrib_transporte = new distribucion_transporte();
+        $this->distrib_lineastransporte = new distribucion_lineastransporte();
+        $this->distrib_rutas = new distribucion_rutas();
+        $this->distrib_clientes = new distribucion_clientes();
+        $this->distrib_facturas = new distribucion_facturas();
+        $this->articulo = new articulo();
+        $this->articulo_unidadmedida = new articulo_unidadmedida();
     }
 
     public function buscador(){
