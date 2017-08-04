@@ -411,49 +411,74 @@ class distrib_creacion extends distribucion_controller {
                 $codalmacen = $datos_transporte[1];
                 $trans0 = $this->distrib_transporte->get($this->empresa->id, $idtransporte, $codalmacen);
                 $this->facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
-                $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
-                $articulo = array();
-                foreach ($this->facturastransporte as $fact) {
-                    $rectif = $this->factura_cliente->get($fact->idfactura)->get_rectificativas();
-                    if ($rectif) {
-                        foreach ($rectif as $f) {
-                            foreach ($f->get_lineas() as $linea) {
-                                $articulo[$linea->referencia] = (!isset($articulo[$linea->referencia])) ? 0 : $articulo[$linea->referencia];
-                                $articulo[$linea->referencia] += $linea->cantidad;
-                            }
-                        }
-                    }
-                }
-                $error = 0;
-                foreach ($lineastransporte as $linea) {
-                    $lin0 = $this->distrib_lineastransporte->getOne($this->empresa->id, $idtransporte, $codalmacen, $linea->referencia);
-                    $lin0->devolucion = ($confirmado AND isset($articulo[$linea->referencia]))?$articulo[$linea->referencia]:0;
-                    if (!$lin0->save()) {
-                        $error++;
-                    }
-                }
-                
-                if (!$error) {
-                    $trans0->devolucionado = $confirmado;
-                    $trans0->fechad = ($fechad) ? \date('Y-m-d', strtotime($fechad)) : \Date('d-m-Y');
-                    $trans0->fecha_modificacion = Date('d-m-Y H:i');
-                    $trans0->usuario_modificacion = $this->user->nick;
-                    if ($trans0->confirmar_devolucion()) {
-                        $data['success'] = TRUE;
-                        $data['mensaje'] = $mensaje;
-                    } else {
-                        $data['success'] = FALSE;
-                        $data['mensaje'] = '¡No se pudo confirmar la devolución del transporte pero se guardaron las cantidades de devolución!';
-                    }
-                } else {
-                    $data['success'] = FALSE;
-                    $data['mensaje'] = '!No se lograron guardar las devoluciones de artículos en el Transporte!';
-                }
+                $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);   
+                $articulo = $this->tratar_facturas_transporte($this->facturastransporte);
+                $error = $this->tratar_lineas_transporte($lineastransporte,$articulo,$codalmacen,$confirmado,$idtransporte);
+                $data = $this->confirmar_devolucion_transporte($confirmado,$error,$fechad,$mensaje,$trans0);
             }
         }
         $this->template = false;
         header('Content-Type: application/json');
         echo json_encode($data);
+    }
+    
+    public function confirmar_devolucion_transporte($confirmado,$error,$fechad,$mensaje,$trans0)
+    {
+        $data = array();
+        if (!$error) {
+            $trans0->devolucionado = $confirmado;
+            $trans0->fechad = ($fechad) ? \date('Y-m-d', strtotime($fechad)) : \Date('d-m-Y');
+            $trans0->fecha_modificacion = Date('d-m-Y H:i');
+            $trans0->usuario_modificacion = $this->user->nick;
+            if ($trans0->confirmar_devolucion()) {
+                $data['success'] = TRUE;
+                $data['mensaje'] = $mensaje;
+            } else {
+                $data['success'] = FALSE;
+                $data['mensaje'] = '¡No se pudo confirmar la devolución del transporte pero se guardaron las cantidades de devolución!';
+            }
+        } else {
+            $data['success'] = FALSE;
+            $data['mensaje'] = '!No se lograron guardar las devoluciones de artículos en el Transporte!';
+        }
+        return $data;
+    }
+    
+    public function tratar_lineas_transporte($lineastransporte,$articulo,$codalmacen,$confirmado,$idtransporte)
+    {
+        $error = 0;
+        foreach ($lineastransporte as $linea) {
+            $lin0 = $this->distrib_lineastransporte->getOne($this->empresa->id, $idtransporte, $codalmacen, $linea->referencia);
+            $lin0->devolucion = ($confirmado AND isset($articulo[$linea->referencia]))?$articulo[$linea->referencia]:0;
+            if (!$lin0->save()) {
+                $error++;
+            }
+        }
+        return $error;
+    }
+    
+    public function tratar_facturas_transporte()
+    {
+        $articulo = array();
+        foreach ($this->facturastransporte as $fact) {
+            $rectif = $this->factura_cliente->get($fact->idfactura)->get_rectificativas();
+            if ($rectif) {
+                $articulo = $this->tratar_facturasrect($rectif);
+            }
+        }
+        return $articulo;
+    }
+    
+    public function tratar_facturasrect($rectif)
+    {
+        $articulo = array();
+        foreach ($rectif as $f) {
+            foreach ($f->get_lineas() as $linea) {
+                $articulo[$linea->referencia] = (!isset($articulo[$linea->referencia])) ? 0 : $articulo[$linea->referencia];
+                $articulo[$linea->referencia] += $linea->cantidad;
+            }
+        }
+        return $articulo;
     }
 
     public function confirmar_transporte($confirmado = TRUE) {
@@ -521,19 +546,7 @@ class distrib_creacion extends distribucion_controller {
         $this->facturastransporte = $this->distrib_facturas->all_almacen_idtransporte($this->empresa->id, $codalmacen, $idtransporte);
         $lineastransporte = $this->distrib_lineastransporte->get($this->empresa->id, $idtransporte, $codalmacen);
         if (!$this->transporte->devolucionado) {
-            $articulo = array();
-            foreach ($this->facturastransporte as $fact) {
-                $rectif = $this->factura_cliente->get($fact->idfactura)->get_rectificativas();
-                if ($rectif) {
-                    foreach ($rectif as $f) {
-                        foreach ($f->get_lineas() as $linea) {
-                            $articulo[$linea->referencia] = (!isset($articulo[$linea->referencia])) ? 0 : $articulo[$linea->referencia];
-                            $articulo[$linea->referencia] += $linea->cantidad;
-                        }
-                    }
-                }
-            }
-
+            $articulo = $this->tratar_facturas_transporte($this->facturastransporte);
             foreach ($lineastransporte as $linea) {
                 $linea->devolucion = (isset($articulo[$linea->referencia])) ? $articulo[$linea->referencia] : 0;
             }
