@@ -248,38 +248,18 @@ class distrib_ordencarga extends distribucion_controller {
     public function crear_transporte($lista) {
         $contador_transportes = 0;
         $contador_transportes_confirmados = 0;
-        $suma_importe = 0;
-        foreach ($lista as $ordencarga) {
-            if (!empty($ordencarga)) {
-                $datos_ordencarga = explode('-', $ordencarga);
-                $idordencarga = $datos_ordencarga[0];
-                $codalmacen = $datos_ordencarga[1];
+        foreach ($lista as $ordencarga_p) {
+            if (!empty($ordencarga_p)) {
+                //$datos_ordencarga = explode('-', $ordencarga_p);
+                //$idordencarga = $datos_ordencarga[0];
+                //$codalmacen = $datos_ordencarga[1];                
+                list($idordencarga, $codalmacen) = explode('-', $ordencarga_p);
                 $contador_transportes++;
                 $ordencarga = $this->distrib_ordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
                 $lineasordencarga = $this->distrib_lineasordenescarga->get($this->empresa->id, $idordencarga, $codalmacen);
                 if (($ordencarga[0]->cargado) AND ( !$ordencarga[0]->despachado)) {
                     $array_facturas = $this->distrib_ordenescarga_facturas->all_almacen_ordencarga($this->empresa->id, $codalmacen, $idordencarga);
-                    if($array_facturas){
-                        foreach ($array_facturas as $linea) {
-                            $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($linea->idfactura);
-                        }
-
-                        foreach ($lineas_factura as $linea_factura) {
-                            foreach ($linea_factura as $key => $values) {
-                                if (!isset($importe_resumen[$values->referencia])) {
-                                    $importe_resumen[$values->referencia] = 0;
-                                }
-                                if (!isset($data_resumen[$values->referencia])) {
-                                    $data_resumen[$values->referencia] = array();
-                                }
-                                $valor_venta = $values->pvptotal + ($values->pvptotal * ($values->iva / 100));
-                                $importe_resumen[$values->referencia] += $valor_venta;
-                                $data_resumen[$values->referencia] = array('referencia' => $values->referencia, 'producto' => $values->descripcion, 'importe' => $importe_resumen[$values->referencia]);
-                                $suma_importe += $valor_venta;
-                            }
-                        }
-                    }
-
+                    list($importe_resumen, $suma_importe) = $this->agrupar_facturas_ordencarga($array_facturas);
 
                     $trans0 = new distribucion_transporte();
                     $trans0->idempresa = $ordencarga[0]->idempresa;
@@ -299,40 +279,9 @@ class distrib_ordencarga extends distribucion_controller {
                     $trans0->usuario_creacion = $this->user->nick;
                     $trans0->fecha_cracion = Date('d-m-Y H:i');
                     if ($trans0->save()) {
-                        $actualizar_oc = $this->distrib_ordenescarga;
-                        $actualizar_oc->despachado = true;
-                        $actualizar_oc->idempresa = $ordencarga[0]->idempresa;
-                        $actualizar_oc->codalmacen = $ordencarga[0]->codalmacen;
-                        $actualizar_oc->idtransporte = $trans0->idtransporte;
-                        $actualizar_oc->idordencarga = $ordencarga[0]->idordencarga;
-                        $actualizar_oc->fecha = $ordencarga[0]->fecha;
-                        $actualizar_oc->usuario_creacion = $this->user->nick;
-                        $actualizar_oc->fecha_creacion = Date('d-m-Y H:i');
-                        $actualizar_oc->confirmar_despachada();
-                        $facturas_oc = $this->distrib_ordenescarga_facturas;
-                        $facturas_oc->idempresa = $ordencarga[0]->idempresa;
-                        $facturas_oc->idordencarga = $ordencarga[0]->idordencarga;
-                        $facturas_oc->codalmacen = $ordencarga[0]->codalmacen;
-                        $facturas_oc->idtransporte = $trans0->idtransporte;
-                        $facturas_oc->usuario_creacion = $this->user->nick;
-                        $facturas_oc->fecha_creacion = Date('d-m-Y H:i');
-                        $facturas_oc->asignar_transporte();
+                        $this->confirmar_despacho_oc($ordencarga,$trans0);
+                        $this->guardar_lineas_transporte($importe_resumen,$lineasordencarga,$trans0);
                         $contador_transportes_confirmados++;
-                        foreach ($lineasordencarga as $linea) {
-                            $ltrans0 = new distribucion_lineastransporte();
-                            $ltrans0->idempresa = $linea->idempresa;
-                            $ltrans0->idtransporte = $trans0->idtransporte;
-                            $ltrans0->codalmacen = $linea->codalmacen;
-                            $ltrans0->referencia = $linea->referencia;
-                            $ltrans0->estado = $linea->estado;
-                            $ltrans0->cantidad = $linea->cantidad;
-                            $ltrans0->importe = $importe_resumen[$linea->referencia];
-                            $ltrans0->fecha = $linea->fecha;
-                            $ltrans0->peso = $linea->peso;
-                            $ltrans0->fecha_creacion = Date('d-m-Y H:i');
-                            $ltrans0->usuario_creacion = $this->user->nick;
-                            $ltrans0->save();
-                        }
                     }
                 }
             }
@@ -350,6 +299,75 @@ class distrib_ordencarga extends distribucion_controller {
         $this->template = false;
         header('Content-Type: application/json');
         echo json_encode($data);
+    }
+    
+    public function agrupar_facturas_ordencarga($array_facturas)
+    {
+        $suma_importe = 0;
+        $lineas_factura = array();
+        if(!empty($array_facturas)){
+            foreach ($array_facturas as $linea) {
+                $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($linea->idfactura);
+            }
+            $importe_resumen = array();
+            foreach($lineas_factura as $linea_factura){
+                foreach ($linea_factura as $key => $values){
+                    if(!isset($importe_resumen[$values->referencia])){
+                        $importe_resumen[$values->referencia] = 0;
+                    }
+                    $valor_venta = $values->pvptotal + ($values->pvptotal * ($values->iva / 100));
+                    $importe_resumen[$values->referencia] += $valor_venta;
+                    $suma_importe += $valor_venta;
+                }
+            }
+        }
+        return array($importe_resumen, $suma_importe);
+    }
+    
+    /**
+     * Confirmamos el despacho de la orden de carga y agregamos a las facturas el transporte con el que salieron
+     * @param array $ordencarga
+     * @param object $trans0
+     */
+    public function confirmar_despacho_oc($ordencarga,$trans0)
+    {
+        $actualizar_oc = $this->distrib_ordenescarga;
+        $actualizar_oc->despachado = true;
+        $actualizar_oc->idempresa = $ordencarga[0]->idempresa;
+        $actualizar_oc->codalmacen = $ordencarga[0]->codalmacen;
+        $actualizar_oc->idtransporte = $trans0->idtransporte;
+        $actualizar_oc->idordencarga = $ordencarga[0]->idordencarga;
+        $actualizar_oc->fecha = $ordencarga[0]->fecha;
+        $actualizar_oc->usuario_creacion = $this->user->nick;
+        $actualizar_oc->fecha_creacion = Date('d-m-Y H:i');
+        $actualizar_oc->confirmar_despachada();
+        $facturas_oc = $this->distrib_ordenescarga_facturas;
+        $facturas_oc->idempresa = $ordencarga[0]->idempresa;
+        $facturas_oc->idordencarga = $ordencarga[0]->idordencarga;
+        $facturas_oc->codalmacen = $ordencarga[0]->codalmacen;
+        $facturas_oc->idtransporte = $trans0->idtransporte;
+        $facturas_oc->usuario_creacion = $this->user->nick;
+        $facturas_oc->fecha_creacion = Date('d-m-Y H:i');
+        $facturas_oc->asignar_transporte();
+    }
+    
+    public function guardar_lineas_transporte($importe_resumen,$lineasordencarga,$trans0)
+    {
+        foreach ($lineasordencarga as $linea) {
+            $ltrans0 = new distribucion_lineastransporte();
+            $ltrans0->idempresa = $linea->idempresa;
+            $ltrans0->idtransporte = $trans0->idtransporte;
+            $ltrans0->codalmacen = $linea->codalmacen;
+            $ltrans0->referencia = $linea->referencia;
+            $ltrans0->estado = $linea->estado;
+            $ltrans0->cantidad = $linea->cantidad;
+            $ltrans0->importe = $importe_resumen[$linea->referencia];
+            $ltrans0->fecha = $linea->fecha;
+            $ltrans0->peso = $linea->peso;
+            $ltrans0->fecha_creacion = Date('d-m-Y H:i');
+            $ltrans0->usuario_creacion = $this->user->nick;
+            $ltrans0->save();
+        }
     }
 
     public function imprimir_transporte(){
@@ -538,8 +556,8 @@ class distrib_ordencarga extends distribucion_controller {
         echo json_encode($lista);
     }
 
-    public function crear_carga($datos, $retorno) {
-
+    public function crear_carga($datos, $retorno) 
+    {
         $array_facturas = explode(",", $datos['facturas']);
         $this->resultados = array();
         $lineas_factura = array();
