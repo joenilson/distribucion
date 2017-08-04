@@ -75,6 +75,7 @@ class admin_distribucion extends distribucion_controller {
 
     public function private_core() {
         parent::private_core();
+        
         //Cargamos las tablas en el orden correcto
         new distribucion_subcuentas_faltantes();
         new distribucion_coordenadas_clientes();
