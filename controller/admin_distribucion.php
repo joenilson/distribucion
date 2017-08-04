@@ -40,13 +40,13 @@ require_model('distribucion_tiporuta.php');
 require_model('distribucion_restricciones_tiporuta.php');
 require_model('distribucion_tipovendedor.php');
 require_model('distribucion_asignacion_cargos.php');
-
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
 /**
  * Description of admin_distribucion
  *
  * @author Joe Nilson <joenilson@gmail.com>
  */
-class admin_distribucion extends fs_controller {
+class admin_distribucion extends distribucion_controller {
 
     public $articulo;
     public $cargos_disponibles;
@@ -74,8 +74,8 @@ class admin_distribucion extends fs_controller {
     }
 
     public function private_core() {
-              //Cargamos las tablas en el orden correcto
-
+        parent::private_core();
+        //Cargamos las tablas en el orden correcto
         new distribucion_subcuentas_faltantes();
         new distribucion_coordenadas_clientes();
         new distribucion_conductores();
@@ -96,28 +96,6 @@ class admin_distribucion extends fs_controller {
         $this->share_extensions();
         /// cargamos la configuración
         $this->fsvar = new fs_var();
-        $this->distribucion_setup = $this->fsvar->array_get(
-            array(
-            'distrib_ordencarga' => "Orden de Carga",
-            'distrib_ordenescarga' => "Ordenes de Carga",
-            'distrib_transporte' => "Transporte",
-            'distrib_transportes' => "Transportes",
-            'distrib_devolucion' => "Devolución",
-            'distrib_devoluciones' => "Devoluciones",
-            'distrib_hojadevolucion' => "Hoja de Devolución",
-            'distrib_hojasdevolucion' => "Hojas de Devolución",
-            'distrib_agencia' => "Agencia",
-            'distrib_agencias' => "Agencias",
-            'distrib_unidad' => "Unidad",
-            'distrib_unidades' => "Unidades",
-            'distrib_conductor' => "Conductor",
-            'distrib_conductores' => "Conductores",
-            'distrib_liquidacion' => "Liquidación",
-            'distrib_liquidaciones' => "Liquidaciones",
-            'distrib_faltante' => "Faltante",
-            'distrib_faltantes' => "Faltantes"
-            ), FALSE
-        );
 
         $this->check_menu();
 
