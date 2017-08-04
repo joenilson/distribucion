@@ -240,7 +240,7 @@ class distribucion_clientes extends fs_model {
                 $value->idempresa = (int)$idempresa;
                 $value->codalmacen = $almacen->codalmacen;
                 $value->codcliente = $d['codcliente'];
-                $value->nombre_cliente = $d['nombre'];
+                $value->nombre_cliente = $d['nombre_cliente'];
                 $value->iddireccion = $d['iddireccion'];
                 $value->direccion = $d['direccion'];
                 $value->ruta = 'noruta';

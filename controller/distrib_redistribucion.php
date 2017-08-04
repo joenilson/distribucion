@@ -109,6 +109,7 @@ class distrib_redistribucion extends fs_controller{
         $almacen = \filter_input(INPUT_GET, 'codalmacen');
         $data = $rutas->search($almacen,$query);
         $lista = array();
+        $lista[] = array('value'=>'Sin Ruta','data'=>'noruta');
         foreach($data as $r){
             $lista[] = array('value' => $r->ruta.' - '.$r->descripcion, 'data' => $r->ruta);
         }
