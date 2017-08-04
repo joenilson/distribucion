@@ -113,6 +113,34 @@ class distrib_ordencarga extends distribucion_controller {
         }
         $this->conductor = $data_conductor;
 
+        $this->router_acciones($buscar_fecha,$codtrans,$rutas,$type,$type_post);
+        
+        $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga($this->empresa->id, $this->codalmacen, $this->desde, $this->hasta, $conductor);
+        $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes($this->empresa->id, 'cargado', $this->codalmacen, $this->desde, $this->hasta, $conductor);
+    }
+    
+    public function init_clases()
+    {
+        $this->almacen = new almacen();
+        $this->facturas_cliente = new factura_cliente();
+        $this->linea_factura_cliente = new linea_factura_cliente();
+        $this->agencia_transporte = new agencia_transporte();
+        $this->distrib_conductores = new distribucion_conductores();
+        $this->distrib_unidades = new distribucion_unidades();
+        $this->distrib_ordenescarga = new distribucion_ordenescarga();
+        $this->distrib_ordenescarga_facturas = new distribucion_ordenescarga_facturas();
+        $this->distrib_lineasordenescarga = new distribucion_lineasordenescarga();
+        $this->distrib_transporte = new distribucion_transporte();
+        $this->distrib_lineastransporte = new distribucion_lineastransporte();
+        $this->distrib_rutas = new distribucion_rutas();
+        $this->distrib_clientes = new distribucion_clientes();
+        $this->distrib_facturas = new distribucion_facturas();
+        $this->articulo = new articulo();
+        $this->articulo_unidadmedida = new articulo_unidadmedida();
+    }
+    
+    public function router_acciones($buscar_fecha,$codtrans,$rutas,$type,$type_post)
+    {
         if ($type === 'buscar_facturas') {
             $this->buscar_informacion('buscar_facturas', $this->codalmacen, $buscar_fecha, $rutas);
         } elseif ($type === 'select-rutas') {
@@ -146,37 +174,20 @@ class distrib_ordencarga extends distribucion_controller {
         } elseif ($type === 'reversar-carga') {
             $this->reversar_carga();
         } else {
-            if($this->mostrar == 'todo'){
-                $this->resultados = ($this->codalmacen)?$this->distrib_ordenescarga->all_almacen($this->empresa->id, $this->codalmacen,$this->offset):$this->distrib_ordenescarga->all($this->empresa->id,$this->offset);
-            }elseif($this->mostrar == 'pendientes'){
-                $this->resultados = $this->distrib_ordenescarga->all_pendientes($this->empresa->id, $this->codalmacen, $this->offset);
-            }elseif($this->mostrar == 'buscar'){
-                $this->num_resultados = 0;
-                $this->buscador();
-            }
+            $this->metodos_mostrar();
         }
-        $this->total_resultados = $this->distrib_ordenescarga->total_ordenescarga($this->empresa->id, $this->codalmacen, $this->desde, $this->hasta, $conductor);
-        $this->total_pendientes = $this->distrib_ordenescarga->total_pendientes($this->empresa->id, 'cargado', $this->codalmacen, $this->desde, $this->hasta, $conductor);
     }
     
-    public function init_clases()
+    public function metodos_mostrar()
     {
-        $this->almacen = new almacen();
-        $this->facturas_cliente = new factura_cliente();
-        $this->linea_factura_cliente = new linea_factura_cliente();
-        $this->agencia_transporte = new agencia_transporte();
-        $this->distrib_conductores = new distribucion_conductores();
-        $this->distrib_unidades = new distribucion_unidades();
-        $this->distrib_ordenescarga = new distribucion_ordenescarga();
-        $this->distrib_ordenescarga_facturas = new distribucion_ordenescarga_facturas();
-        $this->distrib_lineasordenescarga = new distribucion_lineasordenescarga();
-        $this->distrib_transporte = new distribucion_transporte();
-        $this->distrib_lineastransporte = new distribucion_lineastransporte();
-        $this->distrib_rutas = new distribucion_rutas();
-        $this->distrib_clientes = new distribucion_clientes();
-        $this->distrib_facturas = new distribucion_facturas();
-        $this->articulo = new articulo();
-        $this->articulo_unidadmedida = new articulo_unidadmedida();
+        if($this->mostrar == 'todo'){
+            $this->resultados = ($this->codalmacen)?$this->distrib_ordenescarga->all_almacen($this->empresa->id, $this->codalmacen,$this->offset):$this->distrib_ordenescarga->all($this->empresa->id,$this->offset);
+        }elseif($this->mostrar == 'pendientes'){
+            $this->resultados = $this->distrib_ordenescarga->all_pendientes($this->empresa->id, $this->codalmacen, $this->offset);
+        }elseif($this->mostrar == 'buscar'){
+            $this->num_resultados = 0;
+            $this->buscador();
+        }
     }
 
     public function buscador(){
