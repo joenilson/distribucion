@@ -463,15 +463,14 @@ class distrib_creacion extends distribucion_controller {
         foreach ($this->facturastransporte as $fact) {
             $rectif = $this->factura_cliente->get($fact->idfactura)->get_rectificativas();
             if ($rectif) {
-                $articulo = $this->tratar_facturasrect($rectif);
+                $this->tratar_facturasrect($rectif,$articulo);
             }
         }
         return $articulo;
     }
     
-    public function tratar_facturasrect($rectif)
+    public function tratar_facturasrect($rectif,&$articulo)
     {
-        $articulo = array();
         foreach ($rectif as $f) {
             foreach ($f->get_lineas() as $linea) {
                 $articulo[$linea->referencia] = (!isset($articulo[$linea->referencia])) ? 0 : $articulo[$linea->referencia];
