@@ -15,26 +15,24 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-if( !function_exists('remote_printer') )
-{
-   /**
-    * Esta función se utilizará para la impresión de facturas en una impresora matricial
-    */
-   function remote_printer()
-   {
-      if( isset($_REQUEST['impresora']) )
-      {
-         require_model('impresoras.php');
 
+if( !function_exists('distribucion_remote_printer') )
+{
+   //
+   // Esta función se utilizará para la impresión de facturas en una impresora matricial
+   //
+   function distribucion_remote_printer()
+   {
+      if( isset($_REQUEST['impresora']) ){
+         require_model('impresoras.php');
          $t0 = new impresoras();
          $impresora_elegida = \filter_input(INPUT_POST, 'impresora');
          $impresora = $t0->get($impresora_elegida);
-         if($impresora)
-         {
-            //echo $terminal->tickets;
-         }
-         else
+         if($impresora){
+            //echo $terminal->facturas;
+         } else {
             echo 'ERROR: terminal no encontrado.';
+         }
       }
    }
 }
