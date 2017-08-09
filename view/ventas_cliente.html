@@ -24,6 +24,7 @@
     }
     function delete_cuenta(id)
     {
+      bootbox.confirm({
          message: '¿Realmente desea eliminar la cuenta bancaria #'+id+'?',
          title: '<b>Atención</b>',
          callback: function(result) {
