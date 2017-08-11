@@ -18,16 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_model('agente.php');
-require_model('almacen.php');
-require_model('articulo.php');
-require_model('cliente.php');
-require_model('factura_cliente.php');
-require_model('linea_factura_cliente.php');
-require_model('asiento_factura.php');
-require_model('distribucion_rutas.php');
-
-class imprimir_facturas extends fs_controller
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
+class imprimir_facturas extends distribucion_controller
 {
 
     public $agente;
@@ -53,6 +45,7 @@ class imprimir_facturas extends fs_controller
     public $total_resultados;
     public $total_resultados_comision;
     public $total_resultados_txt;
+    public $ncf_ventas;
     public $listar;
     public $rutas;
     public $impresion;
@@ -67,6 +60,72 @@ class imprimir_facturas extends fs_controller
 
     protected function private_core()
     {
+        parent::private_core();
+        $this->init_variables();
+        $mostrar = \filter_input(INPUT_GET, 'mostrar');
+        $buscar_lineas = \filter_input(INPUT_POST, 'buscar_lineas');
+        $ref = \filter_input(INPUT_GET, 'ref');
+        //Variables por REQUEST
+        $buscar_cliente = $this->filter_request('buscar_cliente');
+        $codagente = $this->filter_request('codagente');
+        $codcliente = $this->filter_request('codcliente');
+        $codserie = $this->filter_request('codserie');
+        $codruta = $this->filter_request('codruta');
+        $codalmacen = $this->filter_request('codalmacen');
+        $desde = $this->filter_request('desde');
+        $hasta = $this->filter_request('hasta');
+        $cli0 = new cliente();
+        if ($buscar_lineas) {
+            $this->buscar_lineas();
+        } else if ($buscar_cliente) {
+            $this->buscar_cliente();
+        } else if ($ref) {
+            $this->template = 'extension/ventas_facturas_articulo';
+            $articulo = new articulo();
+            $this->articulo = $articulo->get($ref);
+            $linea = new linea_factura_cliente();
+            $this->resultados = $linea->all_from_articulo($ref, $this->offset);
+        } else {
+            $this->huecos = $this->factura->huecos();
+            $this->cliente = ($codcliente != '')?$cli0->get($codcliente):FALSE;
+            $this->codagente = ($codagente)?$codagente:'';
+            $this->codalmacen = ($codalmacen)?$codalmacen:'';
+            $this->codserie = ($codserie)?$codserie:'';
+            $this->codruta = ($codruta)?$codruta:'';
+            $this->desde = ($desde)?$desde:'';
+            $this->hasta = ($hasta)?$hasta:'';
+            $this->num_resultados = '';
+            $this->total_resultados = '';
+            $this->total_resultados_comision = 0;
+            $this->total_resultados_txt = '';
+
+            if (!$mostrar AND ($codagente OR $codcliente OR $codserie OR $codalmacen OR $codruta)) {
+                /**
+                 * si obtenermos un codagente, un codcliente o un codserie pasamos direcatemente
+                 * a la pestaña de búsqueda, a menos que tengamos un mostrar, que
+                 * entonces nos indica donde tenemos que estar.
+                 */
+                $this->mostrar = 'buscar';
+            }
+
+            /// añadimos segundo nivel de ordenación
+            $order2 = '';
+            if (substr($this->order, -4) == 'DESC') {
+                $order2 = ', codigo DESC';
+            } else {
+                $order2 = ', codigo ASC';
+            }
+
+            if ($this->mostrar == 'buscar') {
+                $this->buscar($order2);
+            } else {
+                $this->resultados = $this->factura->all($this->offset, FS_ITEM_LIMIT, $this->order . $order2);
+            }
+        }
+    }
+    
+    private function init_variables()
+    {
         $this->agente = new agente();
         $this->almacenes = new almacen();
         $this->factura = new factura_cliente();
@@ -75,17 +134,17 @@ class imprimir_facturas extends fs_controller
         $this->rutas = new distribucion_rutas();
         $this->mostrar = 'todo';
         $this->listar = 'todo';
-        if (isset($_GET['mostrar'])) {
-            $this->mostrar = $_GET['mostrar'];
+        $mostrar = \filter_input(INPUT_GET, 'mostrar');
+        if ($mostrar) {
+            $this->mostrar = $mostrar;
             setcookie('ventas_fac_mostrar', $this->mostrar, time() + FS_COOKIES_EXPIRE);
         } else if (isset($_COOKIE['ventas_fac_mostrar'])) {
             $this->mostrar = $_COOKIE['ventas_fac_mostrar'];
         }
 
-        if (\filter_input(INPUT_POST, 'listar')) {
-            $listar = \filter_input(INPUT_POST, 'listar');
-            $this->listar = ($listar) ? $listar : $this->listar;
-        }
+        $listar = \filter_input(INPUT_POST, 'listar');
+        $this->listar = ($listar) ? $listar : $this->listar;
+        $this->offset = ($_REQUEST['offset'])?intval($_REQUEST['offset']):0;
 
         $basepath = dirname(dirname(dirname(__DIR__)));
         $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
@@ -106,95 +165,21 @@ class imprimir_facturas extends fs_controller
             echo json_encode(array('file' => $this->publicPath . DIRECTORY_SEPARATOR . $facturas_file));
         }
 
-        $this->offset = 0;
-        if (isset($_REQUEST['offset'])) {
-            $this->offset = intval($_REQUEST['offset']);
-        }
-
         $this->order = 'facturascli.fecha DESC';
-        if (isset($_GET['order'])) {
-            if ($_GET['order'] == 'fecha_desc') {
+        $order = \filter_input(INPUT_GET, 'order');
+        if ($order) {
+            if ($order == 'fecha_desc') {
                 $this->order = 'facturascli.fecha DESC';
-            } else if ($_GET['order'] == 'fecha_asc') {
+            } else if ($order == 'fecha_asc') {
                 $this->order = 'facturascli.fecha ASC';
-            } else if ($_GET['order'] == 'vencimiento_desc') {
+            } else if ($order == 'vencimiento_desc') {
                 $this->order = 'vencimiento DESC';
-            } else if ($_GET['order'] == 'vencimiento_asc') {
+            } else if ($order == 'vencimiento_asc') {
                 $this->order = 'vencimiento ASC';
             }
-
             setcookie('ventas_fac_order', $this->order, time() + FS_COOKIES_EXPIRE);
         } else if (isset($_COOKIE['ventas_fac_order'])) {
             $this->order = $_COOKIE['ventas_fac_order'];
-        }
-
-        if (isset($_POST['buscar_lineas'])) {
-            $this->buscar_lineas();
-        } else if (isset($_REQUEST['buscar_cliente'])) {
-            $this->buscar_cliente();
-        } else {
-            $this->huecos = $this->factura->huecos();
-            $this->cliente = FALSE;
-            $this->codagente = '';
-            $this->codalmacen = '';
-            $this->codserie = '';
-            $this->desde = '';
-            $this->hasta = '';
-            $this->num_resultados = '';
-            $this->total_resultados = '';
-            $this->total_resultados_comision = 0;
-            $this->total_resultados_txt = '';
-
-            if (!isset($_GET['mostrar']) AND ( isset($_REQUEST['codagente']) OR isset($_REQUEST['codcliente']) OR isset($_REQUEST['codserie']) OR isset($_REQUEST['codalmacen']) OR isset($_REQUEST['codruta']))) {
-                /**
-                 * si obtenermos un codagente, un codcliente o un codserie pasamos direcatemente
-                 * a la pestaña de búsqueda, a menos que tengamos un mostrar, que
-                 * entonces nos indica donde tenemos que estar.
-                 */
-                $this->mostrar = 'buscar';
-            }
-
-            if (isset($_REQUEST['codcliente'])) {
-                if ($_REQUEST['codcliente'] != '') {
-                    $cli0 = new cliente();
-                    $this->cliente = $cli0->get($_REQUEST['codcliente']);
-                }
-            }
-
-            if (isset($_REQUEST['codagente'])) {
-                $this->codagente = $_REQUEST['codagente'];
-            }
-
-            if (isset($_REQUEST['codserie'])) {
-                $this->codserie = $_REQUEST['codserie'];
-            }
-
-            if (isset($_REQUEST['codalmacen'])) {
-                $this->codalmacen = $_REQUEST['codalmacen'];
-            }
-
-            if (isset($_REQUEST['codruta'])) {
-                $this->codruta = $_REQUEST['codruta'];
-            }
-
-            if (isset($_REQUEST['desde'])) {
-                $this->desde = $_REQUEST['desde'];
-                $this->hasta = $_REQUEST['hasta'];
-            }
-
-            /// añadimos segundo nivel de ordenación
-            $order2 = '';
-            if (substr($this->order, -4) == 'DESC') {
-                $order2 = ', codigo DESC';
-            } else {
-                $order2 = ', codigo ASC';
-            }
-
-            if ($this->mostrar == 'buscar') {
-                $this->buscar($order2);
-            } else {
-                $this->resultados = $this->factura->all($this->offset, FS_ITEM_LIMIT, $this->order . $order2);
-            }
         }
     }
 
@@ -202,15 +187,15 @@ class imprimir_facturas extends fs_controller
     {
         /// desactivamos la plantilla HTML
         $this->template = FALSE;
-
+        $buscar_cliente = $this->filter_request('buscar_cliente');
         $cli0 = new cliente();
         $json = array();
-        foreach ($cli0->search($_REQUEST['buscar_cliente']) as $cli) {
+        foreach ($cli0->search($buscar_cliente) as $cli) {
             $json[] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
         }
 
         header('Content-Type: application/json');
-        echo json_encode(array('query' => $_REQUEST['buscar_cliente'], 'suggestions' => $json));
+        echo json_encode(array('query' => $buscar_cliente, 'suggestions' => $json));
     }
 
     public function paginas()
@@ -281,12 +266,14 @@ class imprimir_facturas extends fs_controller
     {
         /// cambiamos la plantilla HTML
         $this->template = 'ajax/ventas_lineas_facturas';
-
-        $this->buscar_lineas = $_POST['buscar_lineas'];
+        $codcliente = \filter_input(INPUT_POST, 'codcliente');
+        $buscar_lineas = \filter_input(INPUT_POST, 'buscar_lineas');
+        $buscar_lineas_o = \filter_input(INPUT_POST, 'buscar_lineas_o');
+        $this->buscar_lineas = $buscar_lineas;
         $linea = new linea_factura_cliente();
 
-        if (isset($_POST['codcliente'])) {
-            $this->lineas = $linea->search_from_cliente2($_POST['codcliente'], $this->buscar_lineas, $_POST['buscar_lineas_o']);
+        if ($codcliente) {
+            $this->lineas = $linea->search_from_cliente2($codcliente, $this->buscar_lineas, $buscar_lineas_o);
         } else {
             $this->lineas = $linea->search($this->buscar_lineas);
         }
@@ -309,7 +296,7 @@ class imprimir_facturas extends fs_controller
         $sql = " FROM facturascli ";
         $where = 'WHERE ';
 
-        if ($this->query) {
+        if ($this->query != '') {
             $sql .= $where;
             if (is_numeric($query)) {
                 $sql .= "(codigo LIKE '%" . $query . "%' OR numero2 LIKE '%" . $query . "%' OR observaciones LIKE '%" . $query . "%')";
@@ -320,14 +307,46 @@ class imprimir_facturas extends fs_controller
             $where = ' AND ';
         }
 
-        if ($this->codagente) {
+        $this->aplicar_filtros($sql, $where);
+        
+        $this->listar($sql , $where);
 
+        $data = $this->db->select("SELECT COUNT(idfactura) as total" . $sql);
+        if ($data) {
+            $this->num_resultados = intval($data[0]['total']);
+
+            $data2 = $this->db->select_limit("SELECT *" . $sql . " ORDER BY " . $this->order . $order2, FS_ITEM_LIMIT, $this->offset);
+            if ($data2) {
+                foreach ($data2 as $d) {
+                    $values = new factura_cliente($d);
+                    $this->resultados[] = $values;
+                }
+            }
+
+            $data3 = $this->db->select("SELECT SUM(total) as total" . $sql);
+            if ($data3) {
+                $this->total_resultados = floatval($data3[0]['total']);
+                $this->total_resultados_txt = 'Suma total de los resultados:';
+            }
+
+            if ($this->codagente !== '') {
+                /// calculamos la comisión del empleado
+                $data_com = $this->db->select("SELECT SUM(neto*porcomision/100) as total" . $sql);
+                if ($data_com) {
+                    $this->total_resultados_comision = floatval($data_com[0]['total']);
+                }
+            }
+        }
+    }
+    
+    public function aplicar_filtros(&$sql, &$where)
+    {
+        if ($this->codagente != '') {
             $sql .= $where . "codagente = " . $this->agente->var2str($this->codagente);
             $where = ' AND ';
         }
 
-        if ($this->codalmacen) {
-
+        if ($this->codalmacen != '') {
             $sql .= $where . "codalmacen = " . $this->agente->var2str($this->codalmacen);
             $where = ' AND ';
         }
@@ -357,47 +376,26 @@ class imprimir_facturas extends fs_controller
             $sql .= $where . "fecha <= " . $this->agente->var2str($this->hasta);
             $where = ' AND ';
         }
-
+    }
+    
+    public function listar(&$sql, &$where)
+    {
         switch ($this->listar) {
             case "validas":
                 $sql .= $where . " anulada = FALSE ";
+                $where = ' AND ';
                 break;
             case "rectificativas":
                 $sql .= $where . " idfacturarect IS NOT NULL ";
+                $where = ' AND ';
                 break;
             case "anuladas":
                 $sql .= $where . " anulada = TRUE ";
+                $where = ' AND ';
                 break;
             default:
 
                 break;
-        }
-
-        $data = $this->db->select("SELECT COUNT(idfactura) as total" . $sql);
-        if ($data) {
-            $this->num_resultados = intval($data[0]['total']);
-
-            $data2 = $this->db->select_limit("SELECT *" . $sql . " ORDER BY " . $this->order . $order2, FS_ITEM_LIMIT, $this->offset);
-            if ($data2) {
-                foreach ($data2 as $d) {
-                    $values = new factura_cliente($d);
-                    $this->resultados[] = $values;
-                }
-            }
-
-            $data3 = $this->db->select("SELECT SUM(total) as total" . $sql);
-            if ($data3) {
-                $this->total_resultados = floatval($data3[0]['total']);
-                $this->total_resultados_txt = 'Suma total de los resultados:';
-            }
-
-            if ($this->codagente !== '') {
-                /// calculamos la comisión del empleado
-                $data4 = $this->db->select("SELECT SUM(neto*porcomision/100) as total" . $sql);
-                if ($data4) {
-                    $this->total_resultados_comision = floatval($data4[0]['total']);
-                }
-            }
         }
     }
 
