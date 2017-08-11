@@ -144,7 +144,7 @@ class imprimir_facturas extends distribucion_controller
 
         $listar = \filter_input(INPUT_POST, 'listar');
         $this->listar = ($listar) ? $listar : $this->listar;
-        $this->offset = ($_REQUEST['offset'])?intval($_REQUEST['offset']):0;
+        $this->offset = (isset($_REQUEST['offset']))?intval($_REQUEST['offset']):0;
 
         $basepath = dirname(dirname(dirname(__DIR__)));
         $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
