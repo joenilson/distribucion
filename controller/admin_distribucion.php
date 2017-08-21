@@ -167,7 +167,7 @@ class admin_distribucion extends distribucion_controller {
                 $page_name = substr($f, 0, -4);
                 $encontrado = $this->buscar_menu($page_name);
                 if (!$encontrado) {
-                    $this->guardar_menu($page_name);
+                    $this->guardar_menu($page_name, $f);
                     if ($max > 0) {
                         $max--;
                     } else {
@@ -180,15 +180,13 @@ class admin_distribucion extends distribucion_controller {
         }
     }
     
-    private function guardar_menu($page_name)
+    private function guardar_menu($page_name, $f)
     {
         require_once __DIR__ . '/' . $f;
         $new_fsc = new $page_name();
-
         if (!$new_fsc->page->save()) {
             $this->new_error_msg("Imposible guardar la página " . $page_name);
         }
-
         unset($new_fsc);
     }
     
