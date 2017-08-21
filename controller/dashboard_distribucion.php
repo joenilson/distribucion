@@ -401,6 +401,167 @@ class dashboard_distribucion extends distribucion_controller {
         }
     }
 
+    public function resumen_clientes()
+    {
+        //Inicializamos los contadores de informacion
+        $clientes_estado = $this->distribucion_clientes->clientes_totales_estado($this->codalmacen,$this->f_desde,$this->f_hasta);
+        $this->clientes_activos = $clientes_estado['activos'];
+        $this->clientes_inactivos = $clientes_estado['inactivos'];
+        $this->clientes_nuevos = $clientes_estado['nuevos'];
+        $this->clientes_debaja = $clientes_estado['debaja'];
+        $this->clientes_visitados = $this->distribucion_facturas->clientes_visitados($this->codalmacen, FALSE, $this->f_desde, $this->f_hasta);
+        $this->clientes_por_visitar = $this->clientes_activos-$this->clientes_visitados;
+        $this->cantidad_clientes = $this->clientes_activos;
+        $this->clientes_grupo = array();
+
+        //Guardamos la cantidad de clientes por cada grupo
+        $this->grupos_clientes_lista = array();
+        foreach($this->grupos_clientes->all() as $gc){
+            $gc->clientes = $gc->cantidad_clientes_total();
+            $this->grupos_clientes_lista[] = $gc;
+        }
+
+        if($this->grupos_clientes->cantidad_clientes_singrupo()){
+            $singrupo = new grupo_clientes();
+            $singrupo->codgrupo = 'SG';
+            $singrupo->nombre = 'Clientes in Grupo';
+            $singrupo->clientes = $singrupo->cantidad_clientes_singrupo();
+            $this->grupos_clientes_lista[] = $singrupo;
+        }
+    }
+
+    public function resumen_clientes_variables()
+    {
+        //Generamos la efectividad de visitas
+        //La efectividad es el porcentaje de clientes visitados entre la cantidad de clientes totales
+        $this->clientes_rutas['total'] = array();
+        $this->clientes_rutas['atendidos'] = array();
+        $this->clientes_rutas['no_atendidos'] = array();
+        $this->clientes_rutas['efectividad'] = array();
+        $this->clientes_rutas['efectividad_vendedor'] = array();
+        $this->clientes_rutas['total_rutas'] = array();
+        $this->clientes_rutas['total_clientes'] = array();
+        $this->clientes_rutas['total_atendidos'] = array();
+        $this->clientes_rutas['total_no_atendidos'] = array();
+        //La mesa es el grupo de vendedores que tiene un supervisor
+        $this->clientes_rutas['mesa_rutas'] = array();
+        $this->clientes_rutas['mesa_vendedores'] = array();
+        $this->clientes_rutas['mesa_clientes'] = array();
+        $this->clientes_rutas['mesa_atendidos'] = array();
+        $this->clientes_rutas['mesa_no_atendidos'] = array();
+        $this->clientes_rutas['mesa_efectividad'] = array();
+        $this->clientes_rutas['general_total_cantidad'] = 0;
+        $this->clientes_rutas['general_total_importe'] = 0;
+        $this->clientes_rutas['general_total_oferta'] = 0;
+        $this->clientes_rutas['general_clientes'] = 0;
+        $this->clientes_rutas['general_atendidos'] = 0;
+        $this->clientes_rutas['general_no_atendidos'] = 0;
+        $this->clientes_rutas['general_efectividad'] = 0;
+        $this->clientes_rutas['efectividad_general_color'] = false;
+    }
+
+    public function resumen_supervisores_variables()
+    {
+        //Generamos los totales por supervisor
+        foreach($this->supervisores as $supervisor){
+            $this->clientes_rutas['mesa_rutas'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_vendedores'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_clientes'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_atendidos'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_no_atendidos'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_efectividad'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_total_cantidad'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_total_importe'][$supervisor->codagente] = 0;
+            $this->clientes_rutas['mesa_total_oferta'][$supervisor->codagente] = 0;
+            foreach($this->rango_fechas as $fecha){
+                $this->clientes_rutas['mesa_fecha_cantidad'][$supervisor->codagente][$fecha->format('d-m-Y')] = 0;
+                $this->clientes_rutas['mesa_fecha_importe'][$supervisor->codagente][$fecha->format('d-m-Y')] = 0;
+                $this->clientes_rutas['mesa_fecha_oferta'][$supervisor->codagente][$fecha->format('d-m-Y')] = 0;
+            }
+        }
+    }
+
+    public function resumen_vendedor_variables($vendedor, $rutasagente)
+    {
+        $this->clientes_rutas['total_rutas'][$vendedor->codagente] = count($rutasagente);
+        $this->clientes_rutas['total_clientes'][$vendedor->codagente] = 0;
+        $this->clientes_rutas['total_atendidos'][$vendedor->codagente] = 0;
+        $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] = 0;
+        $this->clientes_rutas['total_cantidad'][$vendedor->codagente] = 0;
+        $this->clientes_rutas['total_importe'][$vendedor->codagente] = 0;
+        $this->clientes_rutas['total_oferta'][$vendedor->codagente] = 0;
+        $this->clientes_rutas['mesa'][$vendedor->codsupervisor] = 0;
+        foreach($this->rango_fechas as $fecha){
+            $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
+            $this->clientes_rutas['fecha_importe'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
+            $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
+        }
+    }
+
+    public function resumen_venta_rutas($ventas_ruta)
+    {
+        foreach($ventas_ruta as $d){
+            $this->clientes_rutas['cantidad'][$ruta->ruta] += $d->qdad_vendida;
+            $this->clientes_rutas['importe'][$ruta->ruta] += $d->importe_vendido;
+            $this->clientes_rutas['oferta'][$ruta->ruta] += $d->qdad_oferta;
+            $this->clientes_rutas['total_cantidad'][$vendedor->codagente] += $d->qdad_vendida;
+            $this->clientes_rutas['total_importe'][$vendedor->codagente] += $d->importe_vendido;
+            $this->clientes_rutas['total_oferta'][$vendedor->codagente] += $d->qdad_oferta;
+            $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
+            $this->clientes_rutas['fecha_importe'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
+            $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
+            $this->clientes_rutas['mesa_total_cantidad'][$vendedor->codsupervisor] += $d->qdad_vendida;
+            $this->clientes_rutas['mesa_total_importe'][$vendedor->codsupervisor] += $d->importe_vendido;
+            $this->clientes_rutas['mesa_total_oferta'][$vendedor->codsupervisor] += $d->qdad_oferta;
+            $this->clientes_rutas['mesa_fecha_cantidad'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
+            $this->clientes_rutas['mesa_fecha_importe'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
+            $this->clientes_rutas['mesa_fecha_oferta'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
+            $this->clientes_rutas['general_fecha_cantidad'][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
+            $this->clientes_rutas['general_fecha_importe'][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
+            $this->clientes_rutas['general_fecha_oferta'][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
+            $this->clientes_rutas['general_total_cantidad'] += $d->qdad_vendida;
+            $this->clientes_rutas['general_total_importe'] += $d->importe_vendido;
+            $this->clientes_rutas['general_total_oferta'] += $d->qdad_oferta;
+        }
+    }
+
+    public function resumen_rutas_vendedor($rutasagente, $vendedor)
+    {
+        foreach($rutasagente as $ruta){
+            $clientes_ruta = $this->rutas->cantidad_asignados($this->empresa->id, $ruta->codalmacen, $ruta->ruta);
+            $this->clientes_rutas['total'][$ruta->ruta] = $clientes_ruta;
+            $this->clientes_rutas['total_clientes'][$vendedor->codagente] += $clientes_ruta;
+            if(!isset($this->clientes_rutas['atendidos'][$ruta->ruta])){
+                $this->clientes_rutas['atendidos'][$ruta->ruta] = 0;
+                $this->clientes_rutas['cantidad'][$ruta->ruta] = 0;
+                $this->clientes_rutas['importe'][$ruta->ruta] = 0;
+                $this->clientes_rutas['oferta'][$ruta->ruta] = 0;
+            }
+
+            if(!isset($this->clientes_rutas['no_atendidos'][$ruta->ruta])){
+                $this->clientes_rutas['no_atendidos'][$ruta->ruta] = $clientes_ruta;
+            }
+
+            $this->clientes_rutas['atendidos'][$ruta->ruta] = $this->distribucion_facturas->clientes_visitados($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
+            $this->clientes_rutas['no_atendidos'][$ruta->ruta] -= $this->clientes_rutas['atendidos'][$ruta->ruta];
+
+            $efectividad = ($clientes_ruta)?round(($this->clientes_rutas['atendidos'][$ruta->ruta]/$clientes_ruta)*100,0):0;
+            $this->clientes_rutas['efectividad'][$ruta->ruta] = $efectividad;
+            $efectividad_color = ($efectividad<=30)?'danger':'success';
+            $efectividad_color = ($efectividad>30 AND $efectividad<65)?'warning':$efectividad_color;
+            $this->clientes_rutas['efectividad_color'][$ruta->ruta] = $efectividad_color;
+            $this->clientes_rutas['total_atendidos'][$vendedor->codagente] += $this->clientes_rutas['atendidos'][$ruta->ruta];
+            $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] += $this->clientes_rutas['no_atendidos'][$ruta->ruta];
+
+            //Generamos la estadistica de ventas cantidad vendida, importe vendido, cantidad bonificada y devoluciones
+            $ventas_ruta = $this->distribucion_facturas->ventas_ruta($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
+            if(!empty($ventas_ruta)){
+                $this->resumen_venta_rutas($ventas_ruta, $vendedor);
+
+            }
+        }
+    }
+
     public function generar_resumen(){
         //Obtenemos la información de los supervisores
         //Verificamos el codigo de almacen para supervisores
@@ -435,157 +596,25 @@ class dashboard_distribucion extends distribucion_controller {
             }
         }
 
-        //Inicializamos los contadores de informacion
-        $clientes_estado = $this->distribucion_clientes->clientes_totales_estado($this->codalmacen,$this->f_desde,$this->f_hasta);
-        $this->clientes_activos = $clientes_estado['activos'];
-        $this->clientes_inactivos = $clientes_estado['inactivos'];
-        $this->clientes_nuevos = $clientes_estado['nuevos'];
-        $this->clientes_debaja = $clientes_estado['debaja'];
-        $this->clientes_visitados = $this->distribucion_facturas->clientes_visitados($this->codalmacen, FALSE, $this->f_desde, $this->f_hasta);
-        $this->clientes_por_visitar = $this->clientes_activos-$this->clientes_visitados;
-        $this->cantidad_clientes = $this->clientes_activos;
-        $this->clientes_grupo = array();
+        $this->resumen_clientes();
 
-        //Guardamos la cantidad de clientes por cada grupo
-        $this->grupos_clientes_lista = array();
-        foreach($this->grupos_clientes->all() as $gc){
-            $gc->clientes = $gc->cantidad_clientes_total();
-            $this->grupos_clientes_lista[] = $gc;
-        }
+        $this->resumen_clientes_variables();
 
-        if($this->grupos_clientes->cantidad_clientes_singrupo())
-        {
-            $singrupo = new grupo_clientes();
-            $singrupo->codgrupo = 'SG';
-            $singrupo->nombre = 'Clientes in Grupo';
-            $singrupo->clientes = $singrupo->cantidad_clientes_singrupo();
-            $this->grupos_clientes_lista[] = $singrupo;
-        }
-
-        //Generamos la efectividad de visitas
-        //La efectividad es el porcentaje de clientes visitados entre la cantidad de clientes totales
-        $this->clientes_rutas['total'] = array();
-        $this->clientes_rutas['atendidos'] = array();
-        $this->clientes_rutas['no_atendidos'] = array();
-        $this->clientes_rutas['efectividad'] = array();
-        $this->clientes_rutas['efectividad_vendedor'] = array();
-        $this->clientes_rutas['total_rutas'] = array();
-        $this->clientes_rutas['total_clientes'] = array();
-        $this->clientes_rutas['total_atendidos'] = array();
-        $this->clientes_rutas['total_no_atendidos'] = array();
-        //La mesa es el grupo de vendedores que tiene un supervisor
-        $this->clientes_rutas['mesa_rutas'] = array();
-        $this->clientes_rutas['mesa_vendedores'] = array();
-        $this->clientes_rutas['mesa_clientes'] = array();
-        $this->clientes_rutas['mesa_atendidos'] = array();
-        $this->clientes_rutas['mesa_no_atendidos'] = array();
-        $this->clientes_rutas['mesa_efectividad'] = array();
-        $this->clientes_rutas['general_total_cantidad'] = 0;
-        $this->clientes_rutas['general_total_importe'] = 0;
-        $this->clientes_rutas['general_total_oferta'] = 0;
-        $this->clientes_rutas['general_clientes'] = 0;
-        $this->clientes_rutas['general_atendidos'] = 0;
-        $this->clientes_rutas['general_no_atendidos'] = 0;
-        $this->clientes_rutas['general_efectividad'] = 0;
-        $this->clientes_rutas['efectividad_general_color'] = false;
-
-        //Generamos los totales por supervisor
-        foreach($this->supervisores as $supervisor){
-            $this->clientes_rutas['mesa_rutas'][$supervisor->codagente] = 0;
-            $this->clientes_rutas['mesa_vendedores'][$supervisor->codagente] = 0;
-            $this->clientes_rutas['mesa_clientes'][$supervisor->codagente] = 0;
-            $this->clientes_rutas['mesa_atendidos'][$supervisor->codagente] = 0;
-            $this->clientes_rutas['mesa_no_atendidos'][$supervisor->codagente] = 0;
-            $this->clientes_rutas['mesa_efectividad'][$supervisor->codagente] = 0;
-            $this->clientes_rutas['mesa_total_cantidad'][$supervisor->codagente] = 0;
-            $this->clientes_rutas['mesa_total_importe'][$supervisor->codagente] = 0;
-            $this->clientes_rutas['mesa_total_oferta'][$supervisor->codagente] = 0;
-            foreach($this->rango_fechas as $fecha){
-                $this->clientes_rutas['mesa_fecha_cantidad'][$supervisor->codagente][$fecha->format('d-m-Y')] = 0;
-                $this->clientes_rutas['mesa_fecha_importe'][$supervisor->codagente][$fecha->format('d-m-Y')] = 0;
-                $this->clientes_rutas['mesa_fecha_oferta'][$supervisor->codagente][$fecha->format('d-m-Y')] = 0;
-            }
-        }
+        $this->resumen_supervisores_variables();
 
         foreach($this->vendedores as $vendedor){
             $rutasagente = $this->rutas->all_rutasporagente($this->empresa->id, $vendedor->codalmacen, $vendedor->codagente);
             $vendedor->codsupervisor = ($vendedor->codsupervisor)?$vendedor->codsupervisor:"NOSUPERVISOR";
-            $this->clientes_rutas['total_rutas'][$vendedor->codagente] = count($rutasagente);
-            $this->clientes_rutas['total_clientes'][$vendedor->codagente] = 0;
-            $this->clientes_rutas['total_atendidos'][$vendedor->codagente] = 0;
-            $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] = 0;
-            $this->clientes_rutas['total_cantidad'][$vendedor->codagente] = 0;
-            $this->clientes_rutas['total_importe'][$vendedor->codagente] = 0;
-            $this->clientes_rutas['total_oferta'][$vendedor->codagente] = 0;
-            $this->clientes_rutas['mesa'][$vendedor->codsupervisor] = 0;
-            foreach($this->rango_fechas as $fecha){
-                $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
-                $this->clientes_rutas['fecha_importe'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
-                $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][$fecha->format('d-m-Y')] = 0;
-            }
-
+            $this->resumen_vendedor_variables($vendedor, $rutasagente);
             if(!empty($rutasagente)){
-                foreach($rutasagente as $ruta){
-                    $clientes_ruta = $this->rutas->cantidad_asignados($this->empresa->id, $ruta->codalmacen, $ruta->ruta);
-                    $this->clientes_rutas['total'][$ruta->ruta] = $clientes_ruta;
-                    $this->clientes_rutas['total_clientes'][$vendedor->codagente] += $clientes_ruta;
-                    if(!isset($this->clientes_rutas['atendidos'][$ruta->ruta])){
-                        $this->clientes_rutas['atendidos'][$ruta->ruta] = 0;
-                        $this->clientes_rutas['cantidad'][$ruta->ruta] = 0;
-                        $this->clientes_rutas['importe'][$ruta->ruta] = 0;
-                        $this->clientes_rutas['oferta'][$ruta->ruta] = 0;
-                    }
-
-                    if(!isset($this->clientes_rutas['no_atendidos'][$ruta->ruta])){
-                        $this->clientes_rutas['no_atendidos'][$ruta->ruta] = $clientes_ruta;
-                    }
-
-                    $this->clientes_rutas['atendidos'][$ruta->ruta] = $this->distribucion_facturas->clientes_visitados($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
-                    $this->clientes_rutas['no_atendidos'][$ruta->ruta] -= $this->clientes_rutas['atendidos'][$ruta->ruta];
-
-                    $efectividad = ($clientes_ruta)?round(($this->clientes_rutas['atendidos'][$ruta->ruta]/$clientes_ruta)*100,0):0;
-                    $this->clientes_rutas['efectividad'][$ruta->ruta] = $efectividad;
-                    $efectividad_color = ($efectividad<=30)?'danger':'success';
-                    $efectividad_color = ($efectividad>30 AND $efectividad<65)?'warning':$efectividad_color;
-                    $this->clientes_rutas['efectividad_color'][$ruta->ruta] = $efectividad_color;
-                    $this->clientes_rutas['total_atendidos'][$vendedor->codagente] += $this->clientes_rutas['atendidos'][$ruta->ruta];
-                    $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] += $this->clientes_rutas['no_atendidos'][$ruta->ruta];
-
-                    //Generamos la estadistica de ventas cantidad vendida, importe vendido, cantidad bonificada y devoluciones
-                    $ventas_ruta = $this->distribucion_facturas->ventas_ruta($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
-                    if(!empty($ventas_ruta)){
-                        foreach($ventas_ruta as $d){
-                            $this->clientes_rutas['cantidad'][$ruta->ruta] += $d->qdad_vendida;
-                            $this->clientes_rutas['importe'][$ruta->ruta] += $d->importe_vendido;
-                            $this->clientes_rutas['oferta'][$ruta->ruta] += $d->qdad_oferta;
-                            $this->clientes_rutas['total_cantidad'][$vendedor->codagente] += $d->qdad_vendida;
-                            $this->clientes_rutas['total_importe'][$vendedor->codagente] += $d->importe_vendido;
-                            $this->clientes_rutas['total_oferta'][$vendedor->codagente] += $d->qdad_oferta;
-                            $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
-                            $this->clientes_rutas['fecha_importe'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
-                            $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
-                            $this->clientes_rutas['mesa_total_cantidad'][$vendedor->codsupervisor] += $d->qdad_vendida;
-                            $this->clientes_rutas['mesa_total_importe'][$vendedor->codsupervisor] += $d->importe_vendido;
-                            $this->clientes_rutas['mesa_total_oferta'][$vendedor->codsupervisor] += $d->qdad_oferta;
-                            $this->clientes_rutas['mesa_fecha_cantidad'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
-                            $this->clientes_rutas['mesa_fecha_importe'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
-                            $this->clientes_rutas['mesa_fecha_oferta'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
-                            $this->clientes_rutas['general_fecha_cantidad'][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
-                            $this->clientes_rutas['general_fecha_importe'][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
-                            $this->clientes_rutas['general_fecha_oferta'][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
-                            $this->clientes_rutas['general_total_cantidad'] += $d->qdad_vendida;
-                            $this->clientes_rutas['general_total_importe'] += $d->importe_vendido;
-                            $this->clientes_rutas['general_total_oferta'] += $d->qdad_oferta;
-                        }
-                    }
-
-                }
+                $this->resumen_rutas_vendedor($rutasagente, $vendedor);
             }
+            
+            $efectividad_vendedor = 0;
             if($this->clientes_rutas['total_clientes'][$vendedor->codagente]){
                 $efectividad_vendedor = round(($this->clientes_rutas['total_atendidos'][$vendedor->codagente]/$this->clientes_rutas['total_clientes'][$vendedor->codagente])*100,0);
-            }else{
-                $efectividad_vendedor = 0;
             }
+
             $this->clientes_rutas['efectividad_vendedor'][$vendedor->codagente] = $efectividad_vendedor;
             $efectividad_color = ($efectividad_vendedor<=30)?'danger':'success';
             $efectividad_color = ($efectividad_vendedor>30 AND $efectividad_vendedor<65)?'warning':$efectividad_color;
