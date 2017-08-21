@@ -66,8 +66,6 @@ class distribucion_organizacion extends fs_model {
             $this->usuario_modificacion = null;
             $this->fecha_modificacion = null;
         }
-        
-        //$this->rutas = new distribucion_rutas();
     }
 
     public function url(){
@@ -78,14 +76,12 @@ class distribucion_organizacion extends fs_model {
         return "";
     }
     
-    public function info_adicional($value){
+    public function info_adicional($value, $d){
         $this->agente = new agente();
-        $data_agente = $this->agente->get($value->codagente);
-        $value->nombre = $data_agente->nombre." ".$data_agente->apellidos." ".$data_agente->segundo_apellido;
-        $data_supervisor = ($value->codsupervisor != null)?$this->agente->get($value->codsupervisor):null;
-        $value->nombre_supervisor = ($data_supervisor != null)?$data_supervisor->nombre." ".$data_supervisor->apellidos:null;
-        $value->tiene_asignados = $this->tiene_asignados($value->idempresa, $value->codagente);
-        $value->tiene_rutas_asignadas = $this->tiene_rutas_asignadas($value->idempresa, $value->codagente);
+        $value->nombre = $d['nombre'];
+        $value->nombre_supervisor = $d['nombre_supervisor'];
+        $value->tiene_asignados = $d['total_asignados'];
+        $value->tiene_rutas_asignadas = $d['total_rutas'];
         return $value;
     }
 
@@ -146,20 +142,48 @@ class distribucion_organizacion extends fs_model {
                 "tipoagente = ".$this->var2str($this->tipoagente).";";
         return $this->db->exec($sql);
     }
-
-    public function all($idempresa)
+    
+    public function filterVariables($codalmacen = false, $tipoagente = false, $codagente = false, $codsupervisor = false)
     {
-        $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, tipoagente, codagente;");
+        $sql = ' AND ';
+        if($codalmacen){
+            $sql.='dorg.codalmacen = '.$this->var2str($codalmacen);
+        }
+        if($tipoagente){
+            $sql.='AND dorg.tipoagente = '.$this->var2str($tipoagente);
+        }
+        if($codagente){
+            $sql.='AND dorg.codagente = '.$this->var2str($codagente);
+        }
+        if($codsupervisor){
+            $sql.='AND dorg.codsupervisor = '.$this->var2str($codsupervisor);
+        }
+        return $sql;
+    }
 
+    public function all($idempresa, $codalmacen = false, $tipoagente = false, $codagente = false, $codsupervisor = false)
+    {
+        
+        $lista = array();
+        $sql_aux = $this->filterVariables($codalmacen, $tipoagente, $codagente, $codsupervisor);
+        $sql = "SELECT dorg.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                " concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor ".
+                " FROM ".$this->table_name." as dorg".
+                " left join agentes as a1 on (dorg.codagente = a1.codagente) ".
+                " left join agentes as a2 on (dorg.codsupervisor = a2.codagente) ".
+                " left join (SELECT idempresa,codsupervisor,count(*) as total_asignados FROM ".$this->table_name." GROUP BY idempresa,codsupervisor) as sum1 on (sum1.idempresa = dorg.idempresa AND sum1.codsupervisor = dorg.codagente) ".
+                " left join (SELECT idempresa,codagente,count(*) as total_rutas FROM distribucion_rutas GROUP BY idempresa,codagente) as sum2 on (sum2.idempresa = dorg.idempresa AND sum2.codagente = dorg.codagente) ".
+                " WHERE dorg.idempresa = ".$this->intval($idempresa).
+                $sql_aux.
+                " ORDER BY dorg.codalmacen, dorg.tipoagente, dorg.codagente;";
+        $data = $this->db->select($sql);
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $data_agente = $this->agente->get($value->codagente);
-                $value->nombre = $data_agente->nombre." ".$data_agente->apellidos;
-                $lista[] = $value;
+                $info = $this->info_adicional($value, $d);
+                $lista[] = $info;
             }
         }
         return $lista;
@@ -233,17 +257,24 @@ class distribucion_organizacion extends fs_model {
         return $lista;
     }
 
-    public function activos_almacen_tipoagente($idempresa,$codalmacen,$tipoagente)
+    public function activos_almacen_tipoagente($idempresa, $codalmacen = false,$tipoagente)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND tipoagente = ".$this->var2str($tipoagente)." AND estado = true ORDER BY codalmacen, codagente;");
-
+        $sql_aux = $this->filterVariables($codalmacen, $tipoagente);
+        $sql = "SELECT dorg.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                " concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor "." sum1.total_asignados, sum2.total_rutas".
+                " FROM ".$this->table_name." as dorg "." left join agentes as a1 on (dorg.codagente = a1.codagente) "." left join agentes as a2 on (dorg.codsupervisor = a2.codagente) ".
+                " left join (SELECT idempresa,codsupervisor,count(*) as total_asignados FROM ".$this->table_name." GROUP BY idempresa,codsupervisor) as sum1 on (sum1.idempresa = dorg.idempresa AND sum1.codsupervisor = dorg.codagente) ".
+                " left join (SELECT idempresa,codagente,count(*) as total_rutas FROM distribucion_rutas GROUP BY idempresa,codagente) as sum2 on (sum2.idempresa = dorg.idempresa AND sum2.codagente = dorg.codagente) ".
+                " WHERE dorg.idempresa = ".$this->intval($idempresa).$sql_aux.
+                " AND dorg.estado = true "." ORDER BY dorg.codalmacen, dorg.codagente;";
+        $data = $this->db->select($sql);
         if($data)
         {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $info = $this->info_adicional($value);
+                $info = $this->info_adicional($value, $d);
                 $lista[] = $info;
             }
         }
@@ -252,12 +283,20 @@ class distribucion_organizacion extends fs_model {
 
     public function get($idempresa,$codagente)
     {
-        $data = $this->db->select("SELECT * FROM distribucion_organizacion WHERE idempresa = ".$this->intval($idempresa)." AND codagente = ".$this->var2str($codagente).";");
+        $sql_aux = $this->filterVariables(false, false, $codagente);
+        $sql = "SELECT dorg.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
+                " concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor "." sum1.total_asignados, sum2.total_rutas".
+                " FROM ".$this->table_name." as dorg "." left join agentes as a1 on (dorg.codagente = a1.codagente) "." left join agentes as a2 on (dorg.codsupervisor = a2.codagente) ".
+                " left join (SELECT idempresa,codsupervisor,count(*) as total_asignados FROM ".$this->table_name." GROUP BY idempresa,codsupervisor) as sum1 on (sum1.idempresa = dorg.idempresa AND sum1.codsupervisor = dorg.codagente) ".
+                " left join (SELECT idempresa,codagente,count(*) as total_rutas FROM distribucion_rutas GROUP BY idempresa,codagente) as sum2 on (sum2.idempresa = dorg.idempresa AND sum2.codagente = dorg.codagente) ".
+                " WHERE dorg.idempresa = ".$this->intval($idempresa).$sql_aux.
+                " ORDER BY dorg.codalmacen, dorg.codagente;";
+        $data = $this->db->select($sql);
 
         if($data)
         {
             $value = new distribucion_organizacion($data[0]);
-            $info = $this->info_adicional($value);
+            $info = $this->info_adicional($value, $d);
             return $info;
         }else{
             return false;

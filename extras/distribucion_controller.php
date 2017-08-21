@@ -180,5 +180,23 @@ class distribucion_controller extends fs_controller
         header('Content-Type: application/json');
         echo json_encode( $json );
     }
+    
+    public function setValor($variable, $valor_si, $valor_no)
+    {
+        $valor = $valor_no;
+        if(!empty($variable) and ($variable == $valor_si)){
+            $valor = $valor_si;
+        }
+        return $valor;
+    }
+    
+    public function confirmarValor($valor1, $valor2)
+    {
+        $valor = $valor2;
+        if(!empty($valor1)){
+            $valor = $valor1;
+        }
+        return $valor;
+    }
 
 }

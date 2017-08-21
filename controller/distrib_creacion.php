@@ -16,27 +16,6 @@
  *  * You should have received a copy of the GNU Lesser General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('factura_cliente.php');
-require_model('linea_factura_cliente.php');
-require_model('almacen.php');
-require_model('agencia_transporte.php');
-require_model('distribucion_conductores.php');
-require_model('distribucion_unidades.php');
-require_model('distribucion_ordenescarga.php');
-require_model('distribucion_ordenescarga_facturas.php');
-require_model('distribucion_lineasordenescarga.php');
-require_model('distribucion_transporte.php');
-require_model('distribucion_lineastransporte.php');
-require_model('distribucion_faltantes.php');
-
-require_model('distribucion_subcuentas_faltantes.php');
-
-require_model('cliente.php');
-require_model('articulo.php');
-require_model('asiento');
-require_model('ejercicio');
-require_model('cuenta_banco.php');
-require_model('subcuenta.php');
 require_once 'plugins/distribucion/vendors/FacturaScripts/PrintingManager.php';
 require_once 'plugins/distribucion/extras/distribucion_controller.php';
 use FacturaScripts\PrintingManager;
@@ -84,30 +63,37 @@ class distrib_creacion extends distribucion_controller {
     public function private_core() {
         parent::private_core();
         $this->share_extensions();
-        new distribucion_lineastransporte();
+        $this->init_variables();
+        
+        $this->verificarVariables();
 
-        $this->almacen = new almacen();
-        $this->distrib_transporte = new distribucion_transporte();
-        $this->distrib_lineastransporte = new distribucion_lineastransporte();
-        $this->distrib_facturas = new distribucion_ordenescarga_facturas();
-        $this->factura_cliente = new factura_cliente();
-        $this->faltante = new distribucion_faltantes();
-        $this->subcuentas_faltantes = new distribucion_subcuentas_faltantes();
-        $this->asiento = new asiento();
-        $this->ejercicio = new ejercicio();
-        $this->conductores = new distribucion_conductores();
+        $conductor = $this->filter_request('conductor');
+        if ($conductor and $conductor != '') {
+            $conductor0 = new distribucion_conductores();
+            $this->conductor = $conductor0->get($this->empresa->id, $conductor);
+        }
 
-
-        $type = \filter_input(INPUT_GET, 'type');
-        $mostrar = \filter_input(INPUT_GET, 'mostrar');
+        $this->desde = $this->filter_request('desde');
+        $this->hasta = $this->filter_request('hasta');
+        $this->num_resultados = 0;
+        
+        $this->filtrarType();
+        
+        $this->mostrarInfo();
+        $buscar_conductor = $this->filter_request('buscar_conductor');
+        if ($buscar_conductor) {
+            $this->buscar_conductor();
+        }
+    }
+    
+    public function verificarVariables()
+    {
         $cliente = \filter_input(INPUT_GET, 'codcliente');
         $offset = \filter_input(INPUT_GET, 'offset');
         $this->mostrar = "todo";
         $this->offset = (isset($offset)) ? $offset : 0;
 
-        $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
-        $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
-        $codalmacen = ($codalmacen_p) ? $codalmacen_p : $codalmacen_g;
+        $codalmacen = $this->filter_request('codalmacen');
         $this->codalmacen = ($this->user->codalmacen) ? $this->user->codalmacen : $codalmacen;
 
         $this->cuenta_banco = new cuenta_banco();
@@ -119,7 +105,8 @@ class distrib_creacion extends distribucion_controller {
         if (\filter_input(INPUT_GET, 'fecha_pago')) {
             $this->fecha_pago = \date('Y-m-d', strtotime(\filter_input(INPUT_GET, 'fecha_pago')));
         }
-
+        
+        $mostrar = \filter_input(INPUT_GET, 'mostrar');
         if (isset($mostrar)) {
             $this->mostrar = $mostrar;
             setcookie('distrib_transporte_mostrar', $this->mostrar, time() + FS_COOKIES_EXPIRE);
@@ -132,23 +119,28 @@ class distrib_creacion extends distribucion_controller {
             $codcliente = $cli0->get($cliente);
         }
         $this->cliente = (isset($codcliente)) ? $codcliente : FALSE;
-
-        if (isset($_REQUEST['conductor'])) {
-            if ($_REQUEST['conductor'] != '') {
-                $cli0 = new distribucion_conductores();
-                $this->conductor = $cli0->get($this->empresa->id, $_REQUEST['conductor']);
+    }
+    
+    public function mostrarInfo()
+    {
+        if ($this->mostrar == 'todo') {
+            if ($this->codalmacen) {
+                $this->resultados = $this->distrib_transporte->all_almacen($this->empresa->id, $this->codalmacen, $this->offset);
+            } else {
+                $this->resultados = $this->distrib_transporte->all($this->empresa->id, $this->offset);
             }
+        } elseif ($this->mostrar == 'por_despachar') {
+            $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id, 'despachado', $this->codalmacen, $this->offset);
+        } elseif ($this->mostrar == 'por_liquidar') {
+            $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id, 'liquidado', $this->codalmacen, $this->offset);
+        } elseif ($this->mostrar == 'buscar') {
+            $this->buscador();
         }
-
-        $desde_p = \filter_input(INPUT_POST, 'desde');
-        $desde_g = \filter_input(INPUT_GET, 'desde');
-        $this->desde = ($desde_p) ? $desde_p : $desde_g;
-        $hasta_p = \filter_input(INPUT_POST, 'hasta');
-        $hasta_g = \filter_input(INPUT_GET, 'hasta');
-        $this->hasta = ($hasta_p) ? $hasta_p : $hasta_g;
-
-
-        $this->num_resultados = 0;
+    }
+    
+    public function filtrarType()
+    {
+        $type = \filter_input(INPUT_GET, 'type');
         if ($type === 'imprimir-transporte') {
             $this->imprimir_documento('transporte');
         } elseif ($type === 'imprimir-hojadevolucion') {
@@ -182,23 +174,21 @@ class distrib_creacion extends distribucion_controller {
         } elseif ($type == 'crear-faltante') {
             $this->crear_faltante();
         }
-        if ($this->mostrar == 'todo') {
-            if ($this->codalmacen) {
-                $this->resultados = $this->distrib_transporte->all_almacen($this->empresa->id, $this->codalmacen, $this->offset);
-            } else {
-                $this->resultados = $this->distrib_transporte->all($this->empresa->id, $this->offset);
-            }
-        } elseif ($this->mostrar == 'por_despachar') {
-            $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id, 'despachado', $this->codalmacen, $this->offset);
-        } elseif ($this->mostrar == 'por_liquidar') {
-            $this->resultados = $this->distrib_transporte->all_pendientes($this->empresa->id, 'liquidado', $this->codalmacen, $this->offset);
-        } elseif ($this->mostrar == 'buscar') {
-            $this->buscador();
-        }
-
-        if (isset($_REQUEST['buscar_conductor'])) {
-            $this->buscar_conductor();
-        }
+    }
+    
+    public function init_variables()
+    {
+        new distribucion_lineastransporte();
+        $this->almacen = new almacen();
+        $this->distrib_transporte = new distribucion_transporte();
+        $this->distrib_lineastransporte = new distribucion_lineastransporte();
+        $this->distrib_facturas = new distribucion_ordenescarga_facturas();
+        $this->factura_cliente = new factura_cliente();
+        $this->faltante = new distribucion_faltantes();
+        $this->subcuentas_faltantes = new distribucion_subcuentas_faltantes();
+        $this->asiento = new asiento();
+        $this->ejercicio = new ejercicio();
+        $this->conductores = new distribucion_conductores();
     }
 
     private function cabecera_lineas_documento($tipo){

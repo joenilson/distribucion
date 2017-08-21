@@ -16,31 +16,14 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('almacen.php');
-require_model('articulo.php');
-require_model('familia.php');
-require_model('cliente.php');
-require_model('grupo_clientes.php');
-require_model('distribucion_clientes.php');
-require_model('distribucion_transportes.php');
-require_model('distribucion_conductores.php');
-require_model('distribucion_unidades.php');
-require_model('distribucion_facturas.php');
-require_model('distribucion_faltantes.php');
-require_model('distribucion_organizacion.php');
-require_model('distribucion_rutas.php');
-require_model('facturas_cliente.php');
-require_model('facturas_proveedor.php');
-require_model('forma_pago.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
-require_once 'plugins/distribucion/vendors/FacturaScripts/Seguridad/SeguridadUsuario.php';
-use FacturaScripts\Seguridad\SeguridadUsuario;
+require_once 'plugins/distribucion/extras/distribucion_controller.php';
 /**
  * Description of dashboard_distribucion
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class dashboard_distribucion extends fs_controller {
+class dashboard_distribucion extends distribucion_controller {
     public $almacenes;
     public $familias;
     public $articulos;
@@ -117,7 +100,51 @@ class dashboard_distribucion extends fs_controller {
     }
 
     protected function private_core() {
+        parent::private_core();
         $this->shared_extensions();
+        $this->init_variables();
+
+        //Ragno de fechas según los datos enviados
+        $desde = new DateTime($this->f_desde);
+        $hasta_f = new DateTime($this->f_hasta);
+        $hasta = $hasta_f->modify( '+1 day' );
+        //intervalo de aumento es 1 día
+        $intervalo = new \DateInterval('P1D');
+        $this->rango_fechas = new \DatePeriod($desde, $intervalo, $hasta);
+
+        $this->iniciarArrayInformacion();
+
+        $accion = filter_input(INPUT_POST, 'accion');
+        if($accion){
+            switch ($accion){
+                case "buscar":
+                    $this->generar_resumen();
+                    $this->cobertura_articulos();
+                    $this->top_clientes();
+                    $this->top_articulos();
+                    $this->procesado = TRUE;
+                break;
+            }
+        }
+    }
+    
+    public function iniciarArrayInformacion()
+    {
+        //Llenamos el array de fechas para los graficos
+        $this->clientes_rutas = array();
+        $this->clientes_rutas['general_fecha_cantidad'] = array();
+        $this->clientes_rutas['general_fecha_oferta'] = array();
+        $this->clientes_rutas['general_fecha_importe'] = array();
+        foreach($this->rango_fechas as $fecha){
+            $this->graficos_fecha_labels[] = $fecha->format('d-m-Y');
+            $this->clientes_rutas['general_fecha_cantidad'][$fecha->format('d-m-Y')] = 0;
+            $this->clientes_rutas['general_fecha_oferta'][$fecha->format('d-m-Y')] = 0;
+            $this->clientes_rutas['general_fecha_importe'][$fecha->format('d-m-Y')] = 0;
+        }
+    }
+    
+    public function init_variables()
+    {
         $this->almacenes = new almacen();
         $this->articulos = new articulo();
         $this->familias = new familia();
@@ -133,53 +160,14 @@ class dashboard_distribucion extends fs_controller {
         $this->grupos_clientes = new grupo_clientes();
         $this->resultados_formas_pago = false;
         $this->procesado = false;
-
-        //Si el usuario es admin puede ver todos los recibos, pero sino, solo los de su almacén designado
-        $seguridadUsuario = new SeguridadUsuario();
-        $this->user = $seguridadUsuario->accesoAlmacenes($this->user);
-
+        
         //Inicializamos la variable del reporte
         $this->fileName = '';
 
-        $f_desde = filter_input(INPUT_POST, 'f_desde');
-        $this->f_desde = ($f_desde)?$f_desde:\date('01-m-Y');
-        $f_hasta = filter_input(INPUT_POST, 'f_hasta');
-        $this->f_hasta = ($f_hasta)?$f_hasta:\date('d-m-Y');
-        $codalmacen = filter_input(INPUT_POST, 'codalmacen');
-        $this->codalmacen = ($this->user->codalmacen)?$this->user->codalmacen:$codalmacen;
+        $this->f_desde = $this->confirmarValor(\filter_input(INPUT_POST, 'f_desde'),\date('01-m-Y'));
+        $this->f_hasta = $this->confirmarValor(\filter_input(INPUT_POST, 'f_hasta'),\date('d-m-Y'));
+        $this->codalmacen = $this->confirmarValor($this->user->codalmacen,\filter_input(INPUT_POST, 'codalmacen'));
 
-        //Ragno de fechas según los datos enviados
-        $desde = new DateTime($this->f_desde);
-        $hasta_f = new DateTime($this->f_hasta);
-        $hasta = $hasta_f->modify( '+1 day' );
-        //intervalo de aumento es 1 día
-        $intervalo = new \DateInterval('P1D');
-        $this->rango_fechas = new \DatePeriod($desde, $intervalo, $hasta);
-
-        //Llenamos el array de fechas para los graficos
-        $this->clientes_rutas = array();
-        $this->clientes_rutas['general_fecha_cantidad'] = array();
-        $this->clientes_rutas['general_fecha_oferta'] = array();
-        $this->clientes_rutas['general_fecha_importe'] = array();
-        foreach($this->rango_fechas as $fecha){
-            $this->graficos_fecha_labels[] = $fecha->format('d-m-Y');
-            $this->clientes_rutas['general_fecha_cantidad'][$fecha->format('d-m-Y')] = 0;
-            $this->clientes_rutas['general_fecha_oferta'][$fecha->format('d-m-Y')] = 0;
-            $this->clientes_rutas['general_fecha_importe'][$fecha->format('d-m-Y')] = 0;
-        }
-
-        $accion = filter_input(INPUT_POST, 'accion');
-        if($accion){
-            switch ($accion){
-                case "buscar":
-                    $this->generar_resumen();
-                    $this->cobertura_articulos();
-                    $this->top_clientes();
-                    $this->top_articulos();
-                    $this->procesado = TRUE;
-                break;
-            }
-        }
     }
 
     public function cobertura_articulos(){
@@ -310,8 +298,6 @@ class dashboard_distribucion extends fs_controller {
         $item->importe_pct = 100;
         $item->tipo = 'leaf';
         $this->resumen_familia[] = $item;
-
-
     }
 
     /**
@@ -418,11 +404,7 @@ class dashboard_distribucion extends fs_controller {
     public function generar_resumen(){
         //Obtenemos la información de los supervisores
         //Verificamos el codigo de almacen para supervisores
-        if($this->codalmacen){
-            $this->supervisores = $this->organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'SUPERVISOR');
-        }else{
-            $this->supervisores = $this->organizacion->activos_tipoagente($this->empresa->id, 'SUPERVISOR');
-        }
+        $this->supervisores = $this->organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'SUPERVISOR');
         $no_supervisor = new distribucion_organizacion();
         $no_supervisor->codagente = "NOSUPERVISOR";
         $no_supervisor->nombre = "SIN SUPERVISOR";
@@ -436,11 +418,7 @@ class dashboard_distribucion extends fs_controller {
 
         //Obtenemos la información de los vendedores
         //Verificamos el codigo de almacen para vendedores
-        if($this->codalmacen){
-            $this->vendedores = $this->organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'VENDEDOR');
-        }else{
-            $this->vendedores = $this->organizacion->activos_tipoagente($this->empresa->id, 'VENDEDOR');
-        }
+        $this->vendedores = $this->organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'VENDEDOR');
         $this->cantidad_vendedores = count($this->vendedores);
         if($this->codalmacen){
             $unidades = $this->unidades->activos_almacen($this->empresa->id, $this->codalmacen);
