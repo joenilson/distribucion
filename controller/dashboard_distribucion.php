@@ -127,7 +127,7 @@ class dashboard_distribucion extends distribucion_controller {
             }
         }
     }
-    
+
     public function iniciarArrayInformacion()
     {
         //Llenamos el array de fechas para los graficos
@@ -142,7 +142,7 @@ class dashboard_distribucion extends distribucion_controller {
             $this->clientes_rutas['general_fecha_importe'][$fecha->format('d-m-Y')] = 0;
         }
     }
-    
+
     public function init_variables()
     {
         $this->almacenes = new almacen();
@@ -160,7 +160,7 @@ class dashboard_distribucion extends distribucion_controller {
         $this->grupos_clientes = new grupo_clientes();
         $this->resultados_formas_pago = false;
         $this->procesado = false;
-        
+
         //Inicializamos la variable del reporte
         $this->fileName = '';
 
@@ -846,7 +846,7 @@ class dashboard_distribucion extends distribucion_controller {
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/tableExport/libs/jsPDF-AutoTable/jspdf.plugin.autotable.js" type="text/javascript"></script>',
+                'text' => '<script src="'.FS_PATH.'plugins/distribucion/view/js/tableExport/libs/jsPDF-AutoTable/jspdf.plugin.autotable.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
             array(
