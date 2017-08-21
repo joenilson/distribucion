@@ -542,20 +542,39 @@ class distrib_ordencarga extends distribucion_controller {
         $array_facturas = explode(",", $datos['facturas']);
         $this->resultados = array();
         $lineas_factura = array();
+        foreach ($array_facturas as $key) {
+            if ($key) {
+               $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($key);
+               
+            }
+        }
+        
+        list($data_resumen, $suma_cantidades, $suma_peso) = $this->agrupar_articulos_facturas($lineas_factura);
+        
+        foreach ($data_resumen as $key => $datos) {
+            $this->resultados[] = $datos;
+        }
+        if ($retorno == 'json') {
+            $this->template = FALSE;
+            header('Content-Type: application/json');
+            echo json_encode(array('userData' => array('referencia' => '', 'producto' => 'Total', 'cantidad' => $suma_cantidades), 'rows' => $this->resultados));
+        } elseif ($retorno == 'array') {
+            return array('resultados' => $this->resultados, 'totalCantidad' => $suma_cantidades, 'totalPeso' => $suma_peso);
+        }
+    }
+    
+    public function agrupar_articulos_facturas($lineas_factura)
+    {
         $lista_resumen = array();
         $data_resumen = array();
         $suma_cantidades = 0;
         $suma_peso = 0;
-        foreach ($array_facturas as $key) {
-            if ($key) {
-               $lineas_factura[] = $this->linea_factura_cliente->all_from_factura($key);
-            }
-        }
         foreach ($lineas_factura as $linea_factura) {
             foreach ($linea_factura as $key => $values) {
                 if (!isset($lista_resumen[$values->referencia])) {
                    $lista_resumen[$values->referencia] = 0;
                 }
+                
                 if (!isset($data_resumen[$values->referencia])) {
                    $data_resumen[$values->referencia] = array();
                 }
@@ -564,16 +583,7 @@ class distrib_ordencarga extends distribucion_controller {
                 $suma_cantidades += $values->cantidad;
             }
         }
-        foreach ($data_resumen as $key => $datos) {
-            $this->resultados[] = $datos;
-        }
-        if ($retorno == 'json') {
-            $this->template = FALSE;
-            header('Content-Type: application/json');
-            echo json_encode(array('userData' => array('referencia' => "", 'producto' => 'Total', 'cantidad' => $suma_cantidades), 'rows' => $this->resultados));
-        } elseif ($retorno == 'array') {
-            return array('resultados' => $this->resultados, 'totalCantidad' => $suma_cantidades, 'totalPeso' => $suma_peso);
-        }
+        return array($data_resumen, $suma_cantidades, $suma_peso);
     }
 
     public function guardar_carga() {

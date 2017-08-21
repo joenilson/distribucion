@@ -110,22 +110,34 @@ class admin_distribucion extends distribucion_controller {
         $this->distribucion_restricciones_tiporuta = new distribucion_restricciones_tiporuta();
         $this->distribucion_tipovendedor = new distribucion_tipovendedor();
         $this->distribucion_asignacion_cargos = new distribucion_asignacion_cargos();
-        $type_p = \filter_input(INPUT_POST, 'type');
-        $type_g = \filter_input(INPUT_GET, 'type');
-        $type = (isset($type_p)) ? $type_p : $type_g;
-        $this->type = $type;
         $this->idtiporuta = null;
-        if ($type == 'tipo_transporte') {
+        $this->type = $this->filter_request('type');
+        $this->enrutarType();
+
+        $this->cargos_disponibles = $this->listado_cargos_disponibles();
+        $this->listado_tipo_transporte = $this->distribucion_tipounidad->all($this->empresa->id);
+        $this->listado_tipo_ruta = $this->distribucion_tiporuta->all();
+        $this->listado_tipo_vendedor = $this->distribucion_tipovendedor->all();
+        $this->listado_articulos_restringidos = $this->distribucion_restricciones_tiporuta->all();
+        $this->listado_supervisores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'SUP');
+        $this->listado_vendedores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'VEN');
+        $this->listado_administradores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'ADM');
+
+    }
+    
+    public function enrutarType()
+    {
+        if ($this->type == 'tipo_transporte') {
             $this->tratar_tipounidad();
-        } elseif ($type == 'tipo_vendedor') {
+        } elseif ($this->type == 'tipo_vendedor') {
             $this->tratar_tipovendedor();
-        } elseif ($type == 'tipo_ruta') {
+        } elseif ($this->type == 'tipo_ruta') {
             $this->tratar_tiporuta();
-        } elseif($type == 'traducciones'){
+        } elseif($this->type == 'traducciones'){
             $this->tratar_traducciones();
-        } elseif ($type == 'asignacion_cargos'){
+        } elseif ($this->type == 'asignacion_cargos'){
             $this->tratar_asignacion_cargos();
-        } elseif ($type=='restriccion_articulos'){
+        } elseif ($this->type=='restriccion_articulos'){
             $this->articulo = new articulo();
             $this->familia = new familia();
             $this->idtiporuta = \filter_input(INPUT_GET, 'idtiporuta');
@@ -143,16 +155,6 @@ class admin_distribucion extends distribucion_controller {
                 $this->template = 'admin/restriccion_articulos';
             }
         }
-
-        $this->cargos_disponibles = $this->listado_cargos_disponibles();
-        $this->listado_tipo_transporte = $this->distribucion_tipounidad->all($this->empresa->id);
-        $this->listado_tipo_ruta = $this->distribucion_tiporuta->all();
-        $this->listado_tipo_vendedor = $this->distribucion_tipovendedor->all();
-        $this->listado_articulos_restringidos = $this->distribucion_restricciones_tiporuta->all();
-        $this->listado_supervisores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'SUP');
-        $this->listado_vendedores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'VEN');
-        $this->listado_administradores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'ADM');
-
     }
 
     /**
