@@ -17,29 +17,6 @@
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-require_model('almacen.php');
-require_model('articulo.php');
-require_model('pais.php');
-require_model('agencia_transporte.php');
-require_model('distribucion_clientes.php');
-require_model('distribucion_subcuentas_faltantes.php');
-require_model('distribucion_coordenadas_clientes.php');
-require_model('distribucion_conductores.php');
-require_model('distribucion_tipounidad.php');
-require_model('distribucion_unidades.php');
-require_model('distribucion_organizacion.php');
-require_model('distribucion_segmentos.php');
-require_model('distribucion_rutas.php');
-require_model('distribucion_ordenescarga.php');
-require_model('distribucion_transporte.php');
-require_model('distribucion_lineasordenescarga.php');
-require_model('distribucion_ordenescarga_facturas.php');
-require_model('distribucion_lineastransporte.php');
-require_model('distribucion_tipounidad.php');
-require_model('distribucion_tiporuta.php');
-require_model('distribucion_restricciones_tiporuta.php');
-require_model('distribucion_tipovendedor.php');
-require_model('distribucion_asignacion_cargos.php');
 require_once 'plugins/distribucion/extras/distribucion_controller.php';
 /**
  * Description of admin_distribucion
@@ -76,6 +53,42 @@ class admin_distribucion extends distribucion_controller {
     public function private_core() {
         parent::private_core();
         
+        $this->cargar_tablas();
+        $this->share_extensions();
+        $this->init_variables();
+        
+        $this->type = $this->filter_request('type');
+        $this->enrutarType();
+
+        $this->cargos_disponibles = $this->listado_cargos_disponibles();
+        $this->listado_tipo_transporte = $this->distribucion_tipounidad->all($this->empresa->id);
+        $this->listado_tipo_ruta = $this->distribucion_tiporuta->all();
+        $this->listado_tipo_vendedor = $this->distribucion_tipovendedor->all();
+        $this->listado_articulos_restringidos = $this->distribucion_restricciones_tiporuta->all();
+        $this->listado_supervisores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'SUP');
+        $this->listado_vendedores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'VEN');
+        $this->listado_administradores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'ADM');
+
+    }
+    
+    private function init_variables()
+    {
+        /// cargamos la configuración
+        $this->fsvar = new fs_var();
+        $this->check_menu();
+        $this->nomina = in_array('nomina',$GLOBALS['plugins']);
+        
+        $this->distribucion_tipounidad = new distribucion_tipounidad();
+        $this->distribucion_tiporuta = new distribucion_tiporuta();
+        $this->distribucion_restricciones_tiporuta = new distribucion_restricciones_tiporuta();
+        $this->distribucion_tipovendedor = new distribucion_tipovendedor();
+        $this->distribucion_asignacion_cargos = new distribucion_asignacion_cargos();
+        $this->idtiporuta = null;
+    }
+
+
+    private function cargar_tablas()
+    {
         //Cargamos las tablas en el orden correcto
         new distribucion_subcuentas_faltantes();
         new distribucion_coordenadas_clientes();
@@ -92,37 +105,6 @@ class admin_distribucion extends distribucion_controller {
         new distribucion_ordenescarga_facturas();
         new distribucion_lineastransporte();
         new distribucion_asignacion_cargos();
-
-        $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
-        $this->share_extensions();
-        /// cargamos la configuración
-        $this->fsvar = new fs_var();
-
-        $this->check_menu();
-
-        /*
-         * Buscamos si está el plugin de nomina para la busqueda de los cargos de Supervisor y Vendedor
-         */
-        $this->nomina = in_array('nomina',$GLOBALS['plugins']);
-
-        $this->distribucion_tipounidad = new distribucion_tipounidad();
-        $this->distribucion_tiporuta = new distribucion_tiporuta();
-        $this->distribucion_restricciones_tiporuta = new distribucion_restricciones_tiporuta();
-        $this->distribucion_tipovendedor = new distribucion_tipovendedor();
-        $this->distribucion_asignacion_cargos = new distribucion_asignacion_cargos();
-        $this->idtiporuta = null;
-        $this->type = $this->filter_request('type');
-        $this->enrutarType();
-
-        $this->cargos_disponibles = $this->listado_cargos_disponibles();
-        $this->listado_tipo_transporte = $this->distribucion_tipounidad->all($this->empresa->id);
-        $this->listado_tipo_ruta = $this->distribucion_tiporuta->all();
-        $this->listado_tipo_vendedor = $this->distribucion_tipovendedor->all();
-        $this->listado_articulos_restringidos = $this->distribucion_restricciones_tiporuta->all();
-        $this->listado_supervisores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'SUP');
-        $this->listado_vendedores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'VEN');
-        $this->listado_administradores_asignados = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, 'ADM');
-
     }
     
     public function enrutarType()
@@ -142,18 +124,23 @@ class admin_distribucion extends distribucion_controller {
             $this->familia = new familia();
             $this->idtiporuta = \filter_input(INPUT_GET, 'idtiporuta');
             $this->descripciontiporuta = ucfirst(strtolower($this->distribucion_tiporuta->get($this->idtiporuta)->descripcion));
-            $subtype = \filter_input(INPUT_GET, 'subtype');
-            if($subtype=='arbol_articulos'){
-                $this->get_arbol_articulos();
-            }elseif($subtype=='arbol_restringidos'){
-                $this->get_arbol_restringidos();
-            }elseif($subtype=='restringir_articulos'){
-                $this->restriccion_articulos(true);
-            }elseif($subtype=='no_restringir_articulos'){
-                $this->restriccion_articulos(false);
-            }else{
-                $this->template = 'admin/restriccion_articulos';
-            }
+            $this->enrutarSubtype();
+        }
+    }
+    
+    public function enrutarSubtype()
+    {
+        $subtype = \filter_input(INPUT_GET, 'subtype');
+        if($subtype=='arbol_articulos'){
+            $this->get_arbol_articulos();
+        }elseif($subtype=='arbol_restringidos'){
+            $this->get_arbol_restringidos();
+        }elseif($subtype=='restringir_articulos'){
+            $this->restriccion_articulos(true);
+        }elseif($subtype=='no_restringir_articulos'){
+            $this->restriccion_articulos(false);
+        }else{
+            $this->template = 'admin/restriccion_articulos';
         }
     }
 
