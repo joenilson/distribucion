@@ -54,9 +54,9 @@ class distribucion_facturas extends factura_cliente {
         }else{
             return false;
         }
-        
+
     }
-    
+
     /**
      * Se genera el listado de clientes visitados por ruta
      * es opcional las fechas desde y hasta y el campo ruta
@@ -71,22 +71,22 @@ class distribucion_facturas extends factura_cliente {
         $visitados = 0;
         $sql = "SELECT count(DISTINCT codcliente) as visitados FROM ".$this->table_name.
             " WHERE anulada = FALSE AND idfacturarect IS NULL ";
-        
+
         if($codalmacen)
         {
             $sql .= " AND codalmacen = ".$this->var2str($codalmacen);
         }
-        
+
         if($codruta)
         {
             $sql .= " AND codruta = ".$this->var2str($codruta);
         }
-        
+
         if($desde)
         {
             $sql.= " AND fecha >= ".$this->var2str($desde);
         }
-        
+
         if($hasta)
         {
             $sql.= " AND fecha <= ".$this->var2str($hasta);
@@ -96,11 +96,11 @@ class distribucion_facturas extends factura_cliente {
         {
             $visitados = $data[0]['visitados'];
         }
-        return $visitados; 
+        return $visitados;
     }
-    
+
     /**
-     * Se generan las ventas y ofertas por ruta y en un rango de fechas 
+     * Se generan las ventas y ofertas por ruta y en un rango de fechas
      * @param type $codalmacen
      * @param type $codruta
      * @param type $desde
@@ -111,14 +111,14 @@ class distribucion_facturas extends factura_cliente {
     {
         $lista = array();
         $sql = "SELECT codruta,fecha,sum(T2.cantidad) as qdad_vendida,sum(T2.pvptotal) as importe_vendido, sum(T3.cantidad) as qdad_oferta ".
-            "FROM ".$this->table_name." AS T1 ".
-            "LEFT JOIN lineasfacturascli as T2 ".
-            "ON T1.idfactura = T2.idfactura AND T2.dtopor != 100".
-            "LEFT JOIN lineasfacturascli as T3 ".
-            "ON T1.idfactura = T3.idfactura AND T3.dtopor = 100".
-            "WHERE fecha between ".$this->var2str($desde)." AND ".$this->var2str($hasta)." ".
-            "AND codalmacen = ".$this->var2str($codalmacen)." and codruta = ".$this->var2str($codruta)." and anulada = FALSE ".
-            "GROUP by codruta,fecha;";
+            " FROM ".$this->table_name." AS T1 ".
+            " LEFT JOIN lineasfacturascli as T2 ".
+            " ON T1.idfactura = T2.idfactura AND T2.dtopor != 100 ".
+            " LEFT JOIN lineasfacturascli as T3 ".
+            " ON T1.idfactura = T3.idfactura AND T3.dtopor = 100 ".
+            " WHERE fecha between ".$this->var2str($desde)." AND ".$this->var2str($hasta)." ".
+            " AND codalmacen = ".$this->var2str($codalmacen)." and codruta = ".$this->var2str($codruta)." and anulada = FALSE ".
+            " GROUP by codruta,fecha;";
         $data = $this->db->select($sql);
         if($data)
         {
@@ -135,5 +135,5 @@ class distribucion_facturas extends factura_cliente {
         }
         return $lista;
     }
-    
+
 }

@@ -85,7 +85,7 @@ class distribucion_clientes extends fs_model {
     protected function install() {
         return "";
     }
-    
+
     private function join_tablas(){
         $sql = " SELECT dc.*,c.nombre as nombre_cliente,c.razonsocial,c.cifnif,c.fechaalta,c.fechabaja,c.debaja,ds1.descripcion as canal_desc,".
                 "ds2.descripcion as subcanal_desc,dir.direccion,dr.descripcion, dr.codagente, concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre".

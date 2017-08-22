@@ -49,12 +49,12 @@ class distribucion_rutas extends fs_model {
     /**
      *
      * @var string
-     */    
+     */
     public $ruta;
     /**
      *
      * @var string
-     */    
+     */
     public $descripcion;
     /**
      *
@@ -167,7 +167,7 @@ class distribucion_rutas extends fs_model {
     protected function install() {
         return "";
     }
-    
+
     private function join_tablas()
     {
         $sql = "SELECT dr.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
@@ -175,9 +175,9 @@ class distribucion_rutas extends fs_model {
                 "dtr.descripcion as tipo_ruta ".
                 " FROM ".$this->table_name." AS dr ".
                 " LEFT JOIN distribucion_tiporuta as dtr on (dr.codruta = dtr.id) ".
-                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR') ".
-                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente) ".
-                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor) ";
+                " LEFT JOIN distribucion_organizacion as do1 on (dr.codagente = do1.codagente and do1.tipoagente= 'VENDEDOR' and dr.codalmacen = do1.codalmacen) ".
+                " LEFT JOIN agentes as a1 on (a1.codagente = do1.codagente and a1.codalmacen = dr.codalmacen) ".
+                " LEFT JOIN agentes as a2 on (a2.codagente = do1.codsupervisor and a2.codalmacen = dr.codalmacen) ";
         return $sql;
     }
 
@@ -335,9 +335,12 @@ class distribucion_rutas extends fs_model {
     {
         $lista = array();
         $sql_select = $this->join_tablas();
-        $data = $this->db->select($sql_select.
-                " WHERE dr.idempresa = ".$this->intval($idempresa)." AND dr.codalmacen = ".$this->var2str($codalmacen)." AND dr.codagente = ".$this->var2str($codagente).
-                " ORDER BY dr.codalmacen, dr.codagente, dr.ruta;");
+        $sql = $sql_select.
+                " WHERE dr.idempresa = ".$this->intval($idempresa).
+                " AND dr.codalmacen = ".$this->var2str($codalmacen).
+                " AND dr.codagente = ".$this->var2str($codagente).
+                " ORDER BY dr.codalmacen, dr.codagente, dr.ruta;";
+        $data = $this->db->select($sql);
 
         if($data)
         {

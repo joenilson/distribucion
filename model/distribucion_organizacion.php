@@ -101,12 +101,12 @@ class distribucion_organizacion extends fs_model {
     {
         $sql_aux = $this->filterVariables($codalmacen, $tipoagente, $codagente, $codsupervisor, $estado);
         $sql = "SELECT dorg.*,concat(a1.nombre,' ',a1.apellidos,' ',a1.segundo_apellido) as nombre, ".
-        " concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor ".
+        " concat(a2.nombre,' ',a2.apellidos,' ',a2.segundo_apellido) as nombre_supervisor, sum1.total_asignados, sum2.total_rutas ".
         " FROM ".$this->table_name." as dorg".
-        " left join agentes as a1 on (dorg.codagente = a1.codagente) ".
-        " left join agentes as a2 on (dorg.codsupervisor = a2.codagente) ".
-        " left join (SELECT idempresa,codsupervisor,count(*) as total_asignados FROM ".$this->table_name." GROUP BY idempresa,codsupervisor) as sum1 on (sum1.idempresa = dorg.idempresa AND sum1.codsupervisor = dorg.codagente) ".
-        " left join (SELECT idempresa,codagente,count(*) as total_rutas FROM distribucion_rutas GROUP BY idempresa,codagente) as sum2 on (sum2.idempresa = dorg.idempresa AND sum2.codagente = dorg.codagente) ".
+        " left join agentes as a1 on (dorg.codagente = a1.codagente and dorg.codalmacen = a1.codalmacen) ".
+        " left join agentes as a2 on (dorg.codsupervisor = a2.codagente and dorg.codalmacen = a2.codalmacen) ".
+        " left join (SELECT idempresa,codalmacen,codsupervisor,count(*) as total_asignados FROM ".$this->table_name." GROUP BY idempresa,codalmacen,codsupervisor) as sum1 on (sum1.idempresa = dorg.idempresa AND sum1.codsupervisor = dorg.codagente and sum1.codalmacen = dorg.codalmacen) ".
+        " left join (SELECT idempresa,codalmacen,codagente,count(*) as total_rutas FROM distribucion_rutas GROUP BY idempresa,codalmacen,codagente) as sum2 on (sum2.idempresa = dorg.idempresa AND sum2.codagente = dorg.codagente and sum2.codalmacen = dorg.codalmacen) ".
         " WHERE dorg.idempresa = ".$this->intval($idempresa).
         $sql_aux.
         " ORDER BY dorg.codalmacen, dorg.tipoagente, dorg.codagente;";
@@ -161,21 +161,21 @@ class distribucion_organizacion extends fs_model {
 
     public function filterVariables($codalmacen = false, $tipoagente = false, $codagente = false, $codsupervisor = false, $estado = false)
     {
-        $sql = ' AND ';
+        $sql = '';
         if($codalmacen){
-            $sql.='dorg.codalmacen = '.$this->var2str($codalmacen);
+            $sql.=' AND dorg.codalmacen = '.$this->var2str($codalmacen);
         }
         if($tipoagente){
-            $sql.='AND dorg.tipoagente = '.$this->var2str($tipoagente);
+            $sql.=' AND dorg.tipoagente = '.$this->var2str($tipoagente);
         }
         if($codagente){
-            $sql.='AND dorg.codagente = '.$this->var2str($codagente);
+            $sql.=' AND dorg.codagente = '.$this->var2str($codagente);
         }
         if($codsupervisor){
-            $sql.='AND dorg.codsupervisor = '.$this->var2str($codsupervisor);
+            $sql.=' AND dorg.codsupervisor = '.$this->var2str($codsupervisor);
         }
         if($estado){
-            $sql.='AND dorg.estado = TRUE ';
+            $sql.=' AND dorg.estado = TRUE ';
         }
         return $sql;
     }
@@ -208,7 +208,7 @@ class distribucion_organizacion extends fs_model {
             foreach($data as $d)
             {
                 $value = new distribucion_organizacion($d);
-                $info = $this->info_adicional($value,$d);
+                $info = $this->info_adicional($value, $d);
                 $lista[] = $info;
             }
         }
@@ -320,10 +320,10 @@ class distribucion_organizacion extends fs_model {
         }
     }
 
-    public function get_asignados($idempresa,$codsupervisor)
+    public function get_asignados($idempresa,$codsupervisor, $codalmacen = false)
     {
         $lista = array();
-        $sql = $this->sql_select($idempresa, false, false, false, $codsupervisor);
+        $sql = $this->sql_select($idempresa, $codalmacen, false, false, $codsupervisor);
         $data = $this->db->select($sql);
         if($data)
         {
@@ -339,13 +339,13 @@ class distribucion_organizacion extends fs_model {
 
     }
 
-    public function tiene_asignados($idempresa,$codsupervisor)
+    public function tiene_asignados($idempresa,$codsupervisor, $codalmacen = false)
     {
-        $sql = $this->sql_select($idempresa, false, false, false, $codsupervisor);
+        $sql = $this->sql_select($idempresa, $codalmacen, false, false, $codsupervisor);
         $data = $this->db->select($sql);
         if($data)
         {
-            return $data[0]['cantidad'];
+            return $data[0]['total_asignados'];
         }else{
             return false;
         }
@@ -358,7 +358,7 @@ class distribucion_organizacion extends fs_model {
 
         if($data)
         {
-            return $data[0]['cantidad'];
+            return $data[0]['total_rutas'];
         }else{
             return false;
         }
@@ -367,18 +367,17 @@ class distribucion_organizacion extends fs_model {
     public function tiene_clientes_asignados($idempresa,$codalmacen,$codagente)
     {
         //Buscamos las rutas de este agente
-        $sql = "SELECT ruta FROM distribucion_rutas WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND codagente = ".$this->var2str($codagente).";";
+        $sql = "SELECT count(dc.codcliente) as total_clientes ".
+                " FROM distribucion_rutas as dr, distribucion_clientes as dc ".
+                " WHERE dr.idempresa = ".$this->intval($idempresa)." AND dr.idempresa = dc.idempresa ".
+                " AND dr.codalmacen = ".$this->var2str($codalmacen)." AND dr.codalmacen = dc.codalmacen ".
+                " AND dr.codagente = ".$this->var2str($codagente)." AND dr.ruta = dc.ruta;";
         $data = $this->db->select($sql);
         $cantidad = 0;
         if($data)
         {
-            foreach($data as $d){
-                $rutas = new distribucion_rutas();
-                $cantidad += $rutas->cantidad_asignados($idempresa,$codalmacen,$d['ruta']);
-            }
-            return $cantidad;
-        }else{
-            return false;
+            $cantidad = $data[0]['total_clientes'];
         }
+        return $cantidad;
     }
 }

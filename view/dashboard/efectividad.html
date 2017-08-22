@@ -183,7 +183,7 @@ function cargarGraficoEfectividad(componente,tipo_grafico,venta,oferta, labels,o
                             </tr>
                         </thead>
                         <tbody>
-                        {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente)"}
+                        {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente, $value1->codalmacen)"}
                             <tr>
                                 <td><a href="#vendedor{$value2->codagente}">{$value2->nombre}</a></td>
                                 <td class="text-right">{$fsc->clientes_rutas['total_clientes'][$value2->codagente]}</td>
@@ -240,8 +240,8 @@ function cargarGraficoEfectividad(componente,tipo_grafico,venta,oferta, labels,o
                         </tfoot>
                     </table>
 
-                    </div>                    
-                    {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente)"}
+                    </div>
+                    {loop="$fsc->organizacion->get_asignados($fsc->empresa->id,$value1->codagente, $value1->codalmacen)"}
                     <ul class="list-group">
                         <li class="list-group-item" id="vendedor{$value2->codagente}" style="padding-top: 20px;">
                             <h4>Vendedor: {$value2->nombre} <small>{$fsc->clientes_rutas['total_rutas'][$value2->codagente]} Rutas</small>
@@ -300,7 +300,7 @@ function cargarGraficoEfectividad(componente,tipo_grafico,venta,oferta, labels,o
                                                 {$participacion_importe=round(($fsc->clientes_rutas['importe'][$value3->ruta]/$fsc->clientes_rutas['total_importe'][$value2->codagente])*100,2)}
                                             {/if}
                                             {$fsc->show_numero($participacion_importe)}%
-                                            &nbsp;<span class="fa fa-circle {if="$participacion_importe<30"}text-danger{elseif="$participacion_importe>=30 AND $participacion_importe<=65"}text-warning{else}text-success{/if}"></span>                                            
+                                            &nbsp;<span class="fa fa-circle {if="$participacion_importe<30"}text-danger{elseif="$participacion_importe>=30 AND $participacion_importe<=65"}text-warning{else}text-success{/if}"></span>
                                         </td>
                                     </tr>
                                     {else}

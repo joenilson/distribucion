@@ -12,7 +12,7 @@
  *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See th * e
  *  * GNU Lesser General Public License for more details.
- *  * 
+ *  *
  *  * You should have received a copy of the GNU Lesser General Public License
  *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -34,7 +34,7 @@ class distribucion_unidades extends fs_model {
     public $fecha_creacion;
     public $usuario_modificacion;
     public $fecha_modificacion;
-    
+
     public function __construct($t = false) {
         parent::__construct('distribucion_unidades','plugins/distribucion/');
         if($t)
@@ -66,15 +66,15 @@ class distribucion_unidades extends fs_model {
             $this->fecha_modificacion = null;
         }
     }
-    
+
     public function url(){
         return "index.php?page=distrib_unidades";
     }
-    
+
     protected function install() {
         return "";
     }
-    
+
     public function exists() {
         if(is_null($this->placa))
         {
@@ -87,7 +87,7 @@ class distribucion_unidades extends fs_model {
                     "placa = ".$this->var2str($this->placa).";");
         }
     }
-    
+
     public function save() {
         if ($this->exists())
         {
@@ -102,7 +102,7 @@ class distribucion_unidades extends fs_model {
                     " WHERE ".
                     "idempresa = ".$this->intval($this->idempresa)." AND ".
                     "placa = ".$this->var2str($this->placa).";";
-            
+
             return $this->db->exec($sql);
         }
         else
@@ -127,19 +127,19 @@ class distribucion_unidades extends fs_model {
             }
         }
     }
-    
+
     public function delete() {
         $sql = "DELETE FROM distribucion_unidades WHERE ".
                 "idempresa = ".$this->intval($this->idempresa)." AND ".
                 "placa = ".$this->var2str($this->placa).";";
         return $this->db->exec($sql);
     }
-    
+
     public function all($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." ORDER BY codalmacen, codtrans, placa;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -149,12 +149,12 @@ class distribucion_unidades extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_almacen($idempresa,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, codtrans, placa;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -164,12 +164,12 @@ class distribucion_unidades extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_agencia($idempresa,$codtrans)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." ORDER BY codalmacen, codtrans, placa;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -179,12 +179,12 @@ class distribucion_unidades extends fs_model {
         }
         return $lista;
     }
-    
+
     public function all_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." ORDER BY codalmacen, codtrans, placa;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -194,12 +194,12 @@ class distribucion_unidades extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos($idempresa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND estado = true ORDER BY codalmacen, codtrans, placa;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -209,27 +209,33 @@ class distribucion_unidades extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_almacen($idempresa,$codalmacen)
     {
         $lista = array();
-        $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, codtrans, placa;");
-        
-        if($data)
-        {
-            foreach($data as $d)
-            {
+        $sql_aux = '';
+        if($codalmacen){
+            $sql_aux = ' AND codalmacen = '.$this->var2str($codalmacen);
+        }
+        $sql = "SELECT * FROM ".$this->table_name.
+                " WHERE idempresa = ".$this->intval($idempresa).
+                $sql_aux.
+                " AND estado = true ORDER BY codalmacen, codtrans, placa;";
+        $data = $this->db->select($sql);
+
+        if ($data) {
+            foreach ($data as $d) {
                 $lista[] = new distribucion_unidades($d);
             }
         }
         return $lista;
     }
-    
+
     public function activos_agencia($idempresa,$codtrans)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND estado = true ORDER BY codalmacen, codtrans, placa;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -239,12 +245,12 @@ class distribucion_unidades extends fs_model {
         }
         return $lista;
     }
-    
+
     public function activos_agencia_almacen($idempresa,$codtrans,$codalmacen)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND codtrans = ".$this->var2str($codtrans)." AND codalmacen = ".$this->var2str($codalmacen)." AND estado = true ORDER BY codalmacen, codtrans, placa;");
-        
+
         if($data)
         {
             foreach($data as $d)
@@ -254,12 +260,12 @@ class distribucion_unidades extends fs_model {
         }
         return $lista;
     }
-    
+
     public function get($idempresa,$placa)
     {
         $lista = array();
         $data = $this->db->select("SELECT * FROM distribucion_unidades WHERE idempresa = ".$this->intval($idempresa)." AND placa = ".$this->var2str($placa).";");
-        
+
         if($data)
         {
             foreach($data as $d)

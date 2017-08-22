@@ -167,7 +167,6 @@ class dashboard_distribucion extends distribucion_controller {
         $this->f_desde = $this->confirmarValor(\filter_input(INPUT_POST, 'f_desde'),\date('01-m-Y'));
         $this->f_hasta = $this->confirmarValor(\filter_input(INPUT_POST, 'f_hasta'),\date('d-m-Y'));
         $this->codalmacen = $this->confirmarValor($this->user->codalmacen,\filter_input(INPUT_POST, 'codalmacen'));
-
     }
 
     public function cobertura_articulos(){
@@ -261,6 +260,8 @@ class dashboard_distribucion extends distribucion_controller {
 
 
         //Agregamos las sumas de todas las familias
+        $this->resumen_familias();
+        /*
         foreach($this->familias->madres() as $fam){
             $this->agregar_item(array(
                 'codigo'=>$fam->codfamilia,
@@ -283,9 +284,11 @@ class dashboard_distribucion extends distribucion_controller {
                 }
             }
             if($fam->hijas()){
-                $this->resumen_familias($fam->codfamilia);
+                $this->resumen_familias($fam->codfamilia, true);
             }
         }
+         *
+         */
 
         //Agregamos la ultima fila de total
         $item = new stdClass();
@@ -348,8 +351,12 @@ class dashboard_distribucion extends distribucion_controller {
      * @return \stdClass
      */
     public function resumen_familias($madre = FALSE){
-        if($this->familias->hijas($madre)){
-            foreach($this->familias->hijas($madre) as $fam){
+        $familias = $this->familias->madres();
+        if($madre){
+            $familias = $this->familias->hijas($madre);
+        }
+        if($familias){
+            foreach($familias as $fam){
                 $this->agregar_item(array(
                     'codigo'=>$fam->codfamilia,
                     'descripcion'=>$fam->descripcion,
@@ -374,7 +381,6 @@ class dashboard_distribucion extends distribucion_controller {
                     $this->resumen_familias($fam->codfamilia);
                 }
             }
-
         }else{
             return false;
         }
@@ -512,24 +518,25 @@ class dashboard_distribucion extends distribucion_controller {
     public function resumen_venta_rutas($ventas_ruta, $vendedor, $ruta)
     {
         foreach($ventas_ruta as $d){
+            $fecha = \date('d-m-Y',strtotime($d->fecha));
             $this->clientes_rutas['cantidad'][$ruta->ruta] += $d->qdad_vendida;
             $this->clientes_rutas['importe'][$ruta->ruta] += $d->importe_vendido;
             $this->clientes_rutas['oferta'][$ruta->ruta] += $d->qdad_oferta;
             $this->clientes_rutas['total_cantidad'][$vendedor->codagente] += $d->qdad_vendida;
             $this->clientes_rutas['total_importe'][$vendedor->codagente] += $d->importe_vendido;
             $this->clientes_rutas['total_oferta'][$vendedor->codagente] += $d->qdad_oferta;
-            $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
-            $this->clientes_rutas['fecha_importe'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
-            $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
+            $this->clientes_rutas['fecha_cantidad'][$vendedor->codagente][$fecha] += $d->qdad_vendida;
+            $this->clientes_rutas['fecha_importe'][$vendedor->codagente][$fecha] += $d->importe_vendido;
+            $this->clientes_rutas['fecha_oferta'][$vendedor->codagente][$fecha] += $d->qdad_oferta;
             $this->clientes_rutas['mesa_total_cantidad'][$vendedor->codsupervisor] += $d->qdad_vendida;
             $this->clientes_rutas['mesa_total_importe'][$vendedor->codsupervisor] += $d->importe_vendido;
             $this->clientes_rutas['mesa_total_oferta'][$vendedor->codsupervisor] += $d->qdad_oferta;
-            $this->clientes_rutas['mesa_fecha_cantidad'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
-            $this->clientes_rutas['mesa_fecha_importe'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
-            $this->clientes_rutas['mesa_fecha_oferta'][$vendedor->codsupervisor][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
-            $this->clientes_rutas['general_fecha_cantidad'][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_vendida;
-            $this->clientes_rutas['general_fecha_importe'][\date('d-m-Y',strtotime($d->fecha))] += $d->importe_vendido;
-            $this->clientes_rutas['general_fecha_oferta'][\date('d-m-Y',strtotime($d->fecha))] += $d->qdad_oferta;
+            $this->clientes_rutas['mesa_fecha_cantidad'][$vendedor->codsupervisor][$fecha] += $d->qdad_vendida;
+            $this->clientes_rutas['mesa_fecha_importe'][$vendedor->codsupervisor][$fecha] += $d->importe_vendido;
+            $this->clientes_rutas['mesa_fecha_oferta'][$vendedor->codsupervisor][$fecha] += $d->qdad_oferta;
+            $this->clientes_rutas['general_fecha_cantidad'][$fecha] += $d->qdad_vendida;
+            $this->clientes_rutas['general_fecha_importe'][$fecha] += $d->importe_vendido;
+            $this->clientes_rutas['general_fecha_oferta'][$fecha] += $d->qdad_oferta;
             $this->clientes_rutas['general_total_cantidad'] += $d->qdad_vendida;
             $this->clientes_rutas['general_total_importe'] += $d->importe_vendido;
             $this->clientes_rutas['general_total_oferta'] += $d->qdad_oferta;
@@ -548,16 +555,14 @@ class dashboard_distribucion extends distribucion_controller {
                 $this->clientes_rutas['importe'][$ruta->ruta] = 0;
                 $this->clientes_rutas['oferta'][$ruta->ruta] = 0;
             }
-
             if(!isset($this->clientes_rutas['no_atendidos'][$ruta->ruta])){
                 $this->clientes_rutas['no_atendidos'][$ruta->ruta] = $clientes_ruta;
             }
 
             $this->clientes_rutas['atendidos'][$ruta->ruta] = $this->distribucion_facturas->clientes_visitados($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
             $this->clientes_rutas['no_atendidos'][$ruta->ruta] -= $this->clientes_rutas['atendidos'][$ruta->ruta];
-
             $efectividad = $this->porcentajeInformacion($this->clientes_rutas['atendidos'][$ruta->ruta],$clientes_ruta);
-            $this->clientes_rutas['efectividad'][$ruta->ruta] = $efectividad;
+            $this->clientes_rutas['efectividad'][$ruta->ruta] =$efectividad;
             $this->clientes_rutas['efectividad_color'][$ruta->ruta] = $this->colorVariable($efectividad);
             $this->clientes_rutas['total_atendidos'][$vendedor->codagente] += $this->clientes_rutas['atendidos'][$ruta->ruta];
             $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] += $this->clientes_rutas['no_atendidos'][$ruta->ruta];
@@ -586,11 +591,13 @@ class dashboard_distribucion extends distribucion_controller {
         $no_supervisor = new distribucion_organizacion();
         $no_supervisor->codagente = "NOSUPERVISOR";
         $no_supervisor->nombre = "SIN SUPERVISOR";
+        $no_supervisor->tiene_asignados = 0;
+        $no_supervisor->tiene_rutas_asignadas = 0;
         $this->supervisores[] = $no_supervisor;
         $this->cantidad_supervisores = count($this->supervisores);
         $this->mesa_trabajo = array();
         foreach($this->supervisores as $sup){
-            $vendedores = $this->organizacion->get_asignados($this->empresa->id, $sup->codagente);
+            $vendedores = $this->organizacion->get_asignados($this->empresa->id, $sup->codagente, $this->codalmacen);
             $this->mesa_trabajo[$sup->codagente] = $vendedores;
         }
 
@@ -598,11 +605,7 @@ class dashboard_distribucion extends distribucion_controller {
         //Verificamos el codigo de almacen para vendedores
         $this->vendedores = $this->organizacion->activos_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'VENDEDOR');
         $this->cantidad_vendedores = count($this->vendedores);
-        if($this->codalmacen){
-            $unidades = $this->unidades->activos_almacen($this->empresa->id, $this->codalmacen);
-        }else{
-            $unidades = $this->unidades->activos($this->empresa->id);
-        }
+        $unidades = $this->unidades->activos_almacen($this->empresa->id, $this->codalmacen);
         $this->cantidad_unidades = count($unidades);
 
         $articulos = $this->articulos->all();
@@ -618,19 +621,15 @@ class dashboard_distribucion extends distribucion_controller {
         $this->resumen_clientes_variables();
 
         $this->resumen_supervisores_variables();
-
         foreach($this->vendedores as $vendedor){
             $rutasagente = $this->rutas->all_rutasporagente($this->empresa->id, $vendedor->codalmacen, $vendedor->codagente);
-            $vendedor->codsupervisor = ($vendedor->codsupervisor)?$vendedor->codsupervisor:"NOSUPERVISOR";
+            $vendedor->codsupervisor = $this->confirmarValor($vendedor->codsupervisor,"NOSUPERVISOR");
             $this->resumen_vendedor_variables($vendedor, $rutasagente);
             if(!empty($rutasagente)){
                 $this->resumen_rutas_vendedor($rutasagente, $vendedor);
             }
 
-            $efectividad_vendedor = 0;
-            if($this->clientes_rutas['total_clientes'][$vendedor->codagente]){
-                $efectividad_vendedor = round(($this->clientes_rutas['total_atendidos'][$vendedor->codagente]/$this->clientes_rutas['total_clientes'][$vendedor->codagente])*100,0);
-            }
+            $efectividad_vendedor = $this->porcentajeInformacion($this->clientes_rutas['total_atendidos'][$vendedor->codagente],$this->clientes_rutas['total_clientes'][$vendedor->codagente]);
 
             $this->clientes_rutas['efectividad_vendedor'][$vendedor->codagente] = $efectividad_vendedor;
             $efectividad_color = $this->colorVariable($efectividad_vendedor);
@@ -647,11 +646,7 @@ class dashboard_distribucion extends distribucion_controller {
 
         //Generamos la estadistica por supervisor
         foreach($this->supervisores as $supervisor){
-            $efectividad_supervisor = 0;
-            if($this->clientes_rutas['mesa_clientes'][$supervisor->codagente])
-            {
-                $efectividad_supervisor = round(($this->clientes_rutas['mesa_atendidos'][$supervisor->codagente]/$this->clientes_rutas['mesa_clientes'][$supervisor->codagente])*100,0);
-            }
+            $efectividad_supervisor = $this->porcentajeInformacion($this->clientes_rutas['mesa_atendidos'][$supervisor->codagente],$this->clientes_rutas['mesa_clientes'][$supervisor->codagente]);
             $this->clientes_rutas['mesa_efectividad'][$supervisor->codagente] = $efectividad_supervisor;
             $efectividad_color = $this->colorVariable($efectividad_supervisor);
             $this->clientes_rutas['efectividad_mesa_color'][$supervisor->codagente] = $efectividad_color;
@@ -710,14 +705,19 @@ class dashboard_distribucion extends distribucion_controller {
         $i=0;
         if($data1){
             foreach($data1 as $d){
-                $articulo_top = new stdClass();
-                $articulo_top->referencia = $d['referencia'];
-                $articulo_top->descripcion = $d['descripcion'];
-                $articulo_top->totalventa = $d['cantidad'];
-                $this->articulos_top_cantidad[] = $articulo_top;
+                $this->articulos_top_cantidad[] = $this->articuloSimple($d);
                 $i++;
             }
         }
+    }
+
+    public function articuloSimple($d)
+    {
+        $articulo_top = new stdClass();
+        $articulo_top->referencia = $d['referencia'];
+        $articulo_top->descripcion = $d['descripcion'];
+        $articulo_top->totalventa = $d['cantidad'];
+        return $articulo_top;
     }
 
     //Generamos el listado de los 10 productos mas vendidos
@@ -739,11 +739,7 @@ class dashboard_distribucion extends distribucion_controller {
         $i=0;
         if($data1){
             foreach($data1 as $d){
-                $articulo_top = new stdClass();
-                $articulo_top->referencia = $d['referencia'];
-                $articulo_top->descripcion = $d['descripcion'];
-                $articulo_top->totalventa = $d['cantidad'];
-                $this->articulos_top_cantidad[] = $articulo_top;
+                $this->articulos_top_cantidad[] = $this->articuloSimple($d);
                 $i++;
             }
         }
