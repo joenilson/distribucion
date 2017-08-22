@@ -501,7 +501,28 @@ class informe_almacen extends distribucion_controller{
         return $movimientos;
     }
 
-    public function saldo_articulo($ref,$almacen)
+    public function movimiento_transferencia_stock($ref, $almacen, $tipo, $valor=0)
+    {
+        $codalmacen = "codalmadestino";
+        if($tipo=='salida'){
+            $codalmacen = "codalmaorigen";
+        }
+        /*
+         * Generamos la informacion de las transferencias por ingresos entre almacenes que se hayan hecho a los stocks
+         */
+        $sql_transstock1 = "select sum(cantidad) as total FROM lineastransstock AS ls".
+        " JOIN transstock as l ON(ls.idtrans = l.idtrans) ".
+        " WHERE $codalmacen = ".$this->empresa->var2str($almacen).
+        " AND fecha < ".$this->empresa->var2str($this->f_desde).
+        " AND referencia = ".$this->empresa->var2str($ref);
+        $data_transstock1 = $this->db->select($sql_transstock1);
+        if ($data_transstock1) {
+            $valor += $data_transstock1[0]['total'];
+        }
+        return $valor;
+    }
+
+    public function movimientos_ingreso($ref,$almacen)
     {
         $total_ingresos = 0;
         //Facturas de compra sin albaran
@@ -528,6 +549,30 @@ class informe_almacen extends distribucion_controller{
             $total_ingresos += $data_Compras2[0]['total'];
         }
 
+        if ($this->db->table_exists('transstock', $this->tablas) AND $this->db->table_exists('lineastransstock', $this->tablas)) {
+            $total_ingresos += $this->movimiento_transferencia_stock($ref, $almacen, 'ingreso', $total_ingresos);
+        }
+
+        return $total_ingresos;
+    }
+
+    public function movimientos_regularizacion($ref, $almacen, $total_salidas = 0)
+    {
+        $sql_regstocks = "select sum(cantidadini-cantidadfin) as total from lineasregstocks AS ls ".
+        " JOIN stocks as l ON(ls.idstock = l.idstock) ".
+        " WHERE fecha < ".$this->empresa->var2str($this->f_desde).
+        " AND codalmacen = ".$this->empresa->var2str($almacen).
+        " AND referencia = ".$this->empresa->var2str($ref);
+        $data_regstocks = $this->db->select($sql_regstocks);
+        if ($data_regstocks) {
+            $cantidad = $data_regstocks[0]['total'];
+            $total_salidas += $cantidad;
+        }
+        return $total_salidas;
+    }
+
+    public function movimientos_salida($ref, $almacen)
+    {
         $total_salidas = 0;
         //Facturas de venta sin albaran
         $sql_ventas1 = "SELECT sum(cantidad) as total FROM lineasfacturascli as lfc".
@@ -553,48 +598,23 @@ class informe_almacen extends distribucion_controller{
             $total_salidas += $data_Ventas2[0]['total'];
         }
 
-        //Si existen estas tablas se genera la información de las transferencias de stock
         if ($this->db->table_exists('transstock', $this->tablas) AND $this->db->table_exists('lineastransstock', $this->tablas)) {
-            /*
-             * Generamos la informacion de las transferencias por ingresos entre almacenes que se hayan hecho a los stocks
-             */
-            $sql_transstock1 = "select sum(cantidad) as total FROM lineastransstock AS ls".
-            " JOIN transstock as l ON(ls.idtrans = l.idtrans) ".
-            " WHERE codalmadestino = ".$this->empresa->var2str($almacen).
-            " AND fecha < ".$this->empresa->var2str($this->f_desde).
-            " AND referencia = ".$this->empresa->var2str($ref);
-            $data_transstock1 = $this->db->select($sql_transstock1);
-            if ($data_transstock1) {
-                $total_ingresos += $data_transstock1[0]['total'];
-            }
-
-            /*
-             * Generamos la informacion de las transferencias por salidas entre almacenes que se hayan hecho a los stocks
-             */
-            $sql_transstock2 = "select sum(cantidad) as total FROM lineastransstock AS ls ".
-            " JOIN transstock as l ON(ls.idtrans = l.idtrans) ".
-            " WHERE  codalmaorigen = ".$this->empresa->var2str($almacen).
-            " AND fecha < ".$this->empresa->var2str($this->f_desde).
-            " AND referencia = ".$this->empresa->var2str($ref);
-            $data_transstock2 = $this->db->select($sql_transstock2);
-            if ($data_transstock2) {
-                $total_salidas += $data_transstock2[0]['total'];
-            }
+            $total_salidas += $this->movimiento_transferencia_stock($ref, $almacen, 'salida', $total_salidas);
         }
 
         //Si existe esta tabla se genera la información de las regularizaciones de stock y se agrega como salida el resultado
         if ($this->db->table_exists('lineasregstocks', $this->tablas)) {
-            $sql_regstocks = "select sum(cantidadini-cantidadfin) as total from lineasregstocks AS ls ".
-            " JOIN stocks as l ON(ls.idstock = l.idstock) ".
-            " WHERE fecha < ".$this->empresa->var2str($this->f_desde).
-            " AND codalmacen = ".$this->empresa->var2str($almacen).
-            " AND referencia = ".$this->empresa->var2str($ref);
-            $data_regstocks = $this->db->select($sql_regstocks);
-            if ($data_regstocks) {
-                $cantidad = $data_regstocks[0]['total'];
-                $total_salidas += $cantidad;
-            }
+            $total_salidas += $this->movimientos_regularizacion($ref, $almacen, $total_salidas);
         }
+
+        return $total_salidas;
+    }
+
+    public function saldo_articulo($ref,$almacen)
+    {
+        $total_ingresos = $this->movimientos_ingreso($ref, $almacen);
+
+        $total_salidas = $this->movimientos_salida($ref, $almacen);
 
         $total_saldo = $total_ingresos - $total_salidas;
         return $total_saldo;
