@@ -116,14 +116,11 @@ class informes_vendedores extends distribucion_controller {
         $intervalo = new \DateInterval('P1D');
         $this->rango_fechas = new \DatePeriod($desde, $intervalo, $hasta);
         //Verificamos el intervalo
-        //$this->new_advice($desde->diff($hasta)->days);
         $accion = filter_input(INPUT_POST, 'accion');
         if($accion){
             switch ($accion){
                 case "buscar":
                     $this->generar_resumen();
-                    //$this->top_clientes();
-                    //$this->top_articulos();
                     $this->procesado = TRUE;
                 break;
             }

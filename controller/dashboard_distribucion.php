@@ -188,7 +188,58 @@ class dashboard_distribucion extends distribucion_controller {
 
         //Buscamos los productos en la fecha dada y los agrupamos por familia
         //Esta pendiente sacar la información de ventas por vendedor
+        $this->generar_informacion_familias();
 
+
+        //Generamos el listado de familias
+        $this->resumen_familia = array();
+
+        $this->articulos_sin_familia();
+
+        //Agregamos las sumas de todas las familias
+        $this->resumen_familias();
+
+        //Agregamos la ultima fila de total
+        $item = new stdClass();
+        $item->codigo = 'TOTAL';
+        $item->descripcion = 'TOTAL GENERAL';
+        $item->madre = '';
+        $item->cantidad = $this->total_cantidad_familia;
+        $item->cantidad_pct = 100;
+        $item->importe = $this->total_importe_familia;
+        $item->importe_pct = 100;
+        $item->tipo = 'leaf';
+        $this->resumen_familia[] = $item;
+    }
+
+    public function articulos_sin_familia()
+    {
+        //Agregamos la suma de articulos sin familia
+        $this->agregar_item(array(
+            'codigo'=>'NOFAMILIA',
+            'descripcion'=>'SIN FAMILIA',
+            'madre'=>'',
+            'cantidad'=>(isset($this->cantidad_familia['NOFAMILIA']))?$this->cantidad_familia['NOFAMILIA']:0,
+            'importe'=>(isset($this->importe_familia['NOFAMILIA']))?$this->importe_familia['NOFAMILIA']:0,
+            'tipo'=>'branch'
+        ));
+        //Agregamos los articulos sin familia
+        foreach($this->articulos->all(0,10000) as $art){
+            if(!$art->codfamilia){
+                $this->agregar_item(array(
+                    'codigo'=>$art->referencia,
+                    'descripcion'=>$art->referencia.' - '.$art->descripcion,
+                    'madre'=>'NOFAMILIA',
+                    'cantidad'=>(isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0,
+                    'importe'=>(isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0,
+                    'tipo'=>'leaf'
+                ));
+            }
+        }
+    }
+
+    public function generar_informacion_familias()
+    {
         //Si no eligen un almacén, buscamos todo
         $sql_almacen = ($this->codalmacen)?" AND fc.codalmacen = ".$this->empresa->var2str($this->codalmacen):"";
 
@@ -231,76 +282,6 @@ class dashboard_distribucion extends distribucion_controller {
             $codfamilia = ($art->codfamilia)?$art->codfamilia:'NOFAMILIA';
             $this->sumar_valores_familias($codfamilia,$ref);
         }
-
-        //Generamos el listado de familias
-        $this->resumen_familia = array();
-
-        //Agregamos la suma de articulos sin familia
-        $this->agregar_item(array(
-            'codigo'=>'NOFAMILIA',
-            'descripcion'=>'SIN FAMILIA',
-            'madre'=>'',
-            'cantidad'=>(isset($this->cantidad_familia['NOFAMILIA']))?$this->cantidad_familia['NOFAMILIA']:0,
-            'importe'=>(isset($this->importe_familia['NOFAMILIA']))?$this->importe_familia['NOFAMILIA']:0,
-            'tipo'=>'branch'
-        ));
-        //Agregamos los articulos sin familia
-        foreach($this->articulos->all(0,10000) as $art){
-            if(!$art->codfamilia){
-                $this->agregar_item(array(
-                    'codigo'=>$art->referencia,
-                    'descripcion'=>$art->referencia.' - '.$art->descripcion,
-                    'madre'=>'NOFAMILIA',
-                    'cantidad'=>(isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0,
-                    'importe'=>(isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0,
-                    'tipo'=>'leaf'
-                ));
-            }
-        }
-
-
-        //Agregamos las sumas de todas las familias
-        $this->resumen_familias();
-        /*
-        foreach($this->familias->madres() as $fam){
-            $this->agregar_item(array(
-                'codigo'=>$fam->codfamilia,
-                'descripcion'=>$fam->descripcion,
-                'madre'=>$fam->madre,
-                'cantidad'=>(isset($this->cantidad_familia[$fam->codfamilia]))?$this->cantidad_familia[$fam->codfamilia]:0,
-                'importe'=>(isset($this->importe_familia[$fam->codfamilia]))?$this->importe_familia[$fam->codfamilia]:0,
-                'tipo'=>'branch'
-            ));
-            if($fam->get_articulos()){
-                foreach($fam->get_articulos() as $art){
-                    $this->agregar_item(array(
-                        'codigo'=>$art->referencia,
-                        'descripcion'=>$art->referencia.' - '.$art->descripcion,
-                        'madre'=>$art->codfamilia,
-                        'cantidad'=>(isset($this->cantidad_referencia[$art->referencia]))?$this->cantidad_referencia[$art->referencia]:0,
-                        'importe'=>(isset($this->importe_referencia[$art->referencia]))?$this->importe_referencia[$art->referencia]:0,
-                        'tipo'=>'leaf'
-                    ));
-                }
-            }
-            if($fam->hijas()){
-                $this->resumen_familias($fam->codfamilia, true);
-            }
-        }
-         *
-         */
-
-        //Agregamos la ultima fila de total
-        $item = new stdClass();
-        $item->codigo = 'TOTAL';
-        $item->descripcion = 'TOTAL GENERAL';
-        $item->madre = '';
-        $item->cantidad = $this->total_cantidad_familia;
-        $item->cantidad_pct = 100;
-        $item->importe = $this->total_importe_familia;
-        $item->importe_pct = 100;
-        $item->tipo = 'leaf';
-        $this->resumen_familia[] = $item;
     }
 
     /**
