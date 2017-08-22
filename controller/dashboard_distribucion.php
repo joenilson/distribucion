@@ -401,6 +401,17 @@ class dashboard_distribucion extends distribucion_controller {
         }
     }
 
+    private function colorVariable($valor)
+    {
+        $color = 'success';
+        if($valor <= 30){
+            $color = 'danger';
+        }elseif($valor > 30 and $valor < 65){
+            $color = 'warning';
+        }
+        return $color;
+    }
+
     public function resumen_clientes()
     {
         //Inicializamos los contadores de informacion
@@ -498,7 +509,7 @@ class dashboard_distribucion extends distribucion_controller {
         }
     }
 
-    public function resumen_venta_rutas($ventas_ruta)
+    public function resumen_venta_rutas($ventas_ruta, $vendedor, $ruta)
     {
         foreach($ventas_ruta as $d){
             $this->clientes_rutas['cantidad'][$ruta->ruta] += $d->qdad_vendida;
@@ -547,8 +558,7 @@ class dashboard_distribucion extends distribucion_controller {
 
             $efectividad = ($clientes_ruta)?round(($this->clientes_rutas['atendidos'][$ruta->ruta]/$clientes_ruta)*100,0):0;
             $this->clientes_rutas['efectividad'][$ruta->ruta] = $efectividad;
-            $efectividad_color = ($efectividad<=30)?'danger':'success';
-            $efectividad_color = ($efectividad>30 AND $efectividad<65)?'warning':$efectividad_color;
+            $efectividad_color = $this->colorVariable($efectividad);
             $this->clientes_rutas['efectividad_color'][$ruta->ruta] = $efectividad_color;
             $this->clientes_rutas['total_atendidos'][$vendedor->codagente] += $this->clientes_rutas['atendidos'][$ruta->ruta];
             $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] += $this->clientes_rutas['no_atendidos'][$ruta->ruta];
@@ -556,7 +566,7 @@ class dashboard_distribucion extends distribucion_controller {
             //Generamos la estadistica de ventas cantidad vendida, importe vendido, cantidad bonificada y devoluciones
             $ventas_ruta = $this->distribucion_facturas->ventas_ruta($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
             if(!empty($ventas_ruta)){
-                $this->resumen_venta_rutas($ventas_ruta, $vendedor);
+                $this->resumen_venta_rutas($ventas_ruta, $vendedor, $ruta);
 
             }
         }
@@ -609,15 +619,14 @@ class dashboard_distribucion extends distribucion_controller {
             if(!empty($rutasagente)){
                 $this->resumen_rutas_vendedor($rutasagente, $vendedor);
             }
-            
+
             $efectividad_vendedor = 0;
             if($this->clientes_rutas['total_clientes'][$vendedor->codagente]){
                 $efectividad_vendedor = round(($this->clientes_rutas['total_atendidos'][$vendedor->codagente]/$this->clientes_rutas['total_clientes'][$vendedor->codagente])*100,0);
             }
 
             $this->clientes_rutas['efectividad_vendedor'][$vendedor->codagente] = $efectividad_vendedor;
-            $efectividad_color = ($efectividad_vendedor<=30)?'danger':'success';
-            $efectividad_color = ($efectividad_vendedor>30 AND $efectividad_vendedor<65)?'warning':$efectividad_color;
+            $efectividad_color = $this->colorVariable($efectividad_vendedor);
             $this->clientes_rutas['efectividad_vendedor_color'][$vendedor->codagente] = $efectividad_color;
             $this->clientes_rutas['mesa_rutas'][$vendedor->codsupervisor] += $this->clientes_rutas['total_rutas'][$vendedor->codagente];
             $this->clientes_rutas['mesa_vendedores'][$vendedor->codsupervisor]++;
@@ -637,16 +646,14 @@ class dashboard_distribucion extends distribucion_controller {
                 $efectividad_supervisor = round(($this->clientes_rutas['mesa_atendidos'][$supervisor->codagente]/$this->clientes_rutas['mesa_clientes'][$supervisor->codagente])*100,0);
             }
             $this->clientes_rutas['mesa_efectividad'][$supervisor->codagente] = $efectividad_supervisor;
-            $efectividad_color = ($efectividad_supervisor<=30)?'danger':'success';
-            $efectividad_color = ($efectividad_supervisor>30 AND $efectividad_supervisor<65)?'warning':$efectividad_color;
+            $efectividad_color = $this->colorVariable($efectividad_supervisor);
             $this->clientes_rutas['efectividad_mesa_color'][$supervisor->codagente] = $efectividad_color;
         }
 
         if($this->clientes_rutas['general_clientes']){
             $efectividad_general = round(($this->clientes_rutas['general_atendidos']/$this->clientes_rutas['general_clientes'])*100,0);
             $this->clientes_rutas['general_efectividad'] = $efectividad_general;
-            $efectividad_color = ($efectividad_general<=30)?'danger':'success';
-            $efectividad_color = ($efectividad_general>30 AND $efectividad_general<65)?'warning':$efectividad_color;
+            $efectividad_color = $this->colorVariable($efectividad_general);
             $this->clientes_rutas['efectividad_general_color'] = $efectividad_color;
         }
 
