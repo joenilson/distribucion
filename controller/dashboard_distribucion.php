@@ -177,13 +177,6 @@ class dashboard_distribucion extends distribucion_controller {
         $this->total_cantidad_familia = 0;
         $this->total_importe_familia = 0;
 
-        //generamos un listado de todas las familias para hacer una sola llamada a la db
-        $f = array();
-        $f['NOFAMILIA'] = 'SIN FAMILIA';
-        foreach($this->familias->all() as $familia){
-            $f[$familia->codfamilia] = $familia->descripcion;
-        }
-
         $this->resumen_familia_cabecera = array('Familia','Cantidad','Importe','% Part Cantidad','% Cantidad Importe');
 
         //Buscamos los productos en la fecha dada y los agrupamos por familia
@@ -240,6 +233,13 @@ class dashboard_distribucion extends distribucion_controller {
 
     public function generar_informacion_familias()
     {
+        //generamos un listado de todas las familias para hacer una sola llamada a la db
+        $f = array();
+        $f['NOFAMILIA'] = 'SIN FAMILIA';
+        foreach($this->familias->all() as $familia){
+            $f[$familia->codfamilia] = $familia->descripcion;
+        }
+        
         //Si no eligen un almacén, buscamos todo
         $sql_almacen = ($this->codalmacen)?" AND fc.codalmacen = ".$this->empresa->var2str($this->codalmacen):"";
 
