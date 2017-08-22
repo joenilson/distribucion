@@ -16,13 +16,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('almacen.php');
-require_model('articulo.php');
-require_model('cliente.php');
-require_model('distribucion_conductores.php');
-require_model('distribucion_transporte.php');
-require_model('distribucion_lineastransporte.php');
-require_model('distribucion_ordenescarga_facturas.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
 require_once 'plugins/distribucion/extras/distribucion_controller.php';
 /**
@@ -57,6 +50,18 @@ class informe_almacen extends distribucion_controller{
     protected function private_core() {
         parent::private_core();
         $this->shared_extensions();
+        $this->init_variables();
+
+        $accion = $this->filter_request('accion');
+        if ($accion == 'buscar') {
+            $this->buscar();
+        } elseif ($accion == 'buscar-articulos') {
+            $this->buscar_articulo();
+        }
+    }
+
+    public function init_variables()
+    {
         $this->almacen = new almacen();
         $this->articulo = new articulo();
         $this->albaran = new albaran_cliente();
@@ -66,40 +71,17 @@ class informe_almacen extends distribucion_controller{
         $this->distribucion_ordenescarga_facturas = new distribucion_ordenescarga_facturas();
         $this->tablas = $this->db->list_tables();
 
-        $desde_p = \filter_input(INPUT_POST, 'desde');
-        $desde_g = \filter_input(INPUT_GET, 'desde');
-        $desde = ($desde_p)?$desde_p:$desde_g;
-        $this->desde = ($desde)?$desde:\date('01-m-Y');
+        $desde = $this->filter_request('desde');
+        $this->desde = $this->confirmarValor($desde,\date('01-m-Y'));
         $this->f_desde = \date('Y-m-d',strtotime($this->desde));
 
-        $hasta_p = \filter_input(INPUT_POST, 'hasta');
-        $hasta_g = \filter_input(INPUT_GET, 'hasta');
-        $hasta = ($hasta_p)?$hasta_p:$hasta_g;
-        $this->hasta = ($hasta)?$hasta:\date('d-m-Y');
+        $hasta = $this->filter_request('hasta');
+        $this->hasta = $this->confirmarValor($hasta,\date('d-m-Y'));
         $this->f_hasta = \date('Y-m-d',strtotime($this->hasta));
-
-        $codalmacen_p = \filter_input(INPUT_POST, 'codalmacen');
-        $codalmacen_g = \filter_input(INPUT_GET, 'codalmacen');
-        $codalmacen = ($codalmacen_p)?$codalmacen_p:$codalmacen_g;
-        $this->codalmacen = ($codalmacen)?$codalmacen:false;
-
-        $referencia_p = \filter_input(INPUT_POST, 'referencia');
-        $referencia_g = \filter_input(INPUT_GET, 'referencia');
-        $referencia = ($referencia_p)?$referencia_p:$referencia_g;
-        $this->referencia = ($referencia)?$referencia:false;
-
-        $accion_p = \filter_input(INPUT_POST, 'accion');
-        $accion_g = \filter_input(INPUT_GET, 'accion');
-        $accion = ($accion_p)?$accion_p:$accion_g;
-        if($accion == 'buscar')
-        {
-            $this->buscar();
-        }
-        elseif($accion == 'buscar-articulos')
-        {
-            $this->buscar_articulo();
-        }
-
+        $codalmacen =  $this->filter_request('codalmacen');
+        $this->codalmacen = $this->confirmarValor($codalmacen,false);
+        $referencia = $this->filter_request('referencia');
+        $this->referencia = $this->confirmarValor($referencia,false);
     }
 
     public function buscar_articulo()
@@ -131,43 +113,111 @@ class informe_almacen extends distribucion_controller{
         }
 
         $resultado = array();
-        foreach($almacenes as $almacen){
-            foreach($articulos as $art){
-                //Saldo Inicial
-                $saldo_ini = $this->saldo_articulo($art->referencia, $almacen->codalmacen);
-                $linea_nueva = new StdClass();
-                $linea_nueva->codalmacen = $almacen->codalmacen;
-                $linea_nueva->idtransporte = 'Saldo Inicial';
-                $linea_nueva->referencia = $art->referencia;
-                $linea_nueva->descripcion = $art->descripcion;
-                $linea_nueva->fecha = $this->f_desde;
-                $linea_nueva->fechal = '';
-                $linea_nueva->fechad = '';
-                $linea_nueva->hora = '00:00:00';
-                $linea_nueva->fecha_creacion = strtotime($this->f_desde.' '.'00:00:00');
-                $linea_nueva->cantidad = 0;
-                $linea_nueva->devolucion = 0;
-                $linea_nueva->total_final = 0;
-                $linea_nueva->ingresos = 0;
-                $linea_nueva->saldo = $saldo_ini;
-                if(!isset($resultado[$art->referencia][$linea_nueva->fecha_creacion])){
-                    $resultado[$art->referencia][$linea_nueva->fecha_creacion] = array();
-                }
-                $resultado[$art->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
-            }
-        }
+        $this->saldo_inicial($almacenes,$articulos,$resultado);
 
-        $lineas_ingresos = $this->ingresos();
-        if(!empty($lineas_ingresos)){
-            foreach($lineas_ingresos as $linea){
-                if(!isset($resultado[$linea->referencia][$linea->fecha_creacion])){
-                    $resultado[$linea->referencia][$linea->fecha_creacion] = array();
+        $this->ingresos_articulos($resultado);
+
+        $this->articulos_transportados($datos, $resultado);
+
+        $this->articulos_regularizados($resultado);
+
+        $this->articulos_trasladados($resultado);
+
+        $this->procesar_resultado($resultado);
+
+        $this->generar_excel();
+        $data = array();
+        $data['rows'] = $this->resultados;
+        $data['filename'] = $this->fileNamePath;
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    }
+
+    public function procesar_datos_resultado($datos, $referencia)
+    {
+        $saldo_anterior = array();
+        $listado_final = array();
+        foreach($datos as $fecha=>$lineas)
+        {
+            foreach($lineas as $lin)
+            {
+                if(!isset($saldo_anterior[$referencia]))
+                {
+                    $saldo_anterior[$referencia] = $lin->saldo;
+                }
+                $lin->saldo = $saldo_anterior[$referencia]+($lin->ingresos-$lin->total_final);
+                $saldo_anterior[$referencia] += ($lin->ingresos-$lin->total_final);
+                $descripcion = $lin->descripcion;
+                $almacen = $lin->codalmacen;
+            }
+            $listado_final = array_merge($lineas,$listado_final);
+        }
+        $linea_nueva = new StdClass();
+        $linea_nueva->codalmacen = $almacen;
+        $linea_nueva->idtransporte = 'Saldo Final';
+        $linea_nueva->referencia = $referencia;
+        $linea_nueva->descripcion = $descripcion;
+        $linea_nueva->fecha = $this->f_hasta;
+        $linea_nueva->fechal = '';
+        $linea_nueva->fechad = '';
+        $linea_nueva->hora = '23:59:59';
+        $linea_nueva->fecha_creacion = strtotime($this->f_hasta.' '.'23:59:59');
+        $linea_nueva->cantidad = 0;
+        $linea_nueva->devolucion = 0;
+        $linea_nueva->total_final = 0;
+        $linea_nueva->ingresos = 0;
+        $linea_nueva->saldo = $saldo_anterior[$referencia];
+        $listado_final[] = $linea_nueva;
+        $this->resultados = array_merge($listado_final,$this->resultados);
+    }
+
+    public function procesar_resultado($resultado)
+    {
+        foreach($resultado as $referencia=>$datos)
+        {
+            ksort($datos);
+            $this->procesar_datos_resultado($datos, $referencia);
+
+        }
+    }
+
+    public function articulos_trasladados(&$resultado)
+    {
+        $lineas_traslados = $this->traslados();
+        if(!empty($lineas_traslados)){
+            foreach($lineas_traslados as $linea)
+            {
+                if(!isset($resultado[$linea->referencia][$linea->fecha]))
+                {
+                    $resultado[$linea->referencia][$linea->fecha] = array();
                 }
                 $linea->saldo = 0;
+                $linea->fechal = '';
+                $linea->fechad = '';
                 $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
             }
         }
+    }
 
+    public function articulos_regularizados(&$resultado)
+    {
+        $lineas_regularizaciones = $this->regularizaciones();
+        if(!empty($lineas_regularizaciones)){
+            foreach($lineas_regularizaciones as $linea){
+                if(!isset($resultado[$linea->referencia][$linea->fecha]))
+                {
+                    $resultado[$linea->referencia][$linea->fecha] = array();
+                }
+                $linea->saldo = 0;
+                $linea->fechal = '';
+                $linea->fechad = '';
+                $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
+            }
+        }
+    }
+
+    public function articulos_transportados($datos, &$resultado)
+    {
         $lineas_transportes = $this->distribucion_lineastransporte->lista($this->empresa->id, $datos, $this->f_desde, $this->f_hasta);
         if(!empty($lineas_transportes)){
             foreach($lineas_transportes['resultados'] as $linea){
@@ -193,84 +243,49 @@ class informe_almacen extends distribucion_controller{
                 $resultado[$linea->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
             }
         }
+    }
 
-        $lineas_regularizaciones = $this->regularizaciones();
-        if(!empty($lineas_regularizaciones)){
-            foreach($lineas_regularizaciones as $linea){
-                if(!isset($resultado[$linea->referencia][$linea->fecha]))
-                {
-                    $resultado[$linea->referencia][$linea->fecha] = array();
+    public function ingresos_articulos(&$resultado)
+    {
+        $lineas_ingresos = $this->ingresos();
+        if(!empty($lineas_ingresos)){
+            foreach($lineas_ingresos as $linea){
+                if(!isset($resultado[$linea->referencia][$linea->fecha_creacion])){
+                    $resultado[$linea->referencia][$linea->fecha_creacion] = array();
                 }
                 $linea->saldo = 0;
-                $linea->fechal = '';
-                $linea->fechad = '';
                 $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
             }
         }
+    }
 
-        $lineas_traslados = $this->traslados();
-        if(!empty($lineas_traslados)){
-            foreach($lineas_traslados as $linea)
-            {
-                if(!isset($resultado[$linea->referencia][$linea->fecha]))
-                {
-                    $resultado[$linea->referencia][$linea->fecha] = array();
+    public function saldo_inicial($almacenes,$articulos,&$resultado)
+    {
+        foreach($almacenes as $almacen){
+            foreach($articulos as $art){
+                //Saldo Inicial
+                $saldo_ini = $this->saldo_articulo($art->referencia, $almacen->codalmacen);
+                $linea_nueva = new StdClass();
+                $linea_nueva->codalmacen = $almacen->codalmacen;
+                $linea_nueva->idtransporte = 'Saldo Inicial';
+                $linea_nueva->referencia = $art->referencia;
+                $linea_nueva->descripcion = $art->descripcion;
+                $linea_nueva->fecha = $this->f_desde;
+                $linea_nueva->fechal = '';
+                $linea_nueva->fechad = '';
+                $linea_nueva->hora = '00:00:00';
+                $linea_nueva->fecha_creacion = strtotime($this->f_desde.' '.'00:00:00');
+                $linea_nueva->cantidad = 0;
+                $linea_nueva->devolucion = 0;
+                $linea_nueva->total_final = 0;
+                $linea_nueva->ingresos = 0;
+                $linea_nueva->saldo = $saldo_ini;
+                if(!isset($resultado[$art->referencia][$linea_nueva->fecha_creacion])){
+                    $resultado[$art->referencia][$linea_nueva->fecha_creacion] = array();
                 }
-                $linea->saldo = 0;
-                $linea->fechal = '';
-                $linea->fechad = '';
-                $resultado[$linea->referencia][$linea->fecha_creacion][] = $linea;
+                $resultado[$art->referencia][$linea_nueva->fecha_creacion][] = $linea_nueva;
             }
         }
-
-
-        foreach($resultado as $referencia=>$datos)
-        {
-            ksort($datos);
-            $saldo_anterior = array();
-            $listado_final = array();
-            foreach($datos as $fecha=>$lineas)
-            {
-                foreach($lineas as $lin)
-                {
-                    if(!isset($saldo_anterior[$referencia]))
-                    {
-                        $saldo_anterior[$referencia] = $lin->saldo;
-                    }
-                    $lin->saldo = $saldo_anterior[$referencia]+($lin->ingresos-$lin->total_final);
-                    $saldo_anterior[$referencia] += ($lin->ingresos-$lin->total_final);
-                    $descripcion = $lin->descripcion;
-                    $almacen = $lin->codalmacen;
-                }
-                $listado_final = array_merge($lineas,$listado_final);
-            }
-            $linea_nueva = new StdClass();
-            $linea_nueva->codalmacen = $almacen;
-            $linea_nueva->idtransporte = 'Saldo Final';
-            $linea_nueva->referencia = $referencia;
-            $linea_nueva->descripcion = $descripcion;
-            $linea_nueva->fecha = $this->f_hasta;
-            $linea_nueva->fechal = '';
-            $linea_nueva->fechad = '';
-            $linea_nueva->hora = '23:59:59';
-            $linea_nueva->fecha_creacion = strtotime($this->f_hasta.' '.'23:59:59');
-            $linea_nueva->cantidad = 0;
-            $linea_nueva->devolucion = 0;
-            $linea_nueva->total_final = 0;
-            $linea_nueva->ingresos = 0;
-            $linea_nueva->saldo = $saldo_anterior[$referencia];
-            $listado_final[] = $linea_nueva;
-            $this->resultados = array_merge($listado_final,$this->resultados);
-
-
-
-        }
-        $this->generar_excel();
-        $data = array();
-        $data['rows'] = $this->resultados;
-        $data['filename'] = $this->fileNamePath;
-        header('Content-Type: application/json');
-        echo json_encode($data);
     }
 
     public function articulos()
