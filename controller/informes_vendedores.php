@@ -158,7 +158,7 @@ class informes_vendedores extends distribucion_controller {
         $this->cantidad_supervisores = count($this->supervisores);
         $this->mesa_trabajo = array();
         foreach($this->supervisores as $linea){
-            $vendedores = $this->organizacion->get_asignados($this->empresa->id, $linea->codagente);
+            $vendedores = $this->organizacion->get_asignados($this->empresa->id, $linea->codagente, $linea->codalmacen);
             //inicializamos variables de supervisor
             $this->mesa_cantidad[$linea->codagente] = 0;
             $this->mesa_importe[$linea->codagente] = 0;

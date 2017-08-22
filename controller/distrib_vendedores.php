@@ -51,7 +51,7 @@ class distrib_vendedores extends fs_controller{
     public function __construct() {
         parent::__construct(__CLASS__, 'Configuración de Vendedores', 'distribucion', FALSE, FALSE, FALSE);
     }
-    
+
     protected function private_core() {
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->shared_extensions();
@@ -59,34 +59,30 @@ class distrib_vendedores extends fs_controller{
         $this->agente = new distribucion_agente();
         $this->distribucion_organizacion = new distribucion_organizacion();
         $this->distribucion_asignacion_cargos = new distribucion_asignacion_cargos();
-        
+
         $codalmacen = \filter_input(INPUT_POST, 'b_codalmacen');
         $this->codalmacen = ($codalmacen)?$codalmacen:false;
-        
+
         $codsupervisor = \filter_input(INPUT_POST, 'b_codsupervisor');
         $this->codsupervisor = ($codsupervisor)?$codsupervisor:false;
-        
+
         $accion = \filter_input(INPUT_POST, 'accion');
         if($accion){
             $this->tratar_vendedor($accion);
         }
-        
+
         $array_cargos_vendedores = $this->listado_cargos('VEN','array');
         $this->supervisores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'SUPERVISOR');
-        
-        $this->vendedores_asignados = $this->distribucion_organizacion->all_tipoagente($this->empresa->id, 'VENDEDOR');
-        
-        if($this->codalmacen){
-            $this->vendedores_asignados = $this->distribucion_organizacion->all_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'VENDEDOR');
-        }
-        
+
+        $this->vendedores_asignados = $this->distribucion_organizacion->all_almacen_tipoagente($this->empresa->id, $this->codalmacen, 'VENDEDOR');
+
         if($this->codsupervisor){
-            $this->vendedores_asignados = $this->distribucion_organizacion->get_asignados($this->empresa->id, $this->codsupervisor);
+            $this->vendedores_asignados = $this->distribucion_organizacion->get_asignados($this->empresa->id, $this->codsupervisor, $this->codalmacen);
         }
-        
+
         $this->vendedores_libres = $this->distribucion_organizacion->get_noasignados_all($this->empresa->id,$array_cargos_vendedores,'VENDEDOR');
     }
-    
+
     public function listado_cargos($tipo, $respuesta = 'objeto'){
         $listado = $this->distribucion_asignacion_cargos->all_tipocargo($this->empresa->id, $tipo);
         $resultado = array();
@@ -97,7 +93,7 @@ class distrib_vendedores extends fs_controller{
                 $resultado[] = $item;
             }
         }
-        
+
         if($respuesta == 'json'){
             $this->template = FALSE;
             header('Content-Type: application/json');
@@ -135,9 +131,9 @@ class distrib_vendedores extends fs_controller{
                 $this->new_error_msg("¡Imposible tratar los datos del ".$agente0->tipoagente."!");
             }
         }
-    }    
-    
+    }
+
     public function shared_extensions(){
-        
+
     }
 }
