@@ -556,10 +556,9 @@ class dashboard_distribucion extends distribucion_controller {
             $this->clientes_rutas['atendidos'][$ruta->ruta] = $this->distribucion_facturas->clientes_visitados($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
             $this->clientes_rutas['no_atendidos'][$ruta->ruta] -= $this->clientes_rutas['atendidos'][$ruta->ruta];
 
-            $efectividad = ($clientes_ruta)?round(($this->clientes_rutas['atendidos'][$ruta->ruta]/$clientes_ruta)*100,0):0;
+            $efectividad = $this->porcentajeInformacion($this->clientes_rutas['atendidos'][$ruta->ruta],$clientes_ruta);
             $this->clientes_rutas['efectividad'][$ruta->ruta] = $efectividad;
-            $efectividad_color = $this->colorVariable($efectividad);
-            $this->clientes_rutas['efectividad_color'][$ruta->ruta] = $efectividad_color;
+            $this->clientes_rutas['efectividad_color'][$ruta->ruta] = $this->colorVariable($efectividad);
             $this->clientes_rutas['total_atendidos'][$vendedor->codagente] += $this->clientes_rutas['atendidos'][$ruta->ruta];
             $this->clientes_rutas['total_no_atendidos'][$vendedor->codagente] += $this->clientes_rutas['no_atendidos'][$ruta->ruta];
 
@@ -567,9 +566,17 @@ class dashboard_distribucion extends distribucion_controller {
             $ventas_ruta = $this->distribucion_facturas->ventas_ruta($ruta->codalmacen, $ruta->ruta, $this->f_desde, $this->f_hasta);
             if(!empty($ventas_ruta)){
                 $this->resumen_venta_rutas($ventas_ruta, $vendedor, $ruta);
-
             }
         }
+    }
+
+    public function porcentajeInformacion($x, $y)
+    {
+        $z = 0;
+        if($y != 0){
+            $z = (($x/$y)*100);
+        }
+        return round($z, 0);
     }
 
     public function generar_resumen(){
