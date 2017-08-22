@@ -309,18 +309,15 @@ class informe_almacen extends distribucion_controller{
     public function ingresos()
     {
         $sql_aux = '';
-        $sql_aux2 = '';
         $sql_aux3 = '';
         if($this->codalmacen)
         {
             $sql_aux .= 'AND codalmacen = '.$this->empresa->var2str($this->codalmacen);
-            $sql_aux2 .= 'AND codalmacen = '.$this->empresa->var2str($this->codalmacen);
             $sql_aux3 .= 'AND codalmadestino = '.$this->empresa->var2str($this->codalmacen);
         }
         if($this->referencia)
         {
             $sql_aux .= 'AND referencia = '.$this->empresa->var2str($this->referencia);
-            $sql_aux2 .= 'AND a.referencia = '.$this->empresa->var2str($this->referencia);
             $sql_aux3 .= 'AND a.referencia = '.$this->empresa->var2str($this->referencia);
         }
         $movimientos = array();
