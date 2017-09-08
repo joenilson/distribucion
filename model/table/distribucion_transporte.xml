@@ -107,17 +107,17 @@
     </columna>
     <columna>
         <nombre>totalcantidad</nombre>
-        <tipo>numeric</tipo>
+        <tipo>double precision</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
         <nombre>totalpeso</nombre>
-        <tipo>numeric</tipo>
+        <tipo>double precision</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
         <nombre>totalimporte</nombre>
-        <tipo>numeric</tipo>
+        <tipo>double precision</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>

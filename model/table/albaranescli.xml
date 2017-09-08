@@ -35,7 +35,7 @@
       <nombre>codvendedor</nombre>
       <tipo>character varying(10)</tipo>
       <nulo>YES</nulo>
-   </columna>   
+   </columna>
    <columna>
       <nombre>codalmacen</nombre>
       <tipo>character varying(4)</tipo>
@@ -129,6 +129,12 @@
       <defecto>0</defecto>
    </columna>
    <columna>
+        <nombre>netosindto</nombre>
+        <tipo>double precision</tipo>
+        <nulo>NO</nulo>
+        <defecto>0</defecto>
+    </columna>
+    <columna>
       <nombre>neto</nombre>
       <tipo>double precision</tipo>
       <nulo>NO</nulo>
@@ -260,6 +266,36 @@
       <tipo>integer</tipo>
       <defecto>0</defecto>
    </columna>
+    <columna>
+        <nombre>dtopor1</nombre>
+        <tipo>double precision</tipo>
+        <nulo>NO</nulo>
+        <defecto>0</defecto>
+    </columna>
+    <columna>
+        <nombre>dtopor2</nombre>
+        <tipo>double precision</tipo>
+        <nulo>NO</nulo>
+        <defecto>0</defecto>
+    </columna>
+    <columna>
+        <nombre>dtopor3</nombre>
+        <tipo>double precision</tipo>
+        <nulo>NO</nulo>
+        <defecto>0</defecto>
+    </columna>
+    <columna>
+        <nombre>dtopor4</nombre>
+        <tipo>double precision</tipo>
+        <nulo>NO</nulo>
+        <defecto>0</defecto>
+    </columna>
+    <columna>
+        <nombre>dtopor5</nombre>
+        <tipo>double precision</tipo>
+        <nulo>NO</nulo>
+        <defecto>0</defecto>
+    </columna>
    <restriccion>
       <nombre>ca_albaranescli_series2</nombre>
       <consulta>FOREIGN KEY (codserie)

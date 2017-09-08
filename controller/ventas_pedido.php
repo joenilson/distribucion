@@ -180,7 +180,6 @@ class ventas_pedido extends fbase_controller
     private function modificar()
     {
         $this->pedido->observaciones = $_POST['observaciones'];
-        $this->pedido->numero2 = $_POST['numero2'];
 
         /// ¿El pedido es editable o ya ha sido aprobado?
         if ($this->pedido->editable) {
@@ -427,9 +426,11 @@ class ventas_pedido extends fbase_controller
                             " frente a " . $_POST['atotal'] . "). Debes informar del error.");
                 }
             }
+            fs_generar_numero2($this->pedido);
         }
 
         if ($this->pedido->save()) {
+            fs_documento_post_save($this->pedido);
             $this->new_message(ucfirst(FS_PEDIDO) . " modificado correctamente.");
             $this->new_change(ucfirst(FS_PEDIDO) . ' Cliente ' . $this->pedido->codigo, $this->pedido->url());
         } else
@@ -466,7 +467,6 @@ class ventas_pedido extends fbase_controller
         $albaran->provincia = $this->pedido->provincia;
         $albaran->total = $this->pedido->total;
         $albaran->totaliva = $this->pedido->totaliva;
-        $albaran->numero2 = $this->pedido->numero2;
         $albaran->irpf = $this->pedido->irpf;
         $albaran->porcomision = $this->pedido->porcomision;
         $albaran->totalirpf = $this->pedido->totalirpf;
@@ -500,7 +500,7 @@ class ventas_pedido extends fbase_controller
         if ($eje0) {
             $albaran->codejercicio = $eje0->codejercicio;
         }
-
+        fs_generar_numero2($albaran);
         if (!$eje0) {
             $this->new_error_msg("Ejercicio no encontrado.");
         } else if (!$eje0->abierto()) {
@@ -554,7 +554,7 @@ class ventas_pedido extends fbase_controller
 
                 if ($this->pedido->save()) {
                     $this->new_message("<a href='" . $albaran->url() . "'>" . ucfirst(FS_ALBARAN) . '</a> generado correctamente.');
-
+                    fs_documento_post_save($albaran);
                     if ($trazabilidad) {
                         header('Location: index.php?page=ventas_trazabilidad&doc=albaran&id=' . $albaran->idalbaran);
                     } else if (isset($_POST['facturar'])) {

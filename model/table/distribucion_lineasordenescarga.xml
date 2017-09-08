@@ -7,7 +7,7 @@
 <tabla>
     <columna>
         <nombre>cantidad</nombre>
-        <tipo>numeric</tipo>
+        <tipo>double precision</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
@@ -67,7 +67,7 @@
     </columna>
     <restriccion>
         <nombre>ca_linea_ordencarga</nombre>
-        <consulta>FOREIGN KEY (idempresa, codalmacen, idordencarga) 
+        <consulta>FOREIGN KEY (idempresa, codalmacen, idordencarga)
             REFERENCES distribucion_ordenescarga (idempresa, codalmacen, idordencarga) MATCH SIMPLE
             ON UPDATE CASCADE ON DELETE CASCADE
         </consulta>

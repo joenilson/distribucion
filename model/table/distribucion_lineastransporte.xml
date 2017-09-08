@@ -7,12 +7,12 @@
 <tabla>
     <columna>
         <nombre>cantidad</nombre>
-        <tipo>numeric</tipo>
+        <tipo>double precision</tipo>
         <nulo>NO</nulo>
     </columna>
     <columna>
         <nombre>devolucion</nombre>
-        <tipo>numeric</tipo>
+        <tipo>double precision</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
@@ -57,7 +57,7 @@
     </columna>
     <columna>
         <nombre>peso</nombre>
-        <tipo>numeric</tipo>
+        <tipo>double precision</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
