@@ -18,12 +18,13 @@
 require_model('distribucion_rutas.php');
 require_model('distribucion_clientes.php');
 require_model('distribucion_ordenescarga_facturas.php');
+require_once('plugins/facturacion_base/model/core/factura_cliente.php');
 /**
  * Description of distribucion_facturas
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class distribucion_facturas extends factura_cliente {
+class distribucion_facturas extends FacturaScripts\model\factura_cliente {
 
     public function buscar_rutas($idempresa, $fecha, $codalmacen, $rutas){
         //Convertimos la lista de rutas en un array y luego en una cadena

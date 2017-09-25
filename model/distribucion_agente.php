@@ -17,11 +17,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('agente.php');
+require_once('model/core/agente.php');
 /**
 * Agregado para buscar por campos de los agentes por cargo sobre todo
  */
-class distribucion_agente extends agente
+class distribucion_agente extends FacturaScripts\model\agente
 {
    public function get_activos_por($campo, $valores, $tipoagente = 'VENDEDOR')
    {
