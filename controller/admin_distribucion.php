@@ -89,6 +89,8 @@ class admin_distribucion extends distribucion_controller {
 
     private function cargar_tablas()
     {
+        //Cargamos la dirección de clientes por si no está inicializada
+        new direccion_cliente();
         //Cargamos las tablas en el orden correcto
         new distribucion_subcuentas_faltantes();
         new distribucion_coordenadas_clientes();
